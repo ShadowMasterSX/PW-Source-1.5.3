@@ -22,7 +22,7 @@ all: 	gs
 
 gs: $(BASEOBJ) $(GSOBJ) $(SUBDIR) 
 #	$(LD) -fPIC $(BASEOBJ) $(INOBJ) $(GSOBJ) $(SUBOBJ) $(CMLIB) libtask.so $(ALLLIB) -o gs 
-	$(LD) -fPIC $(SUBOBJ) $(GSOBJ) $(INOBJ) $(BASEOBJ) libtask.so $(CMLIB) $(ALLLIB) -o gs 
+	$(LD) -fPIC $(SUBOBJ) $(GSOBJ) $(INOBJ) $(BASEOBJ) libtask.so libskill.so $(CMLIB) $(ALLLIB) -o gs 
 
 test:	$(BASEOBJ) $(GSOBJ) $(SUBDIR) 
 	$(AR) libtgs.a $(BASEOBJ) $(INOBJ) $(GSOBJ) $(SUBOBJ) $(CMLIB) 

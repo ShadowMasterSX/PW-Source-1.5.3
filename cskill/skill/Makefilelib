@@ -10,7 +10,7 @@ include ../mk/gcc.defs.mk
 
 HEADERS = callup.h  playerwrapper.h  range.h  skill.h  skillexpr.h  skillfilter.h  skilllevel.h  skillwrapper.h  targetwrapper.h
 CPPFILES = main.cpp  playerwrapper.cpp  skill.cpp  skillfilter.cpp  skillwrapper.cpp
-STUBOBJS = ../skills/skillstub.o
+STUBOBJS = $(../skills/skill*.o)
 OBJS = skill.o skillwrapper.o playerwrapper.o skillfilter.o 
 OUTEROBJS = ../common/conf.o ../common/thread.o ../common/timer.o ../common/itimer.o ../io/pollio.o 
 INCLUDES += -I../expr -I../header -I../header/include
@@ -28,7 +28,7 @@ CFLAGS += -fPIC
 
 EXES = skill
 
-all : lib
+all : lib dlib
 
 lib : $(OBJS) $(EXPROBJS) $(STUBOBJS)
 	ar crs libskill.a $(OBJS) $(EXPROBJS) $(STUBOBJS)

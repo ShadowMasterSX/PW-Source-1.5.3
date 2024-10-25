@@ -4,7 +4,7 @@
 
 #include "thread.h"
 #include "conf.h"
-#include "pollio.h"
+#include "../io/pollio.h"
 #include "itimer.h"
 #include "conv_charset.h"
 

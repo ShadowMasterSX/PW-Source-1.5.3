@@ -2,7 +2,7 @@ IOPATH=/mnt/c/Users/GUSTAVO/Desktop/pw152src_client-master/pw152src_client-maste
 BASEPATH=/mnt/c/Users/GUSTAVO/Desktop/pw152src_client-master/pw152src_client-master/server/cgame
 
 INC=-I$(BASEPATH)/include -I$(BASEPATH) -I$(IOPATH)/inc -I$(BASEPATH)/libcommon
-IOLIB_OBJ=$(BASEPATH)/libgs/gs/*.o $(BASEPATH)/libgs/io/*.o $(BASEPATH)/libgs/db/*.o $(BASEPATH)/libgs/sk/*.o $(BASEPATH)/libgs/log/*.o 
+IOLIB_OBJ=$(BASEPATH)/libgs/gs/*.o $(BASEPATH)/libgs/io/*.o $(BASEPATH)/libgs/db/*.o $(BASEPATH)/libgs/log/*.o 
 CMLIB=$(BASEPATH)/libcommon.a $(BASEPATH)/libonline.a $(IOLIB_OBJ) $(BASEPATH)/collision/libTrace.a
 DEF = -DLINUX -D_DEBUG  -D__THREAD_SPIN_LOCK__ -DUSE_LOGCLIENT
 #DEF += -D_CHECK_MEM_ALLOC
