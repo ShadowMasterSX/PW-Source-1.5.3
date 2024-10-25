@@ -1,0 +1,41 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+cgame/gs/gs
+cnet/gfaction/gfactiond
+cnet/uniquenamed/uniquenamed
+cnet/gamedbd/gamedbd
+cnet/gdeliveryd/gdeliveryd
+cnet/glinkd/glinkd
+cnet/gacd/gacd
+cnet/logservice/logservice
