@@ -1,0 +1,64 @@
+#ifndef __GNET_MOVEROLECREATERES_RPCDATA
+#define __GNET_MOVEROLECREATERES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class MoveRoleCreateRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		int roleid;
+
+	public:
+		MoveRoleCreateRes (int l_retcode = -1,int l_roleid = -1)
+			: retcode(l_retcode),roleid(l_roleid)
+		{
+		}
+
+		MoveRoleCreateRes(const MoveRoleCreateRes &rhs)
+			: retcode(rhs.retcode),roleid(rhs.roleid) { }
+
+		Rpc::Data *Clone() const { return new MoveRoleCreateRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const MoveRoleCreateRes *r = dynamic_cast<const MoveRoleCreateRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				roleid = r->roleid;
+			}
+			return *this;
+		}
+
+		MoveRoleCreateRes& operator = (const MoveRoleCreateRes &rhs)
+		{
+			const MoveRoleCreateRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				roleid = r->roleid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << roleid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> roleid;
+			return os;
+		}
+
+	};
+};
+#endif

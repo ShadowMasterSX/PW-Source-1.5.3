@@ -1,0 +1,32 @@
+	public:
+		unsigned int factionid;
+		enum { PROTOCOL_TYPE = PROTOCOL_DELFACTIONANNOUNCE };
+	public:
+		DelFactionAnnounce() { type = PROTOCOL_DELFACTIONANNOUNCE; }
+		DelFactionAnnounce(void*) : Protocol(PROTOCOL_DELFACTIONANNOUNCE) { }
+		DelFactionAnnounce (unsigned int l_factionid = 0)
+			 : factionid(l_factionid)
+		{
+			type = PROTOCOL_DELFACTIONANNOUNCE;
+		}
+
+		DelFactionAnnounce(const DelFactionAnnounce &rhs)
+			: Protocol(rhs),factionid(rhs.factionid) { }
+
+		GNET::Protocol *Clone() const { return new DelFactionAnnounce(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << factionid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> factionid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 512; }

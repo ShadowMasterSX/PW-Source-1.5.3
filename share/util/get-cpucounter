@@ -1,0 +1,147 @@
+#!/usr/bin/perl
+
+# get-cpucounter
+# SunZhenyu, 8/26/04
+# sunzhenyu@world2.cn
+
+use strict;
+use FileHandle;
+
+	my $server = "127.0.0.1";
+	my $arguments;
+	$arguments = $ARGV[0] if( @ARGV > 0 );
+	$server = $ARGV[1] if( @ARGV > 1 );
+	#$server =~ s/^-s=//;
+	process( );
+
+sub process
+{
+	my ($TimeLast, $UserLast,$NiceLast,$SystemLast,$IdleLast,
+		$TimeNew, $UserNew,$NiceNew,$SystemNew,$IdleNew) = get_save_counter();
+
+	my $now = time();
+	if( not $UserNew and not $NiceNew and not $SystemNew and not $IdleNew )
+	{
+		($UserNew, $NiceNew, $SystemNew, $IdleNew) = get_new_counter();
+		$TimeNew = $now;
+		save_counter( $TimeLast, $UserLast,$NiceLast,$SystemLast,$IdleLast,
+					$TimeNew, $UserNew,$NiceNew,$SystemNew,$IdleNew );
+	}
+	elsif( $now - $TimeNew > 200 )
+	{
+		($TimeLast, $UserLast, $NiceLast, $SystemLast, $IdleLast)
+			= ($TimeNew, $UserNew, $NiceNew, $SystemNew, $IdleNew);
+		($UserNew, $NiceNew, $SystemNew, $IdleNew) = get_new_counter();
+		$TimeNew = $now;
+		save_counter( $TimeLast, $UserLast,$NiceLast,$SystemLast,$IdleLast,
+					$TimeNew, $UserNew,$NiceNew,$SystemNew,$IdleNew );
+	}
+
+	my ($User, $Nice, $System, $Idle) = (0,0,0,0);
+	if( ($UserLast or $NiceLast or $SystemLast or $IdleLast)
+		and ($UserNew or $NiceNew or $SystemNew or $IdleNew)
+		and ($TimeNew>$TimeLast) )
+	{
+		my $TimeSpan = $TimeNew - $TimeLast;
+		$User = ($UserNew-$UserLast)/$TimeSpan;
+		$Nice = ($NiceNew-$NiceLast)/$TimeSpan;
+		$System = ($SystemNew-$SystemLast)/$TimeSpan;
+		$Idle = ($IdleNew-$IdleLast)/$TimeSpan;
+		my $Total = $User+$Nice+$System+$Idle;
+		if( $Total )
+		{
+			$User = int(1000 * $User / $Total);
+			$Nice = int(1000 * $Nice / $Total);
+			$System = int(1000 * $System / $Total);
+			$Idle = int(1000 * $Idle / $Total);
+		}
+	}
+
+	print "$User\n";
+	print "$Nice\n";
+	print "$System\n";
+	print "$Idle\n";
+}
+
+sub snmpget
+{
+	my ($arguments, $server, $oid) = @_;
+
+	my $cmd;
+	$cmd = "snmpget -Ov $arguments $server $oid";
+	my $result   = qx/$cmd/;
+	return ""	if( not $result );
+	$result =~ s/.+://g;
+	$result =~ s/\s//g;
+	$result =~ s/"//g;
+	return $result;
+}
+
+sub get_new_counter
+{
+	return (0,0,0,0) if( not $server );
+
+	my $oid_ssCpuRawUser   = ".1.3.6.1.4.1.2021.11.50.0";
+	my $oid_ssCpuRawNice   = ".1.3.6.1.4.1.2021.11.51.0";
+	my $oid_ssCpuRawSystem = ".1.3.6.1.4.1.2021.11.52.0";
+	my $oid_ssCpuRawIdle   = ".1.3.6.1.4.1.2021.11.53.0";
+
+	my $oid_cpustatUser    = ".1.3.6.1.4.1.8888.4.1.101.1";
+	my $oid_cpustatNice    = ".1.3.6.1.4.1.8888.4.1.101.2";
+	my $oid_cpustatSystem  = ".1.3.6.1.4.1.8888.4.1.101.3";
+	my $oid_cpustatIdle    = ".1.3.6.1.4.1.8888.4.1.101.4";
+
+	my $User = snmpget($arguments, $server, $oid_cpustatUser);
+	my $Nice = snmpget($arguments, $server, $oid_cpustatNice);
+	my $System = snmpget($arguments, $server, $oid_cpustatSystem);
+	my $Idle = snmpget($arguments, $server, $oid_cpustatIdle);
+
+	$User = snmpget($arguments, $server, $oid_ssCpuRawUser)	if( not $User );
+	$User = 0	if( not $User );
+
+	$Nice = snmpget($arguments, $server, $oid_ssCpuRawNice) if( not $Nice );
+	$Nice = 0	if( not $Nice );
+
+	$System = snmpget($arguments, $server, $oid_ssCpuRawSystem) if( not $System );
+	$System = 0	if( not $System );
+
+	$Idle = snmpget($arguments, $server, $oid_ssCpuRawIdle) if( not $Idle );
+	$Idle = 0	if( not $Idle );
+
+	return ($User, $Nice, $System, $Idle);
+}
+
+sub get_save_counter
+{
+	my $home = $ENV{HOME};
+
+	my @values;
+	my $file = new FileHandle;
+	if( $file->open( "< $home/tmp/cpuraw.$server" ) )
+	{
+		my $line = $file->getline();
+		@values = $line =~ /:(.*):(.*):(.*):(.*):(.*):(.*):(.*):(.*):(.*):(.*):/g;
+		$file->close();
+	}
+	return @values;
+}
+
+sub save_counter
+{
+	my $home = $ENV{HOME};
+	mkdir("$home/tmp") if( not -f "$home/tmp" );
+
+	my $file = new FileHandle;
+	if( $file->open( "> $home/tmp/cpuraw.$server" ) )
+	{
+		$file->print( ':' );
+		my $i;
+		for( $i=0; $i<10; $i ++ )
+		{
+			$_[$i] = 0 if( not $_[$i] );
+			$file->print( $_[$i] . ':' );
+		}
+		$file->close();
+	}
+}
+

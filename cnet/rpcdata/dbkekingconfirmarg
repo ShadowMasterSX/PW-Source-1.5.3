@@ -1,0 +1,60 @@
+#ifndef __GNET_DBKEKINGCONFIRMARG_RPCDATA
+#define __GNET_DBKEKINGCONFIRMARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "keking"
+
+namespace GNET
+{
+	class DBKEKingConfirmArg : public GNET::Rpc::Data
+	{
+	public:
+		KEKing king;
+
+	public:
+		DBKEKingConfirmArg (const KEKing& l_king = KEKing())
+			: king(l_king)
+		{
+		}
+
+		DBKEKingConfirmArg(const DBKEKingConfirmArg &rhs)
+			: king(rhs.king) { }
+
+		Rpc::Data *Clone() const { return new DBKEKingConfirmArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBKEKingConfirmArg *r = dynamic_cast<const DBKEKingConfirmArg *>(&rhs);
+			if (r && r != this)
+			{
+				king = r->king;
+			}
+			return *this;
+		}
+
+		DBKEKingConfirmArg& operator = (const DBKEKingConfirmArg &rhs)
+		{
+			const DBKEKingConfirmArg *r = &rhs;
+			if (r && r != this)
+			{
+				king = r->king;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << king;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> king;
+			return os;
+		}
+
+	};
+};
+#endif

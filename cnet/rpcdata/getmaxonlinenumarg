@@ -1,0 +1,58 @@
+#ifndef __GNET_GETMAXONLINENUMARG_RPCDATA
+#define __GNET_GETMAXONLINENUMARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GetMaxOnlineNumArg : public GNET::Rpc::Data
+	{
+	public:
+		int padding;
+
+	public:
+		GetMaxOnlineNumArg ()
+		{
+		}
+
+		GetMaxOnlineNumArg(const GetMaxOnlineNumArg &rhs)
+			: padding(rhs.padding) { }
+
+		Rpc::Data *Clone() const { return new GetMaxOnlineNumArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GetMaxOnlineNumArg *r = dynamic_cast<const GetMaxOnlineNumArg *>(&rhs);
+			if (r && r != this)
+			{
+				padding = r->padding;
+			}
+			return *this;
+		}
+
+		GetMaxOnlineNumArg& operator = (const GetMaxOnlineNumArg &rhs)
+		{
+			const GetMaxOnlineNumArg *r = &rhs;
+			if (r && r != this)
+			{
+				padding = r->padding;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << padding;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> padding;
+			return os;
+		}
+
+	};
+};
+#endif

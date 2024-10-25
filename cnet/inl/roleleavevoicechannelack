@@ -1,0 +1,47 @@
+	public:
+		int64_t userid;
+		int64_t roleid;
+		int zoneid;
+		int64_t seq;
+		int64_t timestamp;
+		enum { PROTOCOL_TYPE = PROTOCOL_ROLELEAVEVOICECHANNELACK };
+	public:
+		RoleLeaveVoiceChannelAck() { type = PROTOCOL_ROLELEAVEVOICECHANNELACK; }
+		RoleLeaveVoiceChannelAck(void*) : Protocol(PROTOCOL_ROLELEAVEVOICECHANNELACK) { }
+		RoleLeaveVoiceChannelAck (int64_t l_userid,int64_t l_roleid,int l_zoneid,
+			int64_t l_seq,int64_t l_timestamp)
+			 : userid(l_userid),roleid(l_roleid),zoneid(l_zoneid)
+			,seq(l_seq),timestamp(l_timestamp)
+		{
+			type = PROTOCOL_ROLELEAVEVOICECHANNELACK;
+		}
+
+		RoleLeaveVoiceChannelAck(const RoleLeaveVoiceChannelAck &rhs)
+			: Protocol(rhs),userid(rhs.userid),roleid(rhs.roleid),zoneid(rhs.zoneid)
+			,seq(rhs.seq),timestamp(rhs.timestamp) { }
+
+		GNET::Protocol *Clone() const { return new RoleLeaveVoiceChannelAck(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			os << roleid;
+			os << zoneid;
+			os << seq;
+			os << timestamp;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			os >> roleid;
+			os >> zoneid;
+			os >> seq;
+			os >> timestamp;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 101; }
+
+		bool SizePolicy(size_t size) const { return size <= 2048; }

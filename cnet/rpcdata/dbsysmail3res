@@ -1,0 +1,69 @@
+#ifndef __GNET_DBSYSMAIL3RES_RPCDATA
+#define __GNET_DBSYSMAIL3RES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBSysMail3Res : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		unsigned char mail_id;
+		int64_t roleid;
+
+	public:
+		DBSysMail3Res (int l_retcode = 0,unsigned char l_mail_id = 0,int64_t l_roleid = 0)
+			: retcode(l_retcode),mail_id(l_mail_id),roleid(l_roleid)
+		{
+		}
+
+		DBSysMail3Res(const DBSysMail3Res &rhs)
+			: retcode(rhs.retcode),mail_id(rhs.mail_id),roleid(rhs.roleid) { }
+
+		Rpc::Data *Clone() const { return new DBSysMail3Res(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBSysMail3Res *r = dynamic_cast<const DBSysMail3Res *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				mail_id = r->mail_id;
+				roleid = r->roleid;
+			}
+			return *this;
+		}
+
+		DBSysMail3Res& operator = (const DBSysMail3Res &rhs)
+		{
+			const DBSysMail3Res *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				mail_id = r->mail_id;
+				roleid = r->roleid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << mail_id;
+			os << roleid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> mail_id;
+			os >> roleid;
+			return os;
+		}
+
+	};
+};
+#endif

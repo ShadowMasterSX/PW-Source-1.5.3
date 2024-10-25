@@ -1,0 +1,65 @@
+#ifndef __GNET_ROLEPOCKETPAIR_RPCDATA
+#define __GNET_ROLEPOCKETPAIR_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "roleid"
+#include "grolepocket"
+
+namespace GNET
+{
+	class RolePocketPair : public GNET::Rpc::Data
+	{
+	public:
+		RoleId key;
+		GRolePocket value;
+
+	public:
+		RolePocketPair ()
+		{
+		}
+
+		RolePocketPair(const RolePocketPair &rhs)
+			: key(rhs.key),value(rhs.value) { }
+
+		Rpc::Data *Clone() const { return new RolePocketPair(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const RolePocketPair *r = dynamic_cast<const RolePocketPair *>(&rhs);
+			if (r && r != this)
+			{
+				key = r->key;
+				value = r->value;
+			}
+			return *this;
+		}
+
+		RolePocketPair& operator = (const RolePocketPair &rhs)
+		{
+			const RolePocketPair *r = &rhs;
+			if (r && r != this)
+			{
+				key = r->key;
+				value = r->value;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << key;
+			os << value;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> key;
+			os >> value;
+			return os;
+		}
+
+	};
+};
+#endif

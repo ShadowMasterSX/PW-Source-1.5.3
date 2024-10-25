@@ -1,0 +1,49 @@
+
+<project name="io" default="dist">
+
+<property name="src" value="./src"/>
+<property name="build" value="./build"/>
+<property name="docs" value="./docs"/>
+
+<!--
+<path id="app.classpath">
+    <fileset dir="lib"><include name="*.jar"/></fileset>
+</path>
+-->
+<target name="init">
+	<mkdir dir="${build}" />
+</target>
+
+<target name="compile" depends="init">
+	<javac classpath="./cache.jar:./jio.jar" srcdir="${src}" destdir="${build}" encoding="GBK" />
+	<!-- javadoc destdir="${docs}" encoding="GBK" >
+		<fileset dir="${src}" />
+	</javadoc -->
+</target>
+
+<target name="dist" depends="compile">
+	<!--copy file="./lib/commons-collections-3.1.jar" todir="${build}"/-->
+	<!--copy file="./lib/commons-dbcp-1.2.1.jar" todir="${build}"/-->
+	<!--copy file="./lib/commons-pool-1.2.jar" todir="${build}"/-->
+	<jar jarfile="wanmeiaudb.jar" basedir="${build}" manifest="${src}/MANIFEST.MF"/>
+	<!--delete dir="${build}" /-->
+</target>
+
+<target name="finance" depends="compile">
+	<!--copy file="./lib/commons-collections-3.1.jar" todir="${build}"/-->
+	<!--copy file="./lib/commons-dbcp-1.2.1.jar" todir="${build}"/-->
+	<!--copy file="./lib/commons-pool-1.2.jar" todir="${build}"/-->
+	<jar jarfile="financeaudb.jar" basedir="${build}" manifest="${src}/MANIFEST.MF"/>
+	<!--delete dir="${build}" /-->
+</target>
+
+<target name="clean">
+	<delete dir="${build}" />
+	<delete dir="${src}/beans" />
+	<delete dir="${src}/codes" />
+	<delete dir="${src}/finance" />
+	<delete dir="${docs}" />
+</target>
+
+</project>
+

@@ -1,0 +1,1 @@
+../../cnet/gamed/privilege.hxx

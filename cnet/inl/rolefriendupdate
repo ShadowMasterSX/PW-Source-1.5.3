@@ -1,0 +1,47 @@
+	public:
+		int64_t roleid;
+		RoleBean rolefriend;
+		int gtype;
+		int64_t groupid;
+		char operation;
+		enum { PROTOCOL_TYPE = PROTOCOL_ROLEFRIENDUPDATE };
+	public:
+		RoleFriendUpdate() { type = PROTOCOL_ROLEFRIENDUPDATE; }
+		RoleFriendUpdate(void*) : Protocol(PROTOCOL_ROLEFRIENDUPDATE) { }
+		RoleFriendUpdate (int64_t l_roleid,const RoleBean& l_rolefriend,int l_gtype,
+			int64_t l_groupid,char l_operation)
+			 : roleid(l_roleid),rolefriend(l_rolefriend),gtype(l_gtype)
+			,groupid(l_groupid),operation(l_operation)
+		{
+			type = PROTOCOL_ROLEFRIENDUPDATE;
+		}
+
+		RoleFriendUpdate(const RoleFriendUpdate &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),rolefriend(rhs.rolefriend),gtype(rhs.gtype)
+			,groupid(rhs.groupid),operation(rhs.operation) { }
+
+		GNET::Protocol *Clone() const { return new RoleFriendUpdate(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << rolefriend;
+			os << gtype;
+			os << groupid;
+			os << operation;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> rolefriend;
+			os >> gtype;
+			os >> groupid;
+			os >> operation;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1024; }

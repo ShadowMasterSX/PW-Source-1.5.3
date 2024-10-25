@@ -1,0 +1,343 @@
+#ifndef __GNET_GROLESTATUS_RPCDATA
+#define __GNET_GROLESTATUS_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GRoleStatus : public GNET::Rpc::Data
+	{
+	public:
+		char version;
+		int level;
+		int level2;
+		int exp;
+		int sp;
+		int pp;
+		int hp;
+		int mp;
+		float posx;
+		float posy;
+		float posz;
+		int worldtag;
+		int invader_state;
+		int invader_time;
+		int pariah_time;
+		int reputation;
+		Octets custom_status;
+		Octets filter_data;
+		Octets charactermode;
+		Octets instancekeylist;
+		int dbltime_expire;
+		int dbltime_mode;
+		int dbltime_begin;
+		int dbltime_used;
+		int dbltime_max;
+		int time_used;
+		Octets dbltime_data;
+		unsigned short storesize;
+		Octets petcorral;
+		Octets property;
+		Octets var_data;
+		Octets skills;
+		Octets storehousepasswd;
+		Octets waypointlist;
+		Octets coolingtime;
+		Octets npc_relation;
+		Octets multi_exp_ctrl;
+		Octets storage_task;
+		Octets faction_contrib;
+		Octets force_data;
+		Octets online_award;
+		Octets profit_time_data;
+		Octets country_data;
+		Octets king_data;
+		Octets meridian_data;
+		Octets extraprop;
+		Octets title_data;
+		Octets reincarnation_data;
+		Octets realm_data;
+		char reserved2;
+		char reserved3;
+
+	public:
+		GRoleStatus (char l_version = 1,int l_level = 0,int l_level2 = 0
+			,int l_exp = 0,int l_sp = 0,int l_pp = 0
+			,int l_hp = 0,int l_mp = 0,float l_posx = 0
+			,float l_posy = 0,float l_posz = 0,int l_worldtag = 0
+			,int l_invader_state = 0,int l_invader_time = 0,int l_pariah_time = 0
+			,int l_reputation = 0,int l_dbltime_expire = 0,int l_dbltime_mode = 0
+			,int l_dbltime_begin = 0,int l_dbltime_used = 0,int l_dbltime_max = 0
+			,int l_time_used = 0,const Octets& l_extraprop = Octets(0),const Octets& l_title_data = Octets(0)
+			,const Octets& l_reincarnation_data = Octets(0),const Octets& l_realm_data = Octets(0),char l_reserved2 = 0
+			,char l_reserved3 = 0)
+			: version(l_version),level(l_level),level2(l_level2)
+			,exp(l_exp),sp(l_sp),pp(l_pp)
+			,hp(l_hp),mp(l_mp),posx(l_posx)
+			,posy(l_posy),posz(l_posz),worldtag(l_worldtag)
+			,invader_state(l_invader_state),invader_time(l_invader_time),pariah_time(l_pariah_time)
+			,reputation(l_reputation),dbltime_expire(l_dbltime_expire),dbltime_mode(l_dbltime_mode)
+			,dbltime_begin(l_dbltime_begin),dbltime_used(l_dbltime_used),dbltime_max(l_dbltime_max)
+			,time_used(l_time_used),extraprop(l_extraprop),title_data(l_title_data)
+			,reincarnation_data(l_reincarnation_data),realm_data(l_realm_data),reserved2(l_reserved2)
+			,reserved3(l_reserved3)
+		{
+		}
+
+		GRoleStatus(const GRoleStatus &rhs)
+			: version(rhs.version),level(rhs.level),level2(rhs.level2),
+			exp(rhs.exp),sp(rhs.sp),pp(rhs.pp),
+			hp(rhs.hp),mp(rhs.mp),posx(rhs.posx),
+			posy(rhs.posy),posz(rhs.posz),worldtag(rhs.worldtag),
+			invader_state(rhs.invader_state),invader_time(rhs.invader_time),pariah_time(rhs.pariah_time),
+			reputation(rhs.reputation),custom_status(rhs.custom_status),filter_data(rhs.filter_data),
+			charactermode(rhs.charactermode),instancekeylist(rhs.instancekeylist),dbltime_expire(rhs.dbltime_expire),
+			dbltime_mode(rhs.dbltime_mode),dbltime_begin(rhs.dbltime_begin),dbltime_used(rhs.dbltime_used),
+			dbltime_max(rhs.dbltime_max),time_used(rhs.time_used),dbltime_data(rhs.dbltime_data),
+			storesize(rhs.storesize),petcorral(rhs.petcorral),property(rhs.property),
+			var_data(rhs.var_data),skills(rhs.skills),storehousepasswd(rhs.storehousepasswd),
+			waypointlist(rhs.waypointlist),coolingtime(rhs.coolingtime),npc_relation(rhs.npc_relation),
+			multi_exp_ctrl(rhs.multi_exp_ctrl),storage_task(rhs.storage_task),faction_contrib(rhs.faction_contrib),
+			force_data(rhs.force_data),online_award(rhs.online_award),profit_time_data(rhs.profit_time_data),
+			country_data(rhs.country_data),king_data(rhs.king_data),meridian_data(rhs.meridian_data),
+			extraprop(rhs.extraprop),title_data(rhs.title_data),reincarnation_data(rhs.reincarnation_data),
+			realm_data(rhs.realm_data),reserved2(rhs.reserved2),reserved3(rhs.reserved3) { }
+
+		Rpc::Data *Clone() const { return new GRoleStatus(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GRoleStatus *r = dynamic_cast<const GRoleStatus *>(&rhs);
+			if (r && r != this)
+			{
+				version = r->version;
+				level = r->level;
+				level2 = r->level2;
+				exp = r->exp;
+				sp = r->sp;
+				pp = r->pp;
+				hp = r->hp;
+				mp = r->mp;
+				posx = r->posx;
+				posy = r->posy;
+				posz = r->posz;
+				worldtag = r->worldtag;
+				invader_state = r->invader_state;
+				invader_time = r->invader_time;
+				pariah_time = r->pariah_time;
+				reputation = r->reputation;
+				custom_status = r->custom_status;
+				filter_data = r->filter_data;
+				charactermode = r->charactermode;
+				instancekeylist = r->instancekeylist;
+				dbltime_expire = r->dbltime_expire;
+				dbltime_mode = r->dbltime_mode;
+				dbltime_begin = r->dbltime_begin;
+				dbltime_used = r->dbltime_used;
+				dbltime_max = r->dbltime_max;
+				time_used = r->time_used;
+				dbltime_data = r->dbltime_data;
+				storesize = r->storesize;
+				petcorral = r->petcorral;
+				property = r->property;
+				var_data = r->var_data;
+				skills = r->skills;
+				storehousepasswd = r->storehousepasswd;
+				waypointlist = r->waypointlist;
+				coolingtime = r->coolingtime;
+				npc_relation = r->npc_relation;
+				multi_exp_ctrl = r->multi_exp_ctrl;
+				storage_task = r->storage_task;
+				faction_contrib = r->faction_contrib;
+				force_data = r->force_data;
+				online_award = r->online_award;
+				profit_time_data = r->profit_time_data;
+				country_data = r->country_data;
+				king_data = r->king_data;
+				meridian_data = r->meridian_data;
+				extraprop = r->extraprop;
+				title_data = r->title_data;
+				reincarnation_data = r->reincarnation_data;
+				realm_data = r->realm_data;
+				reserved2 = r->reserved2;
+				reserved3 = r->reserved3;
+			}
+			return *this;
+		}
+
+		GRoleStatus& operator = (const GRoleStatus &rhs)
+		{
+			const GRoleStatus *r = &rhs;
+			if (r && r != this)
+			{
+				version = r->version;
+				level = r->level;
+				level2 = r->level2;
+				exp = r->exp;
+				sp = r->sp;
+				pp = r->pp;
+				hp = r->hp;
+				mp = r->mp;
+				posx = r->posx;
+				posy = r->posy;
+				posz = r->posz;
+				worldtag = r->worldtag;
+				invader_state = r->invader_state;
+				invader_time = r->invader_time;
+				pariah_time = r->pariah_time;
+				reputation = r->reputation;
+				custom_status = r->custom_status;
+				filter_data = r->filter_data;
+				charactermode = r->charactermode;
+				instancekeylist = r->instancekeylist;
+				dbltime_expire = r->dbltime_expire;
+				dbltime_mode = r->dbltime_mode;
+				dbltime_begin = r->dbltime_begin;
+				dbltime_used = r->dbltime_used;
+				dbltime_max = r->dbltime_max;
+				time_used = r->time_used;
+				dbltime_data = r->dbltime_data;
+				storesize = r->storesize;
+				petcorral = r->petcorral;
+				property = r->property;
+				var_data = r->var_data;
+				skills = r->skills;
+				storehousepasswd = r->storehousepasswd;
+				waypointlist = r->waypointlist;
+				coolingtime = r->coolingtime;
+				npc_relation = r->npc_relation;
+				multi_exp_ctrl = r->multi_exp_ctrl;
+				storage_task = r->storage_task;
+				faction_contrib = r->faction_contrib;
+				force_data = r->force_data;
+				online_award = r->online_award;
+				profit_time_data = r->profit_time_data;
+				country_data = r->country_data;
+				king_data = r->king_data;
+				meridian_data = r->meridian_data;
+				extraprop = r->extraprop;
+				title_data = r->title_data;
+				reincarnation_data = r->reincarnation_data;
+				realm_data = r->realm_data;
+				reserved2 = r->reserved2;
+				reserved3 = r->reserved3;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << version;
+			os << level;
+			os << level2;
+			os << exp;
+			os << sp;
+			os << pp;
+			os << hp;
+			os << mp;
+			os << posx;
+			os << posy;
+			os << posz;
+			os << worldtag;
+			os << invader_state;
+			os << invader_time;
+			os << pariah_time;
+			os << reputation;
+			os << custom_status;
+			os << filter_data;
+			os << charactermode;
+			os << instancekeylist;
+			os << dbltime_expire;
+			os << dbltime_mode;
+			os << dbltime_begin;
+			os << dbltime_used;
+			os << dbltime_max;
+			os << time_used;
+			os << dbltime_data;
+			os << storesize;
+			os << petcorral;
+			os << property;
+			os << var_data;
+			os << skills;
+			os << storehousepasswd;
+			os << waypointlist;
+			os << coolingtime;
+			os << npc_relation;
+			os << multi_exp_ctrl;
+			os << storage_task;
+			os << faction_contrib;
+			os << force_data;
+			os << online_award;
+			os << profit_time_data;
+			os << country_data;
+			os << king_data;
+			os << meridian_data;
+			os << extraprop;
+			os << title_data;
+			os << reincarnation_data;
+			os << realm_data;
+			os << reserved2;
+			os << reserved3;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> version;
+			os >> level;
+			os >> level2;
+			os >> exp;
+			os >> sp;
+			os >> pp;
+			os >> hp;
+			os >> mp;
+			os >> posx;
+			os >> posy;
+			os >> posz;
+			os >> worldtag;
+			os >> invader_state;
+			os >> invader_time;
+			os >> pariah_time;
+			os >> reputation;
+			os >> custom_status;
+			os >> filter_data;
+			os >> charactermode;
+			os >> instancekeylist;
+			os >> dbltime_expire;
+			os >> dbltime_mode;
+			os >> dbltime_begin;
+			os >> dbltime_used;
+			os >> dbltime_max;
+			os >> time_used;
+			os >> dbltime_data;
+			os >> storesize;
+			os >> petcorral;
+			os >> property;
+			os >> var_data;
+			os >> skills;
+			os >> storehousepasswd;
+			os >> waypointlist;
+			os >> coolingtime;
+			os >> npc_relation;
+			os >> multi_exp_ctrl;
+			os >> storage_task;
+			os >> faction_contrib;
+			os >> force_data;
+			os >> online_award;
+			os >> profit_time_data;
+			os >> country_data;
+			os >> king_data;
+			os >> meridian_data;
+			os >> extraprop;
+			os >> title_data;
+			os >> reincarnation_data;
+			os >> realm_data;
+			os >> reserved2;
+			os >> reserved3;
+			return os;
+		}
+
+	};
+};
+#endif

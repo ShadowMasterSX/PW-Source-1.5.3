@@ -1,0 +1,59 @@
+#ifndef __GNET_PUTTASKDATARES_RPCDATA
+#define __GNET_PUTTASKDATARES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class PutTaskDataRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+
+	public:
+		PutTaskDataRes (int l_retcode = -1)
+			: retcode(l_retcode)
+		{
+		}
+
+		PutTaskDataRes(const PutTaskDataRes &rhs)
+			: retcode(rhs.retcode) { }
+
+		Rpc::Data *Clone() const { return new PutTaskDataRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const PutTaskDataRes *r = dynamic_cast<const PutTaskDataRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		PutTaskDataRes& operator = (const PutTaskDataRes &rhs)
+		{
+			const PutTaskDataRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			return os;
+		}
+
+	};
+};
+#endif

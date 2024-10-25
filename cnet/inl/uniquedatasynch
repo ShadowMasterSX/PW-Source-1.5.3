@@ -1,0 +1,35 @@
+	public:
+		char finish;
+		GUniqueDataElemNodeVector values;
+		enum { PROTOCOL_TYPE = PROTOCOL_UNIQUEDATASYNCH };
+	public:
+		UniqueDataSynch() { type = PROTOCOL_UNIQUEDATASYNCH; }
+		UniqueDataSynch(void*) : Protocol(PROTOCOL_UNIQUEDATASYNCH) { }
+		UniqueDataSynch (char l_finish,const GUniqueDataElemNodeVector& l_values = GUniqueDataElemNodeVector())
+			 : finish(l_finish),values(l_values)
+		{
+			type = PROTOCOL_UNIQUEDATASYNCH;
+		}
+
+		UniqueDataSynch(const UniqueDataSynch &rhs)
+			: Protocol(rhs),finish(rhs.finish),values(rhs.values) { }
+
+		GNET::Protocol *Clone() const { return new UniqueDataSynch(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << finish;
+			os << values;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> finish;
+			os >> values;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 101; }
+
+		bool SizePolicy(size_t size) const { return size <= 262144; }

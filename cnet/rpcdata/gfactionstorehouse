@@ -1,0 +1,71 @@
+#ifndef __GNET_GFACTIONSTOREHOUSE_RPCDATA
+#define __GNET_GFACTIONSTOREHOUSE_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "groleinventory"
+#include "gfactionlog"
+
+namespace GNET
+{
+	class GFactionStorehouse : public GNET::Rpc::Data
+	{
+	public:
+		long long money;
+		GRoleInventoryVector items;
+		GFactionLogVector log;
+
+	public:
+		GFactionStorehouse (long long l_money = 0)
+			: money(l_money)
+		{
+		}
+
+		GFactionStorehouse(const GFactionStorehouse &rhs)
+			: money(rhs.money),items(rhs.items),log(rhs.log) { }
+
+		Rpc::Data *Clone() const { return new GFactionStorehouse(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GFactionStorehouse *r = dynamic_cast<const GFactionStorehouse *>(&rhs);
+			if (r && r != this)
+			{
+				money = r->money;
+				items = r->items;
+				log = r->log;
+			}
+			return *this;
+		}
+
+		GFactionStorehouse& operator = (const GFactionStorehouse &rhs)
+		{
+			const GFactionStorehouse *r = &rhs;
+			if (r && r != this)
+			{
+				money = r->money;
+				items = r->items;
+				log = r->log;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << money;
+			os << items;
+			os << log;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> money;
+			os >> items;
+			os >> log;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,38 @@
+	public:
+		int taskid;
+		int playerid;
+		Octets env;
+		enum { PROTOCOL_TYPE = PROTOCOL_GETTASKDATA };
+	public:
+		GetTaskData() { type = PROTOCOL_GETTASKDATA; }
+		GetTaskData(void*) : Protocol(PROTOCOL_GETTASKDATA) { }
+		GetTaskData (int l_taskid,int l_playerid,Octets l_env)
+			 : taskid(l_taskid),playerid(l_playerid),env(l_env)
+		{
+			type = PROTOCOL_GETTASKDATA;
+		}
+
+		GetTaskData(const GetTaskData &rhs)
+			: Protocol(rhs),taskid(rhs.taskid),playerid(rhs.playerid),env(rhs.env) { }
+
+		GNET::Protocol *Clone() const { return new GetTaskData(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << taskid;
+			os << playerid;
+			os << env;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> taskid;
+			os >> playerid;
+			os >> env;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 8192; }

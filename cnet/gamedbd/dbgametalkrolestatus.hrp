@@ -1,0 +1,78 @@
+
+#ifndef __GNET_DBGAMETALKROLESTATUS_HPP
+#define __GNET_DBGAMETALKROLESTATUS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbgametalkrolestatusarg"
+#include "dbgametalkrolestatusres"
+#include "gametalkdefs.h"
+
+namespace GNET
+{
+
+class DBGameTalkRoleStatus : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbgametalkrolestatus"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBGameTalkRoleStatusArg *arg = (DBGameTalkRoleStatusArg *)argument;
+		DBGameTalkRoleStatusRes *res = (DBGameTalkRoleStatusRes *)result;
+
+		LOG_TRACE("dbgametalkrolestatus, roleid=%d.\n", arg->roleid);
+		try {
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::AtomTransaction txn;
+			try {
+				GRoleBase base;
+				Marshal::OctetsStream sbase;
+
+				if(pbase->find(Marshal::OctetsStream() << RoleId((unsigned int)arg->roleid), sbase, txn)) {
+					sbase >> base;
+					if(base.status == _ROLE_STATUS_READYDEL) {
+						res->status = GT_ROLE_READYDEL;
+					} else if(base.status == _ROLE_STATUS_MUSTDEL) {
+						res->status = GT_ROLE_NON_EXIST;
+						res->userid = base.userid;
+					} else {
+						res->status = GT_ROLE_NORMAL;
+					}
+				} else {
+					res->status = GT_ROLE_NON_EXIST;
+				}
+			}
+			catch (DbException e) { throw; }
+			catch (...) {
+				DbException ee(DB_OLD_VERSION);
+				txn.abort(ee);
+				throw ee;
+			}
+		}
+		catch (DbException e)
+		{
+			Log::log(LOG_ERR, "DBGameTalkRoleBase, roleid=%d, what=%s\n", arg->roleid, e.what());
+			res->status = -1;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBGameTalkRoleStatusArg *arg = (DBGameTalkRoleStatusArg *)argument;
+		// DBGameTalkRoleStatusRes *res = (DBGameTalkRoleStatusRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

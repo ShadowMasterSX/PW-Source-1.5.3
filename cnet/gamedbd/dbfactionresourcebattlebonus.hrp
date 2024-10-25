@@ -1,0 +1,81 @@
+
+#ifndef __GNET_DBFACTIONRESOURCEBATTLEBONUS_HPP
+#define __GNET_DBFACTIONRESOURCEBATTLEBONUS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbfactionresourcebattlebonusarg"
+#include "dbfactionresourcebattlebonusres"
+
+namespace GNET
+{
+
+class DBFactionResourceBattleBonus : public Rpc
+{
+#define RPC_BASECLASS   Rpc
+    #include "dbfactionresourcebattlebonus"
+#undef  RPC_BASECLASS
+
+    void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+    {
+        DBFactionResourceBattleBonusArg *arg = (DBFactionResourceBattleBonusArg *)argument;
+        DBFactionResourceBattleBonusRes *res = (DBFactionResourceBattleBonusRes *)result;
+
+        Marshal::OctetsStream key, value;
+        
+        try {
+            StorageEnv::Storage * pmailbox = StorageEnv::GetStorage("mailbox");
+            StorageEnv::CommonTransaction txn;
+            
+            try {
+                Log::formatlog("factionresourcebattlebonus","roleid=%d:money=%d:itemid=%d:count=%d", arg->roleid, arg->money, arg->item.id, arg->item.count);
+                
+                res->inform_player.receiver  = arg->roleid;
+                res->inform_player.sndr_type = _MST_FACTIONRESOURCEBATTLE;
+
+                if (arg->item.count > 0) {
+                    res->inform_player.sender = FACTIONRESOURCEBATTLE_BONUS;
+                } else {
+                    res->inform_player.sender = FACTIONRESOURCEBATTLE_NO_BONUS;
+                }
+                
+                MailSender::Send(pmailbox, res->inform_player, arg->item, arg->money, txn);
+                res->retcode = ERR_SUCCESS;
+            } catch ( DbException e ) { 
+                throw; 
+            } catch ( ... ) {
+                DbException e( DB_OLD_VERSION );
+                txn.abort( e );
+                throw e;
+            }
+        } catch ( DbException e ) {
+            Log::log( LOG_ERR, "DBCountryBattleBonus, roleid=%d, money=%d, what=%s\n", arg->roleid, arg->money, e.what() );
+            
+            res->inform_player.receiver  = _ROLE_INVALID;
+            
+            if (e.get_errno() == DB_LOCK_DEADLOCK) {
+                res->retcode = ERR_AGAIN;
+            } else {
+                res->retcode = ERR_EXCEPTION;
+            }
+        }
+    }
+
+    void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+    {
+        // TODO
+        // DBFactionResourceBattleBonusArg *arg = (DBFactionResourceBattleBonusArg *)argument;
+        // DBFactionResourceBattleBonusRes *res = (DBFactionResourceBattleBonusRes *)result;
+    }
+
+    void OnTimeout()
+    {
+        // TODO Client Only
+    }
+
+};
+
+};
+#endif

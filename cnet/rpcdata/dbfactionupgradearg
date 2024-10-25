@@ -1,0 +1,77 @@
+#ifndef __GNET_DBFACTIONUPGRADEARG_RPCDATA
+#define __GNET_DBFACTIONUPGRADEARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBFactionUpgradeArg : public GNET::Rpc::Data
+	{
+	public:
+		unsigned int fid;
+		int roleid;
+		unsigned int money;
+		char level;
+
+	public:
+		DBFactionUpgradeArg (unsigned int l_fid = 0,int l_roleid = 0,unsigned int l_money = 0
+			,char l_level = 0)
+			: fid(l_fid),roleid(l_roleid),money(l_money)
+			,level(l_level)
+		{
+		}
+
+		DBFactionUpgradeArg(const DBFactionUpgradeArg &rhs)
+			: fid(rhs.fid),roleid(rhs.roleid),money(rhs.money),
+			level(rhs.level) { }
+
+		Rpc::Data *Clone() const { return new DBFactionUpgradeArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBFactionUpgradeArg *r = dynamic_cast<const DBFactionUpgradeArg *>(&rhs);
+			if (r && r != this)
+			{
+				fid = r->fid;
+				roleid = r->roleid;
+				money = r->money;
+				level = r->level;
+			}
+			return *this;
+		}
+
+		DBFactionUpgradeArg& operator = (const DBFactionUpgradeArg &rhs)
+		{
+			const DBFactionUpgradeArg *r = &rhs;
+			if (r && r != this)
+			{
+				fid = r->fid;
+				roleid = r->roleid;
+				money = r->money;
+				level = r->level;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << fid;
+			os << roleid;
+			os << money;
+			os << level;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> fid;
+			os >> roleid;
+			os >> money;
+			os >> level;
+			return os;
+		}
+
+	};
+};
+#endif

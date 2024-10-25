@@ -1,0 +1,86 @@
+
+#ifndef __GNET_UPDATEFACTION_HPP
+#define __GNET_UPDATEFACTION_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "updatefactionarg"
+#include "deffactionres"
+
+namespace GNET
+{
+
+class UpdateFaction : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "updatefaction"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		UpdateFactionArg *arg = (UpdateFactionArg *)argument;
+		DefFactionRes *res = (DefFactionRes *)result;
+
+		Marshal::OctetsStream key;
+
+		LOG_TRACE( "UpdateFaction, fid=%d announce=%d.\n", arg->fid,arg->announce.size());
+		try
+		{
+			GFactionInfo info;
+			StorageEnv::Storage * pinfo = StorageEnv::GetStorage("factioninfo");
+			StorageEnv::CommonTransaction txn;
+			try{
+				if(arg->fid==0)
+				{
+					res->retcode = ERR_FC_DBFAILURE;
+					return;
+				}
+				key << arg->fid;
+				Marshal::OctetsStream(pinfo->find(key, txn)) >> info;
+				if(arg->type==1)
+				{
+					info.level++;
+					if(info.level>1)
+					{
+						res->retcode = ERR_FC_DATAERROR;
+						return;
+					}
+				}
+				else
+					info.announce = arg->announce;
+				pinfo->insert(key, Marshal::OctetsStream()<<info, txn);
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "UpdateFaction, fid=%d, what=%s\n", arg->fid, e.what() );
+			res->retcode = -1;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// UpdateFactionArg *arg = (UpdateFactionArg *)argument;
+		// DefFactionRes *res = (DefFactionRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

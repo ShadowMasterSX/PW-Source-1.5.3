@@ -1,0 +1,35 @@
+	public:
+		int maxnum;
+		int fake_maxnum;
+		enum { PROTOCOL_TYPE = PROTOCOL_SETMAXONLINENUM };
+	public:
+		SetMaxOnlineNum() { type = PROTOCOL_SETMAXONLINENUM; }
+		SetMaxOnlineNum(void*) : Protocol(PROTOCOL_SETMAXONLINENUM) { }
+		SetMaxOnlineNum (int l_maxnum,int l_fake_maxnum)
+			 : maxnum(l_maxnum),fake_maxnum(l_fake_maxnum)
+		{
+			type = PROTOCOL_SETMAXONLINENUM;
+		}
+
+		SetMaxOnlineNum(const SetMaxOnlineNum &rhs)
+			: Protocol(rhs),maxnum(rhs.maxnum),fake_maxnum(rhs.fake_maxnum) { }
+
+		GNET::Protocol *Clone() const { return new SetMaxOnlineNum(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << maxnum;
+			os << fake_maxnum;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> maxnum;
+			os >> fake_maxnum;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

@@ -1,0 +1,105 @@
+
+#ifndef __GNET_DBAUCTIONBID_HPP
+#define __GNET_DBAUCTIONBID_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbauctionbidarg"
+#include "dbauctionbidres"
+#include "groleinventory"
+#include "gmailsyncdata"
+#include "gmailendsync.hpp"
+#include "auctionbid_re.hpp"
+#include "gdeliveryserver.hpp"
+#include "gproviderserver.hpp"
+#include "auctionmarket.h"
+#include "dbauctionget.hrp"
+#include "gamedbclient.hpp"
+#include "grolestorehouse"
+namespace GNET
+{
+
+class DBAuctionBid : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbauctionbid"
+#undef	RPC_BASECLASS
+	unsigned int save_linksid;
+	unsigned int save_localsid;
+	int          save_gsid;
+	void SendResult(int retcode,DBAuctionBidArg& arg,int bidprice)
+	{
+		GDeliveryServer::GetInstance()->Send(
+				save_linksid,
+				AuctionBid_Re(retcode,bidprice,arg.auctionid,GAuctionItem(),save_localsid)
+			);
+	}
+	void SyncGameServer( int roleid, GMailSyncData& data, int retcode )
+	{
+#define GAuctionEndSync GMailEndSync
+		GProviderServer::GetInstance()->DispatchProtocol( save_gsid, GAuctionEndSync( 0,retcode,roleid,data));
+#undef GAuctionEndSync		
+	}
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBAuctionBidArg *arg = (DBAuctionBidArg *)argument;
+		DBAuctionBidRes *res = (DBAuctionBidRes *)result;
+		DEBUG_PRINT("dbauctionbid: rpc return. retcode=%d,auctionid=%d,bidprice=%d,roleid=%d,localsid=%d\n",
+				res->retcode,arg->auctionid,arg->bidprice,arg->roleid,save_localsid);
+		if ( res->retcode==ERR_SUCCESS )
+		{
+			if ( !AuctionMarket::GetInstance().UpdatePrice(arg->auctionid,arg->bidprice,arg->roleid) )
+			{
+				Log::log(LOG_ERR,"dbauctionbid: UpdatePrice of auction market failed. autionid=%d,roleid=%d,localsid=%d\n",
+						arg->auctionid,arg->roleid,save_localsid);
+				//res->retcode=ERR_AS_MARKET_UNOPEN;
+			}
+			if ( !AuctionMarket::GetInstance().ExtendTime( arg->auctionid,res->extend_time ) )
+			{
+				Log::log(LOG_ERR,"dbauctionbid: ExtendTime failed. auctionid=%d,roleid=%d,localsid=%d,extend_time=%d\n",
+						arg->auctionid,arg->roleid,save_localsid,res->extend_time);
+			}
+		}
+		else if ( res->retcode==ERR_AS_BID_BINSUCCESS )
+		{
+			if ( !AuctionMarket::GetInstance().RmvAuction( arg->auctionid ) )
+			{
+				Log::log(LOG_ERR,"dbauctionbid: Remove of auction failed. autionid=%d,roleid=%d,localsid=%d\n",
+						arg->auctionid,arg->roleid,save_localsid);
+			}
+		}
+		if ( res->retcode==ERR_SUCCESS || res->retcode==ERR_AS_BID_BINSUCCESS )
+		{
+			//Send mail
+			PostOffice::GetInstance().AddNewMail( res->inform_seller.receiver,res->inform_seller );
+			PostOffice::GetInstance().AddNewMail( res->inform_loser.receiver, res->inform_loser );
+			PostOffice::GetInstance().AddNewMail( res->inform_winner.receiver,res->inform_winner );
+		}
+		SendResult(res->retcode,*arg,res->bidprice);
+		SyncGameServer( arg->roleid,res->syncdata, res->retcode );
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		DBAuctionBidArg *arg = (DBAuctionBidArg *)argument;
+		Log::log( LOG_ERR,"dbauctionbid: timeout. roleid=%d,auctionid=%d,bidprice=%d,localsid=%d", 
+				arg->roleid,arg->auctionid,arg->bidprice,save_localsid);
+		SendResult(ERR_TIMEOUT,*arg,arg->bidprice);
+		//sync with gamedbd
+		DBAuctionGet* rpc=(DBAuctionGet*) Rpc::Call(RPC_DBAUCTIONGET,DBAuctionGetArg(arg->auctionid,1));
+		rpc->save_linksid=0;
+		rpc->save_localsid=0;
+		GameDBClient::GetInstance()->SendProtocol(rpc);
+		//do not sync data to gameserver, because gameserver will timeout and disconnect the player
+	}
+
+};
+
+};
+#endif

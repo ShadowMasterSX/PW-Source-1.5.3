@@ -1,0 +1,1 @@
+# java -cp ./lib/commons-collections-3.1.jar:./lib/commons-dbcp-1.2.1.jar:./lib/commons-pool-1.2.jar:./application.jar:. com.goldhuman.account.storage ./table.xml account 6 12 5600 2 2592000 account_5600_new

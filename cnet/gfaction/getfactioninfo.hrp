@@ -1,0 +1,45 @@
+
+#ifndef __GNET_GETFACTIONINFO_HPP
+#define __GNET_GETFACTIONINFO_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "factionid"
+#include "factioninfores"
+#include "factiondb.h"
+#include "getfactionbaseinfo_re.hpp"
+
+namespace GNET
+{
+
+class GetFactionInfo : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getfactioninfo"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		FactionInfoRes *res = (FactionInfoRes *)result;
+		if(res->retcode==ERR_SUCCESS)
+		{
+			Factiondb::GetInstance()->SyncFactionInfo(res->value);
+		}
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		FactionId *arg = (FactionId *)argument;
+		Log::log(LOG_ERR,"getfactioninfo, timeout factionid=%d.", arg->fid);
+	}
+
+};
+
+};
+#endif

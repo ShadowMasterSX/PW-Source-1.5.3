@@ -1,0 +1,150 @@
+
+#ifndef __GNET_DELMEMBERSCHEDULE_HPP
+#define __GNET_DELMEMBERSCHEDULE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "delmemberschedulearg"
+#include "deffactionres"
+
+namespace GNET
+{
+
+class DelMemberSchedule : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "delmemberschedule"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DelMemberScheduleArg *arg = (DelMemberScheduleArg *)argument;
+		DefFactionRes *res = (DefFactionRes *)result;
+		
+		Marshal::OctetsStream key;
+		Marshal::OctetsStream value;
+
+		GUserFaction user;
+		GFactionInfo info;
+		
+		res->retcode = ERR_FC_DELAYEXPEL;
+
+		try
+		{
+			StorageEnv::Storage * puser = StorageEnv::GetStorage("userfaction");
+			StorageEnv::Storage * pinfo = StorageEnv::GetStorage("factioninfo");
+			StorageEnv::CommonTransaction txn;
+
+			try
+			{
+				
+			    	key << arg->rid;
+				if(puser->find(key, value, txn))
+				{
+					value >> user;
+					if(user.role==_R_MASTER)
+					{
+						res->retcode = ERR_OUTOFSYNC;
+						return;
+					}
+				}
+				else
+				{
+					res->retcode = ERR_FC_DELAYEXPEL; // clean gfaction cache
+					return;
+				}
+
+				if(!user.fid)
+				{
+					res->retcode = ERR_FC_DELAYEXPEL;  // clean gfaction cache
+					Log::log(LOG_ERR, "DelMemberSchedule-operate[%d]: user already leave faction rid=%d.",arg->operation,arg->rid); 
+					return;
+				}
+
+				if(user.fid != arg->fid || user.role != _R_MEMBER)
+				{
+					res->retcode = ERR_OUTOFSYNC;
+					Log::log(LOG_ERR, "DelMemberSchedule-operate[%d]: user not pass delayexpel condition rid=%d fid=%d dbfid=%d frid=%d.", 
+							arg->operation,arg->rid, arg->fid, user.fid, user.role);
+					return;
+				}
+
+
+			    	switch(arg->operation)		
+				{
+					case FC_DELAYEXPEL_EXECUTE:
+					{
+						user.delayexpel = Marshal::OctetsStream() << (char)1 << arg->time;
+						puser->insert(key, Marshal::OctetsStream()<<user, txn);
+						Log::formatlog("faction","type=delayexpel_execute:roleid=%d:factionid=%d:role=%d", arg->rid, arg->fid, user.role);
+					}break;
+					case FC_DELAYEXPEL_CANCEL:
+					{
+						user.delayexpel.clear();
+						puser->insert(key, Marshal::OctetsStream()<<user, txn);
+						Log::formatlog("faction","type=delayexpel_cancel:roleid=%d:factionid=%d:role=%d", arg->rid, arg->fid, user.role);
+					}break;
+					case FC_DELAYEXPEL_TIMEOUT:
+					{
+						if(0 == user.delayexpel.size())
+						{
+							res->retcode = ERR_OUTOFSYNC;
+							Log::log(LOG_ERR, "DelMemberSchedule-Timeout: user not pass delayexpel condition rid=%d fid=%d.", arg->rid, arg->fid);
+							return;
+						}
+					    	
+					    	Log::formatlog("faction","type=delayexpel_timeout:roleid=%d:factionid=%d:role=%d", arg->rid, arg->fid, user.role);
+						user.fid = 0;
+						user.role = _R_UNMEMBER;
+						user.nickname.clear();
+						user.extend.clear();
+						user.delayexpel.clear();
+						puser->insert(key, Marshal::OctetsStream()<<user, txn);
+						
+						Marshal::OctetsStream(pinfo->find(Marshal::OctetsStream()<<arg->fid, txn)) >> info;
+						GMemberVector::iterator it;
+						for(it=info.member.begin();it!=info.member.end()&&(*it).rid!=arg->rid;it++);
+						if(it==info.member.end())
+						{
+							Log::log(LOG_ERR, "DelMemberSchedule-Timeout: user not found in list rid=%d fid=%d.", arg->rid, arg->fid);
+							return;
+						}
+						info.member.erase(it);
+						pinfo->insert(Marshal::OctetsStream()<<arg->fid, Marshal::OctetsStream()<<info, txn);
+					}break;
+				}
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+
+		}
+		catch ( DbException e )
+		{
+			Log::log(LOG_ERR, "DelMemberSchedule: exception,  rid=%d, fid=%d, what=%s", arg->rid,arg->fid,e.what());
+			res->retcode = -1;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DelMemberScheduleArg *arg = (DelMemberScheduleArg *)argument;
+		// DefFactionRes *res = (DefFactionRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

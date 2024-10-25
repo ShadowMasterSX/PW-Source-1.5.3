@@ -1,0 +1,69 @@
+#ifndef __GNET_DBPUTREWARDBONUSARG_RPCDATA
+#define __GNET_DBPUTREWARDBONUSARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBPutRewardBonusArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		int userid;
+		int  bonus_reward;
+
+	public:
+		DBPutRewardBonusArg (int l_roleid = 0,int l_userid = 0,int  l_bonus_reward = 0)
+			: roleid(l_roleid),userid(l_userid),bonus_reward(l_bonus_reward)
+		{
+		}
+
+		DBPutRewardBonusArg(const DBPutRewardBonusArg &rhs)
+			: roleid(rhs.roleid),userid(rhs.userid),bonus_reward(rhs.bonus_reward) { }
+
+		Rpc::Data *Clone() const { return new DBPutRewardBonusArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPutRewardBonusArg *r = dynamic_cast<const DBPutRewardBonusArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				userid = r->userid;
+				bonus_reward = r->bonus_reward;
+			}
+			return *this;
+		}
+
+		DBPutRewardBonusArg& operator = (const DBPutRewardBonusArg &rhs)
+		{
+			const DBPutRewardBonusArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				userid = r->userid;
+				bonus_reward = r->bonus_reward;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << userid;
+			os << bonus_reward;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> userid;
+			os >> bonus_reward;
+			return os;
+		}
+
+	};
+};
+#endif

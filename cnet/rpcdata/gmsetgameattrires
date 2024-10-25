@@ -1,0 +1,58 @@
+#ifndef __GNET_GMSETGAMEATTRIRES_RPCDATA
+#define __GNET_GMSETGAMEATTRIRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GMSetGameAttriRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+
+	public:
+		GMSetGameAttriRes ()
+		{
+		}
+
+		GMSetGameAttriRes(const GMSetGameAttriRes &rhs)
+			: retcode(rhs.retcode) { }
+
+		Rpc::Data *Clone() const { return new GMSetGameAttriRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GMSetGameAttriRes *r = dynamic_cast<const GMSetGameAttriRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		GMSetGameAttriRes& operator = (const GMSetGameAttriRes &rhs)
+		{
+			const GMSetGameAttriRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			return os;
+		}
+
+	};
+};
+#endif

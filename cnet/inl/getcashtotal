@@ -1,0 +1,9 @@
+		GNET::Protocol *Clone() const {  return new GetCashTotal(*this); }
+	public:
+		enum { PROTOCOL_TYPE = RPC_GETCASHTOTAL };
+		GetCashTotal(Type type, Rpc::Data *argument, Rpc::Data *result)
+			: RPC_BASECLASS(type, argument, result ) { }
+		GetCashTotal(const GetCashTotal &rhs) : RPC_BASECLASS(rhs) { }
+		int  PriorPolicy( ) const { return 1; }
+		bool SizePolicy(size_t size) const { return size <= 32; }
+		bool TimePolicy(int timeout) const { return timeout <= 30; }

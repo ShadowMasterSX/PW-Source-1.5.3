@@ -1,0 +1,88 @@
+
+#ifndef __GNET_TRADEINVENTORY_HPP
+#define __GNET_TRADEINVENTORY_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#ifdef USE_BDB
+#include "dbbuffer.h"
+#endif
+#include "groleinventory"
+#include "tradeinventoryarg"
+#include "tradeinventoryres"
+
+#include "trade.h"
+#include "tradestart_re.hpp"
+#include "gdeliveryserver.hpp"
+#include "gtradeend.hpp"
+#include "mapuser.h"
+namespace GNET
+{
+
+class TradeInventory : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "tradeinventory"
+#undef	RPC_BASECLASS
+	unsigned int tid;
+	unsigned int localsid1;
+	unsigned int localsid2;
+	void AnnounceResult(int tid,int retcode,TradeInventoryArg *arg)
+	{
+		GDeliveryServer* dsm=GDeliveryServer::GetInstance();
+		Thread::RWLock::RDScoped l(UserContainer::GetInstance().GetLocker());
+		PlayerInfo * pinfo = UserContainer::GetInstance().FindRole(arg->roleid1);
+		if (NULL!=pinfo)
+			dsm->Send(pinfo->linksid,TradeStart_Re(retcode,tid,arg->roleid2,arg->roleid1,localsid1));
+		pinfo = UserContainer::GetInstance().FindRole(arg->roleid2);
+		if (NULL!=pinfo)
+			dsm->Send(pinfo->linksid,TradeStart_Re(retcode,tid,arg->roleid1,arg->roleid2,localsid2));
+	}
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		TradeInventoryArg *arg = (TradeInventoryArg *)argument;
+		TradeInventoryRes *res = (TradeInventoryRes *)result;
+		DEBUG_PRINT("gdelivery::tradeinventory: Receive response from GameDB, retcode=%d,tid=%d\n",res->retcode,tid);
+		
+		GNET::Transaction* trans=GNET::Transaction::GetTransaction(tid);
+		if (trans == NULL) return;
+		//read db failed
+		if (res->retcode != ERR_SUCCESS)
+		{
+			AnnounceResult(_TRADE_ID_INVALID,ERR_TRADE_DB_FAILURE,arg);
+			trans->Destroy();
+			return;
+		}
+		//read db successfully
+
+		if (trans->SetPossession(arg->roleid1, res->pocket1, arg->roleid2, res->pocket2) != ERR_SUCCESS)	
+		{
+			Log::log(LOG_ERR,"gdelivery::gtradestart: set traders(1:%d,2:%d)' possession failed.\n",
+				arg->roleid1,arg->roleid2);
+			AnnounceResult(_TRADE_ID_INVALID,ERR_TRADE_SETPSSN,arg);
+			trans->Destroy();
+		}
+		else
+		{
+			AnnounceResult(trans->GetTid(),ERR_SUCCESS,arg);
+		}			
+
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		TradeInventoryArg *arg = (TradeInventoryArg *)argument;
+		AnnounceResult(_TRADE_ID_INVALID,ERR_TRADE_DB_FAILURE,arg);
+		GNET::Transaction* trans=GNET::Transaction::GetTransaction(tid);
+		if (trans!=NULL) trans->Destroy();
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,48 @@
+
+#ifndef __GNET_DBFACTIONRELATIONAPPLYTIMEOUT_HPP
+#define __GNET_DBFACTIONRELATIONAPPLYTIMEOUT_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbfactionrelationapplytimeoutarg"
+#include "dbfactionrelationretcode"
+
+
+namespace GNET
+{
+
+class DBFactionRelationApplyTimeout : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbfactionrelationapplytimeout"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBFactionRelationApplyTimeoutArg *arg = (DBFactionRelationApplyTimeoutArg *)argument;
+		// DBFactionRelationRetcode *res = (DBFactionRelationRetcode *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		DBFactionRelationApplyTimeoutArg *arg = (DBFactionRelationApplyTimeoutArg *)argument;
+		DBFactionRelationRetcode *res = (DBFactionRelationRetcode *)result;
+
+		if(res->retcode==ERR_SUCCESS)
+			Factiondb::GetInstance()->OnRelationApplyTimeout(arg->type, arg->fid1, arg->fid2, arg->end_time, res->fname1, res->fname2);
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+		DBFactionRelationApplyTimeoutArg *arg = (DBFactionRelationApplyTimeoutArg *)argument;
+		Log::log(LOG_ERR,"DBFactionRelationApplyTimeout timeout. fid1=%d, fid2=%d.", arg->fid1, arg->fid2);
+	}
+
+};
+
+};
+#endif

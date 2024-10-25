@@ -1,0 +1,89 @@
+#!/usr/bin/perl
+
+#### out put of 'iostat -d'
+#Linux 2.4.26 (GTEST)    09/04/04
+
+#Device:            tps   Blk_read/s   Blk_wrtn/s   Blk_read   Blk_wrtn
+#dev8-0            1.17         2.39        37.73    2296122   36233392
+
+#### get output from iostat and transpose it to one number per line
+#my $cmd = "/usr/bin/iostat -d -k";
+#my $result = qx/$cmd/;
+
+#my $dev = ".+";
+#$dev = $ARGV[0] if( @ARGV > 0 );
+#my @values;
+#@values = $result =~ /$dev\s+([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)/g;
+#foreach(@values) { print $_ . "\n"; }
+
+#### file /proc/diskstats 
+#   7    0 loop0 0 0 0 0 0 0 0 0 0 0 0
+#   7    1 loop1 0 0 0 0 0 0 0 0 0 0 0
+#   7    2 loop2 0 0 0 0 0 0 0 0 0 0 0
+#   7    3 loop3 0 0 0 0 0 0 0 0 0 0 0
+#   7    4 loop4 0 0 0 0 0 0 0 0 0 0 0
+#   7    5 loop5 0 0 0 0 0 0 0 0 0 0 0
+#   7    6 loop6 0 0 0 0 0 0 0 0 0 0 0
+#   7    7 loop7 0 0 0 0 0 0 0 0 0 0 0
+#   8    0 sda 6097312 545032 165138090 64459748 20494902 64912239 683456720 1614207762 0 64566596 1678743770
+#   8    1 sda1 6014378 160101842 84383396 675067072
+#   8    2 sda2 616592 4932720 1048451 8387624
+
+use FileHandle;
+
+my $tps = 0;
+my $kB_read_sec = 0;
+my $kB_wrtn_sec = 0;
+my $kB_read = 0;
+my $kB_wrtn = 0;
+
+my $dev;
+$dev = $ARGV[0] if( @ARGV > 0 );
+my @values;
+my $fh = new FileHandle;
+if( $fh->open("< /proc/diskstats") )
+{
+	my $line;
+	while( $line = $fh->getline() )
+	{
+		@values = ();
+		@values = $line =~ /\s+\d+\s+\d+\s+(\w+)\s+([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)/g;
+		last if( $dev and $values[0] eq $dev );
+		if( not $dev )
+		{
+			my $sum = 0;
+			foreach( @values )	{	$sum += $_;	}
+			last if( $sum > 0 );
+		}
+	}
+	$fh->close();
+}
+
+my $uptime = uptime();
+$uptime = 1 if( not $uptime );
+
+# $tps = ($values[1]+$values[5]) / $uptime;
+# $tps = 0.01 * int($tps * 100);
+$tps = ($values[1]+$values[5]);
+$kB_read_sec = $values[3] / (2 *$uptime);
+$kB_read_sec = 0.01 * int($kB_read_sec * 100);
+$kB_wrtn_sec = $values[7] / (2 *$uptime);
+$kB_wrtn_sec = 0.01 * int($kB_wrtn_sec * 100);
+$kB_read = int($values[3] / 2);
+$kB_wrtn = int($values[7] / 2);
+
+print "$tps\n$kB_read_sec\n$kB_wrtn_sec\n$kB_read\n$kB_wrtn\n";
+
+sub uptime
+{
+	my @v;
+	my $f = new FileHandle;
+	if( $f->open("< /proc/uptime") )
+	{
+		my $t = <$f>;
+		@v = $t =~ /^([0-9.]+)\s+([0-9.]+)$/g;
+		$f->close();
+	}
+	return $v[0];
+}
+

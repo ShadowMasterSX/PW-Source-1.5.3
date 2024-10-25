@@ -1,0 +1,71 @@
+#ifndef __GNET_DBSENDMASSMAILRES_RPCDATA
+#define __GNET_DBSENDMASSMAILRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "massmailres"
+#include "gmailsyncdata"
+
+namespace GNET
+{
+	class DBSendMassMailRes : public GNET::Rpc::Data
+	{
+	public:
+		unsigned char retcode;
+		MassMailResVector result;
+		GMailSyncData syncdata;
+
+	public:
+		DBSendMassMailRes (unsigned char l_retcode = 0,const MassMailResVector& l_result = MassMailResVector(),const GMailSyncData& l_syncdata = GMailSyncData())
+			: retcode(l_retcode),result(l_result),syncdata(l_syncdata)
+		{
+		}
+
+		DBSendMassMailRes(const DBSendMassMailRes &rhs)
+			: retcode(rhs.retcode),result(rhs.result),syncdata(rhs.syncdata) { }
+
+		Rpc::Data *Clone() const { return new DBSendMassMailRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBSendMassMailRes *r = dynamic_cast<const DBSendMassMailRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				result = r->result;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		DBSendMassMailRes& operator = (const DBSendMassMailRes &rhs)
+		{
+			const DBSendMassMailRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				result = r->result;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << result;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> result;
+			os >> syncdata;
+			return os;
+		}
+
+	};
+};
+#endif

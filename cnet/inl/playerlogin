@@ -1,0 +1,50 @@
+	public:
+		int roleid;
+		int provider_link_id;
+		unsigned int localsid;
+		ByteVector auth;
+		char usbbind;
+		char flag;
+		enum { PROTOCOL_TYPE = PROTOCOL_PLAYERLOGIN };
+	public:
+		PlayerLogin() { type = PROTOCOL_PLAYERLOGIN; }
+		PlayerLogin(void*) : Protocol(PROTOCOL_PLAYERLOGIN) { }
+		PlayerLogin (int l_roleid,int l_provider_link_id = -1,unsigned int l_localsid = 0,
+			ByteVector l_auth = ByteVector(),char l_usbbind = 0,char l_flag = 0)
+			 : roleid(l_roleid),provider_link_id(l_provider_link_id),localsid(l_localsid)
+			,auth(l_auth),usbbind(l_usbbind),flag(l_flag)
+		{
+			type = PROTOCOL_PLAYERLOGIN;
+		}
+
+		PlayerLogin(const PlayerLogin &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),provider_link_id(rhs.provider_link_id),localsid(rhs.localsid)
+			,auth(rhs.auth),usbbind(rhs.usbbind),flag(rhs.flag) { }
+
+		GNET::Protocol *Clone() const { return new PlayerLogin(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << provider_link_id;
+			os << localsid;
+			os << auth;
+			os << usbbind;
+			os << flag;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> provider_link_id;
+			os >> localsid;
+			os >> auth;
+			os >> usbbind;
+			os >> flag;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1024; }

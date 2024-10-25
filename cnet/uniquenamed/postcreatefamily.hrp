@@ -1,0 +1,90 @@
+
+#ifndef __GNET_POSTCREATEFAMILY_HPP
+#define __GNET_POSTCREATEFAMILY_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "storage.h"
+#include "postcreatefamilyarg"
+#include "postcreatefamilyres"
+
+#include "timer.h"
+#include "uniquenameserver.hpp"
+namespace GNET
+{
+
+class PostCreateFamily : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "postcreatefamily"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		PostCreateFamilyArg *arg = (PostCreateFamilyArg *)argument;
+		PostCreateFamilyRes *res = (PostCreateFamilyRes *)result;
+
+		UniqueNameServer::GetInstance()->TransformName(arg->familyname);
+
+		Octets name;
+		CharsetConverter::conv_charset_u2l( arg->familyname, name );
+		LOG_TRACE( "PostCreateFamily(success=%d,zoneid=%d,familyid=%d,name=%.*s)", 
+			arg->success, arg->zoneid, arg->familyid, name.size(), (char*)name.begin() );
+
+		try
+		{
+			StorageEnv::Storage * punamefamily = StorageEnv::GetStorage("unamefamily");
+			StorageEnv::AtomTransaction txn;
+			try
+			{
+				Marshal::OctetsStream key_nextid, value_unamefamily;
+				int nextid_forkey = 0;
+				key_nextid << nextid_forkey;
+				if( key_nextid == arg->familyname )
+				{
+					res->retcode = ERR_DUPLICATRECORD;
+					LOG_TRACE( "PostCreateFaction(success=%d,zoneid=%d,factionid=%d,name=%.*s), duplicate, equals to next_id", 
+							arg->success, arg->zoneid, arg->familyid, name.size(), (char*)name.begin() );
+					return;
+				}
+
+				int status = UNIQUENAME_USED;
+				value_unamefamily << arg->zoneid << arg->familyid << status << (int)Timer::GetTime();
+				if( arg->success )
+					punamefamily->insert( arg->familyname, value_unamefamily, txn );
+				else
+					punamefamily->del( arg->familyname, txn );
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "PostCreateFamily, zoneid=%d, familyid=%d, what=%s\n", arg->zoneid, arg->familyid, e.what() );
+			res->retcode = -1;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// PostCreateFamilyArg *arg = (PostCreateFamilyArg *)argument;
+		// PostCreateFamilyRes *res = (PostCreateFamilyRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

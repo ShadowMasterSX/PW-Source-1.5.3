@@ -1,0 +1,35 @@
+	public:
+		SellPointInfo info;
+		int buyer;
+		enum { PROTOCOL_TYPE = PROTOCOL_SYNCSELLINFO };
+	public:
+		SyncSellInfo() { type = PROTOCOL_SYNCSELLINFO; }
+		SyncSellInfo(void*) : Protocol(PROTOCOL_SYNCSELLINFO) { }
+		SyncSellInfo (const SellPointInfo& l_info,int l_buyer = 0)
+			 : info(l_info),buyer(l_buyer)
+		{
+			type = PROTOCOL_SYNCSELLINFO;
+		}
+
+		SyncSellInfo(const SyncSellInfo &rhs)
+			: Protocol(rhs),info(rhs.info),buyer(rhs.buyer) { }
+
+		GNET::Protocol *Clone() const { return new SyncSellInfo(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << info;
+			os << buyer;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> info;
+			os >> buyer;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 128; }

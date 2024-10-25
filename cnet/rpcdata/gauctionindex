@@ -1,0 +1,64 @@
+#ifndef __GNET_GAUCTIONINDEX_RPCDATA
+#define __GNET_GAUCTIONINDEX_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GAuctionIndex : public GNET::Rpc::Data
+	{
+	public:
+		Octets category;
+		int index;
+
+	public:
+		GAuctionIndex (const Octets& l_category = Octets(0),int l_index = 0)
+			: category(l_category),index(l_index)
+		{
+		}
+
+		GAuctionIndex(const GAuctionIndex &rhs)
+			: category(rhs.category),index(rhs.index) { }
+
+		Rpc::Data *Clone() const { return new GAuctionIndex(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GAuctionIndex *r = dynamic_cast<const GAuctionIndex *>(&rhs);
+			if (r && r != this)
+			{
+				category = r->category;
+				index = r->index;
+			}
+			return *this;
+		}
+
+		GAuctionIndex& operator = (const GAuctionIndex &rhs)
+		{
+			const GAuctionIndex *r = &rhs;
+			if (r && r != this)
+			{
+				category = r->category;
+				index = r->index;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << category;
+			os << index;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> category;
+			os >> index;
+			return os;
+		}
+
+	};
+};
+#endif

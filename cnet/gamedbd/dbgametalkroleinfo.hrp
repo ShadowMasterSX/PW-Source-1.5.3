@@ -1,0 +1,81 @@
+
+#ifndef __GNET_DBGAMETALKROLEINFO_HPP
+#define __GNET_DBGAMETALKROLEINFO_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbgametalkroleinfoarg"
+#include "dbgametalkroleinfores"
+
+namespace GNET
+{
+
+class DBGameTalkRoleInfo : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbgametalkroleinfo"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBGameTalkRoleInfoArg *arg = (DBGameTalkRoleInfoArg *)argument;
+		DBGameTalkRoleInfoRes *res = (DBGameTalkRoleInfoRes *)result;
+
+		LOG_TRACE("dbgametalkroleinfo, roleid=%d.\n", arg->roleid);
+
+		try {
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::Storage * pstatus = StorageEnv::GetStorage("status");
+			StorageEnv::AtomTransaction txn;
+			try {
+				GRoleBase base;
+				RoleId id((unsigned int)arg->roleid);
+				Marshal::OctetsStream(pbase->find(Marshal::OctetsStream() << id, txn)) >> base;
+
+				if(base.status == _ROLE_STATUS_MUSTDEL) {
+					res->retcode = ERR_DATANOTFIND;
+					return;
+				}
+
+				GRoleStatus status;
+				Marshal::OctetsStream(pstatus->find(Marshal::OctetsStream() << id, txn)) >> status;
+
+				res->info.roleid = (int64_t)base.id;
+				res->info.rolename.swap(base.name);
+				res->info.gender = base.gender;
+				res->info.occupation = base.cls;
+				res->info.level = status.level;
+				res->retcode = ERR_SUCCESS;
+			}
+			catch (DbException e) { throw; }
+			catch (...) {
+				DbException ee(DB_OLD_VERSION);
+				txn.abort(ee);
+				throw ee;
+			}
+		}
+		catch (DbException e)
+		{
+			Log::log(LOG_ERR, "DBGameTalkRoleInfo, roleid=%d, what=%s\n", arg->roleid, e.what());
+			res->retcode = ERR_DATANOTFIND;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBGameTalkRoleInfoArg *arg = (DBGameTalkRoleInfoArg *)argument;
+		// DBGameTalkRoleInfoRes *res = (DBGameTalkRoleInfoRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

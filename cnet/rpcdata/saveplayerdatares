@@ -1,0 +1,70 @@
+#ifndef __GNET_SAVEPLAYERDATARES_RPCDATA
+#define __GNET_SAVEPLAYERDATARES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "groleinfo"
+
+namespace GNET
+{
+	class SavePlayerDataRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		int new_roleid;
+		GRoleInfo roleinfo;
+
+	public:
+		SavePlayerDataRes (int l_retcode = 0,int l_new_roleid = 0)
+			: retcode(l_retcode),new_roleid(l_new_roleid)
+		{
+		}
+
+		SavePlayerDataRes(const SavePlayerDataRes &rhs)
+			: retcode(rhs.retcode),new_roleid(rhs.new_roleid),roleinfo(rhs.roleinfo) { }
+
+		Rpc::Data *Clone() const { return new SavePlayerDataRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const SavePlayerDataRes *r = dynamic_cast<const SavePlayerDataRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				new_roleid = r->new_roleid;
+				roleinfo = r->roleinfo;
+			}
+			return *this;
+		}
+
+		SavePlayerDataRes& operator = (const SavePlayerDataRes &rhs)
+		{
+			const SavePlayerDataRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				new_roleid = r->new_roleid;
+				roleinfo = r->roleinfo;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << new_roleid;
+			os << roleinfo;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> new_roleid;
+			os >> roleinfo;
+			return os;
+		}
+
+	};
+};
+#endif

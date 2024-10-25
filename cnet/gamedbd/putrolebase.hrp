@@ -1,0 +1,84 @@
+
+#ifndef __GNET_PUTROLEBASE_HPP
+#define __GNET_PUTROLEBASE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "dbbuffer.h"
+#include "rolebasepair"
+
+
+namespace GNET
+{
+
+class PutRoleBase : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "putrolebase"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		RoleBasePair *arg = (RoleBasePair *)argument;
+		RpcRetcode *res = (RpcRetcode *)result;
+		Marshal::OctetsStream key, value_old, value;
+
+		LOG_TRACE( "PutRoleBase, roleid=%d.\n", arg->key.id );
+
+		try
+		{
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				key << arg->key;
+				GRoleBase	base;
+				Marshal::OctetsStream(pbase->find( key, txn )) >> base;
+				if ( arg->key.id!=base.id )
+				{
+					Log::log( LOG_ERR,"PutRoleBase. fatal, key.id(%d)!=value.id(%d)\n",arg->key.id,base.id);
+					res->retcode=ERR_FAILED;
+					return;
+				}
+				base.config_data = arg->value.config_data;
+				base.help_states = arg->value.help_states;
+				base.custom_data = arg->value.custom_data;
+				base.custom_stamp = arg->value.custom_stamp;
+				pbase->insert( key, Marshal::OctetsStream() << base, txn );
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "PutRoleBase, roleid=%d, what=%s\n", arg->key.id, e.what() );
+			if(e.get_errno()==DB_LOCK_DEADLOCK)
+				res->retcode = ERR_AGAIN;
+			else
+				res->retcode = ERR_FAILED;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// RoleBasePair *arg = (RoleBasePair *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

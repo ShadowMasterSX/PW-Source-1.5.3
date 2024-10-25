@@ -1,0 +1,38 @@
+	public:
+		int userid;
+		int loginip;
+		int weight;
+		enum { PROTOCOL_TYPE = PROTOCOL_MATRIXFAILURE };
+	public:
+		MatrixFailure() { type = PROTOCOL_MATRIXFAILURE; }
+		MatrixFailure(void*) : Protocol(PROTOCOL_MATRIXFAILURE) { }
+		MatrixFailure (int l_userid = 0,int l_loginip = 0,int l_weight = 0)
+			 : userid(l_userid),loginip(l_loginip),weight(l_weight)
+		{
+			type = PROTOCOL_MATRIXFAILURE;
+		}
+
+		MatrixFailure(const MatrixFailure &rhs)
+			: Protocol(rhs),userid(rhs.userid),loginip(rhs.loginip),weight(rhs.weight) { }
+
+		GNET::Protocol *Clone() const { return new MatrixFailure(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			os << loginip;
+			os << weight;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			os >> loginip;
+			os >> weight;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 101; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

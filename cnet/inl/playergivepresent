@@ -1,0 +1,62 @@
+	public:
+		int roleid;
+		int target_roleid;
+		int mail_id;
+		GRoleInventoryVector goods;
+		unsigned int cash_cost;
+		char has_gift;
+		int log_price1;
+		int log_price2;
+		Octets syncdata;
+		enum { PROTOCOL_TYPE = PROTOCOL_PLAYERGIVEPRESENT };
+	public:
+		PlayerGivePresent() { type = PROTOCOL_PLAYERGIVEPRESENT; }
+		PlayerGivePresent(void*) : Protocol(PROTOCOL_PLAYERGIVEPRESENT) { }
+		PlayerGivePresent (int l_roleid,int l_target_roleid,int l_mail_id,
+			const GRoleInventoryVector& l_goods,unsigned int l_cash_cost = 0,char l_has_gift = 0,
+			int l_log_price1 = 0,int l_log_price2 = 0,const Octets& l_syncdata = Octets())
+			 : roleid(l_roleid),target_roleid(l_target_roleid),mail_id(l_mail_id)
+			,goods(l_goods),cash_cost(l_cash_cost),has_gift(l_has_gift)
+			,log_price1(l_log_price1),log_price2(l_log_price2),syncdata(l_syncdata)
+		{
+			type = PROTOCOL_PLAYERGIVEPRESENT;
+		}
+
+		PlayerGivePresent(const PlayerGivePresent &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),target_roleid(rhs.target_roleid),mail_id(rhs.mail_id)
+			,goods(rhs.goods),cash_cost(rhs.cash_cost),has_gift(rhs.has_gift)
+			,log_price1(rhs.log_price1),log_price2(rhs.log_price2),syncdata(rhs.syncdata) { }
+
+		GNET::Protocol *Clone() const { return new PlayerGivePresent(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << target_roleid;
+			os << mail_id;
+			os << goods;
+			os << cash_cost;
+			os << has_gift;
+			os << log_price1;
+			os << log_price2;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> target_roleid;
+			os >> mail_id;
+			os >> goods;
+			os >> cash_cost;
+			os >> has_gift;
+			os >> log_price1;
+			os >> log_price2;
+			os >> syncdata;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 131072; }

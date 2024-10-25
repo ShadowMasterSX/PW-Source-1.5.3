@@ -1,0 +1,24 @@
+#ifndef __ONLINEGAME_GS_FACTION_H__
+#define __ONLINEGAME_GS_FACTION_H__
+
+//这里的定义必须和elements.data里的声明一致
+
+enum
+{
+	FACTION_HUMAN		= 0x0002,	//人族
+	FACTION_ORC			= 0x0004,	//兽族
+	FACTION_YUMAO		= 0x0008,	//羽族
+	FACTION_GHOST		= 0x0010,	//汐族
+	FACTION_SPIRIT		= 0x0100,	//灵族
+	FACTION_OBORO		= 0x0400,	//胧族
+	
+	FACTION_PARIAH		= 0x00200,		//红色名
+	FACTION_BATTLEOFFENSE	= 0x00800,		//城战攻方
+	FACTION_BATTLEDEFENCE	= 0x01000,		//城战守方
+	FACTION_OFFENSE_FRIEND	= 0x02000,		//攻方友方
+	FACTION_DEFENCE_FRIEND	= 0x04000,		//守方友方
+
+	FACTION_MPVP_MINE_CAR	= 0x080000,	// 帮派战矿车
+	FACTION_MPVP_MINE_BASE	= 0x100000, // 帮派战基地
+};
+#endif

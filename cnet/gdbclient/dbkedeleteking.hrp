@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBKEDELETEKING_HPP
+#define __GNET_DBKEDELETEKING_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbkedeletekingarg"
+#include "dbkedeletekingres"
+
+namespace GNET
+{
+
+class DBKEDeleteKing : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbkedeleteking"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBKEDeleteKingArg *arg = (DBKEDeleteKingArg *)argument;
+		// DBKEDeleteKingRes *res = (DBKEDeleteKingRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBKEDeleteKingArg *arg = (DBKEDeleteKingArg *)argument;
+		// DBKEDeleteKingRes *res = (DBKEDeleteKingRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

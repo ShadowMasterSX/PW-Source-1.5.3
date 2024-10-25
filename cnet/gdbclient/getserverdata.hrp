@@ -1,0 +1,60 @@
+
+#ifndef __GNET_GETSERVERDATA_HPP
+#define __GNET_GETSERVERDATA_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "getserverdataarg"
+#include "getserverdatares"
+
+namespace GDB
+{
+	void DB2ServerData(const GNET::GServerData * pData, serverdata & data);
+}
+
+namespace GNET
+{
+
+class GetServerData : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getserverdata"
+#undef	RPC_BASECLASS
+
+	GDB::ServerDataResult * _callback;
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// GetServerDataArg *arg = (GetServerDataArg *)argument;
+		// GetServerDataRes *res = (GetServerDataRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		GetServerDataArg *arg = (GetServerDataArg *)argument;
+		GetServerDataRes *res = (GetServerDataRes *)result;
+		
+		if(res->retcode) 
+		{
+			_callback->OnFailed();
+			return;
+		}
+
+		GDB::serverdata data;
+		DB2ServerData(&(res->data),data);
+		_callback->OnGetServerData(arg->world_tag, &data, res->data_mask);
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+		_callback->OnTimeOut();
+	}
+
+};
+
+};
+#endif

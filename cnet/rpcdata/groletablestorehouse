@@ -1,0 +1,59 @@
+#ifndef __GNET_GROLETABLESTOREHOUSE_RPCDATA
+#define __GNET_GROLETABLESTOREHOUSE_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "grolestorehouse"
+
+namespace GNET
+{
+	class GRoleTableStorehouse : public GNET::Rpc::Data
+	{
+	public:
+		GRoleStorehouse storehouse;
+
+	public:
+		GRoleTableStorehouse ()
+		{
+		}
+
+		GRoleTableStorehouse(const GRoleTableStorehouse &rhs)
+			: storehouse(rhs.storehouse) { }
+
+		Rpc::Data *Clone() const { return new GRoleTableStorehouse(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GRoleTableStorehouse *r = dynamic_cast<const GRoleTableStorehouse *>(&rhs);
+			if (r && r != this)
+			{
+				storehouse = r->storehouse;
+			}
+			return *this;
+		}
+
+		GRoleTableStorehouse& operator = (const GRoleTableStorehouse &rhs)
+		{
+			const GRoleTableStorehouse *r = &rhs;
+			if (r && r != this)
+			{
+				storehouse = r->storehouse;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << storehouse;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> storehouse;
+			return os;
+		}
+
+	};
+};
+#endif

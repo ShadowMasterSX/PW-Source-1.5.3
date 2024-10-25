@@ -1,0 +1,109 @@
+
+#ifndef __GNET_CLEARSTOREHOUSEPASSWD_HPP
+#define __GNET_CLEARSTOREHOUSEPASSWD_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "clearstorehousepasswdarg"
+
+
+namespace GNET
+{
+
+class ClearStorehousePasswd : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "clearstorehousepasswd"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		ClearStorehousePasswdArg *arg = (ClearStorehousePasswdArg *)argument;
+		RpcRetcode *res = (RpcRetcode *)result;
+		Marshal::OctetsStream key, keyu, value_status, value_roleid, value_user;
+
+		LOG_TRACE( "ClearStorehousePasswd, roleid=%d.\n", arg->roleid );
+
+		try
+		{
+			StorageEnv::Storage * prolename = StorageEnv::GetStorage("rolename");
+			StorageEnv::Storage * pstatus = StorageEnv::GetStorage("status");
+                        StorageEnv::Storage * puser = StorageEnv::GetStorage("user");
+                        StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				int roleid = arg->roleid;
+				if(roleid <= 0 && arg->rolename.size() && prolename->find( arg->rolename, value_roleid, txn ) )
+					value_roleid >> roleid;
+				if(roleid<0)
+				{
+					res->retcode = -2;
+					return;
+				}
+				key << roleid;
+				GRoleStatus	status;
+				if( !pstatus->find( key, value_status, txn ) )
+				{
+					res->retcode = -2;
+					return;
+				}
+				value_status >> status;
+				status.storehousepasswd.clear();
+				pstatus->insert( key, Marshal::OctetsStream() << status, txn );
+
+
+				GRoleBase base;
+				Marshal::OctetsStream( pbase->find( key, txn ) ) >> base;
+				int userid = base.userid;
+				if(!userid)
+					userid = LOGICUID(roleid);
+
+				keyu << userid;
+				User     user;
+				if( !puser->find( keyu, value_user, txn ) )
+				{
+					res->retcode = -2;
+					return;
+				}
+				value_user >> user;
+				if(user.cash_password.size())
+				{
+                                        user.cash_password.clear();
+                                        puser->insert( keyu, Marshal::OctetsStream() << user, txn );
+				}
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "ClearStorehousePasswd, roleid=%d, what=%s\n", arg->roleid, e.what() );
+			res->retcode = -1;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// ClearStorehousePasswdArg *arg = (ClearStorehousePasswdArg *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

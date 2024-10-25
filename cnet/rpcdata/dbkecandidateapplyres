@@ -1,0 +1,65 @@
+#ifndef __GNET_DBKECANDIDATEAPPLYRES_RPCDATA
+#define __GNET_DBKECANDIDATEAPPLYRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailsyncdata"
+
+namespace GNET
+{
+	class DBKECandidateApplyRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		GMailSyncData syncdata;
+
+	public:
+		DBKECandidateApplyRes (int l_retcode = -1,const GMailSyncData& l_syncdata = GMailSyncData())
+			: retcode(l_retcode),syncdata(l_syncdata)
+		{
+		}
+
+		DBKECandidateApplyRes(const DBKECandidateApplyRes &rhs)
+			: retcode(rhs.retcode),syncdata(rhs.syncdata) { }
+
+		Rpc::Data *Clone() const { return new DBKECandidateApplyRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBKECandidateApplyRes *r = dynamic_cast<const DBKECandidateApplyRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		DBKECandidateApplyRes& operator = (const DBKECandidateApplyRes &rhs)
+		{
+			const DBKECandidateApplyRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> syncdata;
+			return os;
+		}
+
+	};
+};
+#endif

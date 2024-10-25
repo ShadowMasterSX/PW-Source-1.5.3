@@ -1,0 +1,79 @@
+
+#ifndef __GNET_DBFACTIONFORTRESSCHALLENGE_HPP
+#define __GNET_DBFACTIONFORTRESSCHALLENGE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbfactionfortresschallengearg"
+#include "dbfactionfortresschallengeres"
+
+#include "gmailendsync.hpp"
+#include "factionfortresschallenge_re.hpp"
+#include "factionfortressmanager.h"
+
+namespace GNET
+{
+
+class DBFactionFortressChallenge : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbfactionfortresschallenge"
+#undef	RPC_BASECLASS
+	unsigned int save_linksid;
+	unsigned int save_localsid;
+	int          save_gsid;
+	void SyncGameServer( int roleid,GMailSyncData& syncdata, int retcode )
+	{
+		GProviderServer::GetInstance()->DispatchProtocol( save_gsid, GMailEndSync(0,retcode,roleid,syncdata));
+	}
+	void SendResult( int retcode)
+	{
+		GDeliveryServer::GetInstance()->Send(
+				save_linksid,
+				FactionFortressChallenge_Re(retcode,save_localsid)
+			);
+	}
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBFactionFortressChallengeArg *arg = (DBFactionFortressChallengeArg *)argument;
+		// DBFactionFortressChallengeRes *res = (DBFactionFortressChallengeRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		DBFactionFortressChallengeArg *arg = (DBFactionFortressChallengeArg *)argument;
+		DBFactionFortressChallengeRes *res = (DBFactionFortressChallengeRes *)result;
+		DEBUG_PRINT("dbfactionfortresschallenge: rpc return. retcode=%d roleid=%d factionid=%d target_faction=%d", res->retcode,arg->roleid,arg->factionid, arg->target_factionid);
+
+		if(res->retcode ==ERR_SUCCESS)
+		{
+			if(!FactionFortressMan::GetInstance().OnDBChallenge(arg->factionid, arg->target_factionid))	
+			{
+				Log::log(LOG_WARNING,"dbfactionfortresschallenge: OnDBChallenge failed. roleid=%d factionid=%d target_faction=%d", arg->roleid,arg->factionid,arg->target_factionid);
+				FactionFortressMan::GetInstance().OnDBSyncFailed(arg->target_factionid);
+			}
+		}
+		else
+			FactionFortressMan::GetInstance().OnDBSyncFailed(arg->target_factionid);
+		SendResult( res->retcode);
+		SyncGameServer(arg->roleid,res->syncdata,res->retcode);
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+		DBFactionFortressChallengeArg *arg = (DBFactionFortressChallengeArg *)argument;
+		Log::log(LOG_ERR,"dbfactionfortresschallenge: timeout. roleid=%d factionid=%d target_faction=%d", arg->roleid,arg->factionid,arg->target_factionid);
+		FactionFortressMan::GetInstance().OnDBSyncFailed(arg->target_factionid);
+		SendResult(ERR_TIMEOUT);
+		//do not sync gameserver, because gameserver will timeout and disconnect this player
+	}
+
+};
+
+};
+#endif

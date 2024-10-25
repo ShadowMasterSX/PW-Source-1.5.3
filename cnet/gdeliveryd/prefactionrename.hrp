@@ -1,0 +1,42 @@
+
+#ifndef __GNET_PREFACTIONRENAME_HPP
+#define __GNET_PREFACTIONRENAME_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "prefactionrenamearg"
+#include "prefactionrenameres"
+
+namespace GNET
+{
+
+class PreFactionRename : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "prefactionrename"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// PreFactionRenameArg *arg = (PreFactionRenameArg *)argument;
+		// PreFactionRenameRes *res = (PreFactionRenameRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// PreFactionRenameArg *arg = (PreFactionRenameArg *)argument;
+		// PreFactionRenameRes *res = (PreFactionRenameRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

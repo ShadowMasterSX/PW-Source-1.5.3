@@ -1,0 +1,57 @@
+
+#ifndef __GNET_PUTFACTIONFORTRESS_HPP
+#define __GNET_PUTFACTIONFORTRESS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "putfactionfortressarg"
+#include "putfactionfortressres"
+
+#include "factionlib.h"
+
+namespace GNET
+{
+
+class PutFactionFortress : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "putfactionfortress"
+#undef	RPC_BASECLASS
+	FactionFortressResult * _callback;
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// PutFactionFortressArg *arg = (PutFactionFortressArg *)argument;
+		// PutFactionFortressRes *res = (PutFactionFortressRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// PutFactionFortressArg *arg = (PutFactionFortressArg *)argument;
+		PutFactionFortressRes *res = (PutFactionFortressRes *)result;
+		if(_callback)
+		{
+			if(res->retcode == ERR_SUCCESS)
+			{
+				_callback->OnPutData();	
+			}
+			else
+			{
+				_callback->OnFailed();
+			}		
+		}
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+		if(_callback) _callback->OnTimeOut();
+	}
+
+};
+
+};
+#endif

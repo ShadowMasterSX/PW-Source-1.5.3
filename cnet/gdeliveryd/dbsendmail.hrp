@@ -1,0 +1,158 @@
+
+#ifndef __GNET_DBSENDMAIL_HPP
+#define __GNET_DBSENDMAIL_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "gmailheader"
+#include "gmail"
+#include "gmailsyncdata"
+#include "dbsendmailarg"
+#include "dbsendmailres"
+
+#include "playersendmail_re.hpp"
+#include "syssendmail_re.hpp"
+#include "sysrecoveredobjmail_re.hpp"
+#include "gmailendsync.hpp"
+#include "gproviderserver.hpp"
+#include "postoffice.h"
+#include "mapuser.h"
+namespace GNET
+{
+
+class DBSendMail : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbsendmail"
+#undef	RPC_BASECLASS
+	unsigned int save_linksid;
+	unsigned int save_localsid;
+	unsigned int save_gsid;
+	
+	unsigned int send_web_reason;
+	enum {
+		REASON_SEND_WEB_SYSRECOVEREDOBJ = 0,
+		REASON_SEND_WEB_SYSSENDMAIL,
+		REASON_SEND_WEB_MAX,
+	};
+
+	bool SyncGameServer(DBSendMailArg& arg,GMailSyncData& syncdata, int retcode)
+	{
+		return GProviderServer::GetInstance()->DispatchProtocol(
+				save_gsid,
+				GMailEndSync(0/*must be zero*/,retcode,arg.mail.header.sender,syncdata)
+			);	
+	}
+	bool Send2Player( int retcode,DBSendMailArg& arg )
+	{
+		Thread::RWLock::RDScoped l(UserContainer::GetInstance().GetLocker());
+		PlayerInfo * pinfo = UserContainer::GetInstance().FindRoleOnline( arg.mail.header.sender );
+		if ( NULL!=pinfo )
+		{
+			return GDeliveryServer::GetInstance()->Send(
+				save_linksid,
+				PlayerSendMail_Re(
+					retcode,
+					arg.mail.header.sender,
+					save_localsid,
+					arg.mail.header.receiver,
+					arg.mail.attach_obj.count,
+					arg.mail.attach_obj.pos,
+					arg.mail.attach_money
+				)
+			);	
+		}
+		else
+			return false;
+	}
+	bool Send2Web( int retcode )
+	{
+		if ( save_linksid==0 ) return false;
+                if (save_localsid >= 0x40000000){
+                        //return to AU
+                        return  GAuthClient::GetInstance()->SendProtocol(
+                                SysSendMail_Re(retcode,save_localsid/*tid*/));
+                } else {
+                        //return to Web
+						switch(send_web_reason)
+						{
+							case REASON_SEND_WEB_SYSRECOVEREDOBJ:
+							{
+								return GDeliveryServer::GetInstance()->Send(save_linksid, SysRecoveredObjMail_Re(retcode, save_localsid/*a cookie*/) );
+							}
+							case REASON_SEND_WEB_SYSSENDMAIL:
+							{
+								return GDeliveryServer::GetInstance()->Send(save_linksid, SysSendMail_Re(retcode, save_localsid/*a cookie*/) );
+							}
+							default:
+								return false;
+						}
+                }
+		//return GDeliveryServer::GetInstance()->Send( save_linksid,SysSendMail_Re(retcode,save_localsid/*a cookie*/) );
+	}
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBSendMailArg *arg = (DBSendMailArg *)argument;
+		// DBSendMailRes *res = (DBSendMailRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBSendMailArg *arg = (DBSendMailArg *)argument;
+		DBSendMailRes *res = (DBSendMailRes *)result;
+		DEBUG_PRINT("dbsendmail. rpc return. retcode=%d,sender=%d(type=%d),receiver=%d,localsid=%d\n",
+				res->retcode, arg->mail.header.sender,arg->mail.header.sndr_type,arg->mail.header.receiver,save_localsid);
+		switch ( arg->mail.header.sndr_type )
+		{
+			case _MST_PLAYER:
+				if ( res->retcode==ERR_SUCCESS )
+				{
+					arg->mail.header.id=res->mail_id;
+					PostOffice::GetInstance().AddNewMail( arg->mail.header.receiver,arg->mail.header ); 
+				}
+				SyncGameServer( *arg,res->syncdata, res->retcode );
+				Send2Player(res->retcode,*arg);
+				break;
+			case _MST_NPC:
+				break;
+			case _MST_AUCTION:
+				break;	
+			case _MST_WEB:
+				if ( res->retcode==ERR_SUCCESS )
+				{
+					arg->mail.header.id=res->mail_id;
+					PostOffice::GetInstance().AddNewMail( arg->mail.header.receiver,arg->mail.header ); 
+				}
+				Send2Web( res->retcode );
+				break;	
+			case _MST_ANTICHEAT:
+				break;
+		}
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		DBSendMailArg *arg = (DBSendMailArg *)argument;
+		Log::log(LOG_ERR,"dbsendmail timeout. sender=%d(type=%d),receiver=%d,localsid=%d\n",
+				arg->mail.header.sender,arg->mail.header.sndr_type,arg->mail.header.receiver,save_localsid);
+		switch ( arg->mail.header.sndr_type )
+		{
+			case _MST_PLAYER:
+				//SyncGameServer( *arg,arg->syncdata );
+				Send2Player(ERR_TIMEOUT,*arg);
+				break;
+			case _MST_NPC:
+				break;
+			case _MST_WEB:
+				Send2Web( ERR_TIMEOUT );
+				break;
+			case _MST_ANTICHEAT:
+				break;
+		}
+	}
+
+};
+
+};
+#endif

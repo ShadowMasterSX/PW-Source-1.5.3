@@ -1,0 +1,36 @@
+
+#ifndef __GNET_DBSYNCSELLINFO_HPP
+#define __GNET_DBSYNCSELLINFO_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "sellpointinfo"
+#include "roleid"
+#include "dbsyncsellinfores"
+namespace GNET
+{
+
+class DBSyncSellInfo : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbsyncsellinfo"
+#undef	RPC_BASECLASS
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// RoleId *arg = (RoleId *)argument;
+		// DBSyncSellInfoRes *res = (DBSyncSellInfoRes *)result;
+	}
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void OnTimeout( Rpc::Data *argument )
+	{
+	}
+
+};
+
+};
+#endif

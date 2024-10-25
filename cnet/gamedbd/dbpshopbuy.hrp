@@ -1,0 +1,118 @@
+#ifndef __GNET_DBPSHOPBUY_HPP
+#define __GNET_DBPSHOPBUY_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbpshopbuyarg"
+#include "dbpshopbuyres"
+#include "utilfunction.h"
+
+namespace GNET
+{
+
+class DBPShopBuy : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbpshopbuy"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBPShopBuyArg *arg = (DBPShopBuyArg *)argument;
+		DBPShopBuyRes *res = (DBPShopBuyRes *)result;
+		try
+		{
+			StorageEnv::Storage * pshop = StorageEnv::GetStorage("playershop");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				//获取店铺
+				PShopDetail shop;
+				Marshal::OctetsStream key;
+				key << arg->roleid;
+				Marshal::OctetsStream(pshop->find(key, txn)) >> shop;
+				if(!PShopFunc::OptionPolicy(shop, PShopFunc::PSHOP_OP_TRADE))
+				{					
+					Log::log(LOG_ERR,"DBPShopBuy, buy opt invalid roleid=%d )",arg->roleid);
+					throw DbException(DB_VERIFY_BAD);
+				}
+				ShopInvMan invman(shop.blist, PSHOP_BLIST_CAP);
+				if(!invman.IsEmptySlot(arg->item_pos))
+				{
+					Log::log(LOG_ERR,"DBPShopBuy, no empty slot roleid=%d )",arg->roleid);
+					throw DbException(DB_VERIFY_BAD);
+				}
+				if(shop.store.size() >= PSHOP_STORE_CAP - shop.blist.size() - shop.slist.size()) // 买卖栏+仓库 <= PSHOP_STORE_CAP
+				{
+					Log::log(LOG_ERR,"DBPShopBuy, store full[%d-%d-%d] roleid=%d )",shop.store.size(), shop.blist.size(), shop.slist.size(), arg->roleid);
+					throw DbException(DB_VERIFY_BAD);//仓库满
+				}
+
+				//检查店铺MONEY
+				//收购栏总消耗+本次收购消耗大于等于店铺金钱和银票价值
+				uint64_t need_money = 0;
+				need_money += PShopFunc::CalItemValue(shop.blist);
+				need_money += (uint64_t)(arg->item_count * (uint64_t)arg->item_price);
+				uint64_t total_money = shop.money;//店铺现有金钱+银票
+				for(size_t i=0; i<shop.yinpiao.size(); ++i)
+					total_money += ((uint64_t)shop.yinpiao[i].count * (uint64_t)WANMEI_YINPIAO_PRICE);
+				if(total_money < need_money)
+				{
+					//店铺金钱不足
+					Log::log(LOG_ERR,"DBPShopBuy, money not enough roleid=%d )",arg->roleid);
+					throw DbException(DB_VERIFY_BAD);
+				}
+
+				LOG_TRACE("DBPShopBuy, roleid=%d,item=%d,pos=%d,count=%d,price=%d", arg->roleid,arg->item_id,arg->item_pos,arg->item_count,arg->item_price);
+
+				//放入收购栏
+				PShopItem itembuy;
+				itembuy.item.id = arg->item_id;
+				itembuy.item.pos = arg->item_pos;
+				itembuy.item.count = arg->item_count;
+				itembuy.item.max_count = arg->item_count;//这里的max_count不正确,但是为了保证能正确插入收购栏,暂时设置为该值
+				itembuy.price = arg->item_price;
+				if(!invman.Push(arg->item_pos, itembuy))
+				{
+					Log::log(LOG_ERR,"DBPShopBuy, buy item cant push in inv itemid%d pos%d count%d roleid=%d )"	,
+							arg->item_id,arg->item_pos,arg->item_count,arg->roleid);
+					throw DbException(DB_VERIFY_BAD);
+				}
+
+				pshop->insert(key, Marshal::OctetsStream()<<shop,txn);
+				res->itembuy = itembuy;
+				res->retcode = ERR_SUCCESS;
+			}
+			catch(DbException e) { throw; }
+			catch(...)
+			{
+				DbException ee(DB_OLD_VERSION);
+				txn.abort(ee);
+				throw ee;
+			}
+		}
+		catch(DbException e)
+		{
+			Log::log(LOG_ERR, "DBPShopBuy, roleid=%d, what=%s\n", arg->roleid, e.what());
+			res->retcode = ERR_VERIFYFAILED;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBPShopBuyArg *arg = (DBPShopBuyArg *)argument;
+		// DBPShopBuyRes *res = (DBPShopBuyRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

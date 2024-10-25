@@ -1,0 +1,44 @@
+	public:
+		char operation;
+		int64_t team_uid;
+		int64_t captain;
+		std::vector<int> members;
+		enum { PROTOCOL_TYPE = PROTOCOL_PLAYERTEAMOP };
+	public:
+		PlayerTeamOp() { type = PROTOCOL_PLAYERTEAMOP; }
+		PlayerTeamOp(void*) : Protocol(PROTOCOL_PLAYERTEAMOP) { }
+		PlayerTeamOp (char l_operation,int64_t l_team_uid = 0,int64_t l_captain = 0,
+			const std::vector<int>& l_members = std::vector<int>())
+			 : operation(l_operation),team_uid(l_team_uid),captain(l_captain)
+			,members(l_members)
+		{
+			type = PROTOCOL_PLAYERTEAMOP;
+		}
+
+		PlayerTeamOp(const PlayerTeamOp &rhs)
+			: Protocol(rhs),operation(rhs.operation),team_uid(rhs.team_uid),captain(rhs.captain)
+			,members(rhs.members) { }
+
+		GNET::Protocol *Clone() const { return new PlayerTeamOp(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << operation;
+			os << team_uid;
+			os << captain;
+			os << members;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> operation;
+			os >> team_uid;
+			os >> captain;
+			os >> members;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1048576; }

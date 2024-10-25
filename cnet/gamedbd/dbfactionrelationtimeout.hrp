@@ -1,0 +1,108 @@
+
+#ifndef __GNET_DBFACTIONRELATIONTIMEOUT_HPP
+#define __GNET_DBFACTIONRELATIONTIMEOUT_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbfactionrelationtimeoutarg"
+#include "dbfactionrelationretcode"
+
+
+namespace GNET
+{
+
+class DBFactionRelationTimeout : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbfactionrelationtimeout"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBFactionRelationTimeoutArg *arg = (DBFactionRelationTimeoutArg *)argument;
+		DBFactionRelationRetcode *res = (DBFactionRelationRetcode *)result;
+		
+		try
+		{
+			StorageEnv::Storage * pinfo = StorageEnv::GetStorage("factioninfo");
+			StorageEnv::Storage * prelation = StorageEnv::GetStorage("factionrelation");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				Marshal::OctetsStream key1, key2;
+				key1 << arg->fid1;
+				key2 << arg->fid2;
+				GFactionInfo info1, info2;
+				Marshal::OctetsStream(pinfo->find(key1, txn)) >> info1;
+				Marshal::OctetsStream(pinfo->find(key2, txn)) >> info2;
+				
+				Marshal::OctetsStream value_relation1, value_relation2;
+				GFactionRelation relation1, relation2;
+				if(prelation->find(key1, value_relation1, txn))
+					value_relation1 >> relation1;
+				else
+					relation1.fid = arg->fid1;
+				if(prelation->find(key2, value_relation2, txn))
+					value_relation2 >> relation2;
+				else
+					relation2.fid = arg->fid2;
+				if(!FactionFunc::Find(relation1.alliance,arg->fid2) && !FactionFunc::Find(relation1.hostile,arg->fid2)
+					|| !FactionFunc::Find(relation2.alliance,arg->fid1) && !FactionFunc::Find(relation2.hostile,arg->fid1)
+					|| FactionFunc::Find(relation1.apply,arg->fid2)
+					|| FactionFunc::Find(relation2.apply,arg->fid1))
+				{
+					res->retcode = ERR_OUTOFSYNC;
+					return;
+				}
+				Log::formatlog("factionrelation","relationtimeout:type=%d:fid1=%d:fid2=%d",arg->type,arg->fid1,arg->fid2);
+
+				if(arg->type == ALLIANCE)					
+				{
+					FactionFunc::Remove(relation1.alliance,arg->fid2);
+					FactionFunc::Remove(relation2.alliance,arg->fid1);
+				}
+				else if(arg->type == HOSTILE)
+				{
+					FactionFunc::Remove(relation1.hostile,arg->fid2);
+					FactionFunc::Remove(relation2.hostile,arg->fid1);
+				}
+
+				prelation->insert(key1, Marshal::OctetsStream()<<relation1, txn);
+				prelation->insert(key2, Marshal::OctetsStream()<<relation2, txn);
+				res->fname1.swap(info1.name);
+				res->fname2.swap(info2.name);
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBFactionRelationTimeout, fid1=%d, fid2=%d, type=%d, what=%s\n", arg->fid1, arg->fid2, arg->type, e.what());
+			res->retcode = ERR_EXCEPTION;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBFactionRelationTimeoutArg *arg = (DBFactionRelationTimeoutArg *)argument;
+		// DBFactionRelationRetcode *res = (DBFactionRelationRetcode *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,47 @@
+
+#ifndef __GNET_DBGETREWARD_HPP
+#define __GNET_DBGETREWARD_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbgetrewardarg"
+#include "dbgetrewardres"
+#include "rewardmanager.h"
+
+namespace GNET
+{
+
+class DBGetReward : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbgetreward"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBGetRewardArg *arg = (DBGetRewardArg *)argument;
+		// DBGetRewardRes *res = (DBGetRewardRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBGetRewardArg *arg = (DBGetRewardArg *)argument;
+		DBGetRewardRes *res = (DBGetRewardRes *)result;
+		if (res->retcode == ERR_SUCCESS)
+			RewardManager::GetInstance()->OnLoadReward(arg->roleid, arg->userid, res->reward);
+		else
+			Log::log(LOG_ERR, "DBGetReward error %d roleid %d userid %d", res->retcode, arg->roleid, arg->userid);
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		DBGetRewardArg *arg = (DBGetRewardArg *)argument;
+		Log::log(LOG_ERR, "DBGetReward timeout roleid %d userid %d", arg->roleid, arg->userid);
+	}
+
+};
+
+};
+#endif

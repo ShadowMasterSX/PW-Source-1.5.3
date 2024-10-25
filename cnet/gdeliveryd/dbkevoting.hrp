@@ -1,0 +1,79 @@
+
+#ifndef __GNET_DBKEVOTING_HPP
+#define __GNET_DBKEVOTING_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbkevotingarg"
+#include "dbkevotingres"
+
+#include "gmailendsync.hpp"
+#include "kevoting_re.hpp"
+#include "gproviderserver.hpp"
+#include "gdeliveryserver.hpp"
+#include "kingelection.h"
+
+namespace GNET
+{
+
+class DBKEVoting : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbkevoting"
+#undef	RPC_BASECLASS
+
+	unsigned int save_linksid;
+	unsigned int save_localsid;
+	int          save_gsid;
+	void SyncGameServer( int roleid,GMailSyncData& syncdata, int retcode )
+	{
+		GProviderServer::GetInstance()->DispatchProtocol( save_gsid, GMailEndSync(0,retcode,roleid,syncdata));
+	}
+	void SendResult( int retcode)
+	{
+		GDeliveryServer::GetInstance()->Send(
+				save_linksid,
+				KEVoting_Re(retcode,save_localsid)
+			);
+	}
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBKEVotingArg *arg = (DBKEVotingArg *)argument;
+		// DBKEVotingRes *res = (DBKEVotingRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		DBKEVotingArg *arg = (DBKEVotingArg *)argument;
+		DBKEVotingRes *res = (DBKEVotingRes *)result;
+		DEBUG_PRINT("dbkevoting: rpc return. retcode=%d roleid=%d candidate_roleid=%d",
+				res->retcode, arg->roleid, arg->candidate_roleid);
+
+		if(res->retcode == ERR_SUCCESS)
+		{
+			if(!KingElection::GetInstance().AddVote(arg->candidate_roleid))
+			{
+				Log::log(LOG_WARNING,"dbkevoting: rpc success, but add vote failed, roleid=%d, candidate_roleid=%d", arg->roleid, arg->candidate_roleid);
+			}
+		}
+		SendResult( res->retcode );
+		SyncGameServer(arg->roleid,res->syncdata,res->retcode);
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+		DBKEVotingArg *arg = (DBKEVotingArg *)argument;
+		Log::log(LOG_ERR,"dbkevoting: timeout. roleid=%d, candidate_roleid=%d", arg->roleid, arg->candidate_roleid);
+		SendResult(ERR_TIMEOUT);
+		//do not sync gameserver, because gameserver will timeout and disconnect this player
+	}
+
+};
+
+};
+#endif

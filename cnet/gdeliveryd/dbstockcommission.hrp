@@ -1,0 +1,65 @@
+
+#ifndef __GNET_DBSTOCKCOMMISSION_HPP
+#define __GNET_DBSTOCKCOMMISSION_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbstockcommissionarg"
+#include "dbstockcommissionres"
+#include "stockcommission_re.hpp"
+#include "stockaccount_re.hpp"
+
+namespace GNET
+{
+
+class DBStockCommission : public Rpc
+{
+#define RPC_BASECLASS   Rpc
+#include "dbstockcommission"
+#undef  RPC_BASECLASS
+	int linksid;
+	int localsid;
+	int ack_volume;
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBStockCommissionArg *arg = (DBStockCommissionArg *)argument;
+		// DBStockCommissionRes *res = (DBStockCommissionRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBStockCommissionArg *arg = (DBStockCommissionArg *)argument;
+		DBStockCommissionRes *res = (DBStockCommissionRes *)result;
+
+		StockCommission_Re ret;
+		if(res->retcode)
+			StockExchange::Instance()->AbortCommission(arg->order.tid);
+		else
+			StockExchange::Instance()->OnCommission(arg->order, ack_volume, ret.cash, ret.money, ret.prices);
+		ret.retcode = res->retcode? ERR_STOCK_DATABASE : 0;
+		ret.localsid = localsid;
+		GDeliveryServer::GetInstance()->Send(linksid, ret);
+		DEBUG_PRINT("StockCommission:: tid=%d,retcode=%d,cash=%d,money=%d",arg->order.tid,res->retcode,ret.cash,ret.money);
+
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		// ??·￠1òμ￥???ó
+		DBStockCommissionArg *arg = (DBStockCommissionArg *)argument;
+		DBStockCommission* rpc = (DBStockCommission*) Rpc::Call( RPC_DBSTOCKCOMMISSION,arg);
+		rpc->linksid = this->linksid;
+		rpc->localsid = this->localsid;
+		rpc->ack_volume = this->ack_volume;
+		GameDBClient::GetInstance()->SendProtocol(rpc);
+
+		Log::log(LOG_ERR,"dbstockcommission: rpc timeout, tid=%d, userid=%d", arg->order.tid, arg->order.userid);
+	}
+
+};
+
+};
+#endif

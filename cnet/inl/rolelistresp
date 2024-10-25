@@ -1,0 +1,35 @@
+	public:
+		int64_t userid;
+		RoleDetailBeanVector roles;
+		enum { PROTOCOL_TYPE = PROTOCOL_ROLELISTRESP };
+	public:
+		RoleListResp() { type = PROTOCOL_ROLELISTRESP; }
+		RoleListResp(void*) : Protocol(PROTOCOL_ROLELISTRESP) { }
+		RoleListResp (int64_t l_userid,const RoleDetailBeanVector& l_roles = RoleDetailBeanVector())
+			 : userid(l_userid),roles(l_roles)
+		{
+			type = PROTOCOL_ROLELISTRESP;
+		}
+
+		RoleListResp(const RoleListResp &rhs)
+			: Protocol(rhs),userid(rhs.userid),roles(rhs.roles) { }
+
+		GNET::Protocol *Clone() const { return new RoleListResp(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			os << roles;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			os >> roles;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 2048; }

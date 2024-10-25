@@ -1,0 +1,65 @@
+#ifndef __GNET_ROLESTOREHOUSEPAIR_RPCDATA
+#define __GNET_ROLESTOREHOUSEPAIR_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "roleid"
+#include "grolestorehouse"
+
+namespace GNET
+{
+	class RoleStorehousePair : public GNET::Rpc::Data
+	{
+	public:
+		RoleId key;
+		GRoleStorehouse value;
+
+	public:
+		RoleStorehousePair ()
+		{
+		}
+
+		RoleStorehousePair(const RoleStorehousePair &rhs)
+			: key(rhs.key),value(rhs.value) { }
+
+		Rpc::Data *Clone() const { return new RoleStorehousePair(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const RoleStorehousePair *r = dynamic_cast<const RoleStorehousePair *>(&rhs);
+			if (r && r != this)
+			{
+				key = r->key;
+				value = r->value;
+			}
+			return *this;
+		}
+
+		RoleStorehousePair& operator = (const RoleStorehousePair &rhs)
+		{
+			const RoleStorehousePair *r = &rhs;
+			if (r && r != this)
+			{
+				key = r->key;
+				value = r->value;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << key;
+			os << value;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> key;
+			os >> value;
+			return os;
+		}
+
+	};
+};
+#endif

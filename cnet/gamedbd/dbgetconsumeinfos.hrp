@@ -1,0 +1,147 @@
+
+#ifndef __GNET_DBGETCONSUMEINFOS_HPP
+#define __GNET_DBGETCONSUMEINFOS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "playerconsumeinfo"
+#include "roleid"
+#include "gloginrecord"
+#include "groledetail"
+#include "dbgetconsumeinfosarg"
+#include "dbgetconsumeinfosres"
+#include "gconsumptionrecord"
+
+namespace GNET
+{
+
+class DBGetConsumeInfos : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbgetconsumeinfos"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBGetConsumeInfosArg *arg = (DBGetConsumeInfosArg *)argument;
+		DBGetConsumeInfosRes *res = (DBGetConsumeInfosRes *)result;
+		res->retcode = ERR_SUCCESS;
+
+		try
+		{
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::Storage * puser = StorageEnv::GetStorage("user");
+			StorageEnv::Storage * pstatus = StorageEnv::GetStorage("status");
+			StorageEnv::CommonTransaction txn;
+			for ( unsigned int i = 0; i < arg->playerlist.size(); ++i )
+			{
+				RoleId roleid = arg->playerlist[i];
+				
+				try
+				{
+					PlayerConsumeInfo info;
+					GRoleBase base;
+					User user;
+					GRoleStatus status;
+					OctetsStream key_roleid;
+					Octets val;
+
+					key_roleid << roleid;
+
+					if (!pbase->find( key_roleid, val, txn ))
+					{
+						continue;
+					}
+					Marshal::OctetsStream(val) >> base;
+					if (!pstatus->find( key_roleid, val, txn ))
+					{
+						continue;
+					}
+					Marshal::OctetsStream(val) >> status;
+
+					OctetsStream key_userid;
+					key_userid << (0==base.userid ? LOGICUID(base.id) : base.userid);
+					if (!puser->find( key_userid, val, txn ))
+					{
+						continue;
+					}
+					Marshal::OctetsStream(val) >> user;
+
+					info.roleid = roleid.id;
+
+					info.level = status.level;
+
+					GLoginRecord loginrecord;
+					OctetsStream(user.login_record) >> loginrecord;
+					info.login_ip = loginrecord.login_ip;
+
+					info.cash_add = user.cash_add;
+
+					if (user.mall_consumption.size() > 0)
+					{
+						GConsumptionRecord record;
+						Marshal::OctetsStream(user.mall_consumption) >> record;
+						info.mall_consumption = record.consumption;
+					}
+					else
+					{
+						info.mall_consumption = 0;
+					}
+
+					static const int seconds_per_day = 24 * 60 * 60;
+					int time_exists = time(NULL) - base.create_time;
+					int days = time_exists / seconds_per_day;
+					int day_seconds = time_exists % seconds_per_day;
+					if (days >= 0)
+					{
+						if (day_seconds > 0)
+						{
+							// 向上取整
+							++days;
+						}
+						if (days == 0)
+						{
+							// 避免数据错误的情况下出现零除
+							days = 1;
+						}
+						info.avg_online_time = status.time_used / days;
+					}
+					else
+					{
+						// 创建日期在未来
+						info.avg_online_time = 0;
+					}
+					
+					res->playerlist.push_back(info);
+				}
+				catch ( DbException e ) {
+				   	// 忽略
+			   	}
+				catch ( ... )
+				{
+					DbException ee( DB_OLD_VERSION );
+					txn.abort( ee );
+					// 忽略
+				}
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBGetConsumeInfos, what=%s\n", e.what() );
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

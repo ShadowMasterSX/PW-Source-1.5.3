@@ -1,0 +1,49 @@
+
+#ifndef __GNET_GETFACTIONDETAIL_HPP
+#define __GNET_GETFACTIONDETAIL_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "fmemberinfo"
+#include "factionid"
+#include "gfactiondetail"
+#include "factiondetailres"
+
+namespace GNET
+{
+
+class GetFactionDetail : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getfactiondetail"
+#undef	RPC_BASECLASS
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		FactionId *arg = (FactionId *)argument;
+		FactionDetailRes *res = (FactionDetailRes *)result;
+	
+		Factiondb::GetInstance()->ClearLoadFlag(arg->fid);
+		DEBUG_PRINT("GetFactionDetail, rpc return. fid=%d, retcode=%d", arg->fid, res->retcode);
+
+		if(res->retcode!=ERR_SUCCESS)
+			return;
+		Factiondb::GetInstance()->PutFactionCache(arg->fid, res->value);
+	}
+
+	void OnTimeout()
+	{
+		FactionId *arg = (FactionId *)argument;
+		Log::log(LOG_ERR, "GetFactionDetail timeout. fid=%d; Resend request",arg->fid);
+		GFactionDBClient::GetInstance()->SendProtocol(Rpc::Call(RPC_GETFACTIONDETAIL,arg));
+	}
+
+};
+
+};
+#endif

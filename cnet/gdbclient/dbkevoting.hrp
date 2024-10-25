@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBKEVOTING_HPP
+#define __GNET_DBKEVOTING_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbkevotingarg"
+#include "dbkevotingres"
+
+namespace GNET
+{
+
+class DBKEVoting : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbkevoting"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBKEVotingArg *arg = (DBKEVotingArg *)argument;
+		// DBKEVotingRes *res = (DBKEVotingRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBKEVotingArg *arg = (DBKEVotingArg *)argument;
+		// DBKEVotingRes *res = (DBKEVotingRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

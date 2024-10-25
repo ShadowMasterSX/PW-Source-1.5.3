@@ -1,0 +1,82 @@
+#ifndef __GNET_DBDELETEROLERES_RPCDATA
+#define __GNET_DBDELETEROLERES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBDeleteRoleRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		int userid;
+		unsigned int rolelist;
+		unsigned int faction;
+		Octets rolename;
+
+	public:
+		DBDeleteRoleRes (int l_retcode = -1,int l_userid = -1,unsigned int l_rolelist = 0
+			,unsigned int l_faction = 0,const Octets& l_rolename = Octets())
+			: retcode(l_retcode),userid(l_userid),rolelist(l_rolelist)
+			,faction(l_faction),rolename(l_rolename)
+		{
+		}
+
+		DBDeleteRoleRes(const DBDeleteRoleRes &rhs)
+			: retcode(rhs.retcode),userid(rhs.userid),rolelist(rhs.rolelist),
+			faction(rhs.faction),rolename(rhs.rolename) { }
+
+		Rpc::Data *Clone() const { return new DBDeleteRoleRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBDeleteRoleRes *r = dynamic_cast<const DBDeleteRoleRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				userid = r->userid;
+				rolelist = r->rolelist;
+				faction = r->faction;
+				rolename = r->rolename;
+			}
+			return *this;
+		}
+
+		DBDeleteRoleRes& operator = (const DBDeleteRoleRes &rhs)
+		{
+			const DBDeleteRoleRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				userid = r->userid;
+				rolelist = r->rolelist;
+				faction = r->faction;
+				rolename = r->rolename;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << userid;
+			os << rolelist;
+			os << faction;
+			os << rolename;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> userid;
+			os >> rolelist;
+			os >> faction;
+			os >> rolename;
+			return os;
+		}
+
+	};
+};
+#endif

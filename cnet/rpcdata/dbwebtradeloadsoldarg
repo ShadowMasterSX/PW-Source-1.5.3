@@ -1,0 +1,59 @@
+#ifndef __GNET_DBWEBTRADELOADSOLDARG_RPCDATA
+#define __GNET_DBWEBTRADELOADSOLDARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBWebTradeLoadSoldArg : public GNET::Rpc::Data
+	{
+	public:
+		Octets handle;
+
+	public:
+		DBWebTradeLoadSoldArg (const Octets& l_handle = Octets())
+			: handle(l_handle)
+		{
+		}
+
+		DBWebTradeLoadSoldArg(const DBWebTradeLoadSoldArg &rhs)
+			: handle(rhs.handle) { }
+
+		Rpc::Data *Clone() const { return new DBWebTradeLoadSoldArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBWebTradeLoadSoldArg *r = dynamic_cast<const DBWebTradeLoadSoldArg *>(&rhs);
+			if (r && r != this)
+			{
+				handle = r->handle;
+			}
+			return *this;
+		}
+
+		DBWebTradeLoadSoldArg& operator = (const DBWebTradeLoadSoldArg &rhs)
+		{
+			const DBWebTradeLoadSoldArg *r = &rhs;
+			if (r && r != this)
+			{
+				handle = r->handle;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << handle;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> handle;
+			return os;
+		}
+
+	};
+};
+#endif

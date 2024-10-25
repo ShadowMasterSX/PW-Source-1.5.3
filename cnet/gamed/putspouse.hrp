@@ -1,0 +1,42 @@
+
+#ifndef __GNET_PUTSPOUSE_HPP
+#define __GNET_PUTSPOUSE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "putspousearg"
+
+
+namespace GNET
+{
+
+class PutSpouse : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "putspouse"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// PutSpouseArg *arg = (PutSpouseArg *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// PutSpouseArg *arg = (PutSpouseArg *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

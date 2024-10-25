@@ -1,0 +1,146 @@
+
+#ifndef __GNET_DBSELLPOINT_HPP
+#define __GNET_DBSELLPOINT_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "sellid"
+#include "sellpointinfo"
+#include "sellpointarg"
+#include "sellpointres"
+#include "groleinventory"
+#include "grolepocket"
+
+#include "selldataimage.h"
+#define EXPIRE_TIME 18000 // 5 hours
+//#define EXPIRE_TIME 600   // 10 minutes ,for test purpose only
+#define FEE         10000 // sell fee
+
+namespace GNET
+{
+
+class DBSellPoint : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbsellpoint"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		SellPointArg *arg = (SellPointArg *)argument;
+		SellPointRes *res = (SellPointRes *)result;
+		Marshal::OctetsStream key,value;
+		SellID sellid;
+		SellPointInfo sellinfo;
+		
+		res->retcode=ERR_SUCCESS;
+		try {
+			StorageEnv::Storage * psell = StorageEnv::GetStorage("sellpoint");
+			StorageEnv::Storage * pinventory = StorageEnv::GetStorage("inventory");
+			StorageEnv::CommonTransaction txn;
+			GRolePocket pocket;
+			try
+			{
+				Log::formatlog( "sellpoint",
+					"DBSellPoint, received. roleid=%d, point=%d, price=%d, money=%d, timestamp=%d\n", 
+					arg->roleid,arg->point,arg->price,arg->money,arg->timestamp );
+				sellid.roleid=arg->roleid;
+				sellid.sellid=SellDataImage::GetSellID();
+				if ( sellid.sellid==-1 ) {
+					res->retcode=ERR_SP_NOT_INIT;
+					throw DbException(0);
+				}
+				//check money
+				if ( arg->money<FEE )
+				{
+					res->retcode=ERR_SP_NOMONEY;
+					throw DbException(0);
+				}
+				//check timestamp
+				Marshal::OctetsStream(pinventory->find(Marshal::OctetsStream()<<arg->roleid,txn))>>pocket;
+				if ((unsigned int)arg->timestamp <= pocket.timestamp)
+				{
+					res->retcode=ERR_EXCEPTION;
+					throw DbException(0);
+				}
+				//pay fee
+				pocket.money = arg->money-FEE;
+				pocket.timestamp=arg->timestamp;
+				pinventory->insert(Marshal::OctetsStream()<<arg->roleid,Marshal::OctetsStream()<<pocket,txn);
+				//insert into DBD
+				sellinfo.sellid = sellid.sellid;
+				sellinfo.roleid = arg->roleid;
+				sellinfo.point  = arg->point;
+				sellinfo.price  = arg->price;
+				sellinfo.ctime  = time(NULL);
+				sellinfo.etime  = sellinfo.ctime+EXPIRE_TIME;
+				sellinfo.status = _PST_NOTSELL;
+
+				key<<sellid;
+				value<<sellinfo;
+				psell->insert( key,value,txn );
+				//fill res
+				res->sellid=sellid.sellid;
+				res->ctime=sellinfo.ctime;
+				res->etime=sellinfo.etime;
+				res->status=sellinfo.status;
+				res->money=pocket.money;
+				//update image
+				SellDataImage::GetInstance().OnAddSell(sellid.roleid,sellid.sellid);
+				Log::formatlog( "sellpoint", "DBSellPoint, roleid=%d,point=%d,price=%d,sellid=%d,"
+					"ctime=%d,etime=%d,status=%d,money=%d,timestamp=%d\n", 
+					arg->roleid,arg->point,arg->price,res->sellid,res->ctime,res->etime,
+					res->status,res->money,arg->timestamp );
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			switch (res->retcode )
+			{
+				case ERR_EXCEPTION:
+					Log::log( LOG_ERR, "DBSellPoint, timestamp err. what=%s,roleid=%d, point=%d, price=%d,money=%d,timestamp=%d\n", e.what(),arg->roleid,arg->point,arg->price,arg->money,arg->timestamp );
+					break;
+				case ERR_SP_NOT_INIT:
+					Log::log( LOG_ERR, "DBSellPoint, selldataimage not init. what=%s,roleid=%d, point=%d, price=%d,money=%d,timestamp=%d\n", e.what(),arg->roleid,arg->point,arg->price,arg->money,arg->timestamp );
+					break;
+				case ERR_SP_NOMONEY:
+					Log::log( LOG_ERR, "DBSellPoint, Insufficient money. roleid=%d, point=%d, price=%d,money=%d, timestamp=%d\n", arg->roleid,arg->point,arg->price,arg->money,arg->timestamp );
+					break;
+				case ERR_SUCCESS: //other exception occurs
+					if ( e.get_errno()==DB_LOCK_DEADLOCK ) {
+						res->retcode=ERR_SP_DBDEADLOCK;
+					}
+					else
+						res->retcode=ERR_FAILED;
+					Log::log( LOG_ERR, "DBSellPoint, roleid=%d, point=%d, price=%d, money=%d, timestamp=%d, what=%s\n", 
+						arg->roleid,arg->point,arg->price,arg->money,arg->timestamp, e.what() );
+					break;
+			}
+		}	
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// SellPointArg *arg = (SellPointArg *)argument;
+		// SellPointRes *res = (SellPointRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

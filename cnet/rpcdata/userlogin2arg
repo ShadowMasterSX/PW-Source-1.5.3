@@ -1,0 +1,118 @@
+#ifndef __GNET_USERLOGIN2ARG_RPCDATA
+#define __GNET_USERLOGIN2ARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class UserLogin2Arg : public GNET::Rpc::Data
+	{
+	public:
+		int userid;
+		unsigned int localsid;
+		char blkickuser;
+		int freecreatime;
+		Octets used_elec_number;
+		int reserved1;
+		Octets reserved2;
+		int loginip;
+		Octets account;
+		Octets iseckey;
+		Octets oseckey;
+
+	public:
+		UserLogin2Arg (int l_userid = -1,unsigned int l_localsid = 0,char l_blkickuser = 0
+			,int l_freecreatime = 0,const Octets& l_used_elec_number = Octets(),int l_reserved1 = 0
+			,const Octets& l_reserved2 = Octets(),int l_loginip = 0,const Octets& l_account = Octets()
+			,const Octets& l_iseckey = Octets(),const Octets& l_oseckey = Octets())
+			: userid(l_userid),localsid(l_localsid),blkickuser(l_blkickuser)
+			,freecreatime(l_freecreatime),used_elec_number(l_used_elec_number),reserved1(l_reserved1)
+			,reserved2(l_reserved2),loginip(l_loginip),account(l_account)
+			,iseckey(l_iseckey),oseckey(l_oseckey)
+		{
+		}
+
+		UserLogin2Arg(const UserLogin2Arg &rhs)
+			: userid(rhs.userid),localsid(rhs.localsid),blkickuser(rhs.blkickuser),
+			freecreatime(rhs.freecreatime),used_elec_number(rhs.used_elec_number),reserved1(rhs.reserved1),
+			reserved2(rhs.reserved2),loginip(rhs.loginip),account(rhs.account),
+			iseckey(rhs.iseckey),oseckey(rhs.oseckey) { }
+
+		Rpc::Data *Clone() const { return new UserLogin2Arg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const UserLogin2Arg *r = dynamic_cast<const UserLogin2Arg *>(&rhs);
+			if (r && r != this)
+			{
+				userid = r->userid;
+				localsid = r->localsid;
+				blkickuser = r->blkickuser;
+				freecreatime = r->freecreatime;
+				used_elec_number = r->used_elec_number;
+				reserved1 = r->reserved1;
+				reserved2 = r->reserved2;
+				loginip = r->loginip;
+				account = r->account;
+				iseckey = r->iseckey;
+				oseckey = r->oseckey;
+			}
+			return *this;
+		}
+
+		UserLogin2Arg& operator = (const UserLogin2Arg &rhs)
+		{
+			const UserLogin2Arg *r = &rhs;
+			if (r && r != this)
+			{
+				userid = r->userid;
+				localsid = r->localsid;
+				blkickuser = r->blkickuser;
+				freecreatime = r->freecreatime;
+				used_elec_number = r->used_elec_number;
+				reserved1 = r->reserved1;
+				reserved2 = r->reserved2;
+				loginip = r->loginip;
+				account = r->account;
+				iseckey = r->iseckey;
+				oseckey = r->oseckey;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			os << localsid;
+			os << blkickuser;
+			os << freecreatime;
+			os << used_elec_number;
+			os << reserved1;
+			os << reserved2;
+			os << loginip;
+			os << account;
+			os << iseckey;
+			os << oseckey;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			os >> localsid;
+			os >> blkickuser;
+			os >> freecreatime;
+			os >> used_elec_number;
+			os >> reserved1;
+			os >> reserved2;
+			os >> loginip;
+			os >> account;
+			os >> iseckey;
+			os >> oseckey;
+			return os;
+		}
+
+	};
+};
+#endif

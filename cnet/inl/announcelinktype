@@ -1,0 +1,32 @@
+	public:
+		unsigned char link_type;
+		enum { PROTOCOL_TYPE = PROTOCOL_ANNOUNCELINKTYPE };
+	public:
+		AnnounceLinkType() { type = PROTOCOL_ANNOUNCELINKTYPE; }
+		AnnounceLinkType(void*) : Protocol(PROTOCOL_ANNOUNCELINKTYPE) { }
+		AnnounceLinkType (unsigned char l_link_type)
+			 : link_type(l_link_type)
+		{
+			type = PROTOCOL_ANNOUNCELINKTYPE;
+		}
+
+		AnnounceLinkType(const AnnounceLinkType &rhs)
+			: Protocol(rhs),link_type(rhs.link_type) { }
+
+		GNET::Protocol *Clone() const { return new AnnounceLinkType(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << link_type;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> link_type;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 32; }

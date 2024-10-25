@@ -1,0 +1,65 @@
+#ifndef __GNET_ACCNTPARAM_RPCDATA
+#define __GNET_ACCNTPARAM_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class AccntParam : public GNET::Rpc::Data
+	{
+	public:
+		unsigned int type;
+		unsigned int value;
+
+	public:
+		AccntParam (unsigned int l_type = 0,unsigned int l_value = 0)
+			: type(l_type),value(l_value)
+		{
+		}
+
+		AccntParam(const AccntParam &rhs)
+			: type(rhs.type),value(rhs.value) { }
+
+		Rpc::Data *Clone() const { return new AccntParam(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const AccntParam *r = dynamic_cast<const AccntParam *>(&rhs);
+			if (r && r != this)
+			{
+				type = r->type;
+				value = r->value;
+			}
+			return *this;
+		}
+
+		AccntParam& operator = (const AccntParam &rhs)
+		{
+			const AccntParam *r = &rhs;
+			if (r && r != this)
+			{
+				type = r->type;
+				value = r->value;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << type;
+			os << value;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> type;
+			os >> value;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<AccntParam>	AccntParamVector;
+};
+#endif

@@ -1,0 +1,59 @@
+#ifndef __GNET_GROLETABLEMESSAGES_RPCDATA
+#define __GNET_GROLETABLEMESSAGES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "message"
+
+namespace GNET
+{
+	class GRoleTableMessages : public GNET::Rpc::Data
+	{
+	public:
+		MessageVector messages;
+
+	public:
+		GRoleTableMessages ()
+		{
+		}
+
+		GRoleTableMessages(const GRoleTableMessages &rhs)
+			: messages(rhs.messages) { }
+
+		Rpc::Data *Clone() const { return new GRoleTableMessages(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GRoleTableMessages *r = dynamic_cast<const GRoleTableMessages *>(&rhs);
+			if (r && r != this)
+			{
+				messages = r->messages;
+			}
+			return *this;
+		}
+
+		GRoleTableMessages& operator = (const GRoleTableMessages &rhs)
+		{
+			const GRoleTableMessages *r = &rhs;
+			if (r && r != this)
+			{
+				messages = r->messages;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << messages;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> messages;
+			return os;
+		}
+
+	};
+};
+#endif

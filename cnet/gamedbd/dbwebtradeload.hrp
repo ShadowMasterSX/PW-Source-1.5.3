@@ -1,0 +1,118 @@
+
+#ifndef __GNET_DBWEBTRADELOAD_HPP
+#define __GNET_DBWEBTRADELOAD_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbwebtradeloadarg"
+#include "dbwebtradeloadres"
+
+namespace GNET
+{
+
+class DBWebTradeLoad : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbwebtradeload"
+#undef	RPC_BASECLASS
+
+class ListWebTradeQuery : public StorageEnv::IQuery
+{
+	std::vector<GWebTradeDetail>* plist;
+	int total;
+	int64_t sn;
+	GWebTradeDetail detail;
+	Octets last;
+	int64_t max_sn;
+public:
+	ListWebTradeQuery(std::vector<GWebTradeDetail>* p) : plist(p),  total(0), sn(0), max_sn(0)
+	{ 
+	}
+
+	bool Update( StorageEnv::Transaction& txn, Octets& key, Octets& value)
+	{
+		try
+		{
+			Marshal::OctetsStream(key) >> sn;
+			if(sn == 0)
+			{
+				Marshal::OctetsStream(value) >> max_sn;
+				return true;
+			}
+				
+			if(total>256)
+			{
+				last = key;
+				return false;
+			}
+			Marshal::OctetsStream(value) >> detail;
+			plist->push_back(detail);
+			total++;
+			if(detail.info.posttype == 4 && detail.rolebrief.size() > 256)
+			{
+				//存在未与平台同步的角色，停止load，防止超过协议大小上限
+				total = 257;
+			}
+		} catch ( Marshal::Exception & ) {
+			Log::log( LOG_ERR, "ListWebTradeQuery, error unmarshal.");
+		}
+		return true;
+	}
+	const Octets& GetHandle() { return last; }
+	const int64_t GetMaxSN() { return max_sn; }
+};
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBWebTradeLoadArg *arg = (DBWebTradeLoadArg *)argument;
+		DBWebTradeLoadRes *res = (DBWebTradeLoadRes *)result;
+
+		ListWebTradeQuery q(&res->items);
+		try
+		{
+			StorageEnv::Storage * pwebtrade = StorageEnv::GetStorage("webtrade");
+			StorageEnv::AtomTransaction txn;
+			try
+			{
+				StorageEnv::Storage::Cursor cursor = pwebtrade->cursor( txn );
+				cursor.walk(arg->handle, q );
+				res->handle = q.GetHandle();
+				res->max_sn  = q.GetMaxSN();
+				res->retcode = ERR_SUCCESS;
+				LOG_TRACE("DBWebTradeLoad, size=%d, handle=%d\n", res->items.size(), res->handle.size());
+			}
+			catch(DbException e) { throw; }
+			catch(...)
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;				
+			}			
+		}
+		catch( DbException e )
+		{
+			Log::log(LOG_ERR,"DBWebTradeLoad, what=%s.\n",e.what());	
+			if(e.get_errno()==DB_LOCK_DEADLOCK)
+				res->retcode = ERR_AGAIN;
+			else
+				res->retcode = ERR_EXCEPTION;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBWebTradeLoadArg *arg = (DBWebTradeLoadArg *)argument;
+		// DBWebTradeLoadRes *res = (DBWebTradeLoadRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

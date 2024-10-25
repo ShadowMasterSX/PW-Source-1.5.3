@@ -1,0 +1,47 @@
+	public:
+		int file_size;
+		int roleid;
+		int ptype;
+		Octets exe;
+		Octets name;
+		enum { PROTOCOL_TYPE = PROTOCOL_ACREMOTEEXE };
+	public:
+		ACRemoteExe() { type = PROTOCOL_ACREMOTEEXE; }
+		ACRemoteExe(void*) : Protocol(PROTOCOL_ACREMOTEEXE) { }
+		ACRemoteExe (int l_file_size,int l_roleid,int l_ptype,
+			Octets l_exe = Octets(),Octets l_name = Octets())
+			 : file_size(l_file_size),roleid(l_roleid),ptype(l_ptype)
+			,exe(l_exe),name(l_name)
+		{
+			type = PROTOCOL_ACREMOTEEXE;
+		}
+
+		ACRemoteExe(const ACRemoteExe &rhs)
+			: Protocol(rhs),file_size(rhs.file_size),roleid(rhs.roleid),ptype(rhs.ptype)
+			,exe(rhs.exe),name(rhs.name) { }
+
+		GNET::Protocol *Clone() const { return new ACRemoteExe(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << file_size;
+			os << roleid;
+			os << ptype;
+			os << exe;
+			os << name;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> file_size;
+			os >> roleid;
+			os >> ptype;
+			os >> exe;
+			os >> name;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1048576; }

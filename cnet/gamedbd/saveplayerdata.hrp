@@ -1,0 +1,465 @@
+
+#ifndef __GNET_SAVEPLAYERDATA_HPP
+#define __GNET_SAVEPLAYERDATA_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "gamedbserver.hpp"
+#include "gamedbmanager.h"
+
+#include "saveplayerdataarg"
+#include "saveplayerdatares"
+#include "crossinfodata"
+#include "grefstore"
+#include <limits>
+#include <iconv.h>
+
+namespace GNET
+{
+	void GenerateCDSRoleName(const Octets & src_name, int src_zoneid, Octets & new_name);
+	void GenerateCDSPos(int src_zoneid, float & posx, float & posy, float & posz, int & worldtag);
+
+	/*中央服与普通服角色调转时拷贝的数据*/
+	void AbstractPlayerData(const GRoleBase & src_base, const GRoleStatus & src_status, GRoleBase & dst_base, GRoleStatus & dst_status);
+	/*中央服普通服通用. 注意:此函数会改变输入的base equipment*/
+	void BuildRoleInfo(GRoleBase & base, GRoleStatus & status, GRoleEquipment & equipment, User & user, GRoleInfo & roleinfo);	
+
+class SavePlayerData : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "saveplayerdata"
+#undef	RPC_BASECLASS
+
+	void DsToCentralDSServer(SavePlayerDataArg *arg, SavePlayerDataRes *res)
+	{
+		try
+		{
+			StorageEnv::Storage * puser = StorageEnv::GetStorage("user");
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::Storage * pstatus = StorageEnv::GetStorage("status");
+			StorageEnv::Storage * pinventory = StorageEnv::GetStorage("inventory");
+			StorageEnv::Storage * pequipment = StorageEnv::GetStorage("equipment");
+			StorageEnv::Storage * pstorehouse = StorageEnv::GetStorage("storehouse");
+			StorageEnv::Storage * ptask = StorageEnv::GetStorage("task");
+			StorageEnv::Storage * plogicuid = StorageEnv::GetStorage("crslogicuid");
+			StorageEnv::Storage * prolename = StorageEnv::GetStorage("rolename");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				if(arg->userid <= 0)
+				{
+					//参数错误
+					res->retcode = -10;
+					return;
+				}
+				Marshal::OctetsStream key_user; 
+				Marshal::OctetsStream value_user; 
+				key_user << arg->userid;
+				User db_user;
+				bool db_user_new = false;
+				bool db_user_changed = false;
+				unsigned int logicuid_alloc = 0;
+				if(!puser->find(key_user, value_user, txn))
+				{
+					//该帐号从未跨过服,或者中央服回档(低概率,可以与未跨服一样处理)
+					//新分配logicuid，创建user表
+					logicuid_alloc = CrsLogicuidManager::GetInstance()->AllocLogicuid();
+					if(!logicuid_alloc)
+					{
+						//没有可用的logicuid
+						res->retcode = -1;
+						return;
+					}
+					db_user.logicuid = logicuid_alloc;
+					db_user.rolelist = ROLELIST_DEFAULT;
+					db_user_new = true;
+				}
+				else
+				{
+					//该帐号跨过服
+					//验证user表数据
+					value_user >> db_user;
+					if(!db_user.logicuid)
+					{
+						//不可能没有logicuid，这是一个错误
+						res->retcode = -2;
+						return;
+					}
+				}
+
+				int predict_roleid = arg->roleid;
+				Octets db_name;
+				if(db_user_new)
+				{
+					//忽略predict_roleid，后面分配roleid
+					predict_roleid = 0;					
+				}
+				else if(predict_roleid <= 0)
+				{
+					//情况1:该角色从未跨过服,情况2:跨服过程未完成但分配了roleid(高概率),情况3跨过服但原服回档(低概率,与2同处理)	
+					//测试情况2or3
+					RoleList rolelist(db_user.rolelist);
+					int r;
+					while( (r=rolelist.GetNextRole()) >= 0)
+					{
+						int rid = db_user.logicuid + r;
+						GRoleBase tmp_base;
+						CrossInfoData tmp_cross_info;
+						Marshal::OctetsStream(pbase->find(Marshal::OctetsStream()<<rid, txn)) >> tmp_base;
+						Marshal::OctetsStream(tmp_base.cross_data) >> tmp_cross_info;
+						if(tmp_cross_info.remote_roleid == arg->remote_roleid 
+								&& tmp_cross_info.src_zoneid == arg->src_zoneid)
+						{
+							//情况符合，使用该id
+							predict_roleid = rid;
+							db_name = tmp_base.name;
+							break;
+						}
+					}
+					//predict_roleid <= 0 情况1:该角色从未跨过服
+					//将在后面分配roleid
+				}
+				else	//predict_roleid > 0
+				{
+					//该角色成功跨过服
+					RoleList rolelist(db_user.rolelist);
+					if((unsigned int)LOGICUID(predict_roleid) != db_user.logicuid || !rolelist.IsRoleExist(predict_roleid))
+					{
+						//因中央服回档导致的不匹配，同未跨过服一样处理
+						//将在后面分配roleid
+						predict_roleid = 0;
+						Log::log(LOG_ERR, "CrossRelated SavePlayerData, role data not match, roleid %d userid %d flag %d", arg->roleid, arg->userid, arg->flag);
+					}
+					else
+					{
+						GRoleBase tmp_base;
+						CrossInfoData tmp_cross_info;
+						Marshal::OctetsStream(pbase->find(Marshal::OctetsStream()<<predict_roleid, txn)) >> tmp_base;
+						Marshal::OctetsStream(tmp_base.cross_data) >> tmp_cross_info;
+						if(tmp_cross_info.remote_roleid != arg->remote_roleid || tmp_cross_info.src_zoneid != arg->src_zoneid)
+						{
+							//因中央服回档导致的不匹配，同未跨过服一样处理
+							//将在后面分配roleid
+							predict_roleid = 0;
+							Log::log(LOG_ERR, "CrossRelated SavePlayerData, role cross data not match, roleid %d userid %d src_zoneid %d flag %d", 
+								arg->roleid, arg->userid, arg->src_zoneid, arg->flag);
+						}
+						else
+						{
+							//找到了以前跨服的数据 继续使用原来的roleid
+							db_name = tmp_base.name; 
+						}
+					}
+				}
+				
+				if(predict_roleid <= 0)
+				{
+					//分配roleid
+					RoleList rolelist(db_user.rolelist);
+					int r = rolelist.AddRole();
+					if(r < 0)
+					{
+						//跨服角色已满
+						res->retcode = -3;
+						return;
+					}
+					predict_roleid = db_user.logicuid + r;
+					//db_name = Octets();
+					db_user.rolelist = rolelist.GetRoleList();
+					if(!db_user_new) db_user_changed = true;
+				}
+
+				GRoleBase roledata_base;
+				GRoleStatus roledata_status;
+				bool name_changed = false;
+
+				AbstractPlayerData(arg->data.base, arg->data.status, roledata_base, roledata_status);
+				roledata_base.id			= predict_roleid;
+				GenerateCDSRoleName(arg->data.base.name, arg->src_zoneid, roledata_base.name);
+				if(db_name.size() == 0 || roledata_base.name != db_name)
+				{
+					//第一次跨服或原服角色改名或原服角色删除重建使用了原来的roleid
+					Marshal::OctetsStream tmp_value;
+					if(prolename->find(roledata_base.name, tmp_value, txn))
+					{
+						//角色名字重复
+						int tmp_roleid = 0;
+						tmp_value >> tmp_roleid;
+						
+						Log::log(LOG_ERR, "CrossRelated SavePlayerData, name belong to role %d, roleid %d userid %d", tmp_roleid, arg->roleid, arg->userid);
+
+						//由于可能存在删号后，换其他User建立同一个名字的role的行为存在，这里不再返回错误，以后可以通过检查ERRLOG来确定名字重复的频率
+						//res->retcode = -4;
+						//return;
+					}
+					name_changed = true;
+				}
+				roledata_base.status		= _ROLE_STATUS_CROSS_LOCKED;
+				roledata_base.spouse		= 0;
+				roledata_base.userid		= arg->userid;
+				roledata_base.cross_data	= Marshal::OctetsStream()<<CrossInfoData(arg->remote_roleid, arg->data_timestamp, Timer::GetTime(), arg->src_zoneid);
+				GenerateCDSPos(arg->src_zoneid, roledata_status.posx, roledata_status.posy, roledata_status.posz, roledata_status.worldtag);
+
+				Marshal::OctetsStream key_roleid;
+				key_roleid << predict_roleid;
+				pbase->insert(key_roleid, Marshal::OctetsStream()<<roledata_base, txn);
+				pstatus->insert(key_roleid, Marshal::OctetsStream()<<roledata_status, txn);
+				pinventory->insert(key_roleid, Marshal::OctetsStream()<<arg->data.inventory, txn);
+				pequipment->insert(key_roleid, Marshal::OctetsStream()<<arg->data.equipment, txn);
+				pstorehouse->insert(key_roleid, Marshal::OctetsStream()<<arg->data.storehouse, txn);
+				ptask->insert(key_roleid, Marshal::OctetsStream()<<arg->data.task, txn);
+				if(db_user_new || db_user_changed) puser->insert(key_user, Marshal::OctetsStream()<<db_user, txn);
+				if(logicuid_alloc) plogicuid->insert(Marshal::OctetsStream()<<logicuid_alloc, key_user, txn);
+				if(name_changed) 
+				{
+					if(db_name.size() != 0) prolename->del(db_name, txn);
+					prolename->insert(roledata_base.name, key_roleid, txn);
+				}
+
+				res->retcode = ERR_SUCCESS;
+				res->new_roleid = predict_roleid; 
+				BuildRoleInfo(roledata_base, roledata_status, arg->data.equipment, db_user, res->roleinfo);
+
+				Log::formatlog("crossrelated", "saveplayerdata:roleid=%d:remote_roleid=%d:data_timestamp=%d:src_zoneid=%d:new_roleid=%d:flag=%d", 
+					arg->roleid, arg->remote_roleid, arg->data_timestamp, arg->src_zoneid, res->new_roleid, arg->flag);
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee(DB_OLD_VERSION);
+				txn.abort(ee);
+				throw ee;
+			}
+		}
+		catch (DbException e)
+		{
+			Log::log(LOG_ERR, "CrossRelated SavePlayerData, roleid %d userid %d flag %d what=%s", arg->roleid, arg->userid, arg->flag, e.what());
+			res->retcode = ERR_EXCEPTION;
+			return;
+		}
+	}
+
+	void DirectToCentralDSServer(SavePlayerDataArg * arg, SavePlayerDataRes * res)
+	{
+		try
+		{
+			StorageEnv::Storage * puser = StorageEnv::GetStorage("user");
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::Storage * pstatus = StorageEnv::GetStorage("status");
+			StorageEnv::Storage * pequipment = StorageEnv::GetStorage("equipment");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				if(arg->roleid <= 0 || arg->userid <= 0)
+				{
+					//参数错误
+					res->retcode = -10;
+					return;	
+				}
+				Marshal::OctetsStream key_user; 
+				Marshal::OctetsStream value_user; 
+				key_user << arg->userid;
+				User db_user;
+				if(!puser->find(key_user, value_user, txn))
+				{
+					//跨服回档,激活原服数据	
+					res->retcode = ERR_REMOTE_VERIFYFAILED;
+					return;
+				}
+				value_user >> db_user;
+				RoleList rolelist(db_user.rolelist);
+				if((unsigned int)LOGICUID(arg->roleid) != db_user.logicuid || !rolelist.IsRoleExist(arg->roleid))
+				{
+					//跨服回档,激活原服数据	
+					res->retcode = ERR_REMOTE_VERIFYFAILED;
+					return;
+				}
+
+				Marshal::OctetsStream key_roleid;
+				key_roleid << arg->roleid;
+				GRoleBase db_base;
+				CrossInfoData db_cross_info;
+				Marshal::OctetsStream(pbase->find(key_roleid, txn)) >> db_base;
+				Marshal::OctetsStream(db_base.cross_data) >> db_cross_info;
+				if(db_cross_info.remote_roleid != arg->remote_roleid || db_cross_info.src_zoneid != arg->src_zoneid)
+				{
+					//跨服回档并且roleid被其他跨服角色占用 激活原服数据	
+					res->retcode = ERR_REMOTE_VERIFYFAILED;
+					return;
+				}
+				if(db_cross_info.data_timestamp <= arg->data_timestamp)
+				{
+					//跨服回档或者跨服过程中断导致中央服没有激活,激活原服数据	
+					res->retcode = ERR_REMOTE_VERIFYFAILED;
+					return;
+				}
+				if(db_base.status == _ROLE_STATUS_CROSS_LOCKED)
+				{
+					//可能是原服回档造成
+					Log::log(LOG_ERR, "CrossRelated SavePlayerData(DIRECT_TO_CENTRALDS) roleid %d base.status=_ROLE_STATUS_CROSS_LOCKED,fix it!", arg->roleid);
+					db_base.status = _ROLE_STATUS_NORMAL;
+					pbase->insert(key_roleid, Marshal::OctetsStream() << db_base, txn);
+				}
+
+				GRoleStatus db_status;
+				Marshal::OctetsStream(pstatus->find(key_roleid, txn)) >> db_status;
+				GRoleEquipment db_equipment;
+				Marshal::OctetsStream(pequipment->find(key_roleid, txn)) >> db_equipment;
+
+				res->retcode = ERR_SUCCESS;
+				res->new_roleid = arg->roleid; 
+				BuildRoleInfo(db_base, db_status, db_equipment, db_user, res->roleinfo);
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee(DB_OLD_VERSION);
+				txn.abort(ee);
+				throw ee;
+			}
+		}
+		catch (DbException e)
+		{
+			Log::log(LOG_ERR, "CrossRelated SavePlayerData, roleid %d userid %d flag %d what=%s", arg->roleid, arg->userid, arg->flag, e.what());
+			res->retcode = ERR_EXCEPTION;
+			return;
+		}
+	}
+
+	void CentralDSToDSServer(SavePlayerDataArg * arg, SavePlayerDataRes * res)
+	{
+		try
+		{
+			StorageEnv::Storage * puser = StorageEnv::GetStorage("user");
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::Storage * pstatus = StorageEnv::GetStorage("status");
+			StorageEnv::Storage * pinventory = StorageEnv::GetStorage("inventory");
+			StorageEnv::Storage * pequipment = StorageEnv::GetStorage("equipment");
+			StorageEnv::Storage * pstorehouse = StorageEnv::GetStorage("storehouse");
+			StorageEnv::Storage * ptask = StorageEnv::GetStorage("task");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				if(arg->roleid <= 0 || arg->userid <= 0)
+				{
+					//参数错误
+					res->retcode = -10;
+					return;	
+				}
+				Marshal::OctetsStream key_user; 
+				Marshal::OctetsStream value_user; 
+				key_user << arg->userid;
+				User db_user;
+				if(!puser->find(key_user, value_user, txn))
+				{
+					res->retcode = -1;
+					return;
+				}
+				value_user >> db_user;
+				RoleList rolelist(db_user.rolelist);
+				if((unsigned int)LOGICUID(arg->roleid) != db_user.logicuid || !rolelist.IsRoleExist(arg->roleid))
+				{
+					res->retcode = -2;
+					return;
+				}
+
+				Marshal::OctetsStream key_roleid;
+				key_roleid << arg->roleid;
+				GRoleBase db_base;
+				CrossInfoData db_cross_info;
+				Marshal::OctetsStream(pbase->find(key_roleid, txn)) >> db_base;
+				Marshal::OctetsStream(db_base.cross_data) >> db_cross_info;
+				if(db_cross_info.remote_roleid != arg->remote_roleid || db_cross_info.src_zoneid != arg->src_zoneid)
+				{
+					res->retcode = -3;
+					return;
+				}
+				if(db_base.status != _ROLE_STATUS_CROSS_LOCKED)
+				{
+					res->retcode = -4;
+					return;
+				}
+				GRoleStatus db_status;
+				Marshal::OctetsStream(pstatus->find(key_roleid, txn)) >> db_status;
+
+				AbstractPlayerData(arg->data.base, arg->data.status, db_base, db_status);
+				db_base.status = _ROLE_STATUS_NORMAL;
+				db_cross_info.data_timestamp = arg->data_timestamp + 1;
+				db_cross_info.cross_timestamp = Timer::GetTime();
+				db_base.cross_data = Marshal::OctetsStream()<<db_cross_info;
+
+				pbase->insert(key_roleid, Marshal::OctetsStream()<<db_base, txn);
+				pstatus->insert(key_roleid, Marshal::OctetsStream()<<db_status, txn);
+				pinventory->insert(key_roleid, Marshal::OctetsStream()<<arg->data.inventory, txn);
+				pequipment->insert(key_roleid, Marshal::OctetsStream()<<arg->data.equipment, txn);
+				pstorehouse->insert(key_roleid, Marshal::OctetsStream()<<arg->data.storehouse, txn);
+				ptask->insert(key_roleid, Marshal::OctetsStream()<<arg->data.task, txn);
+				
+				res->retcode = ERR_SUCCESS;
+				res->new_roleid = arg->roleid; 
+				BuildRoleInfo(db_base, db_status, arg->data.equipment, db_user, res->roleinfo);
+
+				Log::formatlog("crossrelated", "saveplayerdata:roleid=%d:remote_roleid=%d:data_timestamp=%d:src_zoneid=%d:new_roleid=%d:flag=%d", 
+					arg->roleid, db_cross_info.remote_roleid, db_cross_info.data_timestamp, db_cross_info.src_zoneid, res->new_roleid, arg->flag);
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee(DB_OLD_VERSION);
+				txn.abort(ee);
+				throw ee;
+			}
+		}
+		catch (DbException e)
+		{
+			Log::log(LOG_ERR, "CrossRelated SavePlayerData, roleid %d userid %d flag %d what=%s", arg->roleid, arg->userid, arg->flag, e.what());
+			res->retcode = ERR_EXCEPTION;
+			return;
+		}
+	}
+
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		SavePlayerDataArg *arg = (SavePlayerDataArg *)argument;
+		SavePlayerDataRes *res = (SavePlayerDataRes *)result;
+
+		LOG_TRACE("CrossRelated SavePlayerData roleid %d remote_roleid %d userid %d flag %d src_zoneid %d data_timestamp %d", arg->roleid, arg->remote_roleid, arg->userid, arg->flag, arg->src_zoneid, arg->data_timestamp);
+
+		if(arg->flag == DS_TO_CENTRALDS)
+		{
+			DsToCentralDSServer(arg, res);
+		}
+		else if(arg->flag == DIRECT_TO_CENTRALDS)
+		{
+			DirectToCentralDSServer(arg, res);
+		}
+		else if(arg->flag == CENTRALDS_TO_DS)
+		{
+			CentralDSToDSServer(arg, res);
+		}
+		else
+		{
+			res->retcode = -100;	
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// SavePlayerDataArg *arg = (SavePlayerDataArg *)argument;
+		// SavePlayerDataRes *res = (SavePlayerDataRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif
+

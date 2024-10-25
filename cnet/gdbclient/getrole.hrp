@@ -1,0 +1,138 @@
+
+#ifndef __GNET_GETROLE_HPP
+#define __GNET_GETROLE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#ifdef USE_BDB
+#include "dbbuffer.h"
+#endif
+
+#include "groleinventory"
+#include "groleforbid"
+#include "gshoplog"
+#include "groledetail"
+#include "roleid"
+#include "roleres"
+#include "rolearg"
+#include "db_if.h"
+#include "gpet"
+#include "gpetcorral"
+#include "grolestatusextraprop"
+
+namespace GDB
+{
+bool Role2Info(GNET::GRoleDetail * pRole,base_info & info,vecdata & data,int data_mask, const GPetCorral& corral, const GRoleStatusExtraProp & extraprop);
+void ReleaseAllInventory(vecdata & data);
+}
+
+namespace GNET
+{
+class GetRole : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getrole"
+#undef	RPC_BASECLASS
+
+	void DisplayRoleInfo(const GRoleDetail & role)
+	{
+		printf("Role info:\n");
+		printf("\tID:%d\n",role.id);
+		printf("\tname:%.*s\n",role.name.size(),(char*)role.name.begin());
+		printf("\trace:%d\n",role.race);
+		printf("\toccupation:%d\n",role.cls);
+		printf("\tgender:%d\n",role.gender);
+		printf("\tlevel:%d\n",role.status.level); 
+		printf("\texp:%d\n",role.status.exp);
+		printf("\tsp:%d\n",role.status.sp);
+		printf("\tpp:%d\n",role.status.pp);
+		printf("\thp:%d\n",role.status.hp);
+		printf("\tmp:%d\n",role.status.mp);
+		printf("\tposx:%4.1f\n",role.status.posx);
+		printf("\tposy:%4.1f\n",role.status.posy);
+		printf("\tposz:%4.1f\n",role.status.posz);
+		printf("\tmoney:%d\n\n",role.inventory.money);
+
+		/*
+		struct extend_prop property;
+		memcpy(&property,role.property.begin(),role.property.size());
+		printf("\tvitality:%d\n",property.vitality);
+		printf("\tenergy:%d\n",property.energy);
+		printf("\tstrength:%d\n",property.strength);
+		printf("\tagility:%d\n",property.agility);
+		printf("\tmax_hp:%d\n",property.max_hp);
+		printf("\tmax_mp:%d\n",property.max_mp);
+		printf("\thp_gen:%d\n",property.hp_gen);
+		printf("\tmp_gen:%d\n",property.mp_gen);
+		printf("\twalk_speed:%4.1f\n",property.walk_speed);
+		printf("\trun_speed:%4.1f\n",property.run_speed);
+		printf("\tswim_speed:%4.1f\n",property.swim_speed);
+		printf("\tflight_speed:%4.1f\n\n",property.flight_speed);
+		printf("\tattack_speed:%d\n",property.attack_speed);
+		printf("\tdefense:%d\n",property.defense);
+		printf("\tarmor:%d\n",property.armor);
+		*/
+	}
+
+	GDB::Result *_callback;
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+#ifdef USE_BDB
+#endif
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		RoleArg *arg = (RoleArg *)argument;
+		RoleRes *res = (RoleRes *)result;
+
+		if(res->retcode) 
+		{
+			//printf("Ê§°ÜÁË%d\n",res->retcode);
+			_callback->OnFailed();
+			return;
+		}
+		GPetCorral corral;
+		GRoleStatusExtraProp extraprop;
+		try{
+			if(res->value.status.petcorral.size())
+			{
+				Marshal::OctetsStream os(res->value.status.petcorral);
+				os >> corral;
+			}
+			else
+			{
+				corral.capacity = 0;
+				corral.pets.clear();
+			}
+			if(res->value.status.extraprop.size())
+			{
+				Marshal::OctetsStream(res->value.status.extraprop) >> extraprop;
+			}
+		}catch(Marshal::Exception)
+		{
+			Log::log(LOG_ERR,"unmarshal petcorral/extraprop failed for %d.", arg->key.id);
+			_callback->OnFailed();
+			return;
+		}
+
+		//DisplayRoleInfo(res->value);
+		GDB::base_info info;
+		GDB::vecdata data;
+		if(GDB::Role2Info(&(res->value),info,data,res->data_mask,corral,extraprop))
+			_callback->OnGetRole(arg->key.id,&info,&data,&(res->value));
+		else
+			_callback->OnFailed();
+		GDB::ReleaseAllInventory(data);
+	}
+
+	void OnTimeout()
+	{
+		_callback->OnTimeOut();
+	}
+
+};
+
+};
+#endif

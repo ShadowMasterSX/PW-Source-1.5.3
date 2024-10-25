@@ -1,0 +1,96 @@
+#ifndef __GNET_SAVEPLAYERDATAARG_RPCDATA
+#define __GNET_SAVEPLAYERDATAARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "crossplayerdata"
+
+namespace GNET
+{
+	class SavePlayerDataArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		int remote_roleid;
+		int userid;
+		int src_zoneid;
+		CrossPlayerData data;
+		char flag;
+		int data_timestamp;
+
+	public:
+		SavePlayerDataArg (int l_roleid = 0,int l_remote_roleid = 0,int l_userid = 0
+			,int l_src_zoneid = 0,const CrossPlayerData& l_data = CrossPlayerData(),char l_flag = 0
+			,int l_data_timestamp = 0)
+			: roleid(l_roleid),remote_roleid(l_remote_roleid),userid(l_userid)
+			,src_zoneid(l_src_zoneid),data(l_data),flag(l_flag)
+			,data_timestamp(l_data_timestamp)
+		{
+		}
+
+		SavePlayerDataArg(const SavePlayerDataArg &rhs)
+			: roleid(rhs.roleid),remote_roleid(rhs.remote_roleid),userid(rhs.userid),
+			src_zoneid(rhs.src_zoneid),data(rhs.data),flag(rhs.flag),
+			data_timestamp(rhs.data_timestamp) { }
+
+		Rpc::Data *Clone() const { return new SavePlayerDataArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const SavePlayerDataArg *r = dynamic_cast<const SavePlayerDataArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				remote_roleid = r->remote_roleid;
+				userid = r->userid;
+				src_zoneid = r->src_zoneid;
+				data = r->data;
+				flag = r->flag;
+				data_timestamp = r->data_timestamp;
+			}
+			return *this;
+		}
+
+		SavePlayerDataArg& operator = (const SavePlayerDataArg &rhs)
+		{
+			const SavePlayerDataArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				remote_roleid = r->remote_roleid;
+				userid = r->userid;
+				src_zoneid = r->src_zoneid;
+				data = r->data;
+				flag = r->flag;
+				data_timestamp = r->data_timestamp;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << remote_roleid;
+			os << userid;
+			os << src_zoneid;
+			os << data;
+			os << flag;
+			os << data_timestamp;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> remote_roleid;
+			os >> userid;
+			os >> src_zoneid;
+			os >> data;
+			os >> flag;
+			os >> data_timestamp;
+			return os;
+		}
+
+	};
+};
+#endif

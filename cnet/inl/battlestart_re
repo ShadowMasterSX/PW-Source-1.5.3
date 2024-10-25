@@ -1,0 +1,35 @@
+	public:
+		int battle_id;
+		short retcode;
+		enum { PROTOCOL_TYPE = PROTOCOL_BATTLESTART_RE };
+	public:
+		BattleStart_Re() { type = PROTOCOL_BATTLESTART_RE; }
+		BattleStart_Re(void*) : Protocol(PROTOCOL_BATTLESTART_RE) { }
+		BattleStart_Re (int l_battle_id,short l_retcode)
+			 : battle_id(l_battle_id),retcode(l_retcode)
+		{
+			type = PROTOCOL_BATTLESTART_RE;
+		}
+
+		BattleStart_Re(const BattleStart_Re &rhs)
+			: Protocol(rhs),battle_id(rhs.battle_id),retcode(rhs.retcode) { }
+
+		GNET::Protocol *Clone() const { return new BattleStart_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << battle_id;
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> battle_id;
+			os >> retcode;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

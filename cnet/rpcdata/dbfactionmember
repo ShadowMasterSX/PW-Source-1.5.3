@@ -1,0 +1,65 @@
+#ifndef __GNET_DBFACTIONMEMBER_RPCDATA
+#define __GNET_DBFACTIONMEMBER_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "dbrolebase"
+
+namespace GNET
+{
+	class DBFactionMember : public GNET::Rpc::Data
+	{
+	public:
+		DBRoleBase info;
+		int title;
+
+	public:
+		DBFactionMember ()
+		{
+		}
+
+		DBFactionMember(const DBFactionMember &rhs)
+			: info(rhs.info),title(rhs.title) { }
+
+		Rpc::Data *Clone() const { return new DBFactionMember(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBFactionMember *r = dynamic_cast<const DBFactionMember *>(&rhs);
+			if (r && r != this)
+			{
+				info = r->info;
+				title = r->title;
+			}
+			return *this;
+		}
+
+		DBFactionMember& operator = (const DBFactionMember &rhs)
+		{
+			const DBFactionMember *r = &rhs;
+			if (r && r != this)
+			{
+				info = r->info;
+				title = r->title;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << info;
+			os << title;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> info;
+			os >> title;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<DBFactionMember>	DBFactionMemberVector;
+};
+#endif

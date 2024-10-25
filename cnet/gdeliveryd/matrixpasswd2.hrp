@@ -1,0 +1,207 @@
+
+#ifndef __GNET_MATRIXPASSWD2_HPP
+#define __GNET_MATRIXPASSWD2_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "matrixpasswdarg"
+#include "matrixpasswd2res"
+#include "gauthclient.hpp"
+#include "mapuser.h"
+#include "forbid.hxx"
+#include "gmshutup.hpp"
+#include "mapforbid.h"
+#include "maplinkserver.h"
+
+namespace GNET
+{
+
+class MatrixPasswd2 : public ProxyRpc
+{
+	
+	GNET::Protocol *Clone() const {  return new MatrixPasswd2(*this); }
+public:
+	enum { PROTOCOL_TYPE = RPC_MATRIXPASSWD2 };
+	MatrixPasswd2(Type type, Rpc::Data *argument, Rpc::Data *result)
+		: ProxyRpc(type, argument, result ) { }
+	MatrixPasswd2(const MatrixPasswd2 &rhs) : ProxyRpc(rhs) { }
+	int  PriorPolicy( ) const { return 101; }
+	bool SizePolicy(size_t size) const { return size <= 1024; }
+	bool TimePolicy(int timeout) const { return timeout <= 20; }
+
+	bool Delivery(Manager::Session::ID proxy_sid, const OctetsStream& osArg)
+	{
+		MatrixPasswdArg arg;
+		osArg >> arg;
+		
+		//跨服服务器不应该收到这个协议	
+		if(GDeliveryServer::GetInstance()->IsCentralDS()) {
+			Log::log(LOG_ERR, "User(%.*s) Try to Login Central Delivery Server directly, Refuse him!", arg.account.size(), (char*)arg.account.begin());
+			
+			MatrixPasswd2Res res;
+			res.retcode = -1;
+			SetResult(res);
+			SendToSponsor();
+			return false;
+		}
+
+		UserContainer& container = UserContainer::GetInstance();
+		if ( (!container.IsLanIp(arg.loginip)) && (container.Size() >= container.GetPlayerLimit()) )
+		{       
+			MatrixPasswd2Res res;
+			res.retcode = ERR_SERVEROVERLOAD;
+			SetResult(res);
+			SendToSponsor();
+			return false;
+		}
+		LOG_TRACE("gdelivery::matrixpasswd2 query, user=%.*s", arg.account.size(),(char*) arg.account.begin());
+		char algo = GDeliveryServer::GetInstance()->ChallengeAlgo();
+		if (algo == ALGO_SHA)
+		{
+			int online = UserContainer::GetInstance().SizeNoLock();
+			arg.challenge.insert(arg.challenge.end(), &online, sizeof(int));
+			SetResult(arg);
+		}
+		if( GAuthClient::GetInstance()->SendProtocol( *this ) )
+		{
+			return true;
+		}
+		else    
+		{       
+			TryResponse(arg);
+			return false;
+		}
+	}
+
+	void CalcResponse(MatrixPasswdArg& arg,MatrixPasswd2Res& res)
+	{       
+		HMAC_MD5Hash hash;
+		hash.SetParameter(res.response);
+		hash.Update(arg.challenge);
+		hash.Final(res.response);
+	}
+
+	void TryResponse(MatrixPasswdArg& arg)
+	{
+		MatrixPasswd2Res res;
+		char algo = GDeliveryServer::GetInstance()->ChallengeAlgo();
+		if (algo == ALGO_MD5)
+		{
+			if( Passwd::GetInstance().GetPasswd( arg.account, res.userid, res.response, res.matrix, res.algorithm, res.seed, res.pin, res.rtime) )
+			{
+				res.retcode=ERR_SUCCESS;
+				CalcResponse(arg,res);
+			}
+			else
+			{
+				LOG_TRACE("gdelivery::matrixpasswd2 cache missing, user=%.*s",
+					arg.account.size(),(char*)arg.account.begin());
+				res.retcode = ERR_COMMUNICATION;
+			}
+		}
+		else
+		{
+			LOG_TRACE("gdelivery::matrixpasswd2 try response, user=%.*s",arg.account.size(),(char*)arg.account.begin());
+			res.retcode = ERR_COMMUNICATION;
+		}
+		SetResult(res);
+		SendToSponsor();
+	}
+
+	void PostProcess(Manager::Session::ID proxy_sid,const OctetsStream& osArg, const OctetsStream& osRes)
+	{
+		MatrixPasswdArg arg;
+		osArg >> arg;
+		MatrixPasswd2Res res;
+		osRes >> res;
+		if (res.retcode == ERR_SUCCESS)
+		{
+			//判断是否为完美神盾绑定帐户
+			int algorithm_type = res.algorithm & ALGORITHM_MASK_HIGH;
+			if(algorithm_type == ALGORITHM_USBKEY || algorithm_type == ALGORITHM_USBKEY2)
+			{
+				LOG_TRACE("matrixpasswd2 usbbind user %d", res.userid);
+				Passwd::GetInstance().SetUsbUser(res.userid);
+			}
+			else
+			{
+				LOG_TRACE("matrixpasswd2 NOT usbbind user %d", res.userid);
+				Passwd::GetInstance().ClearUsbUser(res.userid);
+			}
+			
+			//缓存账号信息补填奖励
+			if(res.algorithm & (ALGORITHM_FILLIN_ACCOUNTINFO1_REWARD | ALGORITHM_FILLIN_ACCOUNTINFO2_REWARD))
+			{
+				int rewardmask = 0;
+				if(res.algorithm & ALGORITHM_FILLIN_ACCOUNTINFO1_REWARD) rewardmask |= 0x01;
+				if(res.algorithm & ALGORITHM_FILLIN_ACCOUNTINFO2_REWARD) rewardmask |= 0x02;
+				Passwd::GetInstance().InsertUserReward(res.userid, rewardmask);
+			}
+
+			char algo = GDeliveryServer::GetInstance()->ChallengeAlgo();
+			if (algo == ALGO_MD5)
+			{
+				res.rtime += Timer::GetTime()-res.au_curtime;//将rtime(AU时间)转化为delivery时间
+				if((res.algorithm&ALGORITHM_OPT_NOCACHE)==0)
+					Passwd::GetInstance().SetPasswd( arg.account, res.userid, res.response, res.matrix, res.algorithm, res.seed, res.pin, res.rtime);	
+				else if((res.algorithm&ALGORITHM_SSO)==0)
+					Passwd::GetInstance().ClearPasswd(arg.account);
+					
+				CalcResponse(arg,res);
+				SetResult( &res ); // if you modified res, do not forget to call this. 
+			}
+
+			ProcessUserForbid(res.userid, res.forbid);
+		}
+	}
+
+	void ProcessUserForbid(int userid, GRoleForbidVector& forbid)
+	{
+		bool blForbidLogin=false;
+		
+		for (size_t i=0;i<forbid.size();i++)
+		{
+			int time_left=forbid[i].time;
+			switch (forbid[i].type)
+			{
+				case Forbid::FBD_FORBID_TALK:
+					if ( time_left>1 ) 
+					{
+						LinkServer::GetInstance().BroadcastProtocol(GMShutup(_ROLE_INVALID,_SID_INVALID,
+								userid,time_left,forbid[i].reason));
+						ForbidUserTalk::GetInstance().SetForbidUserTalk(userid, forbid[i]);
+					}
+					break;
+				case Forbid::FBD_FORBID_LOGIN:
+				case Forbid::FBD_FORBID_CHEATER_LOGIN:
+					if (time_left>1)
+					{
+						blForbidLogin=true;
+						ForbidLogin::GetInstance().SetForbidLoginIfLonger(userid, forbid[i]);
+					}
+					break;	
+				case Forbid::FBD_FORBID_TRADE: //目前只支持对角色的封禁，因此这里不做处理 
+					break;
+				case Forbid::FBD_FORBID_SELL: //目前只支持对角色的封禁，这里不做处理
+					break;
+			}
+		}
+		
+		if (!blForbidLogin) 
+			ForbidLogin::GetInstance().RmvForbidLogin(userid);
+	}
+	
+	void OnTimeout(const OctetsStream &osArg)
+	{
+		MatrixPasswdArg arg;
+		osArg >> arg;
+		LOG_TRACE("gdelivery::passwd2timeout. user=%.*s", arg.account.size(),(char*)arg.account.begin());
+		STAT_MIN5("PasswordTimeout", 1);
+		TryResponse(arg);
+	}
+
+};
+
+};
+#endif

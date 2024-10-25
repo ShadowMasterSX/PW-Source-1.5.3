@@ -1,0 +1,59 @@
+#ifndef __GNET_ROLEID2UIDARG_RPCDATA
+#define __GNET_ROLEID2UIDARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class Roleid2UidArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+
+	public:
+		Roleid2UidArg (int l_roleid = -1)
+			: roleid(l_roleid)
+		{
+		}
+
+		Roleid2UidArg(const Roleid2UidArg &rhs)
+			: roleid(rhs.roleid) { }
+
+		Rpc::Data *Clone() const { return new Roleid2UidArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const Roleid2UidArg *r = dynamic_cast<const Roleid2UidArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+			}
+			return *this;
+		}
+
+		Roleid2UidArg& operator = (const Roleid2UidArg &rhs)
+		{
+			const Roleid2UidArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			return os;
+		}
+
+	};
+};
+#endif

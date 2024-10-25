@@ -1,0 +1,77 @@
+
+#ifndef __GNET_DBBATTLEMAIL_HPP
+#define __GNET_DBBATTLEMAIL_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbbattlemailarg"
+#include "dbbattlemailres"
+
+#include "gmailheader"
+#include "gmail"
+#include "gmailbox"
+
+#include "utilfunction.h"
+
+namespace GNET
+{
+
+class DBBattleMail : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbbattlemail"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBBattleMailArg *arg = (DBBattleMailArg *)argument;
+		DBBattleMailRes *res = (DBBattleMailRes *)result;
+
+		Marshal::OctetsStream key, value;
+		try
+		{
+			StorageEnv::CommonTransaction txn;
+			GFactionInfo info;
+			try{
+				Log::formatlog("battlemail","factionid=%d:sender=%d:type=%d",
+				   	arg->factionid, arg->mail.header.sender, arg->mail.header.sndr_type);
+				StorageEnv::Storage * pinfo = StorageEnv::GetStorage("factioninfo");
+				StorageEnv::Storage * pmailbox = StorageEnv::GetStorage("mailbox");
+				Marshal::OctetsStream(pinfo->find(Marshal::OctetsStream() << arg->factionid,txn)) >> info;
+				arg->mail.header.receiver = info.master.rid;
+				MailSender::Send(pmailbox,arg->mail.header, arg->mail.attach_money, txn); 
+				res->mailid = arg->mail.header.id;
+				res->roleid = arg->mail.header.receiver;
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBBattleMail, factionid=%d, what=%s\n", arg->factionid, e.what() );
+			res->retcode = ERR_EXCEPTION;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBBattleMailArg *arg = (DBBattleMailArg *)argument;
+		// DBBattleMailRes *res = (DBBattleMailRes *)result;
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

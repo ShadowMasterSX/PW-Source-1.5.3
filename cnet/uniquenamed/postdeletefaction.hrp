@@ -1,0 +1,84 @@
+
+#ifndef __GNET_POSTDELETEFACTION_HPP
+#define __GNET_POSTDELETEFACTION_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "storage.h"
+#include "postdeletefactionarg"
+#include "postdeletefactionres"
+
+#include "uniquenameserver.hpp"
+namespace GNET
+{
+
+class PostDeleteFaction : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "postdeletefaction"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		PostDeleteFactionArg *arg = (PostDeleteFactionArg *)argument;
+		PostDeleteFactionRes *res = (PostDeleteFactionRes *)result;
+
+		UniqueNameServer::GetInstance()->TransformName(arg->factionname);
+
+		Octets name;
+		CharsetConverter::conv_charset_u2l( arg->factionname, name );
+		LOG_TRACE( "PostDeleteFaction(zoneid=%d, factionid=%d, name=%.*s)",
+			arg->zoneid, arg->factionid, name.size(), (char*)name.begin() );
+
+		try
+		{
+			StorageEnv::Storage * punamefaction = StorageEnv::GetStorage("unamefaction");
+			StorageEnv::AtomTransaction txn;
+			try
+			{
+				Marshal::OctetsStream key_nextid;
+				int nextid_forkey = 0;
+				key_nextid << nextid_forkey;
+				if( key_nextid == arg->factionname )
+				{
+					res->retcode = ERR_DUPLICATRECORD;
+					LOG_TRACE( "PostDeleteFaction(zoneid=%d,factionid=%d,name=%.*s), duplicate, equals to next_id", 
+						arg->zoneid, arg->factionid, name.size(), (char*)name.begin() );
+					return;
+				}
+
+				punamefaction->del( arg->factionname, txn );
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "PostDeleteFaction, zoneid=%d, factionid=%d, what=%s\n", arg->zoneid, arg->factionid, e.what() );
+			res->retcode = -1;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// PostDeleteFactionArg *arg = (PostDeleteFactionArg *)argument;
+		// PostDeleteFactionRes *res = (PostDeleteFactionRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

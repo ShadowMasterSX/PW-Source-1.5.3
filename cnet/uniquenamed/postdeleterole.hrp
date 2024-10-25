@@ -1,0 +1,93 @@
+
+#ifndef __GNET_POSTDELETEROLE_HPP
+#define __GNET_POSTDELETEROLE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "storage.h"
+#include "postdeleterolearg"
+#include "postdeleteroleres"
+
+#include "macros.h"
+#include "uniquenameserver.hpp"
+namespace GNET
+{
+
+class PostDeleteRole : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "postdeleterole"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		PostDeleteRoleArg *arg = (PostDeleteRoleArg *)argument;
+		PostDeleteRoleRes *res = (PostDeleteRoleRes *)result;
+
+		UniqueNameServer::GetInstance()->TransformName(arg->rolename);
+
+		Octets name;
+		CharsetConverter::conv_charset_u2l( arg->rolename, name );
+		LOG_TRACE( "PostDeleteRole(zoneid=%d,roleid=%d,name=%.*s)",
+			arg->zoneid, arg->roleid, name.size(), (char*)name.begin() );
+
+		try
+		{
+			StorageEnv::Storage * punamerole = StorageEnv::GetStorage("unamerole");
+			StorageEnv::Storage * puidrole = StorageEnv::GetStorage("uidrole");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				Marshal::OctetsStream key_userid, value_unamerole, value_uidrole;
+				punamerole->del( arg->rolename, txn );
+
+				key_userid << arg->userid;
+				if( puidrole->find( key_userid, value_uidrole, txn ) )
+				{
+					unsigned int roles, logicuid;
+					value_uidrole >> roles;
+					if(value_uidrole.size()==8)
+						value_uidrole >> logicuid;
+					else
+						logicuid = arg->userid;
+
+					RoleList rolelist(roles);
+					if( rolelist.DelRole( arg->roleid ) )
+						puidrole->insert( key_userid, Marshal::OctetsStream()<<rolelist.GetRoleList()<<logicuid, txn );
+					LOG_TRACE( "PostDeleteRole(zoneid=%d,roleid=%d,name=%.*s), old rolelist=%x, new rolelist=%x", 
+						arg->zoneid, arg->roleid, name.size(), (char*)name.begin(), roles, rolelist.GetRoleList() );
+				}
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "PostDeleteRole, zoneid=%d, roleid=%d, what=%s\n", arg->zoneid, arg->roleid, e.what() );
+			res->retcode = -1;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// PostDeleteRoleArg *arg = (PostDeleteRoleArg *)argument;
+		// PostDeleteRoleRes *res = (PostDeleteRoleRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

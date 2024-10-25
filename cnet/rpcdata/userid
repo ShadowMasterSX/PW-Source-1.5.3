@@ -1,0 +1,59 @@
+#ifndef __GNET_USERID_RPCDATA
+#define __GNET_USERID_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class UserID : public GNET::Rpc::Data
+	{
+	public:
+		unsigned int id;
+
+	public:
+		UserID (unsigned int l_id = 0)
+			: id(l_id)
+		{
+		}
+
+		UserID(const UserID &rhs)
+			: id(rhs.id) { }
+
+		Rpc::Data *Clone() const { return new UserID(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const UserID *r = dynamic_cast<const UserID *>(&rhs);
+			if (r && r != this)
+			{
+				id = r->id;
+			}
+			return *this;
+		}
+
+		UserID& operator = (const UserID &rhs)
+		{
+			const UserID *r = &rhs;
+			if (r && r != this)
+			{
+				id = r->id;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << id;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> id;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,91 @@
+
+#ifndef __GNET_CANCHANGEROLENAME_HPP
+#define __GNET_CANCHANGEROLENAME_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#ifdef USE_DB
+#include "dbbuffer.h"
+#endif
+#include "canchangerolenamearg"
+#include "canchangerolenameres"
+
+namespace GNET
+{
+
+class CanChangeRolename : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "canchangerolename"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		CanChangeRolenameArg *arg = (CanChangeRolenameArg *)argument;
+		CanChangeRolenameRes *res = (CanChangeRolenameRes *)result;
+
+		LOG_TRACE( "CanChangeRolename." );
+
+		try
+		{
+			StorageEnv::Storage * prolename = StorageEnv::GetStorage("rolename");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				Marshal::OctetsStream value_rolename, value_rolename_new;
+				int roleid = -1, status = 0;
+				if( prolename->find( arg->rolename, value_rolename, txn ) )
+				{
+					if( arg->setcanchange )
+					{
+						value_rolename >> roleid;
+						status = 1;
+						value_rolename_new << roleid << status;
+						prolename->insert( arg->rolename, value_rolename_new, txn );
+						res->retcode = ERR_SUCCESS;
+					}
+					else
+					{
+						value_rolename >> roleid >> status;
+						res->retcode = ERR_SUCCESS;
+					}
+				}
+				else
+				{
+					res->retcode = ERR_DATANOTFIND;
+				}
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			if( e.get_errno() == DB_OLD_VERSION )
+				res->retcode = 1;
+			else
+				res->retcode = -1;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// CanChangeRolenameArg *arg = (CanChangeRolenameArg *)argument;
+		// CanChangeRolenameRes *res = (CanChangeRolenameRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

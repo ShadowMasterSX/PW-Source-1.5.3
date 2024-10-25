@@ -1,0 +1,111 @@
+
+#ifndef __GNET_PLAYERIDENTITYMATCH_HPP
+#define __GNET_PLAYERIDENTITYMATCH_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "playeridentitymatcharg"
+#include "playeridentitymatchres"
+#include "groleequipment"
+#include "saveplayerdata.hrp"
+
+
+namespace GNET
+{
+
+class PlayerIdentityMatch : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "playeridentitymatch"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		PlayerIdentityMatchArg *arg = (PlayerIdentityMatchArg *)argument;
+		PlayerIdentityMatchRes *res = (PlayerIdentityMatchRes *)result;
+		LOG_TRACE("CrossRelated PlayerIdentityMatch get data userid %d roleid %d", arg->userid, arg->roleid);
+		try
+		{
+			StorageEnv::Storage * puser = StorageEnv::GetStorage("user");
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::Storage * pstatus = StorageEnv::GetStorage("status");
+			StorageEnv::Storage * pequipment = StorageEnv::GetStorage("equipment");
+			StorageEnv::CommonTransaction txn;
+			Marshal::OctetsStream key;
+			try
+			{
+				Marshal::OctetsStream(puser->find(Marshal::OctetsStream()<<arg->userid, txn)) >> res->user;
+				Octets last_record = res->user.login_record;
+				res->user.login_record = Marshal::OctetsStream() << GLoginRecord(time(NULL), arg->ip);
+				puser->insert(Marshal::OctetsStream() << arg->userid, Marshal::OctetsStream() << res->user, txn);
+				res->user.login_record = last_record;
+
+				//与GetUser保持一致
+				key << arg->roleid;
+				GRoleBase	base; //不要无意识地破坏原有数据
+				Marshal::OctetsStream(pbase->find( key, txn )) >> base;
+
+				int userid = base.userid;
+				if (userid == 0) userid = LOGICUID(base.id);
+				if (userid != arg->userid)
+				{
+					Log::log(LOG_ERR, "CrossRelated PlayerIdentityMatch base(%d).userid(%d) does not belong to userid %d", base.id, userid, arg->userid);
+					res->retcode = ERR_DATANOTFIND;
+					return;
+				}
+
+				if (arg->flag == DS_TO_CENTRALDS)
+				{
+					if (base.status != _ROLE_STATUS_CROSS_LOCKED)
+					{
+						Log::log(LOG_ERR, "CrossRelated PlayerIdentityMatch userid %d roleid %d status %d", arg->userid, arg->roleid, base.status);
+						// 完美国际做法：强制置为CROSS_LOCKED，供delivery判断使用，此处修改未写数据库，真正的修改在TouchPlayerData
+						base.status = _ROLE_STATUS_CROSS_LOCKED;
+					}
+					// 诛仙做法：强制置为NORMAL，此处修改未写数据库，真正的修改在TouchPlayerData
+					//base.status = _ROLE_STATUS_NORMAL;
+				}
+				
+				GRoleStatus	status;
+				Marshal::OctetsStream(pstatus->find(key, txn)) >> status;
+				GRoleEquipment equipment;
+				Marshal::OctetsStream(pequipment->find(key, txn)) >> equipment;
+
+				BuildRoleInfo(base, status, equipment, res->user, res->roleinfo);
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "CrossRelated PlayerIdentityMatch, userid=%d, roleid=%d, what=%s\n", arg->userid, arg->roleid, e.what() );
+			res->retcode = ERR_DATANOTFIND;
+		}
+
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// PlayerIdentityMatchArg *arg = (PlayerIdentityMatchArg *)argument;
+		// PlayerIdentityMatchRes *res = (PlayerIdentityMatchRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif
+

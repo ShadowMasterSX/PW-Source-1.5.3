@@ -1,0 +1,38 @@
+	public:
+		int tid;
+		int userid;
+		int locktime;
+		enum { PROTOCOL_TYPE = PROTOCOL_IWEBAUTOLOCKSET };
+	public:
+		IWebAutolockSet() { type = PROTOCOL_IWEBAUTOLOCKSET; }
+		IWebAutolockSet(void*) : Protocol(PROTOCOL_IWEBAUTOLOCKSET) { }
+		IWebAutolockSet (int l_tid,int l_userid,int l_locktime)
+			 : tid(l_tid),userid(l_userid),locktime(l_locktime)
+		{
+			type = PROTOCOL_IWEBAUTOLOCKSET;
+		}
+
+		IWebAutolockSet(const IWebAutolockSet &rhs)
+			: Protocol(rhs),tid(rhs.tid),userid(rhs.userid),locktime(rhs.locktime) { }
+
+		GNET::Protocol *Clone() const { return new IWebAutolockSet(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << tid;
+			os << userid;
+			os << locktime;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> tid;
+			os >> userid;
+			os >> locktime;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 16; }

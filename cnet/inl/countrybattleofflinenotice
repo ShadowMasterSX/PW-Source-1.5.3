@@ -1,0 +1,35 @@
+	public:
+		int roleid;
+		int country_id;
+		enum { PROTOCOL_TYPE = PROTOCOL_COUNTRYBATTLEOFFLINENOTICE };
+	public:
+		CountryBattleOfflineNotice() { type = PROTOCOL_COUNTRYBATTLEOFFLINENOTICE; }
+		CountryBattleOfflineNotice(void*) : Protocol(PROTOCOL_COUNTRYBATTLEOFFLINENOTICE) { }
+		CountryBattleOfflineNotice (int l_roleid,int l_country_id)
+			 : roleid(l_roleid),country_id(l_country_id)
+		{
+			type = PROTOCOL_COUNTRYBATTLEOFFLINENOTICE;
+		}
+
+		CountryBattleOfflineNotice(const CountryBattleOfflineNotice &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),country_id(rhs.country_id) { }
+
+		GNET::Protocol *Clone() const { return new CountryBattleOfflineNotice(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << country_id;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> country_id;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 32; }

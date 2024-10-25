@@ -1,0 +1,35 @@
+	public:
+		int64_t receiver;
+		RoleMsgBeanVector messages;
+		enum { PROTOCOL_TYPE = PROTOCOL_ROLEOFFLINEMESSAGES };
+	public:
+		RoleOfflineMessages() { type = PROTOCOL_ROLEOFFLINEMESSAGES; }
+		RoleOfflineMessages(void*) : Protocol(PROTOCOL_ROLEOFFLINEMESSAGES) { }
+		RoleOfflineMessages (int64_t l_receiver,const RoleMsgBeanVector& l_messages)
+			 : receiver(l_receiver),messages(l_messages)
+		{
+			type = PROTOCOL_ROLEOFFLINEMESSAGES;
+		}
+
+		RoleOfflineMessages(const RoleOfflineMessages &rhs)
+			: Protocol(rhs),receiver(rhs.receiver),messages(rhs.messages) { }
+
+		GNET::Protocol *Clone() const { return new RoleOfflineMessages(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << receiver;
+			os << messages;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> receiver;
+			os >> messages;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1048576; }

@@ -1,0 +1,51 @@
+
+#ifndef __GNET_SYSAUCTIONPREPAREITEM_HPP
+#define __GNET_SYSAUCTIONPREPAREITEM_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "sysauctionprepareitemarg"
+#include "sysauctionprepareitemres"
+
+#include "sysauctionmanager.h"
+
+namespace GNET
+{
+
+class SysAuctionPrepareItem : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "sysauctionprepareitem"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// SysAuctionPrepareItemArg *arg = (SysAuctionPrepareItemArg *)argument;
+		// SysAuctionPrepareItemRes *res = (SysAuctionPrepareItemRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// SysAuctionPrepareItemArg *arg = (SysAuctionPrepareItemArg *)argument;
+		SysAuctionPrepareItemRes *res = (SysAuctionPrepareItemRes *)result;
+		DEBUG_PRINT("sysauctionprepareitem: rpc return. res->indexes.size()=%d,res->items.size()=%d", res->indexes.size(), res->items.size());
+		
+		if(res->indexes.size() != res->items.size()) return;
+		if(res->indexes.size() > 0)
+			SysAuctionManager::GetInstance().OnGSPrepareItem(res->indexes, res->items);
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+		SysAuctionPrepareItemArg *arg = (SysAuctionPrepareItemArg *)argument;
+		Log::log(LOG_ERR,"sysauctionprepareitem: timeout. arg->indexes.size()=%d,arg->item_ids.size()=%d", arg->indexes.size(), arg->item_ids.size());
+	}
+
+};
+
+};
+#endif

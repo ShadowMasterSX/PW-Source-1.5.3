@@ -1,0 +1,285 @@
+#ifndef __GNET_SNSROLEBRIEF_RPCDATA
+#define __GNET_SNSROLEBRIEF_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class SNSRoleBrief : public GNET::Rpc::Data
+	{
+	public:
+		int level;
+		int exp;
+		int sp;
+		int level2;
+		int reputation;
+		int pp;
+		int vitality;
+		int energy;
+		int strength;
+		int agility;
+		int max_hp;
+		int max_mp;
+		float run_speed;
+		int attack;
+		int damage_low;
+		int damage_high;
+		int attack_speed;
+		float attack_range;
+		int damage_magic_low;
+		int damage_magic_high;
+		int resistance0;
+		int resistance1;
+		int resistance2;
+		int resistance3;
+		int resistance4;
+		int defense;
+		int armor;
+		int crit_rate;
+		int crit_damage;
+		int attack_degree;
+		int defend_degree;
+		int invisible_degree;
+		int anti_invisible_degree;
+		int soul_power;
+		unsigned int skills_crc;
+		unsigned int equipment_crc;
+		unsigned int petcorral_crc;
+		int spouse;
+		int factionid;
+
+	public:
+		SNSRoleBrief (int l_level = 0,int l_exp = 0,int l_sp = 0
+			,int l_level2 = 0,int l_reputation = 0,int l_pp = 0
+			,int l_vitality = 0,int l_energy = 0,int l_strength = 0
+			,int l_agility = 0,int l_max_hp = 0,int l_max_mp = 0
+			,float l_run_speed = 0.0,int l_attack = 0,int l_damage_low = 0
+			,int l_damage_high = 0,int l_attack_speed = 0,float l_attack_range = 0.0
+			,int l_damage_magic_low = 0,int l_damage_magic_high = 0,int l_resistance0 = 0
+			,int l_resistance1 = 0,int l_resistance2 = 0,int l_resistance3 = 0
+			,int l_resistance4 = 0,int l_defense = 0,int l_armor = 0
+			,int l_crit_rate = 0,int l_crit_damage = 0,int l_attack_degree = 0
+			,int l_defend_degree = 0,int l_invisible_degree = 0,int l_anti_invisible_degree = 0
+			,int l_soul_power = 0,unsigned int l_skills_crc = 0,unsigned int l_equipment_crc = 0
+			,unsigned int l_petcorral_crc = 0,int l_spouse = 0,int l_factionid = 0)
+			: level(l_level),exp(l_exp),sp(l_sp)
+			,level2(l_level2),reputation(l_reputation),pp(l_pp)
+			,vitality(l_vitality),energy(l_energy),strength(l_strength)
+			,agility(l_agility),max_hp(l_max_hp),max_mp(l_max_mp)
+			,run_speed(l_run_speed),attack(l_attack),damage_low(l_damage_low)
+			,damage_high(l_damage_high),attack_speed(l_attack_speed),attack_range(l_attack_range)
+			,damage_magic_low(l_damage_magic_low),damage_magic_high(l_damage_magic_high),resistance0(l_resistance0)
+			,resistance1(l_resistance1),resistance2(l_resistance2),resistance3(l_resistance3)
+			,resistance4(l_resistance4),defense(l_defense),armor(l_armor)
+			,crit_rate(l_crit_rate),crit_damage(l_crit_damage),attack_degree(l_attack_degree)
+			,defend_degree(l_defend_degree),invisible_degree(l_invisible_degree),anti_invisible_degree(l_anti_invisible_degree)
+			,soul_power(l_soul_power),skills_crc(l_skills_crc),equipment_crc(l_equipment_crc)
+			,petcorral_crc(l_petcorral_crc),spouse(l_spouse),factionid(l_factionid)
+		{
+		}
+
+		SNSRoleBrief(const SNSRoleBrief &rhs)
+			: level(rhs.level),exp(rhs.exp),sp(rhs.sp),
+			level2(rhs.level2),reputation(rhs.reputation),pp(rhs.pp),
+			vitality(rhs.vitality),energy(rhs.energy),strength(rhs.strength),
+			agility(rhs.agility),max_hp(rhs.max_hp),max_mp(rhs.max_mp),
+			run_speed(rhs.run_speed),attack(rhs.attack),damage_low(rhs.damage_low),
+			damage_high(rhs.damage_high),attack_speed(rhs.attack_speed),attack_range(rhs.attack_range),
+			damage_magic_low(rhs.damage_magic_low),damage_magic_high(rhs.damage_magic_high),resistance0(rhs.resistance0),
+			resistance1(rhs.resistance1),resistance2(rhs.resistance2),resistance3(rhs.resistance3),
+			resistance4(rhs.resistance4),defense(rhs.defense),armor(rhs.armor),
+			crit_rate(rhs.crit_rate),crit_damage(rhs.crit_damage),attack_degree(rhs.attack_degree),
+			defend_degree(rhs.defend_degree),invisible_degree(rhs.invisible_degree),anti_invisible_degree(rhs.anti_invisible_degree),
+			soul_power(rhs.soul_power),skills_crc(rhs.skills_crc),equipment_crc(rhs.equipment_crc),
+			petcorral_crc(rhs.petcorral_crc),spouse(rhs.spouse),factionid(rhs.factionid) { }
+
+		Rpc::Data *Clone() const { return new SNSRoleBrief(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const SNSRoleBrief *r = dynamic_cast<const SNSRoleBrief *>(&rhs);
+			if (r && r != this)
+			{
+				level = r->level;
+				exp = r->exp;
+				sp = r->sp;
+				level2 = r->level2;
+				reputation = r->reputation;
+				pp = r->pp;
+				vitality = r->vitality;
+				energy = r->energy;
+				strength = r->strength;
+				agility = r->agility;
+				max_hp = r->max_hp;
+				max_mp = r->max_mp;
+				run_speed = r->run_speed;
+				attack = r->attack;
+				damage_low = r->damage_low;
+				damage_high = r->damage_high;
+				attack_speed = r->attack_speed;
+				attack_range = r->attack_range;
+				damage_magic_low = r->damage_magic_low;
+				damage_magic_high = r->damage_magic_high;
+				resistance0 = r->resistance0;
+				resistance1 = r->resistance1;
+				resistance2 = r->resistance2;
+				resistance3 = r->resistance3;
+				resistance4 = r->resistance4;
+				defense = r->defense;
+				armor = r->armor;
+				crit_rate = r->crit_rate;
+				crit_damage = r->crit_damage;
+				attack_degree = r->attack_degree;
+				defend_degree = r->defend_degree;
+				invisible_degree = r->invisible_degree;
+				anti_invisible_degree = r->anti_invisible_degree;
+				soul_power = r->soul_power;
+				skills_crc = r->skills_crc;
+				equipment_crc = r->equipment_crc;
+				petcorral_crc = r->petcorral_crc;
+				spouse = r->spouse;
+				factionid = r->factionid;
+			}
+			return *this;
+		}
+
+		SNSRoleBrief& operator = (const SNSRoleBrief &rhs)
+		{
+			const SNSRoleBrief *r = &rhs;
+			if (r && r != this)
+			{
+				level = r->level;
+				exp = r->exp;
+				sp = r->sp;
+				level2 = r->level2;
+				reputation = r->reputation;
+				pp = r->pp;
+				vitality = r->vitality;
+				energy = r->energy;
+				strength = r->strength;
+				agility = r->agility;
+				max_hp = r->max_hp;
+				max_mp = r->max_mp;
+				run_speed = r->run_speed;
+				attack = r->attack;
+				damage_low = r->damage_low;
+				damage_high = r->damage_high;
+				attack_speed = r->attack_speed;
+				attack_range = r->attack_range;
+				damage_magic_low = r->damage_magic_low;
+				damage_magic_high = r->damage_magic_high;
+				resistance0 = r->resistance0;
+				resistance1 = r->resistance1;
+				resistance2 = r->resistance2;
+				resistance3 = r->resistance3;
+				resistance4 = r->resistance4;
+				defense = r->defense;
+				armor = r->armor;
+				crit_rate = r->crit_rate;
+				crit_damage = r->crit_damage;
+				attack_degree = r->attack_degree;
+				defend_degree = r->defend_degree;
+				invisible_degree = r->invisible_degree;
+				anti_invisible_degree = r->anti_invisible_degree;
+				soul_power = r->soul_power;
+				skills_crc = r->skills_crc;
+				equipment_crc = r->equipment_crc;
+				petcorral_crc = r->petcorral_crc;
+				spouse = r->spouse;
+				factionid = r->factionid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << level;
+			os << exp;
+			os << sp;
+			os << level2;
+			os << reputation;
+			os << pp;
+			os << vitality;
+			os << energy;
+			os << strength;
+			os << agility;
+			os << max_hp;
+			os << max_mp;
+			os << run_speed;
+			os << attack;
+			os << damage_low;
+			os << damage_high;
+			os << attack_speed;
+			os << attack_range;
+			os << damage_magic_low;
+			os << damage_magic_high;
+			os << resistance0;
+			os << resistance1;
+			os << resistance2;
+			os << resistance3;
+			os << resistance4;
+			os << defense;
+			os << armor;
+			os << crit_rate;
+			os << crit_damage;
+			os << attack_degree;
+			os << defend_degree;
+			os << invisible_degree;
+			os << anti_invisible_degree;
+			os << soul_power;
+			os << skills_crc;
+			os << equipment_crc;
+			os << petcorral_crc;
+			os << spouse;
+			os << factionid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> level;
+			os >> exp;
+			os >> sp;
+			os >> level2;
+			os >> reputation;
+			os >> pp;
+			os >> vitality;
+			os >> energy;
+			os >> strength;
+			os >> agility;
+			os >> max_hp;
+			os >> max_mp;
+			os >> run_speed;
+			os >> attack;
+			os >> damage_low;
+			os >> damage_high;
+			os >> attack_speed;
+			os >> attack_range;
+			os >> damage_magic_low;
+			os >> damage_magic_high;
+			os >> resistance0;
+			os >> resistance1;
+			os >> resistance2;
+			os >> resistance3;
+			os >> resistance4;
+			os >> defense;
+			os >> armor;
+			os >> crit_rate;
+			os >> crit_damage;
+			os >> attack_degree;
+			os >> defend_degree;
+			os >> invisible_degree;
+			os >> anti_invisible_degree;
+			os >> soul_power;
+			os >> skills_crc;
+			os >> equipment_crc;
+			os >> petcorral_crc;
+			os >> spouse;
+			os >> factionid;
+			return os;
+		}
+
+	};
+};
+#endif

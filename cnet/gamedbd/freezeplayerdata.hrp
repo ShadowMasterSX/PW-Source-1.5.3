@@ -1,0 +1,84 @@
+
+#ifndef __GNET_FREEZEPLAYERDATA_HPP
+#define __GNET_FREEZEPLAYERDATA_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "freezeplayerdataarg"
+#include "freezeplayerdatares"
+
+namespace GNET
+{
+
+class FreezePlayerData : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "freezeplayerdata"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		FreezePlayerDataArg *arg = (FreezePlayerDataArg *)argument;
+		FreezePlayerDataRes *res = (FreezePlayerDataRes *)result;
+
+		LOG_TRACE("CrossRelated FreezePlayerData roleid %d remote_roleid %d userid %d ", arg->roleid, arg->remote_roleid, arg->userid);
+		
+		try {
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::CommonTransaction txn;
+			
+			Marshal::OctetsStream role_key;
+			GRoleBase base;
+			
+			try {
+				role_key << arg->roleid;
+				Marshal::OctetsStream(pbase->find(role_key, txn)) >> base;
+				
+				base.status = _ROLE_STATUS_CROSS_LOCKED;
+				
+				CrossInfoData info;
+				if(base.cross_data.size() > 0) {
+					Marshal::OctetsStream(base.cross_data) >> info;
+				}
+				
+				info.remote_roleid = arg->remote_roleid;
+				info.cross_timestamp = Timer::GetTime();
+				info.src_zoneid = arg->remote_zoneid;
+				Log::formatlog("crossrelated", "freezeplayerdata:roleid=%d:remote_roleid=%d:data_timestamp=%d:src_zoneid=%d", 
+					arg->roleid, info.remote_roleid, info.data_timestamp, info.src_zoneid);
+
+				base.cross_data = Marshal::OctetsStream() << info;
+	
+				pbase->insert(role_key, Marshal::OctetsStream() << base, txn);
+			} catch( DbException e ) { 
+				throw; 
+			} catch( ... ) {
+				DbException ee(DB_OLD_VERSION);
+				txn.abort(ee);
+				throw ee;
+			}
+		} catch (DbException e) {
+			Log::log(LOG_ERR, "CrossRelated FreezePlayerData, roleid %d what=%s", arg->roleid, e.what());
+			res->retcode = ERR_DATANOTFIND;
+			return;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// FreezePlayerDataArg *arg = (FreezePlayerDataArg *)argument;
+		// FreezePlayerDataRes *res = (FreezePlayerDataRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

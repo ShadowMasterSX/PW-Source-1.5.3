@@ -1,0 +1,59 @@
+	public:
+		unsigned int tid;
+		int sysid;
+		unsigned char sys_type;
+		int receiver;
+		Octets title;
+		Octets context;
+		GRoleInventory attach_obj;
+		unsigned int attach_money;
+		enum { PROTOCOL_TYPE = PROTOCOL_SYSSENDMAIL };
+	public:
+		SysSendMail() { type = PROTOCOL_SYSSENDMAIL; }
+		SysSendMail(void*) : Protocol(PROTOCOL_SYSSENDMAIL) { }
+		SysSendMail (unsigned int l_tid,int l_sysid,unsigned char l_sys_type,
+			int l_receiver,Octets l_title,Octets l_context,
+			const GRoleInventory& l_attach_obj,unsigned int l_attach_money)
+			 : tid(l_tid),sysid(l_sysid),sys_type(l_sys_type)
+			,receiver(l_receiver),title(l_title),context(l_context)
+			,attach_obj(l_attach_obj),attach_money(l_attach_money)
+		{
+			type = PROTOCOL_SYSSENDMAIL;
+		}
+
+		SysSendMail(const SysSendMail &rhs)
+			: Protocol(rhs),tid(rhs.tid),sysid(rhs.sysid),sys_type(rhs.sys_type)
+			,receiver(rhs.receiver),title(rhs.title),context(rhs.context)
+			,attach_obj(rhs.attach_obj),attach_money(rhs.attach_money) { }
+
+		GNET::Protocol *Clone() const { return new SysSendMail(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << tid;
+			os << sysid;
+			os << sys_type;
+			os << receiver;
+			os << title;
+			os << context;
+			os << attach_obj;
+			os << attach_money;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> tid;
+			os >> sysid;
+			os >> sys_type;
+			os >> receiver;
+			os >> title;
+			os >> context;
+			os >> attach_obj;
+			os >> attach_money;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 4096; }

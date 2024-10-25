@@ -1,0 +1,32 @@
+	public:
+		IntVector rolelist;
+		enum { PROTOCOL_TYPE = PROTOCOL_PLAYERFACTIONINFO };
+	public:
+		PlayerFactionInfo() { type = PROTOCOL_PLAYERFACTIONINFO; }
+		PlayerFactionInfo(void*) : Protocol(PROTOCOL_PLAYERFACTIONINFO) { }
+		PlayerFactionInfo (IntVector l_rolelist)
+			 : rolelist(l_rolelist)
+		{
+			type = PROTOCOL_PLAYERFACTIONINFO;
+		}
+
+		PlayerFactionInfo(const PlayerFactionInfo &rhs)
+			: Protocol(rhs),rolelist(rhs.rolelist) { }
+
+		GNET::Protocol *Clone() const { return new PlayerFactionInfo(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << rolelist;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> rolelist;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 10240; }

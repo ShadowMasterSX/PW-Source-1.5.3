@@ -1,0 +1,8 @@
+#! /bin/bash
+if [ $# -lt 1 ]; then
+	echo "Usage: $0  <dbview director>"
+	echo -e "\tcheck out tools/dbview to local path first, and run this script with that path as argument"
+	echo -e "\te.g. $0 ~/tools/dbview"
+	exit
+fi
+$1/configure $1

@@ -1,0 +1,53 @@
+
+#ifndef __GNET_DBAUCTIONTIMEOUT_HPP
+#define __GNET_DBAUCTIONTIMEOUT_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "auctionid"
+#include "dbauctiontimeoutres"
+#include "postoffice.h"
+#include "gamedbclient.hpp"
+namespace GNET
+{
+
+class DBAuctionTimeout : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbauctiontimeout"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		AuctionId *arg = (AuctionId *)argument;
+		DBAuctionTimeoutRes *res = (DBAuctionTimeoutRes *)result;
+		if ( res->retcode==ERR_SUCCESS )
+		{
+			PostOffice::GetInstance().AddNewMail( res->inform_seller.receiver,res->inform_seller );
+			PostOffice::GetInstance().AddNewMail( res->inform_bidder.receiver,res->inform_bidder );
+		}
+		else if ( res->retcode==ERR_AGAIN )
+		{
+			GameDBClient::GetInstance()->SendProtocol(
+				Rpc::Call(RPC_DBAUCTIONTIMEOUT,arg)
+			);
+		}
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		AuctionId *arg = (AuctionId *)argument;
+		Log::log(LOG_WARNING,"dbauctiontimeout: timeout. Auction %d timeout, but Announce to DBServer failed.",arg->id);
+		GameDBClient::GetInstance()->SendProtocol( Rpc::Call(RPC_DBAUCTIONTIMEOUT,arg));
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,87 @@
+#ifndef __GNET_SELLPOINTRES_RPCDATA
+#define __GNET_SELLPOINTRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class SellPointRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		int sellid;
+		int ctime;
+		int etime;
+		char status;
+		int money;
+
+	public:
+		SellPointRes (int l_retcode = 0,int l_sellid = 0,int l_ctime = 0
+			,int l_etime = 0,char l_status = 0,int l_money = 0)
+			: retcode(l_retcode),sellid(l_sellid),ctime(l_ctime)
+			,etime(l_etime),status(l_status),money(l_money)
+		{
+		}
+
+		SellPointRes(const SellPointRes &rhs)
+			: retcode(rhs.retcode),sellid(rhs.sellid),ctime(rhs.ctime),
+			etime(rhs.etime),status(rhs.status),money(rhs.money) { }
+
+		Rpc::Data *Clone() const { return new SellPointRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const SellPointRes *r = dynamic_cast<const SellPointRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				sellid = r->sellid;
+				ctime = r->ctime;
+				etime = r->etime;
+				status = r->status;
+				money = r->money;
+			}
+			return *this;
+		}
+
+		SellPointRes& operator = (const SellPointRes &rhs)
+		{
+			const SellPointRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				sellid = r->sellid;
+				ctime = r->ctime;
+				etime = r->etime;
+				status = r->status;
+				money = r->money;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << sellid;
+			os << ctime;
+			os << etime;
+			os << status;
+			os << money;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> sellid;
+			os >> ctime;
+			os >> etime;
+			os >> status;
+			os >> money;
+			return os;
+		}
+
+	};
+};
+#endif

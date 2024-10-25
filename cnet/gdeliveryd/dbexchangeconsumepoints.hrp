@@ -1,0 +1,66 @@
+
+#ifndef __GNET_DBEXCHANGECONSUMEPOINTS_HPP
+#define __GNET_DBEXCHANGECONSUMEPOINTS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbexchangeconsumepointsarg"
+#include "dbexchangeconsumepointsres"
+#include "rewardmanager.h"
+#include "exchangeconsumepoints_re.hpp"
+#include "grewardstore"
+
+namespace GNET
+{
+
+class DBExchangeConsumePoints : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbexchangeconsumepoints"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBExchangeConsumePointsArg *arg = (DBExchangeConsumePointsArg *)argument;
+		// DBExchangeConsumePointsRes *res = (DBExchangeConsumePointsRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBExchangeConsumePointsArg *arg = (DBExchangeConsumePointsArg *)argument;
+		DBExchangeConsumePointsRes *res = (DBExchangeConsumePointsRes *)result;
+		if (res->retcode != ERR_SUCCESS)
+			Log::log(LOG_ERR, "dbexchangeconsumepoints error %d roleid %d", res->retcode, arg->roleid);
+		RewardManager::GetInstance()->OnDBPointsExchange(res->retcode, arg->userid);
+/*
+		PlayerInfo *pinfo = UserContainer::GetInstance().FindRoleOnline(arg->roleid);
+		if (pinfo == NULL)
+			return;
+		if (res->retcode != ERR_SUCCESS)
+			res->retcode = ERR_REWARD_DB_ERR;
+		ExchangeConsumePoints_Re re(res->retcode, arg->roleid, arg->bonus_add, pinfo->localsid);
+		GDeliveryServer::GetInstance()->Send(pinfo->linksid, re);
+*/
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		DBExchangeConsumePointsArg *arg = (DBExchangeConsumePointsArg *)argument;
+		Log::log(LOG_ERR, "dbexchangeconsumepoints timeout roleid %d", arg->roleid);
+		GameDBClient::GetInstance()->SendProtocol( Rpc::Call(RPC_DBEXCHANGECONSUMEPOINTS, arg) ); 
+/*
+		RewardManager::GetInstance()->OnDBPointsExchange(ERR_TIMEOUT, arg->roleid, arg->userid, GRewardStore());
+		PlayerInfo *pinfo = UserContainer::GetInstance().FindRoleOnline(arg->roleid);
+		if (pinfo == NULL)
+			return;
+		ExchangeConsumePoints_Re re(ERR_REWARD_DB_ERR, arg->roleid, arg->bonus_add, pinfo->localsid);
+		GDeliveryServer::GetInstance()->Send(pinfo->linksid, re);
+*/
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,59 @@
+#ifndef __GNET_TRADESAVERES_RPCDATA
+#define __GNET_TRADESAVERES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class TradeSaveRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+
+	public:
+		TradeSaveRes (int l_retcode = -1)
+			: retcode(l_retcode)
+		{
+		}
+
+		TradeSaveRes(const TradeSaveRes &rhs)
+			: retcode(rhs.retcode) { }
+
+		Rpc::Data *Clone() const { return new TradeSaveRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const TradeSaveRes *r = dynamic_cast<const TradeSaveRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		TradeSaveRes& operator = (const TradeSaveRes &rhs)
+		{
+			const TradeSaveRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			return os;
+		}
+
+	};
+};
+#endif

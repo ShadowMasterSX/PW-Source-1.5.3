@@ -1,0 +1,131 @@
+#ifndef __GNET_DBPSHOPACTIVE_HPP
+#define __GNET_DBPSHOPACTIVE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbpshopactivearg"
+#include "dbpshopactiveres"
+#include "utilfunction.h"
+
+namespace GNET
+{
+
+class DBPShopActive : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbpshopactive"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBPShopActiveArg *arg = (DBPShopActiveArg *)argument;
+		DBPShopActiveRes *res = (DBPShopActiveRes *)result;
+		LOG_TRACE("DBPShopActive, roleid=%d", arg->roleid);
+		unsigned int orignal_money = arg->syncdata.inventory.money;
+		try
+		{
+			StorageEnv::Storage * pinventory = StorageEnv::GetStorage("inventory");
+			StorageEnv::Storage * pequipment = StorageEnv::GetStorage("equipment");
+			StorageEnv::Storage * pstorehouse = StorageEnv::GetStorage("storehouse");
+			StorageEnv::Storage * plog = arg->syncdata.logs.size()?StorageEnv::GetStorage("shoplog"):NULL;
+			StorageEnv::Storage * pshop = StorageEnv::GetStorage("playershop");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				Marshal::OctetsStream key;
+				key << arg->roleid;
+
+				//获取店铺数据
+				PShopDetail shop;
+				Marshal::OctetsStream(pshop->find(key, txn)) >> shop;
+				if(!PShopFunc::OptionPolicy(shop, PShopFunc::PSHOP_OP_ACTIVATE))
+				{
+					Log::log(LOG_ERR,"DBPShopActive, active invalid. roleid=%d )",arg->roleid);
+					throw DbException(DB_VERIFY_BAD);
+				}
+
+				//获取背包
+				GRolePocket pocket;
+				Marshal::OctetsStream(pinventory->find(key, txn)) >> pocket;
+				if(arg->syncdata.inventory.timestamp <= pocket.timestamp)
+				{
+					Log::log(LOG_ERR,"DBPShopActive, timestamp mismatch. roleid=%d (%d<%d)",
+						arg->roleid, arg->syncdata.inventory.timestamp, pocket.timestamp);
+					throw DbException(DB_VERIFY_BAD);
+				}
+
+				int money_delta = arg->syncdata.inventory.money - pocket.money;
+
+				//扣除背包物品
+				GRoleInventory itemchange;
+				InvMan invman(arg->syncdata.inventory.items, arg->syncdata.inventory.capacity);
+				if(!invman.Remove(arg->item_id, arg->item_pos, arg->item_num, itemchange))
+				{
+					Log::log(LOG_ERR,"DBPShopActive, take of item fail. roleid=%d item=%d pos=%d num=%d)",
+						arg->roleid, arg->item_id, arg->item_pos, arg->item_num);
+					throw DbException(DB_VERIFY_BAD);
+				}
+				res->syncdata.inventory.items.push_back(itemchange);
+
+				Log::formatlog("dbpshopactive", "timestamp=%u:roleid=%d:item=%d:pos=%d:count=%d:now=%d",
+					arg->syncdata.inventory.timestamp,arg->roleid,arg->item_id,arg->item_pos,arg->item_num,arg->timestamp);
+
+				//更新店铺
+				if(shop.status == PSHOP_STATUS_NORMAL)
+				{
+					//店铺未过期,延迟店铺寿命
+					shop.expiretime += PShopFunc::GetShopLifeByItem(arg->item_id);
+				}
+				else if(shop.status == PSHOP_STATUS_EXPIRED)
+				{
+					//店铺被激活后,过期时间从当前时间算起
+					shop.status = PSHOP_STATUS_NORMAL;
+					shop.expiretime = arg->timestamp + PShopFunc::GetShopLifeByItem(arg->item_id);
+				}
+
+				//更新DB
+				pshop->insert(key, Marshal::OctetsStream()<<shop,txn);
+				pinventory->insert(key, Marshal::OctetsStream()<<arg->syncdata.inventory,txn);
+				pequipment->insert(key, Marshal::OctetsStream()<<arg->syncdata.equipment,txn);
+				WriteRestSyncData(pstorehouse, plog, arg->roleid, arg->syncdata, money_delta, txn);
+
+				res->detail = shop;
+				res->syncdata.inventory.money = arg->syncdata.inventory.money;
+				res->syncdata.data_mask = arg->syncdata.data_mask;
+				res->retcode = ERR_SUCCESS;
+			}
+			catch(DbException e) { throw; }
+			catch(...)
+			{
+				DbException ee(DB_OLD_VERSION);
+				txn.abort(ee);
+				throw ee;
+			}
+		}
+		catch(DbException e)
+		{
+			Log::log(LOG_ERR, "DBPShopActive, roleid=%d, what=%s\n", arg->roleid, e.what());
+			res->retcode = ERR_VERIFYFAILED;
+			res->syncdata.inventory.money = orignal_money;
+			res->syncdata.inventory.items.clear();
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBPShopActiveArg *arg = (DBPShopActiveArg *)argument;
+		// DBPShopActiveRes *res = (DBPShopActiveRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

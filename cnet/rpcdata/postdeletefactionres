@@ -1,0 +1,59 @@
+#ifndef __GNET_POSTDELETEFACTIONRES_RPCDATA
+#define __GNET_POSTDELETEFACTIONRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class PostDeleteFactionRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+
+	public:
+		PostDeleteFactionRes (int l_retcode = -1)
+			: retcode(l_retcode)
+		{
+		}
+
+		PostDeleteFactionRes(const PostDeleteFactionRes &rhs)
+			: retcode(rhs.retcode) { }
+
+		Rpc::Data *Clone() const { return new PostDeleteFactionRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const PostDeleteFactionRes *r = dynamic_cast<const PostDeleteFactionRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		PostDeleteFactionRes& operator = (const PostDeleteFactionRes &rhs)
+		{
+			const PostDeleteFactionRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			return os;
+		}
+
+	};
+};
+#endif

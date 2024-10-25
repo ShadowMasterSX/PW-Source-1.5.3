@@ -1,0 +1,35 @@
+	public:
+		int status;
+		std::vector<GCity> cities;
+		enum { PROTOCOL_TYPE = PROTOCOL_BATTLEMAPNOTICE };
+	public:
+		BattleMapNotice() { type = PROTOCOL_BATTLEMAPNOTICE; }
+		BattleMapNotice(void*) : Protocol(PROTOCOL_BATTLEMAPNOTICE) { }
+		BattleMapNotice (int l_status,std::vector<GCity> l_cities = std::vector<GCity>())
+			 : status(l_status),cities(l_cities)
+		{
+			type = PROTOCOL_BATTLEMAPNOTICE;
+		}
+
+		BattleMapNotice(const BattleMapNotice &rhs)
+			: Protocol(rhs),status(rhs.status),cities(rhs.cities) { }
+
+		GNET::Protocol *Clone() const { return new BattleMapNotice(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << status;
+			os << cities;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> status;
+			os >> cities;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 2048; }

@@ -1,0 +1,59 @@
+#ifndef __GNET_TRANSACTIONTIMEOUT_RPCDATA
+#define __GNET_TRANSACTIONTIMEOUT_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class TransactionTimeout : public GNET::Rpc::Data
+	{
+	public:
+		unsigned int timeout;
+
+	public:
+		TransactionTimeout (unsigned int l_timeout = 15)
+			: timeout(l_timeout)
+		{
+		}
+
+		TransactionTimeout(const TransactionTimeout &rhs)
+			: timeout(rhs.timeout) { }
+
+		Rpc::Data *Clone() const { return new TransactionTimeout(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const TransactionTimeout *r = dynamic_cast<const TransactionTimeout *>(&rhs);
+			if (r && r != this)
+			{
+				timeout = r->timeout;
+			}
+			return *this;
+		}
+
+		TransactionTimeout& operator = (const TransactionTimeout &rhs)
+		{
+			const TransactionTimeout *r = &rhs;
+			if (r && r != this)
+			{
+				timeout = r->timeout;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << timeout;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> timeout;
+			return os;
+		}
+
+	};
+};
+#endif

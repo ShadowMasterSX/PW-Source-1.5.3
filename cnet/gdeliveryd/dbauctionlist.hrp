@@ -1,0 +1,74 @@
+
+#ifndef __GNET_DBAUCTIONLIST_HPP
+#define __GNET_DBAUCTIONLIST_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "auctionmarket.h"
+#include "gauctionlist"
+#include "gauctionindex"
+#include "dbauctionlistarg"
+#include "dbauctionlistres"
+#include "gamedbclient.hpp"
+namespace GNET
+{
+
+class DBAuctionList : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbauctionlist"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBAuctionListArg *arg = (DBAuctionListArg *)argument;
+		// DBAuctionListRes *res = (DBAuctionListRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		DBAuctionListRes *res = (DBAuctionListRes *)result;
+		DEBUG_PRINT("dbauctionlist: received. res->items.size()=%d,res->handle.size()=%d retcode=%d\n",
+				res->items.size(),res->handle.size(), res->retcode);
+		if ( res->retcode==ERR_SUCCESS )
+		{
+			AuctionMarket::GetInstance().InitAuctionObjs( 
+					res->items,
+					res->items.size()==0 || res->handle.size()==0 //handle.category.size()==0 means finished.
+				); 
+		}
+		if ( res->retcode==ERR_AGAIN || res->handle.size()!=0 )
+		{
+			GameDBClient::GetInstance()->SendProtocol( Rpc::Call(RPC_DBAUCTIONLIST,DBAuctionListArg(res->handle)) ); 
+		}
+		/*
+		for ( size_t i=0;i<res->lists.size();++i )
+		{
+			AuctionMarket::GetInstance().InitAuctionObjs( 
+					res->lists[i].category,
+					res->lists[i].list,
+					(i==res->lists.size()-1 && res->handle.category.size()==0) //handle.category.size()==0 means finished.
+				); 
+		}
+		if ( res->lists.size()==0 ) //if no auction return
+		{
+			AuctionMarket::GetInstance().InitAuctionObjs( 
+					0,AuctionMarket::GAuctionDetailVector(),true ); //means init finished
+		}
+		*/	
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		// TODO Client Only
+		DBAuctionListArg *arg = (DBAuctionListArg *)argument;
+		Log::log(LOG_WARNING,"dbauctionlist: rpc timeout. Resend request.\n");
+		GameDBClient::GetInstance()->SendProtocol( Rpc::Call(RPC_DBAUCTIONLIST,arg) ); 
+	}
+
+};
+
+};
+#endif

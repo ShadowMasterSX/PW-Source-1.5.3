@@ -1,0 +1,64 @@
+#ifndef __GNET_DBKEDELETECANDIDATEARG_RPCDATA
+#define __GNET_DBKEDELETECANDIDATEARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBKEDeleteCandidateArg : public GNET::Rpc::Data
+	{
+	public:
+		IntVector candidate_list;
+		int reason;
+
+	public:
+		DBKEDeleteCandidateArg (const IntVector& l_candidate_list = IntVector(),int l_reason = 0)
+			: candidate_list(l_candidate_list),reason(l_reason)
+		{
+		}
+
+		DBKEDeleteCandidateArg(const DBKEDeleteCandidateArg &rhs)
+			: candidate_list(rhs.candidate_list),reason(rhs.reason) { }
+
+		Rpc::Data *Clone() const { return new DBKEDeleteCandidateArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBKEDeleteCandidateArg *r = dynamic_cast<const DBKEDeleteCandidateArg *>(&rhs);
+			if (r && r != this)
+			{
+				candidate_list = r->candidate_list;
+				reason = r->reason;
+			}
+			return *this;
+		}
+
+		DBKEDeleteCandidateArg& operator = (const DBKEDeleteCandidateArg &rhs)
+		{
+			const DBKEDeleteCandidateArg *r = &rhs;
+			if (r && r != this)
+			{
+				candidate_list = r->candidate_list;
+				reason = r->reason;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << candidate_list;
+			os << reason;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> candidate_list;
+			os >> reason;
+			return os;
+		}
+
+	};
+};
+#endif

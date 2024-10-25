@@ -1,0 +1,55 @@
+
+#ifndef __GNET_GETADDCASHSN_HPP
+#define __GNET_GETADDCASHSN_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "getaddcashsnarg"
+#include "getaddcashsnres"
+
+namespace GNET
+{
+
+class GetAddCashSN : public ProxyRpc
+{
+#define	RPC_BASECLASS	ProxyRpc
+	#include "getaddcashsn"
+#undef	RPC_BASECLASS
+
+	bool Delivery(Manager::Session::ID proxy_sid, const OctetsStream& osArg)
+	{
+		// TODO
+		// GetAddCashSNArg arg;
+		// osArg >> arg;
+		if( GameDBClient::GetInstance()->SendProtocol( *this ) )
+		{
+			return true;
+		}
+		else
+		{
+			SetResult(GetAddCashSNRes(ERR_DELIVER_SEND));
+			SendToSponsor();
+			return false;
+		}
+	}
+
+	void PostProcess(Manager::Session::ID proxy_sid,const OctetsStream& osArg, const OctetsStream& osRes)
+	{
+		// TODO
+		// GetAddCashSNArg arg;
+		// osArg >> arg;
+		// GetAddCashSNRes res;
+		// osRes >> res;
+		// SetResult( &res ); // if you modified res, do not forget to call this. 
+	}
+
+	void OnTimeout( )
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,93 @@
+
+#ifndef __GNET_DELMEMBER_HPP
+#define __GNET_DELMEMBER_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "delmemberarg"
+#include "deffactionres"
+
+namespace GNET
+{
+
+class DelMember : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "delmember"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DelMemberArg *arg = (DelMemberArg *)argument;
+		DefFactionRes *res = (DefFactionRes *)result;
+
+		Marshal::OctetsStream key;
+		Marshal::OctetsStream value;
+
+		GUserFaction user;
+		GFactionInfo info;
+		try
+		{
+			StorageEnv::Storage * puser = StorageEnv::GetStorage("userfaction");
+			StorageEnv::Storage * pinfo = StorageEnv::GetStorage("factioninfo");
+			StorageEnv::CommonTransaction txn;
+			try{
+				key << arg->rid;
+				if(puser->find(key, value, txn))
+				{
+					value >> user;
+					if(user.role==_R_MASTER)
+					{
+						res->retcode = ERR_OUTOFSYNC;
+						return;
+					}
+					Log::formatlog("faction","type=leave:roleid=%d:factionid=%d:role=%d", arg->rid, arg->fid, user.role);
+					user.fid = 0;
+					user.role = _R_UNMEMBER;
+					user.nickname.clear();
+					user.extend.clear();
+					user.delayexpel.clear();
+					puser->insert(key, Marshal::OctetsStream()<<user, txn);
+				}
+				Marshal::OctetsStream(pinfo->find(Marshal::OctetsStream()<<arg->fid, txn)) >> info;
+				GMemberVector::iterator it;
+				for(it=info.member.begin();it!=info.member.end()&&(*it).rid!=arg->rid;it++);
+				if(it==info.member.end())
+				{
+					res->retcode = ERR_SUCCESS;
+					Log::log(LOG_ERR, "DelMember: user not found in list rid=%d fid=%d.", arg->rid, arg->fid);
+					return;
+				}
+				info.member.erase(it);
+				pinfo->insert(Marshal::OctetsStream()<<arg->fid, Marshal::OctetsStream()<<info, txn);
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log(LOG_ERR, "DelMember: exception,  rid=%d, fid=%d, what=%s", arg->rid,arg->fid,e.what());
+			res->retcode = -1;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

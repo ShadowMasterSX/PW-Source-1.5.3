@@ -1,0 +1,108 @@
+2014-3-4:
+	- 重新整理了目录，以“兼容、非兼容”、“GCC版本”、“32或64”三个维度来划分
+2014-2-12:
+	- 更新了64位动态库
+	- 增加了对gcc4,c++0x的支持,某些头文件因此修改，增加了一些注释
+2013-4-28:
+	- 对照老share库, 对db.h中great_equal_key做了相应的bug修正
+	- 对同一个session连续调用TransferFD的话，只有第一次成功。
+	- 修正PManager延时关闭session时，关闭原因可能被其它原因覆盖的bug.
+2013-4-18:
+	- 增加wdb2.h，对老WDB库的Storage封装接口,显著改变在于要先开始Transaction的Begin,然后再GetStorage
+	- 增加wdb3.h, 新的底层数据库，支持增量备份
+2013-4-12:
+	- mutex_spinlock在时间精度高的内核下，仍然是在40秒死锁后ASSERT
+2013-4-8:
+	-  LOG_CASH 废弃，相应枚举改为LOG_STAT.  并且修改STAT的Log格式
+2013-3-28:
+	- 增加以特定配置来启动Manager的方式（配置可以自己从文件中读）
+2013-3-12:	
+	- ThreadPool::TryProcessAllTask返回值从void改为int，表示处理的task数量
+	- Logclient中的RemoteLog,RemoteLogVital协议最大允许4096。log相关栈上的buffer增加。
+2013-3-6:
+	- fast_allocator_t加入release接口，以提供手动释放内存管理器的功能.
+	- fix_allocator加入析构函数
+	- 修正上个版本tla存在的内存管理器无法释放内存的问题
+	- 本版本仍然没有更新64位的动态库
+2012-12-18:
+	- compress.h中加入了MPPCCompress和MPPCDecompress，以方便使用
+	- 增加Octets::GetCurrOctetsCounter用于统计目前系统中有多少个octets
+	- static_set中加了一个set成员函数
+	- tla中增加ReAlloc。tla作了优化。
+	- Protocol::Exception修改了一个笔误
+	- 本版本暂时没有更新64位的动态库
+2011-10-13:
+	- proxyrpc中增加了ResetArgument接口，可以在转发协议时修改Argument
+	- PManager中增加了TranslateProtocolAttr虚函数。在协议被分发前，可以有一次修改顺序号、组号等属性的机会，
+	此时协议的process函数将在新的线程池环境中进行，而不是以rpcalls.xml中定义的。
+2011-6-16:
+	- 修改了interlocked_add返回值的含义，使其返回相加后的结果
+	- 应笑傲的需求，在打开tcp_nodelay后的情况下，增加了在IO库层的用户级延迟功能。可以在应用层控制报文延迟的大小和频率
+2011-4-28:
+	- 修改了统计类在STAT_MIN5没有输出的bug
+	- 修改了Conf在程序终止时没有释放的问题
+	- 修改了NetSession的拷贝构造中某些变量没有赋值的bug
+	- IOMan可以正常终止, 在终止时有IsFinalizing标志，在这时如果InitClient或InitServer将失败
+	- 加入StaticReconnectTask，可以在程序终止时不必显式释放(为解决ReconnectTask无法正确释放问题)
+	- ActiveIO在PollIn时就检查非阻塞连接的结果，而不是等到析构时。程序终止时一般可正常释放。
+	- cache.h中的DBSaveTask和DiscardTask在程序终止时会正确释放。
+	- 本次编译没有编出64位版本
+2011-4-1:
+	- PManager增加了IsTrustable接口，用于表明该manager中的session都是可信任的。可信任的manager收到了由它自己
+	  发送出去的ProxyRpc的回应后会正常处理，而不再是抛弃。
+	- 修正了64位CAS原语不正确的问题, 函数接口有所改变。
+	- 修正了abase::static_map::empty()的实现错误。
+	- 线程池的dump接口发生改变，使用者可以选择dump到哪个文件中
+	- Log::Log的行为由LogTrait::VLog决定，而不再是使用LogTrait::VLogVital
+2011-3-8:
+	- PManager增加了InitDummy接口，该接口将manager初始化成不监听、不主动连接任何端口的方式，主要用于接受FD。
+	- 修正了在接收到传入的FD，建立session时没有进行session参数初始化的bug.
+	- 修正了PManager::AttachSession(int fd)返回的sid不正确的bug
+	- 线程池中的线程，在无任务时的等待时间，从1微秒改为2毫秒，用以解决在内核支持高分辨率时钟时CPU占用过高问题。
+	- 优化了协议数据编码，可以减少一次缓冲区复制(需要协议提供MaxSize())
+	- 增加了AESCTR的security
+2010-10-21:
+	- 对不同进程间传递Session所关联的FD和状态信息进行了更好的支持。通过特定的协议将所关联的缓冲区、Security发送
+	- 给目标Manager。为完成这一功能，加入了UnixIO，Security进行了状态保存。
+2010-9-19:
+	- 在PManager中增加了DetachSession和AttachSession，用以支持Session关联的FD在两个不同进程间传递
+	- 加入了Thread Local Allocator，可以在栈上很高效地分配临时内存
+2010-8-9:
+	- OctetsStream加入对std::set的>>和<<操作。
+2010-6-4:
+	- 为了能在gcc4.3.3下编译成功做了适当修改
+	- 修改了Rpc或ProxyRpc中创建新的Rpc会造成死锁的bug.
+	- 删除了security.h中的HMAC_MD5hash和MD5Hash两个类，要使用这两个类的话请用Secuirty::Create创建
+2010-5-28:
+	- 增强了对以前项目的兼容性(修改了ThreadPolicyBase，使得优先级100,101的协议是顺序协议，这样不必修改rpcalls.xml。
+	- 修正了abase::RWLock::Keeper的实现错误。
+	- 增加了mutex_futex_lock，用于当锁释放时希望迅速得到通知的情况(但加锁本身稍有耗费)，此功能性能未知，有待测试。
+2010-5-26:
+	- 让PManager::SetVerbose发挥作用，定制发生解析错误时的日志级别。
+2010-5-6:
+	- 修改了IntervalTimer::Observer在Update中return false并释放自己出现ASSERT的问题
+2010-4-29:
+	- 修改了IntervalTimer::Observer在Update中删除释放自己时潜在的问题
+2010-3-29:
+	- 优化了收到协议时会检查协议号两次的问题
+2010-3-25:
+	- Manager不再需要定期调用CheckSessionTimePolicy来进行state超时检查
+	- Manager中的ChangeState接口增加一个参数，决定了session在收到不在State中协议时的是抛弃还是断开
+	- 修改了HouseKeeper, 不再全局唯一，而是每个线程池都可以有一个, timertask可能会被加入到不同的线程池中去。
+	- 在Verbose的库中，输出的一些信息带上当前tick. 而且有不同的tracelevel, level越大，显示的信息越多.
+2009-12-29:
+	- SessionState增加对“忽略某协议”的支持，而不是直接断开链接。
+	- 增加Verbose模式的动态库，用于调试信息输出，方便应用程序查错。(兼容模式下亦可用)
+	- 为支持Verbose模式，协议中增加获取“协议名”、“协议消息内容”的接口。
+	- Rpc中增加辅助数据，用于暂时一些信息
+	- 增加doc/iolib_usage.doc文档，用于说明该库的一些用法和FAQ。
+	- 增加mk目录，用于项目Makefile
+	- rpcgen中, 除了增加上述功能的支持外，还增加：
+		1.rpcdata增加novirtual属性;
+		2.协议内容增加对注释的支持;
+		3.协议内容全有默认值时不再报警;
+		4.生成的Makefile支持依赖关系生成
+		5.通道协议的支持
+
+2009-9-9:
+	- 初始版本

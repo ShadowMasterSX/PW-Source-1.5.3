@@ -1,0 +1,35 @@
+	public:
+		char status;
+		OnlinePlayerStatusVector playerstatus_list;
+		enum { PROTOCOL_TYPE = PROTOCOL_PLAYERSTATUSANNOUNCE };
+	public:
+		PlayerStatusAnnounce() { type = PROTOCOL_PLAYERSTATUSANNOUNCE; }
+		PlayerStatusAnnounce(void*) : Protocol(PROTOCOL_PLAYERSTATUSANNOUNCE) { }
+		PlayerStatusAnnounce (char l_status,OnlinePlayerStatusVector l_playerstatus_list)
+			 : status(l_status),playerstatus_list(l_playerstatus_list)
+		{
+			type = PROTOCOL_PLAYERSTATUSANNOUNCE;
+		}
+
+		PlayerStatusAnnounce(const PlayerStatusAnnounce &rhs)
+			: Protocol(rhs),status(rhs.status),playerstatus_list(rhs.playerstatus_list) { }
+
+		GNET::Protocol *Clone() const { return new PlayerStatusAnnounce(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << status;
+			os << playerstatus_list;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> status;
+			os >> playerstatus_list;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 204800; }

@@ -1,0 +1,59 @@
+#ifndef __GNET_GROLETABLEINVENTORY_RPCDATA
+#define __GNET_GROLETABLEINVENTORY_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "grolepocket"
+
+namespace GNET
+{
+	class GRoleTableInventory : public GNET::Rpc::Data
+	{
+	public:
+		GRolePocket inventory;
+
+	public:
+		GRoleTableInventory ()
+		{
+		}
+
+		GRoleTableInventory(const GRoleTableInventory &rhs)
+			: inventory(rhs.inventory) { }
+
+		Rpc::Data *Clone() const { return new GRoleTableInventory(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GRoleTableInventory *r = dynamic_cast<const GRoleTableInventory *>(&rhs);
+			if (r && r != this)
+			{
+				inventory = r->inventory;
+			}
+			return *this;
+		}
+
+		GRoleTableInventory& operator = (const GRoleTableInventory &rhs)
+		{
+			const GRoleTableInventory *r = &rhs;
+			if (r && r != this)
+			{
+				inventory = r->inventory;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << inventory;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> inventory;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,70 @@
+#ifndef __GNET_ACLOGINFO_RPCDATA
+#define __GNET_ACLOGINFO_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class ACLogInfo : public GNET::Rpc::Data
+	{
+	public:
+		int type;
+		int subid;
+		int log_time;
+
+	public:
+		ACLogInfo (int l_type = 0,int l_subid = 0,int l_log_time = 0)
+			: type(l_type),subid(l_subid),log_time(l_log_time)
+		{
+		}
+
+		ACLogInfo(const ACLogInfo &rhs)
+			: type(rhs.type),subid(rhs.subid),log_time(rhs.log_time) { }
+
+		Rpc::Data *Clone() const { return new ACLogInfo(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const ACLogInfo *r = dynamic_cast<const ACLogInfo *>(&rhs);
+			if (r && r != this)
+			{
+				type = r->type;
+				subid = r->subid;
+				log_time = r->log_time;
+			}
+			return *this;
+		}
+
+		ACLogInfo& operator = (const ACLogInfo &rhs)
+		{
+			const ACLogInfo *r = &rhs;
+			if (r && r != this)
+			{
+				type = r->type;
+				subid = r->subid;
+				log_time = r->log_time;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << type;
+			os << subid;
+			os << log_time;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> type;
+			os >> subid;
+			os >> log_time;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<ACLogInfo>	ACLogInfoVector;
+};
+#endif

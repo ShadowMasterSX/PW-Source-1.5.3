@@ -1,0 +1,88 @@
+#ifndef __GNET_GTERRITORYSTORE_RPCDATA
+#define __GNET_GTERRITORYSTORE_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gterritorydetail"
+
+namespace GNET
+{
+	class GTerritoryStore : public GNET::Rpc::Data
+	{
+	public:
+		std::vector<GTerritoryDetail> cities;
+		int status;
+		int special_time;
+		int reserved2;
+		int reserved3;
+		int reserved4;
+
+	public:
+		GTerritoryStore (std::vector<GTerritoryDetail> l_cities = std::vector<GTerritoryDetail>(),int l_status = 0,int l_special_time = 0
+			,int l_reserved2 = 0,int l_reserved3 = 0,int l_reserved4 = 0)
+			: cities(l_cities),status(l_status),special_time(l_special_time)
+			,reserved2(l_reserved2),reserved3(l_reserved3),reserved4(l_reserved4)
+		{
+		}
+
+		GTerritoryStore(const GTerritoryStore &rhs)
+			: cities(rhs.cities),status(rhs.status),special_time(rhs.special_time),
+			reserved2(rhs.reserved2),reserved3(rhs.reserved3),reserved4(rhs.reserved4) { }
+
+		Rpc::Data *Clone() const { return new GTerritoryStore(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GTerritoryStore *r = dynamic_cast<const GTerritoryStore *>(&rhs);
+			if (r && r != this)
+			{
+				cities = r->cities;
+				status = r->status;
+				special_time = r->special_time;
+				reserved2 = r->reserved2;
+				reserved3 = r->reserved3;
+				reserved4 = r->reserved4;
+			}
+			return *this;
+		}
+
+		GTerritoryStore& operator = (const GTerritoryStore &rhs)
+		{
+			const GTerritoryStore *r = &rhs;
+			if (r && r != this)
+			{
+				cities = r->cities;
+				status = r->status;
+				special_time = r->special_time;
+				reserved2 = r->reserved2;
+				reserved3 = r->reserved3;
+				reserved4 = r->reserved4;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << cities;
+			os << status;
+			os << special_time;
+			os << reserved2;
+			os << reserved3;
+			os << reserved4;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> cities;
+			os >> status;
+			os >> special_time;
+			os >> reserved2;
+			os >> reserved3;
+			os >> reserved4;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,38 @@
+	public:
+		int zoneid;
+		unsigned int version;
+		Octets edition;
+		enum { PROTOCOL_TYPE = PROTOCOL_DSANNOUNCEIDENTITY };
+	public:
+		DSAnnounceIdentity() { type = PROTOCOL_DSANNOUNCEIDENTITY; }
+		DSAnnounceIdentity(void*) : Protocol(PROTOCOL_DSANNOUNCEIDENTITY) { }
+		DSAnnounceIdentity (int l_zoneid,unsigned int l_version,Octets l_edition)
+			 : zoneid(l_zoneid),version(l_version),edition(l_edition)
+		{
+			type = PROTOCOL_DSANNOUNCEIDENTITY;
+		}
+
+		DSAnnounceIdentity(const DSAnnounceIdentity &rhs)
+			: Protocol(rhs),zoneid(rhs.zoneid),version(rhs.version),edition(rhs.edition) { }
+
+		GNET::Protocol *Clone() const { return new DSAnnounceIdentity(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << zoneid;
+			os << version;
+			os << edition;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> zoneid;
+			os >> version;
+			os >> edition;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 128; }

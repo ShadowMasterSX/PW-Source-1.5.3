@@ -1,0 +1,59 @@
+	public:
+		int zoneid;
+		int aid;
+		char blreset;
+		int ip1;
+		int ip2;
+		int ip3;
+		int get_au_version;
+		int reserved;
+		enum { PROTOCOL_TYPE = PROTOCOL_ANNOUNCEZONEID3 };
+	public:
+		AnnounceZoneid3() { type = PROTOCOL_ANNOUNCEZONEID3; }
+		AnnounceZoneid3(void*) : Protocol(PROTOCOL_ANNOUNCEZONEID3) { }
+		AnnounceZoneid3 (int l_zoneid,int l_aid = -1,char l_blreset = 0,
+			int l_ip1 = 0,int l_ip2 = 0,int l_ip3 = 0,
+			int l_get_au_version = 0,int l_reserved = 0)
+			 : zoneid(l_zoneid),aid(l_aid),blreset(l_blreset)
+			,ip1(l_ip1),ip2(l_ip2),ip3(l_ip3)
+			,get_au_version(l_get_au_version),reserved(l_reserved)
+		{
+			type = PROTOCOL_ANNOUNCEZONEID3;
+		}
+
+		AnnounceZoneid3(const AnnounceZoneid3 &rhs)
+			: Protocol(rhs),zoneid(rhs.zoneid),aid(rhs.aid),blreset(rhs.blreset)
+			,ip1(rhs.ip1),ip2(rhs.ip2),ip3(rhs.ip3)
+			,get_au_version(rhs.get_au_version),reserved(rhs.reserved) { }
+
+		GNET::Protocol *Clone() const { return new AnnounceZoneid3(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << zoneid;
+			os << aid;
+			os << blreset;
+			os << ip1;
+			os << ip2;
+			os << ip3;
+			os << get_au_version;
+			os << reserved;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> zoneid;
+			os >> aid;
+			os >> blreset;
+			os >> ip1;
+			os >> ip2;
+			os >> ip3;
+			os >> get_au_version;
+			os >> reserved;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 101; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

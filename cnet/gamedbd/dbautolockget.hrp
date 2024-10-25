@@ -1,0 +1,76 @@
+
+#ifndef __GNET_DBAUTOLOCKGET_HPP
+#define __GNET_DBAUTOLOCKGET_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbautolockgetarg"
+#include "dbautolockgetres"
+
+namespace GNET
+{
+
+class DBAutolockGet : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbautolockget"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBAutolockGetArg *arg = (DBAutolockGetArg *)argument;
+		DBAutolockGetRes *res = (DBAutolockGetRes *)result;
+		Marshal::OctetsStream key, value;
+		LOG_TRACE( "DBAutolockGet, userid=%d.\n", arg->userid);
+
+		try
+		{
+			StorageEnv::Storage * puser = StorageEnv::GetStorage("user");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				key << arg->userid;
+				User user;
+				if( !puser->find( key, value, txn ) )
+				{
+					res->retcode = ERR_DATANOTFIND;
+					return;
+				}
+				value >> user;
+
+				res->autolock.swap(user.autolock);
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBAutolockGet, userid=%d, what=%s\n", arg->userid, e.what() );
+			res->retcode = -1;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBAutolockGetArg *arg = (DBAutolockGetArg *)argument;
+		// DBAutolockGetRes *res = (DBAutolockGetRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

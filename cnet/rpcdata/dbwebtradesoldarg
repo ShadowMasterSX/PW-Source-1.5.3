@@ -1,0 +1,77 @@
+#ifndef __GNET_DBWEBTRADESOLDARG_RPCDATA
+#define __GNET_DBWEBTRADESOLDARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBWebTradeSoldArg : public GNET::Rpc::Data
+	{
+	public:
+		int64_t sn;
+		int roleid;
+		int buyer_roleid;
+		int buyer_userid;
+
+	public:
+		DBWebTradeSoldArg (int64_t l_sn = 0,int l_roleid = 0,int l_buyer_roleid = 0
+			,int l_buyer_userid = 0)
+			: sn(l_sn),roleid(l_roleid),buyer_roleid(l_buyer_roleid)
+			,buyer_userid(l_buyer_userid)
+		{
+		}
+
+		DBWebTradeSoldArg(const DBWebTradeSoldArg &rhs)
+			: sn(rhs.sn),roleid(rhs.roleid),buyer_roleid(rhs.buyer_roleid),
+			buyer_userid(rhs.buyer_userid) { }
+
+		Rpc::Data *Clone() const { return new DBWebTradeSoldArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBWebTradeSoldArg *r = dynamic_cast<const DBWebTradeSoldArg *>(&rhs);
+			if (r && r != this)
+			{
+				sn = r->sn;
+				roleid = r->roleid;
+				buyer_roleid = r->buyer_roleid;
+				buyer_userid = r->buyer_userid;
+			}
+			return *this;
+		}
+
+		DBWebTradeSoldArg& operator = (const DBWebTradeSoldArg &rhs)
+		{
+			const DBWebTradeSoldArg *r = &rhs;
+			if (r && r != this)
+			{
+				sn = r->sn;
+				roleid = r->roleid;
+				buyer_roleid = r->buyer_roleid;
+				buyer_userid = r->buyer_userid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << sn;
+			os << roleid;
+			os << buyer_roleid;
+			os << buyer_userid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> sn;
+			os >> roleid;
+			os >> buyer_roleid;
+			os >> buyer_userid;
+			return os;
+		}
+
+	};
+};
+#endif

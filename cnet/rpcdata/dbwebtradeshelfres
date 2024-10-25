@@ -1,0 +1,69 @@
+#ifndef __GNET_DBWEBTRADESHELFRES_RPCDATA
+#define __GNET_DBWEBTRADESHELFRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBWebTradeShelfRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		int buyer_userid;
+		Octets buyer_name;
+
+	public:
+		DBWebTradeShelfRes (int l_retcode = 0,int l_buyer_userid = 0,const Octets& l_buyer_name = Octets())
+			: retcode(l_retcode),buyer_userid(l_buyer_userid),buyer_name(l_buyer_name)
+		{
+		}
+
+		DBWebTradeShelfRes(const DBWebTradeShelfRes &rhs)
+			: retcode(rhs.retcode),buyer_userid(rhs.buyer_userid),buyer_name(rhs.buyer_name) { }
+
+		Rpc::Data *Clone() const { return new DBWebTradeShelfRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBWebTradeShelfRes *r = dynamic_cast<const DBWebTradeShelfRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				buyer_userid = r->buyer_userid;
+				buyer_name = r->buyer_name;
+			}
+			return *this;
+		}
+
+		DBWebTradeShelfRes& operator = (const DBWebTradeShelfRes &rhs)
+		{
+			const DBWebTradeShelfRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				buyer_userid = r->buyer_userid;
+				buyer_name = r->buyer_name;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << buyer_userid;
+			os << buyer_name;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> buyer_userid;
+			os >> buyer_name;
+			return os;
+		}
+
+	};
+};
+#endif

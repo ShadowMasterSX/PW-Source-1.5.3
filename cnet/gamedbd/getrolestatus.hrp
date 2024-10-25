@@ -1,0 +1,70 @@
+
+#ifndef __GNET_GETROLESTATUS_HPP
+#define __GNET_GETROLESTATUS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "dbbuffer.h"
+#include "roleid"
+#include "rolestatusres"
+
+namespace GNET
+{
+
+class GetRoleStatus : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getrolestatus"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		RoleId *arg = (RoleId *)argument;
+		RoleStatusRes *res = (RoleStatusRes *)result;
+
+		LOG_TRACE( "GetRoleStatus, roleid=%d.\n", arg->id );
+
+		try
+		{
+			StorageEnv::Storage * pstatus = StorageEnv::GetStorage("status");
+			StorageEnv::AtomTransaction txn;
+			try
+			{
+				Marshal::OctetsStream key;
+				key << *arg;
+				Marshal::OctetsStream(pstatus->find( key, txn )) >> res->value;
+
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "GetRoleStatus, roleid=%d, what=%s\n", arg->id, e.what() );
+			res->retcode = ERR_DATANOTFIND;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// RoleId *arg = (RoleId *)argument;
+		// RoleStatusRes *res = (RoleStatusRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

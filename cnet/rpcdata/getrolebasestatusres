@@ -1,0 +1,71 @@
+#ifndef __GNET_GETROLEBASESTATUSRES_RPCDATA
+#define __GNET_GETROLEBASESTATUSRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "grolebase"
+#include "grolestatus"
+
+namespace GNET
+{
+	class GetRoleBaseStatusRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		GRoleBase base;
+		GRoleStatus status;
+
+	public:
+		GetRoleBaseStatusRes (int l_retcode = -1)
+			: retcode(l_retcode)
+		{
+		}
+
+		GetRoleBaseStatusRes(const GetRoleBaseStatusRes &rhs)
+			: retcode(rhs.retcode),base(rhs.base),status(rhs.status) { }
+
+		Rpc::Data *Clone() const { return new GetRoleBaseStatusRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GetRoleBaseStatusRes *r = dynamic_cast<const GetRoleBaseStatusRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				base = r->base;
+				status = r->status;
+			}
+			return *this;
+		}
+
+		GetRoleBaseStatusRes& operator = (const GetRoleBaseStatusRes &rhs)
+		{
+			const GetRoleBaseStatusRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				base = r->base;
+				status = r->status;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << base;
+			os << status;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> base;
+			os >> status;
+			return os;
+		}
+
+	};
+};
+#endif

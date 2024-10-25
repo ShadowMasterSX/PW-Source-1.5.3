@@ -1,0 +1,47 @@
+	public:
+		Octets cmd;
+		Octets stamp;
+		int length;
+		char dest;
+		unsigned int localsid;
+		enum { PROTOCOL_TYPE = PROTOCOL_DOMAINCMD };
+	public:
+		DomainCmd() { type = PROTOCOL_DOMAINCMD; }
+		DomainCmd(void*) : Protocol(PROTOCOL_DOMAINCMD) { }
+		DomainCmd (Octets l_cmd,Octets l_stamp,int l_length,
+			char l_dest,unsigned int l_localsid)
+			 : cmd(l_cmd),stamp(l_stamp),length(l_length)
+			,dest(l_dest),localsid(l_localsid)
+		{
+			type = PROTOCOL_DOMAINCMD;
+		}
+
+		DomainCmd(const DomainCmd &rhs)
+			: Protocol(rhs),cmd(rhs.cmd),stamp(rhs.stamp),length(rhs.length)
+			,dest(rhs.dest),localsid(rhs.localsid) { }
+
+		GNET::Protocol *Clone() const { return new DomainCmd(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << cmd;
+			os << stamp;
+			os << length;
+			os << dest;
+			os << localsid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> cmd;
+			os >> stamp;
+			os >> length;
+			os >> dest;
+			os >> localsid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1024; }

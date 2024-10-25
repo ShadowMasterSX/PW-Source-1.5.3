@@ -1,0 +1,70 @@
+
+#ifndef __GNET_DBLOADGLOBALCONTROL_HPP
+#define __GNET_DBLOADGLOBALCONTROL_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbloadglobalcontrolarg"
+#include "dbloadglobalcontrolres"
+
+namespace GNET
+{
+
+class DBLoadGlobalControl : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbloadglobalcontrol"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBLoadGlobalControlArg *arg = (DBLoadGlobalControlArg *)argument;
+		DBLoadGlobalControlRes *res = (DBLoadGlobalControlRes *)result;
+		try
+		{
+			StorageEnv::Storage * pcontrol = StorageEnv::GetStorage("globalcontrol");
+			StorageEnv::AtomTransaction txn;
+			Marshal::OctetsStream value;
+			try
+			{
+				if(pcontrol->find(Marshal::OctetsStream()<<(int)0,value,txn))
+					value >> res->data;
+				res->retcode = ERR_SUCCESS;
+				LOG_TRACE("DBLoadGlobalControl, cme_open=%d cme_rate=%d.", res->data.cash_money_exchange_open, res->data.cash_money_exchange_rate);
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBLoadGlobalControl, what=%s\n", e.what() );
+			if(e.get_errno()==DB_LOCK_DEADLOCK)
+				res->retcode = ERR_AGAIN;
+			else
+				res->retcode = ERR_EXCEPTION;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBLoadGlobalControlArg *arg = (DBLoadGlobalControlArg *)argument;
+		// DBLoadGlobalControlRes *res = (DBLoadGlobalControlRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

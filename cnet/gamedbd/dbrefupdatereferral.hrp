@@ -1,0 +1,82 @@
+
+#ifndef __GNET_DBREFUPDATEREFERRAL_HPP
+#define __GNET_DBREFUPDATEREFERRAL_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbrefupdatereferralarg"
+
+
+namespace GNET
+{
+
+class DBRefUpdateReferral : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbrefupdatereferral"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBRefUpdateReferralArg *arg = (DBRefUpdateReferralArg *)argument;
+		RpcRetcode *res = (RpcRetcode *)result;
+
+		try
+		{
+			StorageEnv::Storage * puser = StorageEnv::GetStorage("user");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				Marshal::OctetsStream key_user;
+				key_user << arg->referral.userid;
+				User u;
+				Marshal::OctetsStream(puser->find(key_user,txn))>>u;
+				GRefStore ref_store;
+				if (u.reference.size())
+				{
+					Marshal::OctetsStream   os_ref(u.reference);
+					os_ref >> ref_store;
+				}
+				ref_store.bonus_total1 = arg->referral.bonus_total1;
+				ref_store.bonus_total2 = arg->referral.bonus_total2;
+				ref_store.bonus_withdraw = arg->referral.bonus_withdraw;
+				ref_store.bonus_withdraw_today = arg->referral.bonus_withdraw_today;
+				ref_store.max_role_level = arg->referral.max_role_level;
+				ref_store.rolenames = arg->referral.rolenames;
+				u.reference = Marshal::OctetsStream() << ref_store;
+				puser->insert( key_user, Marshal::OctetsStream()<<u, txn );
+				res->retcode = ERR_SUCCESS;
+			}
+			catch (DbException &e) { throw e; }
+			catch ( ... )
+			{
+				DbException ee(DB_OLD_VERSION);
+				txn.abort(ee);
+				throw ee;
+			}
+		}
+		catch (DbException &e)
+		{
+			Log::log(LOG_ERR, "gamedbd: DBRefUpdateReferral failed, what=%s\n", e.what());
+			res->retcode = ERR_FAILED;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBRefUpdateReferralArg *arg = (DBRefUpdateReferralArg *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

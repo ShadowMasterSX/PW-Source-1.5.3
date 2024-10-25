@@ -1,0 +1,38 @@
+	public:
+		int roleid;
+		int link_id;
+		unsigned int localsid;
+		enum { PROTOCOL_TYPE = PROTOCOL_SWITCHSERVERTIMEOUT };
+	public:
+		SwitchServerTimeout() { type = PROTOCOL_SWITCHSERVERTIMEOUT; }
+		SwitchServerTimeout(void*) : Protocol(PROTOCOL_SWITCHSERVERTIMEOUT) { }
+		SwitchServerTimeout (int l_roleid,int l_link_id,unsigned int l_localsid)
+			 : roleid(l_roleid),link_id(l_link_id),localsid(l_localsid)
+		{
+			type = PROTOCOL_SWITCHSERVERTIMEOUT;
+		}
+
+		SwitchServerTimeout(const SwitchServerTimeout &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),link_id(rhs.link_id),localsid(rhs.localsid) { }
+
+		GNET::Protocol *Clone() const { return new SwitchServerTimeout(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << link_id;
+			os << localsid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> link_id;
+			os >> localsid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 101; }
+
+		bool SizePolicy(size_t size) const { return size <= 32; }

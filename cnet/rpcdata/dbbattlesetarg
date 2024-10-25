@@ -1,0 +1,65 @@
+#ifndef __GNET_DBBATTLESETARG_RPCDATA
+#define __GNET_DBBATTLESETARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gterritorydetail"
+
+namespace GNET
+{
+	class DBBattleSetArg : public GNET::Rpc::Data
+	{
+	public:
+		short reason;
+		std::vector<GTerritoryDetail> cities;
+
+	public:
+		DBBattleSetArg (short l_reason = 0,std::vector<GTerritoryDetail> l_cities = std::vector<GTerritoryDetail>())
+			: reason(l_reason),cities(l_cities)
+		{
+		}
+
+		DBBattleSetArg(const DBBattleSetArg &rhs)
+			: reason(rhs.reason),cities(rhs.cities) { }
+
+		Rpc::Data *Clone() const { return new DBBattleSetArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBBattleSetArg *r = dynamic_cast<const DBBattleSetArg *>(&rhs);
+			if (r && r != this)
+			{
+				reason = r->reason;
+				cities = r->cities;
+			}
+			return *this;
+		}
+
+		DBBattleSetArg& operator = (const DBBattleSetArg &rhs)
+		{
+			const DBBattleSetArg *r = &rhs;
+			if (r && r != this)
+			{
+				reason = r->reason;
+				cities = r->cities;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << reason;
+			os << cities;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> reason;
+			os >> cities;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBPSHOPCLEARGOODS_HPP
+#define __GNET_DBPSHOPCLEARGOODS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbpshopcleargoodsarg"
+#include "dbpshopcleargoodsres"
+
+namespace GNET
+{
+
+class DBPShopClearGoods : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbpshopcleargoods"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBPShopClearGoodsArg *arg = (DBPShopClearGoodsArg *)argument;
+		// DBPShopClearGoodsRes *res = (DBPShopClearGoodsRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBPShopClearGoodsArg *arg = (DBPShopClearGoodsArg *)argument;
+		// DBPShopClearGoodsRes *res = (DBPShopClearGoodsRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

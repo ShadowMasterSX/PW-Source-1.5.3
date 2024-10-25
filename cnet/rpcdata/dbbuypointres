@@ -1,0 +1,77 @@
+#ifndef __GNET_DBBUYPOINTRES_RPCDATA
+#define __GNET_DBBUYPOINTRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBBuyPointRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		int point;
+		int price;
+		int money;
+
+	public:
+		DBBuyPointRes (int l_retcode = 0,int l_point = 0,int l_price = 0
+			,int l_money = 0)
+			: retcode(l_retcode),point(l_point),price(l_price)
+			,money(l_money)
+		{
+		}
+
+		DBBuyPointRes(const DBBuyPointRes &rhs)
+			: retcode(rhs.retcode),point(rhs.point),price(rhs.price),
+			money(rhs.money) { }
+
+		Rpc::Data *Clone() const { return new DBBuyPointRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBBuyPointRes *r = dynamic_cast<const DBBuyPointRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				point = r->point;
+				price = r->price;
+				money = r->money;
+			}
+			return *this;
+		}
+
+		DBBuyPointRes& operator = (const DBBuyPointRes &rhs)
+		{
+			const DBBuyPointRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				point = r->point;
+				price = r->price;
+				money = r->money;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << point;
+			os << price;
+			os << money;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> point;
+			os >> price;
+			os >> money;
+			return os;
+		}
+
+	};
+};
+#endif

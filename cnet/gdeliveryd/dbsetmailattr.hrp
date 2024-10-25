@@ -1,0 +1,77 @@
+
+#ifndef __GNET_DBSETMAILATTR_HPP
+#define __GNET_DBSETMAILATTR_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbsetmailattrarg"
+#include "dbsetmailattrres"
+
+#include "postoffice.h"
+#include "preservemail_re.hpp"
+#include "gdeliveryserver.hpp"
+#include "mapuser.h"
+namespace GNET
+{
+
+class DBSetMailAttr : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbsetmailattr"
+#undef	RPC_BASECLASS
+	unsigned int save_linksid;
+	unsigned int save_localsid;
+	void SendResult( int retcode,DBSetMailAttrArg& arg )
+	{
+		Thread::RWLock::RDScoped l(UserContainer::GetInstance().GetLocker());
+		PlayerInfo * pinfo = UserContainer::GetInstance().FindRoleOnline( (arg.mail_id.roleid) );
+		if ( NULL!=pinfo )
+		{
+			GDeliveryServer::GetInstance()->Send(
+				save_linksid,
+				PreserveMail_Re(retcode,arg.mail_id.roleid,save_localsid,arg.mail_id.mail_id,arg.attrib_value)
+			);
+		}
+	}
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBSetMailAttrArg *arg = (DBSetMailAttrArg *)argument;
+		// DBSetMailAttrRes *res = (DBSetMailAttrRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		DBSetMailAttrArg *arg = (DBSetMailAttrArg *)argument;
+		DBSetMailAttrRes *res = (DBSetMailAttrRes *)result;
+		DEBUG_PRINT("dbsetmailattr: rpc return. retcode=%d,roleid=%d,mailid=%d,attr_type=%d,attr_value=%d\n",
+				res->retcode,arg->mail_id.roleid,arg->mail_id.mail_id,arg->attrib_type,arg->attrib_value);
+		if ( res->retcode == ERR_SUCCESS )
+		{
+			switch ( arg->attrib_type )
+			{
+				case _MA_PRESERVE:
+					PostOffice::GetInstance().PreserveMail(arg->mail_id.roleid,arg->mail_id.mail_id,!!arg->attrib_value);
+					break;
+				default:
+					break;	
+			}
+		}
+		SendResult( res->retcode,*arg );
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		// TODO Client Only
+		DBSetMailAttrArg *arg = (DBSetMailAttrArg *)argument;
+		Log::log(LOG_ERR,"dbsetmailattr: timeout. roleid=%d,mailid=%d,attr_type=%d,attr_value=%d\n",
+				arg->mail_id.roleid,arg->mail_id.mail_id,arg->attrib_type,arg->attrib_value);
+		SendResult( ERR_TIMEOUT,*arg );
+	}
+
+};
+
+};
+#endif

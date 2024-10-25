@@ -1,0 +1,69 @@
+#ifndef __GNET_DBFACTIONREMOVERELATIONREPLYARG_RPCDATA
+#define __GNET_DBFACTIONREMOVERELATIONREPLYARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBFactionRemoveRelationReplyArg : public GNET::Rpc::Data
+	{
+	public:
+		int fid;
+		int dst_fid;
+		char agree;
+
+	public:
+		DBFactionRemoveRelationReplyArg (int l_fid = 0,int l_dst_fid = 0,char l_agree = 0)
+			: fid(l_fid),dst_fid(l_dst_fid),agree(l_agree)
+		{
+		}
+
+		DBFactionRemoveRelationReplyArg(const DBFactionRemoveRelationReplyArg &rhs)
+			: fid(rhs.fid),dst_fid(rhs.dst_fid),agree(rhs.agree) { }
+
+		Rpc::Data *Clone() const { return new DBFactionRemoveRelationReplyArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBFactionRemoveRelationReplyArg *r = dynamic_cast<const DBFactionRemoveRelationReplyArg *>(&rhs);
+			if (r && r != this)
+			{
+				fid = r->fid;
+				dst_fid = r->dst_fid;
+				agree = r->agree;
+			}
+			return *this;
+		}
+
+		DBFactionRemoveRelationReplyArg& operator = (const DBFactionRemoveRelationReplyArg &rhs)
+		{
+			const DBFactionRemoveRelationReplyArg *r = &rhs;
+			if (r && r != this)
+			{
+				fid = r->fid;
+				dst_fid = r->dst_fid;
+				agree = r->agree;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << fid;
+			os << dst_fid;
+			os << agree;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> fid;
+			os >> dst_fid;
+			os >> agree;
+			return os;
+		}
+
+	};
+};
+#endif

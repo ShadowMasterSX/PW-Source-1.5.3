@@ -1,0 +1,177 @@
+
+#ifndef __GNET_DBPLAYERRENAME_HPP
+#define __GNET_DBPLAYERRENAME_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbplayerrenamearg"
+#include "dbplayerrenameres"
+#include "postplayerrename.hpp"
+#include "playerrename_re.hpp"
+#include "notifyfactionplayerrename.hpp"
+#include "playernameupdate.hpp"
+#include "gmailendsync.hpp"
+#include "namemanager.h"
+#include "snsmanager.h"
+#include "gametalkmanager.h"
+
+namespace GNET
+{
+
+class DBPlayerRename : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbplayerrename"
+#undef	RPC_BASECLASS
+
+	int save_linksid;
+	int save_localsid;
+	int save_gsid;
+
+	void SyncGameServer(int retcode, const GMailSyncData& sync, int roleid)
+	{
+		GProviderServer::GetInstance()->DispatchProtocol(
+				save_gsid, 
+				GMailEndSync(0,retcode,roleid, sync)
+				);
+	}
+
+	void SendResult(int retcode, int roleid, Octets & newname)
+	{
+		GDeliveryServer::GetInstance()->Send(
+				save_linksid, 
+				PlayerRename_Re(save_localsid, roleid, newname, retcode)
+				);
+	}
+
+	void Send2UniqueNameSrv(int retcode, int roleid, int zoneid, Octets &newname, Octets &oldname)
+	{
+		UniqueNameClient::GetInstance()->SendProtocol(
+				PostPlayerRename(roleid, zoneid, retcode, newname, oldname));
+	}
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBPlayerRenameArg *arg = (DBPlayerRenameArg *)argument;
+		// DBPlayerRenameRes *res = (DBPlayerRenameRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBPlayerRenameArg *arg = (DBPlayerRenameArg *)argument;
+		DBPlayerRenameRes *res = (DBPlayerRenameRes *)result;
+
+		LOG_TRACE("DBPlayerRename roleid=%d ret=%d", arg->roleid, res->retcode);
+
+		GDeliveryServer *dsm = GDeliveryServer::GetInstance();
+		
+		//把gamedbd修改角色名字的结果通知uniquename
+		Send2UniqueNameSrv(res->retcode, arg->roleid, dsm->zoneid, arg->newname, res->oldname);
+
+		//通知gs解除玩家外部交易状态,res里的syncdata已经在gamedbd里处理完毕
+		SyncGameServer(res->retcode, res->syncdata, arg->roleid);
+
+		//通知客户端改名结果
+		SendResult(res->retcode, arg->roleid, arg->newname);
+
+		if (res->retcode == ERR_SUCCESS)
+		{
+			//namemanager里增加角色改名的记录
+			NameManager::GetInstance()->AddName(arg->roleid, arg->newname);
+			
+			//修改rbcache里的玩家名字
+			dsm->rbcache.Lock();
+			GRoleBase* grb=dsm->rbcache.GetDirectly(arg->roleid);
+			if (grb)
+			{
+				grb->name = arg->newname;
+			}
+			dsm->rbcache.UnLock();
+
+			{
+				//修改UserContainer里的角色名
+				Thread::RWLock::WRScoped l(UserContainer::GetInstance().GetLocker());
+				int tmpid = 0;
+				if (UserContainer::GetInstance().FindRoleId(res->oldname, tmpid))
+				{
+					UserContainer::GetInstance().EraseName(res->oldname);
+					UserContainer::GetInstance().InsertName(arg->newname, arg->roleid);
+				}
+				
+				PlayerInfo * pinfo = UserContainer::GetInstance().FindRole(arg->roleid);
+				if (pinfo)
+				{
+					//修改playerinfo里的玩家名字
+					pinfo->name = arg->newname;
+					//修改好友中关于自己的名字
+					GFriendInfoVector * plist = &(pinfo->friends);
+					typedef std::map<int/*linkid*/, std::vector<int/*localsid*/> > link_localsid_map;
+					link_localsid_map llsmap;
+					PlayerNameUpdate notice;
+					notice.roleid = arg->roleid;
+					notice.newname = arg->newname;
+					GFriendInfoVector::iterator ib, ie = plist->end();
+					for (ib = plist->begin(); ib != ie; ++ib)
+					{
+						PlayerInfo * ruser = UserContainer::GetInstance().FindRoleOnline(ib->rid);
+						if (NULL != ruser)
+						{
+							for (GFriendInfoVector::iterator k=ruser->friends.begin(),ke=ruser->friends.end();k!=ke;++k)
+							{
+								if (k->rid == arg->roleid)
+								{
+									k->name = arg->newname;
+									ruser->friend_ver++;
+									break;
+								}
+							}
+							//通知自己的所有好友名字修改过了
+							llsmap[ruser->linksid].push_back(ruser->localsid);
+						}
+					}
+					if (pinfo->spouse != 0)
+					{
+						//通知配偶自己改名
+						PlayerInfo * ruser = UserContainer::GetInstance().FindRoleOnline(pinfo->spouse);
+						if (NULL != ruser)
+						{
+							llsmap[ruser->linksid].push_back(ruser->localsid);
+						}
+					}
+					for (link_localsid_map::iterator it=llsmap.begin(), et=llsmap.end(); it != et; it++)
+					{
+						notice.link_localsid_list.swap(it->second);
+						dsm->Send(it->first, notice);
+					}
+				}
+			}
+			//通知gs修改player_imp中的玩家名字
+			GProviderServer::GetInstance()->DispatchProtocol(save_gsid, PlayerRename_Re(save_localsid, arg->roleid, arg->newname, res->retcode));
+			//通知帮派服务器修改玩家名字
+			GFactionClient::GetInstance()->SendProtocol(NotifyFactionPlayerRename(arg->roleid, arg->newname));
+			//通知gt服务器玩家名字修改
+			GameTalkManager::GetInstance()->NotifyUpdateRole(arg->roleid, arg->newname);
+		}
+	}
+
+	void OnTimeout()
+	{
+		DBPlayerRenameArg *arg = (DBPlayerRenameArg *)argument;
+		Log::log(LOG_ERR, "DBPlayerRename timeout, roleid=%d", arg->roleid);
+		
+		GDeliveryServer *dsm = GDeliveryServer::GetInstance();
+		//把gamedbd修改角色名字的结果通知uniquename,不处理oldname,所以发一个空的
+		Octets oldname;
+		Send2UniqueNameSrv(ERR_TIMEOUT, arg->roleid, dsm->zoneid, arg->newname, oldname);
+
+		//通知客户端改名结果
+		SendResult(ERR_TIMEOUT, arg->roleid, arg->newname);
+		//do not sync data to gameserver, because gameserver will timeout and disconnect the player
+	}
+
+};
+
+};
+#endif

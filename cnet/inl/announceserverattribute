@@ -1,0 +1,38 @@
+	public:
+		unsigned int attr;
+		int freecreatime;
+		unsigned char exp_rate;
+		enum { PROTOCOL_TYPE = PROTOCOL_ANNOUNCESERVERATTRIBUTE };
+	public:
+		AnnounceServerAttribute() { type = PROTOCOL_ANNOUNCESERVERATTRIBUTE; }
+		AnnounceServerAttribute(void*) : Protocol(PROTOCOL_ANNOUNCESERVERATTRIBUTE) { }
+		AnnounceServerAttribute (unsigned int l_attr,int l_freecreatime,unsigned char l_exp_rate = 0)
+			 : attr(l_attr),freecreatime(l_freecreatime),exp_rate(l_exp_rate)
+		{
+			type = PROTOCOL_ANNOUNCESERVERATTRIBUTE;
+		}
+
+		AnnounceServerAttribute(const AnnounceServerAttribute &rhs)
+			: Protocol(rhs),attr(rhs.attr),freecreatime(rhs.freecreatime),exp_rate(rhs.exp_rate) { }
+
+		GNET::Protocol *Clone() const { return new AnnounceServerAttribute(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << attr;
+			os << freecreatime;
+			os << exp_rate;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> attr;
+			os >> freecreatime;
+			os >> exp_rate;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

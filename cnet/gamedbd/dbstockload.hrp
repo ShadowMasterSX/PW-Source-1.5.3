@@ -1,0 +1,101 @@
+
+#ifndef __GNET_DBSTOCKLOAD_HPP
+#define __GNET_DBSTOCKLOAD_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "stockorder"
+#include "dbstockloadarg"
+#include "dbstockloadres"
+
+namespace GNET
+{
+
+class ListStockQuery : public StorageEnv::IQuery
+{
+	std::vector<StockOrder>* plist;
+	int total;
+	StockOrder order;
+	Octets last;
+public:
+	ListStockQuery(std::vector<StockOrder>* p) : plist(p),  total(0)
+	{ 
+	}
+
+	bool Update( StorageEnv::Transaction& txn, Octets& key, Octets& value)
+	{
+		try
+		{
+			if(total>256)
+			{
+				last = key;
+				return false;
+			}
+			Marshal::OctetsStream(value) >> order;
+			plist->push_back(order);
+			total++;
+		} catch ( Marshal::Exception & ) {
+			Log::log( LOG_ERR, "ListStockQuery, error unmarshal.");
+		}
+		return true;
+	}
+	const Octets& GetHandle() { return last; }
+};
+class DBStockLoad : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbstockload"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBStockLoadArg *arg = (DBStockLoadArg *)argument;
+		DBStockLoadRes *res = (DBStockLoadRes *)result;
+
+		Marshal::OctetsStream key, value;
+		ListStockQuery q(&(res->orders));
+		try
+		{
+			StorageEnv::Storage * porder = StorageEnv::GetStorage("order");
+			StorageEnv::AtomTransaction txn;
+			try{
+				StorageEnv::Storage::Cursor cursor = porder->cursor( txn );
+				cursor.walk(arg->handle, q );
+				res->handle = q.GetHandle();
+				res->retcode = ERR_SUCCESS;
+				LOG_TRACE("DBStockLoad, size=%d, handle=%d\n", res->orders.size(), res->handle.size());
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBStockLoad, what=%s.\n", e.what() );
+			if(e.get_errno()==DB_LOCK_DEADLOCK)
+				res->retcode = ERR_AGAIN;
+			else
+				res->retcode = ERR_EXCEPTION;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBStockLoadArg *arg = (DBStockLoadArg *)argument;
+		// DBStockLoadRes *res = (DBStockLoadRes *)result;
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

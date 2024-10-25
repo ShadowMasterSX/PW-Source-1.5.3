@@ -1,0 +1,60 @@
+#ifndef __GNET_GCHALLENGERINFOLIST_RPCDATA
+#define __GNET_GCHALLENGERINFOLIST_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gchallengerinfo"
+
+namespace GNET
+{
+	class GChallengerInfoList : public GNET::Rpc::Data
+	{
+	public:
+		std::vector<GChallengerInfo> challengerlist;
+
+	public:
+		GChallengerInfoList (const std::vector<GChallengerInfo>& l_challengerlist = std::vector<GChallengerInfo>())
+			: challengerlist(l_challengerlist)
+		{
+		}
+
+		GChallengerInfoList(const GChallengerInfoList &rhs)
+			: challengerlist(rhs.challengerlist) { }
+
+		Rpc::Data *Clone() const { return new GChallengerInfoList(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GChallengerInfoList *r = dynamic_cast<const GChallengerInfoList *>(&rhs);
+			if (r && r != this)
+			{
+				challengerlist = r->challengerlist;
+			}
+			return *this;
+		}
+
+		GChallengerInfoList& operator = (const GChallengerInfoList &rhs)
+		{
+			const GChallengerInfoList *r = &rhs;
+			if (r && r != this)
+			{
+				challengerlist = r->challengerlist;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << challengerlist;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> challengerlist;
+			return os;
+		}
+
+	};
+};
+#endif

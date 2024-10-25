@@ -1,0 +1,77 @@
+#ifndef __GNET_FACTIONEXT_RPCDATA
+#define __GNET_FACTIONEXT_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class FactionExt : public GNET::Rpc::Data
+	{
+	public:
+		int level;
+		int exp;
+		int fortress_lvl;
+		int health;
+
+	public:
+		FactionExt (int l_level = 0,int l_exp = 0,int l_fortress_lvl = 0
+			,int l_health = 0)
+			: level(l_level),exp(l_exp),fortress_lvl(l_fortress_lvl)
+			,health(l_health)
+		{
+		}
+
+		FactionExt(const FactionExt &rhs)
+			: level(rhs.level),exp(rhs.exp),fortress_lvl(rhs.fortress_lvl),
+			health(rhs.health) { }
+
+		Rpc::Data *Clone() const { return new FactionExt(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const FactionExt *r = dynamic_cast<const FactionExt *>(&rhs);
+			if (r && r != this)
+			{
+				level = r->level;
+				exp = r->exp;
+				fortress_lvl = r->fortress_lvl;
+				health = r->health;
+			}
+			return *this;
+		}
+
+		FactionExt& operator = (const FactionExt &rhs)
+		{
+			const FactionExt *r = &rhs;
+			if (r && r != this)
+			{
+				level = r->level;
+				exp = r->exp;
+				fortress_lvl = r->fortress_lvl;
+				health = r->health;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << level;
+			os << exp;
+			os << fortress_lvl;
+			os << health;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> level;
+			os >> exp;
+			os >> fortress_lvl;
+			os >> health;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,42 @@
+	public:
+		int zoneid;
+		int roleid;
+		Octets rolename;
+		Octets faction;
+		enum { PROTOCOL_TYPE = PROTOCOL_VERIFYMASTER };
+	public:
+		VerifyMaster() { type = PROTOCOL_VERIFYMASTER; }
+		VerifyMaster(void*) : Protocol(PROTOCOL_VERIFYMASTER) { }
+		VerifyMaster (int l_zoneid = -1,int l_roleid = -1,const Octets& l_rolename = Octets(0),
+			const Octets& l_faction = Octets(0))
+			 : zoneid(l_zoneid),roleid(l_roleid),rolename(l_rolename)
+			,faction(l_faction)
+		{
+			type = PROTOCOL_VERIFYMASTER;
+		}
+
+		VerifyMaster(const VerifyMaster &rhs)
+			: Protocol(rhs),zoneid(rhs.zoneid),roleid(rhs.roleid),rolename(rhs.rolename)
+			,faction(rhs.faction) { }
+
+		GNET::Protocol *Clone() const { return new VerifyMaster(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << zoneid;
+			os << roleid;
+			os << rolename;
+			os << faction;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> zoneid;
+			os >> roleid;
+			os >> rolename;
+			os >> faction;
+			return os;
+		}
+
+		bool SizePolicy(size_t size) const { return size <= 128; }

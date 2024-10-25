@@ -1,0 +1,82 @@
+#ifndef __GNET_MATRIXTOKENRES_RPCDATA
+#define __GNET_MATRIXTOKENRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class MatrixTokenRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		int userid;
+		int algorithm;
+		Octets response;
+		Octets matrix;
+
+	public:
+		MatrixTokenRes (int l_retcode = -1,int l_userid = -1,int l_algorithm = 0
+			,const Octets& l_response = Octets(0),const Octets& l_matrix = Octets(0))
+			: retcode(l_retcode),userid(l_userid),algorithm(l_algorithm)
+			,response(l_response),matrix(l_matrix)
+		{
+		}
+
+		MatrixTokenRes(const MatrixTokenRes &rhs)
+			: retcode(rhs.retcode),userid(rhs.userid),algorithm(rhs.algorithm),
+			response(rhs.response),matrix(rhs.matrix) { }
+
+		Rpc::Data *Clone() const { return new MatrixTokenRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const MatrixTokenRes *r = dynamic_cast<const MatrixTokenRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				userid = r->userid;
+				algorithm = r->algorithm;
+				response = r->response;
+				matrix = r->matrix;
+			}
+			return *this;
+		}
+
+		MatrixTokenRes& operator = (const MatrixTokenRes &rhs)
+		{
+			const MatrixTokenRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				userid = r->userid;
+				algorithm = r->algorithm;
+				response = r->response;
+				matrix = r->matrix;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << userid;
+			os << algorithm;
+			os << response;
+			os << matrix;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> userid;
+			os >> algorithm;
+			os >> response;
+			os >> matrix;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,70 @@
+#ifndef __GNET_DBPSHOPDRAWITEMARG_RPCDATA
+#define __GNET_DBPSHOPDRAWITEMARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailsyncdata"
+
+namespace GNET
+{
+	class DBPShopDrawItemArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		int item_pos;
+		GMailSyncData syncdata;
+
+	public:
+		DBPShopDrawItemArg (int l_roleid = 0,int l_item_pos = 0,const GMailSyncData& l_syncdata = GMailSyncData())
+			: roleid(l_roleid),item_pos(l_item_pos),syncdata(l_syncdata)
+		{
+		}
+
+		DBPShopDrawItemArg(const DBPShopDrawItemArg &rhs)
+			: roleid(rhs.roleid),item_pos(rhs.item_pos),syncdata(rhs.syncdata) { }
+
+		Rpc::Data *Clone() const { return new DBPShopDrawItemArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPShopDrawItemArg *r = dynamic_cast<const DBPShopDrawItemArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				item_pos = r->item_pos;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		DBPShopDrawItemArg& operator = (const DBPShopDrawItemArg &rhs)
+		{
+			const DBPShopDrawItemArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				item_pos = r->item_pos;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << item_pos;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> item_pos;
+			os >> syncdata;
+			return os;
+		}
+
+	};
+};
+#endif

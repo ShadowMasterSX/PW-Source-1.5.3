@@ -1,0 +1,59 @@
+#ifndef __GNET_WEBROLE_RPCDATA
+#define __GNET_WEBROLE_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class WebRole : public GNET::Rpc::Data
+	{
+	public:
+		Octets info;
+
+	public:
+		WebRole (const Octets& l_info = Octets())
+			: info(l_info)
+		{
+		}
+
+		WebRole(const WebRole &rhs)
+			: info(rhs.info) { }
+
+		Rpc::Data *Clone() const { return new WebRole(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const WebRole *r = dynamic_cast<const WebRole *>(&rhs);
+			if (r && r != this)
+			{
+				info = r->info;
+			}
+			return *this;
+		}
+
+		WebRole& operator = (const WebRole &rhs)
+		{
+			const WebRole *r = &rhs;
+			if (r && r != this)
+			{
+				info = r->info;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << info;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> info;
+			return os;
+		}
+
+	};
+};
+#endif

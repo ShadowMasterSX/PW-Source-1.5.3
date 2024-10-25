@@ -1,0 +1,65 @@
+#ifndef __GNET_DBTANKBATTLEBONUSRES_RPCDATA
+#define __GNET_DBTANKBATTLEBONUSRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailheader"
+
+namespace GNET
+{
+	class DBTankBattleBonusRes : public GNET::Rpc::Data
+	{
+	public:
+		short retcode;
+		GMailHeader inform_player;
+
+	public:
+		DBTankBattleBonusRes (short l_retcode = 0,const GMailHeader& l_inform_player = GMailHeader())
+			: retcode(l_retcode),inform_player(l_inform_player)
+		{
+		}
+
+		DBTankBattleBonusRes(const DBTankBattleBonusRes &rhs)
+			: retcode(rhs.retcode),inform_player(rhs.inform_player) { }
+
+		Rpc::Data *Clone() const { return new DBTankBattleBonusRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBTankBattleBonusRes *r = dynamic_cast<const DBTankBattleBonusRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				inform_player = r->inform_player;
+			}
+			return *this;
+		}
+
+		DBTankBattleBonusRes& operator = (const DBTankBattleBonusRes &rhs)
+		{
+			const DBTankBattleBonusRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				inform_player = r->inform_player;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << inform_player;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> inform_player;
+			return os;
+		}
+
+	};
+};
+#endif

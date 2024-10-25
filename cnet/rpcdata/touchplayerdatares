@@ -1,0 +1,59 @@
+#ifndef __GNET_TOUCHPLAYERDATARES_RPCDATA
+#define __GNET_TOUCHPLAYERDATARES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class TouchPlayerDataRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+
+	public:
+		TouchPlayerDataRes (int l_retcode = 0)
+			: retcode(l_retcode)
+		{
+		}
+
+		TouchPlayerDataRes(const TouchPlayerDataRes &rhs)
+			: retcode(rhs.retcode) { }
+
+		Rpc::Data *Clone() const { return new TouchPlayerDataRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const TouchPlayerDataRes *r = dynamic_cast<const TouchPlayerDataRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		TouchPlayerDataRes& operator = (const TouchPlayerDataRes &rhs)
+		{
+			const TouchPlayerDataRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			return os;
+		}
+
+	};
+};
+#endif

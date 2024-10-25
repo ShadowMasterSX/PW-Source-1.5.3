@@ -1,0 +1,64 @@
+#ifndef __GNET_DBPSHOPBUY_HPP
+#define __GNET_DBPSHOPBUY_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbpshopbuyarg"
+#include "dbpshopbuyres"
+#include "pshopbuy_re.hpp"
+#include "dbpshopget.hrp"
+#include "gdeliveryserver.hpp"
+#include "pshopmarket.h"
+
+namespace GNET
+{
+
+class DBPShopBuy : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbpshopbuy"
+#undef	RPC_BASECLASS
+
+	unsigned int save_linksid;
+	unsigned int save_localsid;
+
+	void SendResult(int retcode, const DBPShopBuyArg *arg, const PShopItem &itembuy)
+	{
+		GDeliveryServer::GetInstance()->Send(save_linksid, PShopBuy_Re(retcode,
+																	save_localsid,
+																	arg->item_id,
+																	arg->item_pos,
+																	arg->item_count,
+																	arg->item_price,
+																	itembuy));
+	}
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid) {}
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBPShopBuyArg *arg = (DBPShopBuyArg *)argument;
+		DBPShopBuyRes *res = (DBPShopBuyRes *)result;
+		LOG_TRACE("DBPShopBuy: RPC return, roleid=%d retcode=%d", arg->roleid, res->retcode);
+		if(res->retcode == ERR_SUCCESS)
+		{
+			PShopMarket::GetInstance().OnAddItemBuy(arg->roleid, res->itembuy);
+			PShopMarket::GetInstance().GetShop(arg->roleid)->Trace();
+			PShopMarket::GetInstance().Trace();
+		}
+
+		SendResult(res->retcode, arg, res->itembuy);
+	}
+
+	void OnTimeout()
+	{
+		DBPShopBuyArg *arg = (DBPShopBuyArg *)argument;
+		Log::log(LOG_ERR,"DBPShopBuy: Timeout. roleid=%d.", arg->roleid);
+		SendResult(ERR_TIMEOUT, arg, PShopItem());
+		DBPShopGet::QueryShop(arg->roleid, save_linksid, save_localsid, 3/*retry*/, DBPShopGet::REASON_DB_TIMEOUT);
+	}
+};
+
+};
+#endif

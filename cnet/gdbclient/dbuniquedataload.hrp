@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBUNIQUEDATALOAD_HPP
+#define __GNET_DBUNIQUEDATALOAD_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbuniquedataloadarg"
+#include "dbuniquedataloadres"
+
+namespace GNET
+{
+
+class DBUniqueDataLoad : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbuniquedataload"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBUniqueDataLoadArg *arg = (DBUniqueDataLoadArg *)argument;
+		// DBUniqueDataLoadRes *res = (DBUniqueDataLoadRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBUniqueDataLoadArg *arg = (DBUniqueDataLoadArg *)argument;
+		// DBUniqueDataLoadRes *res = (DBUniqueDataLoadRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

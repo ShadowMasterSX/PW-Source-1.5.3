@@ -1,0 +1,108 @@
+
+#ifndef __GNET_ADDFRIENDRQST_HPP
+#define __GNET_ADDFRIENDRQST_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "addfriendrqstarg"
+#include "addfriendrqstres"
+#include "addfriend_re.hpp"
+#include "gfriendinfo"
+#include "mapuser.h"
+#include "gametalkmanager.h"
+#include "gametalkdefs.h"
+namespace GNET
+{
+
+class AddFriendRqst : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "addfriendrqst"
+#undef	RPC_BASECLASS
+
+	int dstroleid;
+	int dstcls;
+	Octets dstname;
+	unsigned int srclsid;
+	unsigned int srcsid;
+	unsigned int dstlsid;
+	unsigned int dstsid;
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		GDeliveryServer* dsm = GDeliveryServer::GetInstance();
+		AddFriendRqstArg *arg = (AddFriendRqstArg *)argument;
+		AddFriendRqstRes *res = (AddFriendRqstRes *)result;
+		FriendStatus inform(0, 0, dstlsid);
+		if(res->retcode!=0)
+			res->retcode = ERR_FS_REFUSE;
+		else
+		{
+			Thread::RWLock::WRScoped l(UserContainer::GetInstance().GetLocker());
+			PlayerInfo * pinfo = UserContainer::GetInstance().FindRole( (arg->srcroleid) );
+			if( NULL == pinfo )
+				return;
+			inform.roleid = pinfo->roleid;
+			inform.status = GameTalkManager::GetInstance()->GetRoleStatus(pinfo->roleid);
+
+			GFriendInfoVector* plist = &(pinfo->friends);
+			if(pinfo->friend_ver<0)
+				res->retcode = ERR_FS_NOTINITIALIZED;
+			else if(plist->size()>=100)
+				res->retcode = ERR_FS_NOSPACE;
+			else
+			{
+				GFriendInfoVector::iterator itf = plist->begin(), ite = plist->end();
+				for(;itf!=ite;++itf)
+				{
+					if(itf->rid==dstroleid)
+					{
+						itf->cls = dstcls;
+						itf->gid = 0;
+						itf->name = dstname;
+						pinfo->friend_ver++;
+						break;
+					}
+				}
+				if(itf==plist->end())
+				{
+					plist->push_back(GFriendInfo(dstroleid, dstcls, 0, dstname));
+					pinfo->friend_ver++;
+				}
+				res->retcode = ERR_SUCCESS;
+
+				GameTalkManager::GetInstance()->NotifyUpdateFriend(
+					arg->srcroleid, GT_FRIEND_ADD, dstroleid, 0, GT_GROUP_NORMAL, dstname);
+			}
+		}
+		AddFriend_Re re;
+		re.retcode = res->retcode;
+		re.info.rid = dstroleid;
+		re.info.cls = dstcls;
+		re.info.name.swap(dstname);
+		re.srclsid = srclsid;
+		dsm->Send(srcsid, re);
+		if(re.retcode == ERR_SUCCESS)
+			dsm->Send(dstsid, inform);
+	}
+
+	void OnTimeout()
+	{
+		AddFriend_Re re;
+		re.retcode = ERR_FS_TIMEOUT;
+		re.info.rid = dstroleid;
+		re.info.name.swap(dstname);
+		re.srclsid = srclsid;
+		GDeliveryServer::GetInstance()->Send(srcsid, re);
+	}
+
+};
+
+};
+#endif

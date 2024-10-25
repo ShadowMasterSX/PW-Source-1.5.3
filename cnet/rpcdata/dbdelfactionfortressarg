@@ -1,0 +1,59 @@
+#ifndef __GNET_DBDELFACTIONFORTRESSARG_RPCDATA
+#define __GNET_DBDELFACTIONFORTRESSARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBDelFactionFortressArg : public GNET::Rpc::Data
+	{
+	public:
+		int factionid;
+
+	public:
+		DBDelFactionFortressArg (int l_factionid = 0)
+			: factionid(l_factionid)
+		{
+		}
+
+		DBDelFactionFortressArg(const DBDelFactionFortressArg &rhs)
+			: factionid(rhs.factionid) { }
+
+		Rpc::Data *Clone() const { return new DBDelFactionFortressArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBDelFactionFortressArg *r = dynamic_cast<const DBDelFactionFortressArg *>(&rhs);
+			if (r && r != this)
+			{
+				factionid = r->factionid;
+			}
+			return *this;
+		}
+
+		DBDelFactionFortressArg& operator = (const DBDelFactionFortressArg &rhs)
+		{
+			const DBDelFactionFortressArg *r = &rhs;
+			if (r && r != this)
+			{
+				factionid = r->factionid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << factionid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> factionid;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,64 @@
+#ifndef __GNET_PUTTASKDATAARG_RPCDATA
+#define __GNET_PUTTASKDATAARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class PutTaskDataArg : public GNET::Rpc::Data
+	{
+	public:
+		int taskid;
+		Octets taskdata;
+
+	public:
+		PutTaskDataArg (int l_taskid = -1,const Octets& l_taskdata = Octets(0))
+			: taskid(l_taskid),taskdata(l_taskdata)
+		{
+		}
+
+		PutTaskDataArg(const PutTaskDataArg &rhs)
+			: taskid(rhs.taskid),taskdata(rhs.taskdata) { }
+
+		Rpc::Data *Clone() const { return new PutTaskDataArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const PutTaskDataArg *r = dynamic_cast<const PutTaskDataArg *>(&rhs);
+			if (r && r != this)
+			{
+				taskid = r->taskid;
+				taskdata = r->taskdata;
+			}
+			return *this;
+		}
+
+		PutTaskDataArg& operator = (const PutTaskDataArg &rhs)
+		{
+			const PutTaskDataArg *r = &rhs;
+			if (r && r != this)
+			{
+				taskid = r->taskid;
+				taskdata = r->taskdata;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << taskid;
+			os << taskdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> taskid;
+			os >> taskdata;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,71 @@
+#ifndef __GNET_FACTIONTITLEBEAN_RPCDATA
+#define __GNET_FACTIONTITLEBEAN_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "rolebean"
+
+namespace GNET
+{
+	class FactionTitleBean : public GNET::Rpc::Data
+	{
+	public:
+		int titleid;
+		Octets titlename;
+		RoleBeanVector titlemembers;
+
+	public:
+		FactionTitleBean (int l_titleid = 0,const Octets& l_titlename = Octets(),const RoleBeanVector& l_titlemembers = RoleBeanVector())
+			: titleid(l_titleid),titlename(l_titlename),titlemembers(l_titlemembers)
+		{
+		}
+
+		FactionTitleBean(const FactionTitleBean &rhs)
+			: titleid(rhs.titleid),titlename(rhs.titlename),titlemembers(rhs.titlemembers) { }
+
+		Rpc::Data *Clone() const { return new FactionTitleBean(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const FactionTitleBean *r = dynamic_cast<const FactionTitleBean *>(&rhs);
+			if (r && r != this)
+			{
+				titleid = r->titleid;
+				titlename = r->titlename;
+				titlemembers = r->titlemembers;
+			}
+			return *this;
+		}
+
+		FactionTitleBean& operator = (const FactionTitleBean &rhs)
+		{
+			const FactionTitleBean *r = &rhs;
+			if (r && r != this)
+			{
+				titleid = r->titleid;
+				titlename = r->titlename;
+				titlemembers = r->titlemembers;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << titleid;
+			os << titlename;
+			os << titlemembers;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> titleid;
+			os >> titlename;
+			os >> titlemembers;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<FactionTitleBean>	FactionTitleBeanVector;
+};
+#endif

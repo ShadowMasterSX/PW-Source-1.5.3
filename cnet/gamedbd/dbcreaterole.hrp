@@ -1,0 +1,422 @@
+
+#ifndef __GNET_DBCREATEROLE_HPP
+#define __GNET_DBCREATEROLE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbbuffer.h"
+
+#include "log.h"
+
+#include "groleinventory"
+#include "userid"
+#include "stocklog"
+#include "user"
+#include "roleid"
+#include "groleforbid"
+
+#include "grolebase"
+#include "grolestatus"
+#include "gshoplog"
+#include "groledetail"
+#include "dbcreaterolearg"
+#include "dbcreateroleres"
+#include "grefstore"
+
+#include "gamedbmanager.h"
+namespace GNET
+{
+class DBCreateRole : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbcreaterole"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBCreateRoleArg *arg = (DBCreateRoleArg *)argument;
+		DBCreateRoleRes *res = (DBCreateRoleRes *)result;
+		Marshal::OctetsStream key_userid, key_roleid, value, value_base, value_status;
+		Marshal::OctetsStream value_inventory, value_equipment, value_taskinventory, value_storehouse;
+
+		LOG_TRACE( "DBCreateRole, roleid=%d, occupation=%d, gender=%d.\n",
+					arg->roleid, arg->roleinfo.occupation, arg->roleinfo.gender );
+
+		//get occupation base information
+		GRoleBase	base;
+		GRoleStatus	status;
+		GRolePocket	pocket;
+		GRoleInventoryVector	equipment;
+		GRoleStorehouse		storehouse;
+		if( !GameDBManager::GetInstance()->GetClsDetail( arg->roleinfo.occupation,arg->roleinfo.gender,
+				base, status, pocket, equipment, storehouse) )
+		{
+			res->retcode = ERR_CREATEROLE;
+			Log::log(LOG_ERR,"DBCreateRole, GetClsDetail failed, roleid=%d, occupation=%d, gender=%d.",
+				arg->roleid, arg->roleinfo.occupation,arg->roleinfo.gender );
+			return;
+		}
+		
+		try
+		{
+			StorageEnv::Storage * prolename = StorageEnv::GetStorage("rolename");
+			StorageEnv::Storage * puser = StorageEnv::GetStorage("user");
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::Storage * pstatus = StorageEnv::GetStorage("status");
+			StorageEnv::Storage * pinventory = StorageEnv::GetStorage("inventory");
+			StorageEnv::Storage * pequipment = StorageEnv::GetStorage("equipment");
+			StorageEnv::Storage * pstorehouse = StorageEnv::GetStorage("storehouse");
+			StorageEnv::Storage * ptask = StorageEnv::GetStorage("task");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				key_userid << UserID(arg->userid);
+				key_roleid << arg->roleid;
+
+				//check whether the role name is duplicated
+				if ( prolename->find( arg->roleinfo.name, value, txn ) )
+				{
+					res->retcode=ERR_DUPLICATRECORD;
+					return;
+				}
+
+				//get old rolelist
+				User user;
+				value.clear();
+				RoleList rolelist;
+				rolelist.InitialRoleList();
+				if( puser->find( key_userid, value, txn ) )
+				{
+					value >> user;
+					RoleList t(user.rolelist);
+					
+					bool is_recall_server = GameDBManager::GetInstance()->IsRecallServer();
+					if(is_recall_server && t.GetRoleCount() > 0)
+					{
+						Log::log( LOG_ERR, "DBCreateRole, recall server can create only one role, userid=%d, roleid=%d", arg->userid, arg->roleid );
+						res->retcode = ERR_RECALL_ROLE_EXCEED;
+						return;
+					}
+
+					rolelist = t;
+				}
+				if(user.logicuid && user.logicuid != arg->logicuid)
+				{
+					if((int)user.logicuid!=arg->userid || rolelist.GetRoleCount())
+					{
+						Log::log( LOG_ERR, "FATAL: DBCreateRole, invalid logicuid,userid=%d,local=%d,uniquenamed use %d",
+							arg->userid, user.logicuid, arg->logicuid);
+						res->retcode = ERR_DUPLICATRECORD;
+						return;
+					}
+					user.logicuid = arg->logicuid;
+				}
+				//使用gdelivery传递来的roleid(old version)
+				if( rolelist.IsRoleExist(arg->roleid) )
+				{
+					Log::log( LOG_ERR, "DBCreateRole, roleid %d was used.\n", arg->roleid);
+					res->retcode = ERR_DUPLICATE_ROLEID;
+					if( pbase->find( key_roleid, value_base, txn ) )
+					{
+						try { value_base >> base; res->roleinfo.name = base.name; }
+						catch( Marshal::Exception e ) { }
+					}
+					return;
+				}
+				int old_referrer = 0;
+				GRefStore ref_store;
+				if (user.reference.size())
+				{
+					Marshal::OctetsStream   os_ref(user.reference);
+					os_ref >> ref_store;
+					old_referrer = ref_store.referrer;
+				}
+/*
+				if (old_referrer == 0 && arg->referrer_role != 0)
+				{
+					if (arg->referrer_role == -1)
+						res->refretcode = REF_ERR_REFERRERNOTINDISTRICT;
+					else
+					{
+						Marshal::OctetsStream value_referrer;
+						GRoleBase base_referrer;
+						GRoleStatus status_referrer;
+						if (pbase->find(Marshal::OctetsStream()<<arg->referrer_role, value_referrer, txn))
+						{
+							Marshal::OctetsStream(pstatus->find(Marshal::OctetsStream()<<arg->referrer_role, txn)) >> status_referrer;
+							if (status_referrer.level < REF_LIMIT_REFERRERLEVEL)
+								res->refretcode = REF_ERR_REFREFERRERLEVEL;
+							else
+							{
+								value_referrer >> base_referrer;
+								res->referrer_role = arg->referrer_role;
+								res->referrer_name = base_referrer.name;
+								res->real_referrer = (0==base_referrer.userid ? LOGICUID(base_referrer.id) : base_referrer.userid);
+								Log::formatlog("dbcreaterole","userid=%d:roleid=%d:referrer_role=%d:real_referrer=%d", arg->userid,
+										arg->roleid, res->referrer_role, res->real_referrer);
+								res->refretcode = ERR_SUCCESS;
+							}
+						}
+						else
+						{
+							res->refretcode = REF_ERR_REFERRERNOTINSERVER;
+							return;
+						}
+					}
+					if (res->refretcode == 0)
+					{
+						ref_store.referrer = res->real_referrer;
+						user.reference = Marshal::OctetsStream() << ref_store;
+					}
+				}
+*/
+////////////
+				res->refretcode = 0;
+				if (old_referrer == 0)
+				{
+					if (arg->au_suggest_referrer > 0)
+					{
+						Marshal::OctetsStream value_referrer;
+						GRoleBase base_referrer;
+						GRoleStatus status_referrer;
+						if (pbase->find(Marshal::OctetsStream()<<arg->au_suggest_referrer, value_referrer, txn))
+						{
+							Marshal::OctetsStream(pstatus->find(Marshal::OctetsStream()<<arg->au_suggest_referrer, txn)) >> status_referrer;
+							if (status_referrer.level < REF_LIMIT_REFERRERLEVEL)
+								res->refretcode = REF_ERR_REFREFERRERLEVEL;
+							else
+							{
+								value_referrer >> base_referrer;
+								ref_store.referrer_roleid = arg->au_suggest_referrer;
+								ref_store.referrer = (0==base_referrer.userid ? LOGICUID(base_referrer.id) : base_referrer.userid);
+								Log::formatlog("dbcreaterole","userid=%d:roleid=%d:ausuggest:referrer_role=%d:real_referrer=%d", arg->userid,
+										arg->roleid, ref_store.referrer_roleid, ref_store.referrer);
+							}
+						}
+						else
+						{
+							res->refretcode = REF_ERR_REFERRERNOTINSERVER;
+						}
+					}
+					else if (arg->au_suggest_referrer == -1)
+					{
+						res->refretcode = REF_ERR_REFERRERNOTINDISTRICT;
+					}
+					else
+					{
+						if (arg->player_suggest_referrer)
+						{
+							Marshal::OctetsStream value_referrer;
+							GRoleBase base_referrer;
+							GRoleStatus status_referrer;
+							if (pbase->find(Marshal::OctetsStream()<<arg->player_suggest_referrer, value_referrer, txn))
+							{
+								Marshal::OctetsStream(pstatus->find(Marshal::OctetsStream()<<arg->player_suggest_referrer, txn)) >> status_referrer;
+								if (status_referrer.level < REF_LIMIT_REFERRERLEVEL)
+									res->refretcode = REF_ERR_REFREFERRERLEVEL;
+								else
+								{
+									value_referrer >> base_referrer;
+									ref_store.referrer_roleid = arg->player_suggest_referrer;
+									ref_store.referrer = (0==base_referrer.userid ? LOGICUID(base_referrer.id) : base_referrer.userid);
+									Log::formatlog("dbcreaterole","userid=%d:roleid=%d:playersuggest:referrer_role=%d:real_referrer=%d", arg->userid,
+											arg->roleid, ref_store.referrer_roleid, ref_store.referrer);
+								}
+							}
+							else
+							{
+								//如果玩家输入的id不在本服，创建角色失败
+								res->retcode = REF_ERR_REFERRERNOTINSERVER;
+								return;
+							}
+						}
+					}
+				}
+				if (res->refretcode == 0)
+				{
+					res->real_referrer = ref_store.referrer;
+					res->roleinfo.referrer_role = ref_store.referrer_roleid;
+					user.reference = Marshal::OctetsStream() << ref_store;
+				}
+/*
+				if (arg->real_referrer > 0)
+				{
+					res->real_referrer = arg->real_referrer;
+					res->referrer_role = arg->referrer_role;
+					//此时db与arg传来的real_referrer应该是一致的吧
+					if (arg->real_referrer != old_referrer)
+						Log::log(LOG_ERR, "dbcreaterole roleid %d real_referrer in db %d real_referrer from arg %d", arg->roleid, old_referrer, arg->real_referrer);
+				}
+				else 
+				{
+					if (arg->au_suggest_referrer > 0)
+					{
+						Marshal::OctetsStream value_referrer;
+						GRoleBase base_referrer;
+						GRoleStatus status_referrer;
+						if (pbase->find(Marshal::OctetsStream()<<arg->au_suggest_referrer, value_referrer, txn))
+						{
+							Marshal::OctetsStream(pstatus->find(Marshal::OctetsStream()<<arg->au_suggest_referrer, txn)) >> status_referrer;
+							if (status_referrer.level < REF_LIMIT_REFERRERLEVEL)
+								res->refretcode = REF_ERR_REFREFERRERLEVEL;
+							else
+							{
+								value_referrer >> base_referrer;
+								res->referrer_role = arg->au_suggest_referrer;
+								res->real_referrer = (0==base_referrer.userid ? LOGICUID(base_referrer.id) : base_referrer.userid);
+								Log::formatlog("dbcreaterole","userid=%d:roleid=%d:ausuggest:referrer_role=%d:real_referrer=%d", arg->userid,
+										arg->roleid, res->referrer_role, res->real_referrer);
+							}
+						}
+						else
+						{
+							res->refretcode = REF_ERR_REFERRERNOTINSERVER;
+						}
+					}
+					else if (arg->au_suggest_referrer == -1)
+					{
+						res->refretcode = REF_ERR_REFERRERNOTINDISTRICT;
+					}
+					else
+					{
+						if (arg->player_suggest_referrer)
+						{
+							Marshal::OctetsStream value_referrer;
+							GRoleBase base_referrer;
+							GRoleStatus status_referrer;
+							if (pbase->find(Marshal::OctetsStream()<<arg->player_suggest_referrer, value_referrer, txn))
+							{
+								Marshal::OctetsStream(pstatus->find(Marshal::OctetsStream()<<arg->player_suggest_referrer, txn)) >> status_referrer;
+								if (status_referrer.level < REF_LIMIT_REFERRERLEVEL)
+									res->refretcode = REF_ERR_REFREFERRERLEVEL;
+								else
+								{
+									value_referrer >> base_referrer;
+									res->referrer_role = arg->player_suggest_referrer;
+									res->real_referrer = (0==base_referrer.userid ? LOGICUID(base_referrer.id) : base_referrer.userid);
+									Log::formatlog("dbcreaterole","userid=%d:roleid=%d:playersuggest:referrer_role=%d:real_referrer=%d", arg->userid,
+											arg->roleid, res->referrer_role, res->real_referrer);
+								}
+							}
+							else
+							{
+								res->refretcode = REF_ERR_REFERRERNOTINSERVER;
+								return;
+							}
+						}
+					}
+				}
+				//if (res->real_referrer != 0)
+				if (res->refretcode == 0)
+				{
+					ref_store.referrer = res->real_referrer;
+					ref_store.referrer_roleid = res->referrer_role;
+					user.reference = Marshal::OctetsStream() << ref_store;
+				}
+*/
+				int advice_roleid = arg->roleid; 
+				rolelist.AddRole(arg->roleid % MAX_ROLE_COUNT);
+			
+				base.id			= advice_roleid;
+				base.userid		= arg->userid;
+				base.gender		= arg->roleinfo.gender;
+		
+				base.name		= arg->roleinfo.name;
+				base.custom_data	= arg->roleinfo.custom_data;
+		
+				base.status		= _ROLE_STATUS_NORMAL;
+				base.create_time= Timer::GetTime();
+				base.lastlogin_time = Timer::GetTime();
+				
+				//edit status for new character
+				status.dbltime_expire = 0;
+				status.dbltime_mode = 0;
+				status.dbltime_begin = 0;
+				status.dbltime_used = 0;
+				status.dbltime_max = 0;
+				status.time_used = 0;
+				status.dbltime_data.clear();
+				status.coolingtime.clear();
+				status.multi_exp_ctrl.clear();
+				status.online_award.clear();
+				status.profit_time_data.clear();
+				status.meridian_data.clear();
+				status.extraprop.clear();
+				status.title_data.clear();
+				status.waypointlist.clear();
+				
+				value_base << base;
+				value_status << status;
+				value_inventory << pocket;
+				value_equipment << equipment;
+				value_storehouse << storehouse;
+				
+				pbase->insert( key_roleid,value_base, txn, DB_NOOVERWRITE );
+				pstatus->insert( key_roleid, value_status, txn );
+				pinventory->insert( key_roleid, value_inventory, txn );
+				pequipment->insert( key_roleid, value_equipment, txn );
+				pstorehouse->insert( key_roleid, value_storehouse, txn );
+				prolename->insert( base.name, key_roleid, txn );	/* rolename表以base.name为key */
+				ptask->insert( key_roleid, Marshal::OctetsStream ()<<GRoleTask(), txn );
+				
+				user.rolelist = rolelist.GetRoleList();	
+				user.logicuid = arg->logicuid;
+				puser->insert( key_userid,  Marshal::OctetsStream() << user, txn );
+
+				Log::formatlog("createrole","userid=%d:roleid=%d:occupation=%d:gender=%d", arg->userid,
+					arg->roleid, arg->roleinfo.occupation, arg->roleinfo.gender);
+				res->retcode=ERR_SUCCESS;
+
+				res->roleinfo.roleid	= base.id;
+				res->roleinfo.gender	= base.gender;
+				res->roleinfo.race	= base.race;
+				res->roleinfo.occupation	= base.cls;
+				res->roleinfo.level		= status.level;
+				res->roleinfo.name		= base.name;
+				res->roleinfo.custom_data	= base.custom_data;
+				res->roleinfo.equipment		= equipment;
+				res->roleinfo.status		= base.status;
+				res->roleinfo.delete_time	= base.delete_time;
+				res->roleinfo.create_time	= base.create_time;
+				res->roleinfo.lastlogin_time	= base.lastlogin_time;
+				res->roleinfo.posx	= status.posx;
+				res->roleinfo.posy	= status.posy;
+				res->roleinfo.posz	= status.posz;
+				res->roleinfo.worldtag = status.worldtag;
+				res->roleinfo.cash_add = user.cash_add;
+
+				res->roleid	= base.id;
+				res->rolelist	= rolelist.GetRoleList();
+				GameDBManager::GetInstance()->OnCreateRole();
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBCreateRole, roleid=%d, what=%s\n", arg->roleid, e.what() );
+			res->retcode=ERR_CREATEROLE;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBCreateRoleArg *arg = (DBCreateRoleArg *)argument;
+		// DBCreateRoleRes *res = (DBCreateRoleRes *)result;
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

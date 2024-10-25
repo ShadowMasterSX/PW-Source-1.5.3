@@ -1,0 +1,104 @@
+#ifndef __GNET_DBSYSMAIL3ARG_RPCDATA
+#define __GNET_DBSYSMAIL3ARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmail"
+
+namespace GNET
+{
+	class DBSysMail3Arg : public GNET::Rpc::Data
+	{
+	public:
+		int64_t orderid;
+		int userid;
+		int64_t roleid;
+		Octets rolename;
+		int goods_flag;
+		int goods_price;
+		int goods_price_before_discount;
+		int goods_paytype;
+		GMail mail;
+
+	public:
+		DBSysMail3Arg (int64_t l_orderid = 0,int64_t l_roleid = 0,const Octets& l_rolename = Octets()
+			,const GMail& l_mail = GMail())
+			: orderid(l_orderid),roleid(l_roleid),rolename(l_rolename)
+			,mail(l_mail)
+		{
+		}
+
+		DBSysMail3Arg(const DBSysMail3Arg &rhs)
+			: orderid(rhs.orderid),userid(rhs.userid),roleid(rhs.roleid),
+			rolename(rhs.rolename),goods_flag(rhs.goods_flag),goods_price(rhs.goods_price),
+			goods_price_before_discount(rhs.goods_price_before_discount),goods_paytype(rhs.goods_paytype),mail(rhs.mail) { }
+
+		Rpc::Data *Clone() const { return new DBSysMail3Arg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBSysMail3Arg *r = dynamic_cast<const DBSysMail3Arg *>(&rhs);
+			if (r && r != this)
+			{
+				orderid = r->orderid;
+				userid = r->userid;
+				roleid = r->roleid;
+				rolename = r->rolename;
+				goods_flag = r->goods_flag;
+				goods_price = r->goods_price;
+				goods_price_before_discount = r->goods_price_before_discount;
+				goods_paytype = r->goods_paytype;
+				mail = r->mail;
+			}
+			return *this;
+		}
+
+		DBSysMail3Arg& operator = (const DBSysMail3Arg &rhs)
+		{
+			const DBSysMail3Arg *r = &rhs;
+			if (r && r != this)
+			{
+				orderid = r->orderid;
+				userid = r->userid;
+				roleid = r->roleid;
+				rolename = r->rolename;
+				goods_flag = r->goods_flag;
+				goods_price = r->goods_price;
+				goods_price_before_discount = r->goods_price_before_discount;
+				goods_paytype = r->goods_paytype;
+				mail = r->mail;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << orderid;
+			os << userid;
+			os << roleid;
+			os << rolename;
+			os << goods_flag;
+			os << goods_price;
+			os << goods_price_before_discount;
+			os << goods_paytype;
+			os << mail;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> orderid;
+			os >> userid;
+			os >> roleid;
+			os >> rolename;
+			os >> goods_flag;
+			os >> goods_price;
+			os >> goods_price_before_discount;
+			os >> goods_paytype;
+			os >> mail;
+			return os;
+		}
+
+	};
+};
+#endif

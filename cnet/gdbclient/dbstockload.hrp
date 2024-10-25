@@ -1,0 +1,43 @@
+
+#ifndef __GNET_DBSTOCKLOAD_HPP
+#define __GNET_DBSTOCKLOAD_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "stockorder"
+#include "dbstockloadarg"
+#include "dbstockloadres"
+
+namespace GNET
+{
+
+class DBStockLoad : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbstockload"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBStockLoadArg *arg = (DBStockLoadArg *)argument;
+		// DBStockLoadRes *res = (DBStockLoadRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBStockLoadArg *arg = (DBStockLoadArg *)argument;
+		// DBStockLoadRes *res = (DBStockLoadRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

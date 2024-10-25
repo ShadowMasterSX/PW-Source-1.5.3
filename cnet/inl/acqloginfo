@@ -1,0 +1,35 @@
+	public:
+		ACQ acq;
+		ACLogInfoVector logs;
+		enum { PROTOCOL_TYPE = PROTOCOL_ACQLOGINFO };
+	public:
+		ACQLogInfo() { type = PROTOCOL_ACQLOGINFO; }
+		ACQLogInfo(void*) : Protocol(PROTOCOL_ACQLOGINFO) { }
+		ACQLogInfo (ACQ l_acq,ACLogInfoVector l_logs)
+			 : acq(l_acq),logs(l_logs)
+		{
+			type = PROTOCOL_ACQLOGINFO;
+		}
+
+		ACQLogInfo(const ACQLogInfo &rhs)
+			: Protocol(rhs),acq(rhs.acq),logs(rhs.logs) { }
+
+		GNET::Protocol *Clone() const { return new ACQLogInfo(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << acq;
+			os << logs;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> acq;
+			os >> logs;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 2048; }

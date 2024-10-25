@@ -1,0 +1,35 @@
+	public:
+		int rid;
+		std::vector<int> roleidlist;
+		enum { PROTOCOL_TYPE = PROTOCOL_DBFRIENDEXTLIST };
+	public:
+		DBFriendExtList() { type = PROTOCOL_DBFRIENDEXTLIST; }
+		DBFriendExtList(void*) : Protocol(PROTOCOL_DBFRIENDEXTLIST) { }
+		DBFriendExtList (int l_rid,std::vector<int> l_roleidlist)
+			 : rid(l_rid),roleidlist(l_roleidlist)
+		{
+			type = PROTOCOL_DBFRIENDEXTLIST;
+		}
+
+		DBFriendExtList(const DBFriendExtList &rhs)
+			: Protocol(rhs),rid(rhs.rid),roleidlist(rhs.roleidlist) { }
+
+		GNET::Protocol *Clone() const { return new DBFriendExtList(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << rid;
+			os << roleidlist;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> rid;
+			os >> roleidlist;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 8192; }

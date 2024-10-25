@@ -1,0 +1,70 @@
+#ifndef __GNET_DBPLAYERRENAMERES_RPCDATA
+#define __GNET_DBPLAYERRENAMERES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailsyncdata"
+
+namespace GNET
+{
+	class DBPlayerRenameRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		Octets oldname;
+		GMailSyncData syncdata;
+
+	public:
+		DBPlayerRenameRes (int l_retcode = -1,const Octets& l_oldname = Octets(),const GMailSyncData& l_syncdata = GMailSyncData())
+			: retcode(l_retcode),oldname(l_oldname),syncdata(l_syncdata)
+		{
+		}
+
+		DBPlayerRenameRes(const DBPlayerRenameRes &rhs)
+			: retcode(rhs.retcode),oldname(rhs.oldname),syncdata(rhs.syncdata) { }
+
+		Rpc::Data *Clone() const { return new DBPlayerRenameRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPlayerRenameRes *r = dynamic_cast<const DBPlayerRenameRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				oldname = r->oldname;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		DBPlayerRenameRes& operator = (const DBPlayerRenameRes &rhs)
+		{
+			const DBPlayerRenameRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				oldname = r->oldname;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << oldname;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> oldname;
+			os >> syncdata;
+			return os;
+		}
+
+	};
+};
+#endif

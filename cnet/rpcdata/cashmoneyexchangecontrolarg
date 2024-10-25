@@ -1,0 +1,64 @@
+#ifndef __GNET_CASHMONEYEXCHANGECONTROLARG_RPCDATA
+#define __GNET_CASHMONEYEXCHANGECONTROLARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class CashMoneyExchangeControlArg : public GNET::Rpc::Data
+	{
+	public:
+		char oper;
+		int param;
+
+	public:
+		CashMoneyExchangeControlArg (char l_oper = 0,int l_param = 0)
+			: oper(l_oper),param(l_param)
+		{
+		}
+
+		CashMoneyExchangeControlArg(const CashMoneyExchangeControlArg &rhs)
+			: oper(rhs.oper),param(rhs.param) { }
+
+		Rpc::Data *Clone() const { return new CashMoneyExchangeControlArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const CashMoneyExchangeControlArg *r = dynamic_cast<const CashMoneyExchangeControlArg *>(&rhs);
+			if (r && r != this)
+			{
+				oper = r->oper;
+				param = r->param;
+			}
+			return *this;
+		}
+
+		CashMoneyExchangeControlArg& operator = (const CashMoneyExchangeControlArg &rhs)
+		{
+			const CashMoneyExchangeControlArg *r = &rhs;
+			if (r && r != this)
+			{
+				oper = r->oper;
+				param = r->param;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << oper;
+			os << param;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> oper;
+			os >> param;
+			return os;
+		}
+
+	};
+};
+#endif

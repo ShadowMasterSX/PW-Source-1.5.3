@@ -1,0 +1,65 @@
+#ifndef __GNET_DBKELOADRES_RPCDATA
+#define __GNET_DBKELOADRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "kingelectiondetail"
+
+namespace GNET
+{
+	class DBKELoadRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		KingElectionDetail detail;
+
+	public:
+		DBKELoadRes (int l_retcode = -1,const KingElectionDetail& l_detail = KingElectionDetail())
+			: retcode(l_retcode),detail(l_detail)
+		{
+		}
+
+		DBKELoadRes(const DBKELoadRes &rhs)
+			: retcode(rhs.retcode),detail(rhs.detail) { }
+
+		Rpc::Data *Clone() const { return new DBKELoadRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBKELoadRes *r = dynamic_cast<const DBKELoadRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				detail = r->detail;
+			}
+			return *this;
+		}
+
+		DBKELoadRes& operator = (const DBKELoadRes &rhs)
+		{
+			const DBKELoadRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				detail = r->detail;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << detail;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> detail;
+			return os;
+		}
+
+	};
+};
+#endif

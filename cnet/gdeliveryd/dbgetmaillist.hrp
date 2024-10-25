@@ -1,0 +1,95 @@
+
+#ifndef __GNET_DBGETMAILLIST_HPP
+#define __GNET_DBGETMAILLIST_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "roleid"
+#include "gmailheader"
+#include "dbgetmaillistres"
+#include "getmaillist_re.hpp"
+#include "postoffice.h"
+#include "announcenewmail.hpp"
+#include "mapuser.h"
+#include "namemanager.h"
+namespace GNET
+{
+
+class DBGetMailList : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbgetmaillist"
+#undef	RPC_BASECLASS
+	unsigned int save_linksid;
+	unsigned int save_localsid;
+	bool         need_send2client;
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// RoleId *arg = (RoleId *)argument;
+		// GMailHeaderVector *res = (GMailHeaderVector *)result;
+	}
+	void SendResult(const RoleId& arg,const DBGetMailListRes& res)
+	{
+		if ( need_send2client )
+		{
+			GetMailList_Re gml_re(res.retcode,arg.id,save_localsid);
+			if ( res.retcode==ERR_SUCCESS )
+				PostOffice::GetInstance().GetMailList(arg.id,gml_re.maillist);
+			GDeliveryServer::GetInstance()->Send( save_linksid,gml_re );
+		}
+	}
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODOGMailHeaderVector
+		RoleId *arg = (RoleId *)argument;
+		DBGetMailListRes *res = (DBGetMailListRes *)result;
+		    GDeliveryServer* dsm=GDeliveryServer::GetInstance();
+		{
+			DEBUG_PRINT("dbgetmaillist: received. retcode=%d,roleid=%d,localsid=%d\n",
+				res->retcode,arg->id,save_localsid);
+			Thread::RWLock::WRScoped l(UserContainer::GetInstance().GetLocker());
+			PlayerInfo * pinfo = UserContainer::GetInstance().FindRoleOnline( arg->id );
+			if ( NULL!=pinfo )
+			{
+				if (res->retcode==ERR_SUCCESS)
+				{
+					int remain_time=-1;
+					Octets name;
+					GMailHeaderVector::iterator it = res->maillist.begin();
+					GMailHeaderVector::iterator end = res->maillist.end();
+					for ( ; it != end; ++it)
+					{
+						if (NameManager::GetInstance()->FindName(it->sender, name))
+						{
+							it->sender_name = name;
+						}
+					}
+					PostOffice::GetInstance().UpdateMailList( arg->id,res->maillist );
+					unsigned char present_type = 0;
+					if ( (remain_time=PostOffice::GetInstance().HaveNewMail( arg->id, present_type ))!=-1 )
+						dsm->Send( save_linksid,AnnounceNewMail(arg->id,save_localsid,remain_time,present_type) );	
+				}
+				SendResult( *arg,*res );
+			}
+		}
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		// TODO Client Only
+		RoleId *arg = (RoleId *)argument;
+		Log::log(LOG_ERR,"get maillist failed(timeout). database no response. roleid=%d,localsid=%d\n",
+				arg->id,save_localsid);
+		if ( need_send2client )
+		{
+			GetMailList_Re gml_re(ERR_TIMEOUT,arg->id,save_localsid);
+			GDeliveryServer::GetInstance()->Send( save_linksid,gml_re );
+		}
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,69 @@
+#ifndef __GNET_AUTOTEAMCONFIGDATA_RPCDATA
+#define __GNET_AUTOTEAMCONFIGDATA_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class AutoTeamConfigData : public GNET::Rpc::Data
+	{
+	public:
+		int goal_id;
+		unsigned char need_player_cnt;
+		std::vector< std::pair<char,char> > occupation_info;
+
+	public:
+		AutoTeamConfigData (int l_goal_id = 0,unsigned char l_need_player_cnt = 0)
+			: goal_id(l_goal_id),need_player_cnt(l_need_player_cnt)
+		{
+		}
+
+		AutoTeamConfigData(const AutoTeamConfigData &rhs)
+			: goal_id(rhs.goal_id),need_player_cnt(rhs.need_player_cnt),occupation_info(rhs.occupation_info) { }
+
+		Rpc::Data *Clone() const { return new AutoTeamConfigData(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const AutoTeamConfigData *r = dynamic_cast<const AutoTeamConfigData *>(&rhs);
+			if (r && r != this)
+			{
+				goal_id = r->goal_id;
+				need_player_cnt = r->need_player_cnt;
+				occupation_info = r->occupation_info;
+			}
+			return *this;
+		}
+
+		AutoTeamConfigData& operator = (const AutoTeamConfigData &rhs)
+		{
+			const AutoTeamConfigData *r = &rhs;
+			if (r && r != this)
+			{
+				goal_id = r->goal_id;
+				need_player_cnt = r->need_player_cnt;
+				occupation_info = r->occupation_info;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << goal_id;
+			os << need_player_cnt;
+			os << occupation_info;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> goal_id;
+			os >> need_player_cnt;
+			os >> occupation_info;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,80 @@
+
+#ifndef __GNET_DBWEBTRADEPRECANCELPOST_HPP
+#define __GNET_DBWEBTRADEPRECANCELPOST_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbwebtradeprecancelpostarg"
+#include "dbwebtradeprecancelpostres"
+
+namespace GNET
+{
+
+class DBWebTradePreCancelPost : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbwebtradeprecancelpost"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBWebTradePreCancelPostArg *arg = (DBWebTradePreCancelPostArg *)argument;
+		DBWebTradePreCancelPostRes *res = (DBWebTradePreCancelPostRes *)result;
+
+		Marshal::OctetsStream key;
+		try
+		{
+			StorageEnv::Storage * pwebtrade = StorageEnv::GetStorage("webtrade");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				if(arg->sn == 0) 
+					throw DbException(DB_VERIFY_BAD); 
+
+				GWebTradeDetail detail;
+				key << arg->sn;
+				Marshal::OctetsStream(pwebtrade->find(key,txn)) >> detail;
+				if(detail.info.seller_roleid != arg->roleid)
+					throw DbException(DB_VERIFY_BAD);
+				Log::formatlog("webtradeprecancelpost","role=%d:sn=%lld:type=%d:itemid=%d:item_count=%d:money=%d:role=%d:petid=%d:pet_count=%d", 
+						arg->roleid,arg->sn,detail.info.posttype,detail.info.item_id,detail.info.item_count,detail.info.money,arg->roleid,0,0);
+				//´æÅÌ	
+				detail.info.state = arg->state; 
+				pwebtrade->insert(key, Marshal::OctetsStream()<<detail,txn);
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBWebTradePreCancelPost, role=%d sn=%lld, what=%s.\n",
+				arg->roleid, arg->sn, e.what());
+			res->retcode = ERR_EXCEPTION;
+		}
+
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBWebTradePreCancelPostArg *arg = (DBWebTradePreCancelPostArg *)argument;
+		// DBWebTradePreCancelPostRes *res = (DBWebTradePreCancelPostRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

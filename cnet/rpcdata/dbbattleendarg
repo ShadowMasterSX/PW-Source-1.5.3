@@ -1,0 +1,82 @@
+#ifndef __GNET_DBBATTLEENDARG_RPCDATA
+#define __GNET_DBBATTLEENDARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBBattleEndArg : public GNET::Rpc::Data
+	{
+	public:
+		int battle_id;
+		int result;
+		int color;
+		unsigned int defender;
+		unsigned int attacker;
+
+	public:
+		DBBattleEndArg (int l_battle_id = 0,int l_result = 0,int l_color = 0
+			,unsigned int l_defender = 0,unsigned int l_attacker = 0)
+			: battle_id(l_battle_id),result(l_result),color(l_color)
+			,defender(l_defender),attacker(l_attacker)
+		{
+		}
+
+		DBBattleEndArg(const DBBattleEndArg &rhs)
+			: battle_id(rhs.battle_id),result(rhs.result),color(rhs.color),
+			defender(rhs.defender),attacker(rhs.attacker) { }
+
+		Rpc::Data *Clone() const { return new DBBattleEndArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBBattleEndArg *r = dynamic_cast<const DBBattleEndArg *>(&rhs);
+			if (r && r != this)
+			{
+				battle_id = r->battle_id;
+				result = r->result;
+				color = r->color;
+				defender = r->defender;
+				attacker = r->attacker;
+			}
+			return *this;
+		}
+
+		DBBattleEndArg& operator = (const DBBattleEndArg &rhs)
+		{
+			const DBBattleEndArg *r = &rhs;
+			if (r && r != this)
+			{
+				battle_id = r->battle_id;
+				result = r->result;
+				color = r->color;
+				defender = r->defender;
+				attacker = r->attacker;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << battle_id;
+			os << result;
+			os << color;
+			os << defender;
+			os << attacker;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> battle_id;
+			os >> result;
+			os >> color;
+			os >> defender;
+			os >> attacker;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBPSHOPMANAGEFUND_HPP
+#define __GNET_DBPSHOPMANAGEFUND_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbpshopmanagefundarg"
+#include "dbpshopmanagefundres"
+
+namespace GNET
+{
+
+class DBPShopManageFund : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbpshopmanagefund"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBPShopManageFundArg *arg = (DBPShopManageFundArg *)argument;
+		// DBPShopManageFundRes *res = (DBPShopManageFundRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBPShopManageFundArg *arg = (DBPShopManageFundArg *)argument;
+		// DBPShopManageFundRes *res = (DBPShopManageFundRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

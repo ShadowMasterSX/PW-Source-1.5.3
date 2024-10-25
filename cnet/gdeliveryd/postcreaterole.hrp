@@ -1,0 +1,54 @@
+
+#ifndef __GNET_POSTCREATEROLE_HPP
+#define __GNET_POSTCREATEROLE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#ifdef USE_BDB
+#include "dbbuffer.h"
+#endif
+#include "postcreaterolearg"
+#include "postcreateroleres"
+#include "uniquenameclient.hpp"
+namespace GNET
+{
+
+class PostCreateRole : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "postcreaterole"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+#ifdef USE_BDB
+		PostCreateRoleArg *arg = (PostCreateRoleArg *)argument;
+		PostCreateRoleRes *res = (PostCreateRoleRes *)result;
+		Marshal::OctetsStream key, value;
+		key << arg->rolename;
+		value << arg->roleid;
+#endif
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// PostCreateRoleArg *arg = (PostCreateRoleArg *)argument;
+		// PostCreateRoleRes *res = (PostCreateRoleRes *)result;
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		//TODO Client Only
+		//resend this protocol
+		PostCreateRoleArg *arg = (PostCreateRoleArg *)argument;
+		UniqueNameClient::GetInstance()->SendProtocol(
+				Rpc::Call(RPC_POSTCREATEROLE,arg)
+			);
+	}
+
+};
+
+};
+#endif

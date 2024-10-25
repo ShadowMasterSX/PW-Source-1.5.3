@@ -1,0 +1,59 @@
+#ifndef __GNET_GETROLEFORBIDARG_RPCDATA
+#define __GNET_GETROLEFORBIDARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "roleid"
+
+namespace GNET
+{
+	class GetRoleForbidArg : public GNET::Rpc::Data
+	{
+	public:
+		RoleId key;
+
+	public:
+		GetRoleForbidArg ()
+		{
+		}
+
+		GetRoleForbidArg(const GetRoleForbidArg &rhs)
+			: key(rhs.key) { }
+
+		Rpc::Data *Clone() const { return new GetRoleForbidArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GetRoleForbidArg *r = dynamic_cast<const GetRoleForbidArg *>(&rhs);
+			if (r && r != this)
+			{
+				key = r->key;
+			}
+			return *this;
+		}
+
+		GetRoleForbidArg& operator = (const GetRoleForbidArg &rhs)
+		{
+			const GetRoleForbidArg *r = &rhs;
+			if (r && r != this)
+			{
+				key = r->key;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << key;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> key;
+			return os;
+		}
+
+	};
+};
+#endif

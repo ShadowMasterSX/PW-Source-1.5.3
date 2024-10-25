@@ -1,0 +1,59 @@
+#ifndef __GNET_USERLOGOUTRES_RPCDATA
+#define __GNET_USERLOGOUTRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class UserLogoutRes : public GNET::Rpc::Data
+	{
+	public:
+		char retcode;
+
+	public:
+		UserLogoutRes (char l_retcode = -1)
+			: retcode(l_retcode)
+		{
+		}
+
+		UserLogoutRes(const UserLogoutRes &rhs)
+			: retcode(rhs.retcode) { }
+
+		Rpc::Data *Clone() const { return new UserLogoutRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const UserLogoutRes *r = dynamic_cast<const UserLogoutRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		UserLogoutRes& operator = (const UserLogoutRes &rhs)
+		{
+			const UserLogoutRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			return os;
+		}
+
+	};
+};
+#endif

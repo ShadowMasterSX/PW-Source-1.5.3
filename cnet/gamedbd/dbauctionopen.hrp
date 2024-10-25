@@ -1,0 +1,142 @@
+
+#ifndef __GNET_DBAUCTIONOPEN_HPP
+#define __GNET_DBAUCTIONOPEN_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "gmailsyncdata"
+#include "groleinventory"
+#include "gauctionitem"
+#include "gauctiondetail"
+#include "dbauctionopenarg"
+#include "dbauctionopenres"
+#include "utilfunction.h"
+
+namespace GNET
+{
+
+#define ITEM_DAMAGED 0x2000		//ÎïÆ·Ëð»Ù
+
+class DBAuctionOpen : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbauctionopen"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBAuctionOpenArg *arg = (DBAuctionOpenArg *)argument;
+		DBAuctionOpenRes *res = (DBAuctionOpenRes *)result;
+		unsigned int orignal_money = arg->syncdata.inventory.money;
+
+		Marshal::OctetsStream key, value;
+		Marshal::OctetsStream krole;
+		int delta = arg->syncdata.inventory.money; 
+		try
+		{
+			StorageEnv::Storage * pauction = StorageEnv::GetStorage("auction");
+			StorageEnv::Storage * pinventory = StorageEnv::GetStorage("inventory");
+			StorageEnv::Storage * pequipment = StorageEnv::GetStorage("equipment");
+			StorageEnv::Storage * pstorehouse = StorageEnv::GetStorage("storehouse");
+			StorageEnv::Storage * plog = arg->syncdata.logs.size()?StorageEnv::GetStorage("shoplog"):NULL;
+			StorageEnv::CommonTransaction txn;
+
+			krole << arg->roleid;
+			GRoleInventoryVector& v = arg->syncdata.inventory.items;
+			GRoleInventoryVector::iterator it,ie;
+			for(it=v.begin(),ie=v.end();it!=ie;it++)
+			{
+				if(it->pos==arg->item_pos)
+				{
+					if(it->count<arg->item_num)
+						it = ie;
+					break;
+				}
+			}
+			if(it==ie || (it->proctype & (ITEM_NONTRADABLE|ITEM_DAMAGED)) 
+				|| arg->syncdata.inventory.money < (unsigned int)arg->deposit)
+				throw DbException(DB_VERIFY_BAD);
+			Log::formatlog("auctionopen", "timestamp=%u:mask=%d:roleid=%d:id=%d:cid=%d:item=%d:count=%d:"
+				"pos=%d:time=%d:price=%d:bin=%d:deposit=%d",
+				arg->syncdata.inventory.timestamp,arg->syncdata.data_mask, arg->roleid, arg->auctionid, 
+				arg->category, it->id, it->count, it->pos, arg->end_time, arg->baseprice, arg->binprice, 
+				arg->deposit);
+
+			try{
+				key << arg->category;
+				arg->syncdata.inventory.money -= arg->deposit;
+				res->syncdata.inventory.money = arg->syncdata.inventory.money;
+				GAuctionDetail detail;
+				detail.baseprice = arg->baseprice;
+				detail.elapse_time = arg->elapse_time;
+				detail.category = arg->category;
+				detail.deposit = arg->deposit;
+				detail.prolong = 0;
+
+				detail.info.auctionid = arg->auctionid;
+				detail.info.bidprice = arg->baseprice;
+				detail.info.binprice = arg->binprice;
+				detail.info.end_time = arg->end_time;
+				detail.info.itemid = it->id;
+				detail.info.count =  arg->item_num;
+				detail.info.seller = arg->roleid;
+				detail.info.bidder = 0;
+				it->count -= arg->item_num;
+				detail.item = *it;
+				detail.item.count = arg->item_num;
+				res->syncdata.inventory.items.push_back(*it);
+				if(it->count==0)
+					v.erase(it);
+
+				GRolePocket pocket;
+				Marshal::OctetsStream(pinventory->find(krole, txn ) ) >> pocket;
+				if(arg->syncdata.inventory.timestamp <= pocket.timestamp)
+				{
+					Log::log(LOG_ERR,"DBAuctionOpen, timestamp mismatch. %d<%d",
+						arg->syncdata.inventory.timestamp, pocket.timestamp);
+					throw DbException(DB_VERIFY_BAD);
+				}
+				delta -= pocket.money;
+
+				pauction->insert(Marshal::OctetsStream()<<arg->auctionid,Marshal::OctetsStream()<<detail,
+						txn,DB_NOOVERWRITE);
+				pinventory->insert(krole, Marshal::OctetsStream()<<arg->syncdata.inventory, txn);
+				pequipment->insert(krole, Marshal::OctetsStream()<<arg->syncdata.equipment, txn);
+				WriteRestSyncData(pstorehouse, plog, arg->roleid, arg->syncdata, delta, txn);
+				res->syncdata.data_mask = arg->syncdata.data_mask;
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, 
+				"DBAuctionOpen, roleid=%d, auctionid=%d, category=%d pos=%d count=%d deposit=%d what=%s.\n",
+				arg->roleid, arg->auctionid, arg->category, arg->item_pos, arg->item_num, arg->deposit, 
+				e.what() );
+			res->retcode = ERR_EXCEPTION;
+			res->syncdata.inventory.money = orignal_money;
+			res->syncdata.inventory.items.clear();
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

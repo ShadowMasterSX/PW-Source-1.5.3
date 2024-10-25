@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBBATTLEMAIL_HPP
+#define __GNET_DBBATTLEMAIL_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbbattlemailarg"
+#include "dbbattlemailres"
+
+namespace GNET
+{
+
+class DBBattleMail : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbbattlemail"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBBattleMailArg *arg = (DBBattleMailArg *)argument;
+		// DBBattleMailRes *res = (DBBattleMailRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBBattleMailArg *arg = (DBBattleMailArg *)argument;
+		// DBBattleMailRes *res = (DBBattleMailRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

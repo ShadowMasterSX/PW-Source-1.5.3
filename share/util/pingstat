@@ -1,0 +1,61 @@
+#!/usr/bin/perl
+
+use FileHandle;
+
+#### out put of '/bin/ping -q -c 50 -i 6 gs10'
+#PING gs10 (172.16.2.110) 56(84) bytes of data.
+#
+#--- gs10 ping statistics ---
+#50 packets transmitted, 50 received, 0% packet loss, time 294361ms
+#rtt min/avg/max/mdev = 0.170/0.471/1.029/0.179 ms, pipe 2
+
+
+my $host;
+$host = $ARGV[0] if( @ARGV > 0 );
+exit(-1) if( not defined $host );
+
+my $from;
+$from = $ARGV[1] if( @ARGV > 1 );
+
+my $cmd;
+my $filename;
+
+if( not $from )
+{
+	$cmd = "/bin/ping -q -c 50 -i 5 $host";
+	$filename = "ping.$host";
+}
+else
+{
+	$cmd = "/usr/bin/rsh $from /bin/ping -q -c 50 -i 5 $host";
+	$filename = "ping.$host.$from";
+}
+
+my $result = qx/$cmd/;
+
+my @loss = ($result =~ /.+received,\s+([0-9.]+)%\s+packet/);
+my @time = ($result =~ /.+min\/avg\/max\/mdev\s+=\s+([0-9.]+)\/([0-9.]+)\/([0-9.]+)\/([0-9.]+)\s+/);
+
+my @values = @loss;
+push( @values, @time );
+
+# save to file
+my $home = $ENV{HOME}; 
+mkdir("$home/tmp") if( not -f "$home/tmp" );
+
+mkdir('/tmp/pingtmp/');
+chmod( 0755, '/tmp/pingtmp' );
+my $file = new FileHandle;
+if( $file->open( "> /tmp/pingtmp/$filename" ) )
+{
+	$file->print( ':' . time() . ':' );
+	my $i;
+	for( $i=0; $i<5; $i ++ )
+	{   
+		$values[$i] = 0 if( not $values[$i] );
+		$file->print( $values[$i] . ':' );
+	}
+	$file->close();
+}
+
+

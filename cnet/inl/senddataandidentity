@@ -1,0 +1,107 @@
+	public:
+		int roleid;
+		int remote_roleid;
+		int userid;
+		int src_zoneid;
+		int ip;
+		Octets iseckey;
+		Octets oseckey;
+		Octets account;
+		Octets random;
+		char flag;
+		CrossPlayerData data;
+		int data_timestamp;
+		int logintime;
+		char au_IsGM;
+		int au_func;
+		int au_funcparm;
+		ByteVector auth;
+		char usbbind;
+		int reward_mask;
+		GRoleForbid forbid_talk;
+		enum { PROTOCOL_TYPE = PROTOCOL_SENDDATAANDIDENTITY };
+	public:
+		SendDataAndIdentity() { type = PROTOCOL_SENDDATAANDIDENTITY; }
+		SendDataAndIdentity(void*) : Protocol(PROTOCOL_SENDDATAANDIDENTITY) { }
+		SendDataAndIdentity (int l_roleid,int l_remote_roleid = 0,int l_userid = 0,
+			int l_src_zoneid = 0,int l_ip = 0,const Octets& l_iseckey = Octets(),
+			const Octets& l_oseckey = Octets(),const Octets& l_account = Octets(),const Octets& l_random = Octets(),
+			char l_flag = 0,const CrossPlayerData& l_data = CrossPlayerData(),int l_data_timestamp = 0,
+			int l_logintime = 0,char l_au_IsGM = 0,int l_au_func = 0,
+			int l_au_funcparm = 0,const ByteVector& l_auth = ByteVector(),char l_usbbind = 0,
+			int l_reward_mask = 0,const GRoleForbid& l_forbid_talk = GRoleForbid())
+			 : roleid(l_roleid),remote_roleid(l_remote_roleid),userid(l_userid)
+			,src_zoneid(l_src_zoneid),ip(l_ip),iseckey(l_iseckey)
+			,oseckey(l_oseckey),account(l_account),random(l_random)
+			,flag(l_flag),data(l_data),data_timestamp(l_data_timestamp)
+			,logintime(l_logintime),au_IsGM(l_au_IsGM),au_func(l_au_func)
+			,au_funcparm(l_au_funcparm),auth(l_auth),usbbind(l_usbbind)
+			,reward_mask(l_reward_mask),forbid_talk(l_forbid_talk)
+		{
+			type = PROTOCOL_SENDDATAANDIDENTITY;
+		}
+
+		SendDataAndIdentity(const SendDataAndIdentity &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),remote_roleid(rhs.remote_roleid),userid(rhs.userid)
+			,src_zoneid(rhs.src_zoneid),ip(rhs.ip),iseckey(rhs.iseckey)
+			,oseckey(rhs.oseckey),account(rhs.account),random(rhs.random)
+			,flag(rhs.flag),data(rhs.data),data_timestamp(rhs.data_timestamp)
+			,logintime(rhs.logintime),au_IsGM(rhs.au_IsGM),au_func(rhs.au_func)
+			,au_funcparm(rhs.au_funcparm),auth(rhs.auth),usbbind(rhs.usbbind)
+			,reward_mask(rhs.reward_mask),forbid_talk(rhs.forbid_talk) { }
+
+		GNET::Protocol *Clone() const { return new SendDataAndIdentity(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << remote_roleid;
+			os << userid;
+			os << src_zoneid;
+			os << ip;
+			os << iseckey;
+			os << oseckey;
+			os << account;
+			os << random;
+			os << flag;
+			os << data;
+			os << data_timestamp;
+			os << logintime;
+			os << au_IsGM;
+			os << au_func;
+			os << au_funcparm;
+			os << auth;
+			os << usbbind;
+			os << reward_mask;
+			os << forbid_talk;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> remote_roleid;
+			os >> userid;
+			os >> src_zoneid;
+			os >> ip;
+			os >> iseckey;
+			os >> oseckey;
+			os >> account;
+			os >> random;
+			os >> flag;
+			os >> data;
+			os >> data_timestamp;
+			os >> logintime;
+			os >> au_IsGM;
+			os >> au_func;
+			os >> au_funcparm;
+			os >> auth;
+			os >> usbbind;
+			os >> reward_mask;
+			os >> forbid_talk;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1048576; }

@@ -1,0 +1,95 @@
+#ifndef __GNET_GFACTIONINFO_RPCDATA
+#define __GNET_GFACTIONINFO_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmember"
+#include "gmember"
+
+namespace GNET
+{
+	class GFactionInfo : public GNET::Rpc::Data
+	{
+	public:
+		unsigned int fid;
+		Octets name;
+		char level;
+		GMember master;
+		GMemberVector member;
+		Octets announce;
+		Octets sysinfo;
+
+	public:
+		GFactionInfo (unsigned int l_fid = 0,const Octets& l_name = Octets(0),char l_level = 0
+			,GMember l_master = 0)
+			: fid(l_fid),name(l_name),level(l_level)
+			,master(l_master)
+		{
+		}
+
+		GFactionInfo(const GFactionInfo &rhs)
+			: fid(rhs.fid),name(rhs.name),level(rhs.level),
+			master(rhs.master),member(rhs.member),announce(rhs.announce),
+			sysinfo(rhs.sysinfo) { }
+
+		Rpc::Data *Clone() const { return new GFactionInfo(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GFactionInfo *r = dynamic_cast<const GFactionInfo *>(&rhs);
+			if (r && r != this)
+			{
+				fid = r->fid;
+				name = r->name;
+				level = r->level;
+				master = r->master;
+				member = r->member;
+				announce = r->announce;
+				sysinfo = r->sysinfo;
+			}
+			return *this;
+		}
+
+		GFactionInfo& operator = (const GFactionInfo &rhs)
+		{
+			const GFactionInfo *r = &rhs;
+			if (r && r != this)
+			{
+				fid = r->fid;
+				name = r->name;
+				level = r->level;
+				master = r->master;
+				member = r->member;
+				announce = r->announce;
+				sysinfo = r->sysinfo;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << fid;
+			os << name;
+			os << level;
+			os << master;
+			os << member;
+			os << announce;
+			os << sysinfo;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> fid;
+			os >> name;
+			os >> level;
+			os >> master;
+			os >> member;
+			os >> announce;
+			os >> sysinfo;
+			return os;
+		}
+
+	};
+};
+#endif

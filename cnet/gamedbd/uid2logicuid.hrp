@@ -1,0 +1,69 @@
+
+#ifndef __GNET_UID2LOGICUID_HPP
+#define __GNET_UID2LOGICUID_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "uid2logicuidarg"
+#include "uid2logicuidres"
+
+namespace GNET
+{
+
+class Uid2Logicuid : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "uid2logicuid"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		Uid2LogicuidArg *arg = (Uid2LogicuidArg *)argument;
+		Uid2LogicuidRes *res = (Uid2LogicuidRes *)result;
+
+		LOG_TRACE( "Uid2Logicuid, userid=%d.\n", arg->userid );
+
+		try
+		{
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("user");
+			StorageEnv::AtomTransaction txn;
+			try
+			{
+				User	user;
+				Marshal::OctetsStream(pbase->find( Marshal::OctetsStream()<<arg->userid, txn )) >> user;
+				res->logicuid = user.logicuid;
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "Uid2Logicuid, userid=%d, what=%s\n", arg->userid, e.what() );
+			res->retcode = ERR_DATANOTFIND;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// Uid2LogicuidArg *arg = (Uid2LogicuidArg *)argument;
+		// Uid2LogicuidRes *res = (Uid2LogicuidRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

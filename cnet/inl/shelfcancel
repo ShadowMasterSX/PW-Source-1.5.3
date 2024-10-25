@@ -1,0 +1,56 @@
+	public:
+		int userid;
+		int64_t roleid;
+		int64_t sn;
+		int64_t messageid;
+		int64_t timestamp;
+		int reserved1;
+		int reserved2;
+		enum { PROTOCOL_TYPE = PROTOCOL_SHELFCANCEL };
+	public:
+		ShelfCancel() { type = PROTOCOL_SHELFCANCEL; }
+		ShelfCancel(void*) : Protocol(PROTOCOL_SHELFCANCEL) { }
+		ShelfCancel (int l_userid,int64_t l_roleid,int64_t l_sn,
+			int64_t l_messageid,int64_t l_timestamp,int l_reserved1 = 0,
+			int l_reserved2 = 0)
+			 : userid(l_userid),roleid(l_roleid),sn(l_sn)
+			,messageid(l_messageid),timestamp(l_timestamp),reserved1(l_reserved1)
+			,reserved2(l_reserved2)
+		{
+			type = PROTOCOL_SHELFCANCEL;
+		}
+
+		ShelfCancel(const ShelfCancel &rhs)
+			: Protocol(rhs),userid(rhs.userid),roleid(rhs.roleid),sn(rhs.sn)
+			,messageid(rhs.messageid),timestamp(rhs.timestamp),reserved1(rhs.reserved1)
+			,reserved2(rhs.reserved2) { }
+
+		GNET::Protocol *Clone() const { return new ShelfCancel(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			os << roleid;
+			os << sn;
+			os << messageid;
+			os << timestamp;
+			os << reserved1;
+			os << reserved2;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			os >> roleid;
+			os >> sn;
+			os >> messageid;
+			os >> timestamp;
+			os >> reserved1;
+			os >> reserved2;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 128; }

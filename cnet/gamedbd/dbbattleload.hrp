@@ -1,0 +1,70 @@
+
+#ifndef __GNET_DBBATTLELOAD_HPP
+#define __GNET_DBBATTLELOAD_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "gterritorydetail"
+#include "gterritorystore"
+#include "dbbattleloadarg"
+#include "dbbattleloadres"
+
+namespace GNET
+{
+
+class DBBattleLoad : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbbattleload"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBBattleLoadRes *res = (DBBattleLoadRes *)result;
+		try
+		{
+			StorageEnv::Storage * pcity = StorageEnv::GetStorage("city");
+			StorageEnv::AtomTransaction txn;
+			Marshal::OctetsStream value;
+			GTerritoryStore store;
+			try{
+				if(pcity->find(Marshal::OctetsStream()<<0,value,txn))
+				{
+					value >> store;
+					res->cities.swap(store.cities);
+				}
+				res->retcode = ERR_SUCCESS;
+				LOG_TRACE("DBBattleLoad, count=%d.", res->cities.size());
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBBattleLoad, what=%s\n", e.what() );
+			if(e.get_errno()==DB_LOCK_DEADLOCK)
+				res->retcode = ERR_AGAIN;
+			else
+				res->retcode = ERR_EXCEPTION;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

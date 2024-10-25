@@ -1,0 +1,88 @@
+#ifndef __GNET_TRADESAVEARG_RPCDATA
+#define __GNET_TRADESAVEARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "groleinventory"
+
+namespace GNET
+{
+	class TradeSaveArg : public GNET::Rpc::Data
+	{
+	public:
+		unsigned int roleid1;
+		unsigned int roleid2;
+		unsigned int money1;
+		unsigned int money2;
+		std::vector<GRoleInventory> goods1;
+		std::vector<GRoleInventory> goods2;
+
+	public:
+		TradeSaveArg (unsigned int l_roleid1 = 0,unsigned int l_roleid2 = 0,unsigned int l_money1 = 0
+			,unsigned int l_money2 = 0)
+			: roleid1(l_roleid1),roleid2(l_roleid2),money1(l_money1)
+			,money2(l_money2)
+		{
+		}
+
+		TradeSaveArg(const TradeSaveArg &rhs)
+			: roleid1(rhs.roleid1),roleid2(rhs.roleid2),money1(rhs.money1),
+			money2(rhs.money2),goods1(rhs.goods1),goods2(rhs.goods2) { }
+
+		Rpc::Data *Clone() const { return new TradeSaveArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const TradeSaveArg *r = dynamic_cast<const TradeSaveArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid1 = r->roleid1;
+				roleid2 = r->roleid2;
+				money1 = r->money1;
+				money2 = r->money2;
+				goods1 = r->goods1;
+				goods2 = r->goods2;
+			}
+			return *this;
+		}
+
+		TradeSaveArg& operator = (const TradeSaveArg &rhs)
+		{
+			const TradeSaveArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid1 = r->roleid1;
+				roleid2 = r->roleid2;
+				money1 = r->money1;
+				money2 = r->money2;
+				goods1 = r->goods1;
+				goods2 = r->goods2;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid1;
+			os << roleid2;
+			os << money1;
+			os << money2;
+			os << goods1;
+			os << goods2;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid1;
+			os >> roleid2;
+			os >> money1;
+			os >> money2;
+			os >> goods1;
+			os >> goods2;
+			return os;
+		}
+
+	};
+};
+#endif

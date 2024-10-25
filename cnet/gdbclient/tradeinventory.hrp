@@ -1,0 +1,51 @@
+
+#ifndef __GNET_TRADEINVENTORY_HPP
+#define __GNET_TRADEINVENTORY_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#ifdef USE_BDB
+#include "dbbuffer.h"
+#endif
+#include "tradeinventoryarg"
+#include "tradeinventoryres"
+
+namespace GNET
+{
+
+class TradeInventory : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "tradeinventory"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+#ifdef USE_BDB
+		TradeInventoryArg *arg = (TradeInventoryArg *)argument;
+		TradeInventoryRes *res = (TradeInventoryRes *)result;
+		Marshal::OctetsStream key, value;
+		key << *arg;
+		res->retcode = DBBuffer::buf_find( "inventory", key, value );
+		if( 0 == res->retcode )
+			value >> res->goods1;
+#endif
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// TradeInventoryArg *arg = (TradeInventoryArg *)argument;
+		// TradeInventoryRes *res = (TradeInventoryRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

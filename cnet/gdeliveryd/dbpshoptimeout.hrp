@@ -1,0 +1,63 @@
+#ifndef __GNET_DBPSHOPTIMEOUT_HPP
+#define __GNET_DBPSHOPTIMEOUT_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbpshoptimeoutarg"
+#include "dbpshoptimeoutres"
+#include "postoffice.h"
+#include "gamedbclient.hpp"
+
+namespace GNET
+{
+
+class DBPShopTimeout : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbpshoptimeout"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBPShopTimeoutArg *arg = (DBPShopTimeoutArg *)argument;
+		// DBPShopTimeoutRes *res = (DBPShopTimeoutRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBPShopTimeoutArg *arg = (DBPShopTimeoutArg *)argument;
+		DBPShopTimeoutRes *res = (DBPShopTimeoutRes *)result;
+		LOG_TRACE("DBPShopTimeout: RPC return, roleid=%d retcode=%d", arg->roleid, res->retcode);
+		if(res->retcode == ERR_SUCCESS)
+		{
+			for(size_t i=0; i<res->maillist.size(); ++i)
+			{
+				const GMailHeader &header = res->maillist[i];
+				PostOffice::GetInstance().AddNewMail(header.receiver, header);
+			}
+		}
+		else if(res->retcode == ERR_AGAIN)
+		{
+			//DB死锁,再次请求
+			GameDBClient::GetInstance()->SendProtocol(Rpc::Call(RPC_DBPSHOPTIMEOUT,arg));
+		}
+		else if(res->retcode == ERR_PLAYERSHOP_NOTFIND)
+		{
+			//不处理
+			//超时多次向DB请求造成
+			Log::log(LOG_ERR, "DBPShopTimeout: roleid=%d pshop opt%d no find.",arg->roleid, arg->delflag);
+		}
+	}
+
+	void OnTimeout()
+	{
+		DBPShopTimeoutArg *arg = (DBPShopTimeoutArg *)argument;
+		Log::log(LOG_WARNING, "DBPShopTimeout: Timeout, roleid=%d, but Announce to DBServer failed.",arg->roleid);
+		GameDBClient::GetInstance()->SendProtocol(Rpc::Call(RPC_DBPSHOPTIMEOUT,arg));
+	}
+};
+
+};
+#endif

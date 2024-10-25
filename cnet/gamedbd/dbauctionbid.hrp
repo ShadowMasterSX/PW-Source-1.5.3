@@ -1,0 +1,159 @@
+
+#ifndef __GNET_DBAUCTIONBID_HPP
+#define __GNET_DBAUCTIONBID_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbauctionbidarg"
+#include "dbauctionbidres"
+#include "utilfunction.h"
+
+namespace GNET
+{
+
+class DBAuctionBid : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbauctionbid"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBAuctionBidArg *arg = (DBAuctionBidArg *)argument;
+		DBAuctionBidRes *res = (DBAuctionBidRes *)result;
+		unsigned int orignal_money = arg->syncdata.inventory.money;
+		Marshal::OctetsStream key,krole;
+		Marshal::OctetsStream data;
+
+		try
+		{
+			StorageEnv::Storage * pauction = StorageEnv::GetStorage("auction");
+			StorageEnv::Storage * pinventory = StorageEnv::GetStorage("inventory");
+			StorageEnv::Storage * pequipment = StorageEnv::GetStorage("equipment");
+			StorageEnv::Storage * pmailbox = StorageEnv::GetStorage("mailbox");
+			StorageEnv::Storage * pstorehouse = StorageEnv::GetStorage("storehouse");
+			StorageEnv::Storage * plog = arg->syncdata.logs.size()?StorageEnv::GetStorage("shoplog"):NULL;
+			StorageEnv::CommonTransaction txn;
+			int delta = 0;
+			try{
+				GAuctionDetail detail;
+				GRolePocket pocket;
+
+				res->inform_loser.receiver  = _ROLE_INVALID;
+				res->inform_winner.receiver = _ROLE_INVALID;
+				res->inform_seller.receiver = _ROLE_INVALID;
+
+				key << arg->auctionid;
+				krole << arg->roleid;
+				Marshal::OctetsStream(pauction->find( key, txn)) >> detail;
+
+				if(detail.info.seller==(unsigned int)arg->roleid)
+					throw DbException(DB_VERIFY_BAD);
+
+				res->bidprice = detail.info.bidprice;
+				res->extend_time = 0;
+				if(arg->bidprice<detail.baseprice||arg->syncdata.inventory.money<arg->bidprice)
+					throw DbException(DB_VERIFY_BAD);
+				if(detail.info.binprice<detail.info.bidprice || arg->bidprice < detail.info.binprice)
+				{
+					if(detail.info.bidder!=0)
+					{
+						if(1.04*(detail.info.bidprice-1) + 1  > arg->bidprice)
+							throw DbException(DB_VERIFY_BAD);
+					}else if(detail.info.bidprice>arg->bidprice)
+							throw DbException(DB_VERIFY_BAD);
+				}
+				data << (unsigned int)arg->auctionid << (unsigned int)detail.item.id 
+					<< (unsigned int)detail.item.count;
+				Log::formatlog("auctionbid","timestamp=%u:mask=%d:roleid=%d:aid=%d:price=%d:bid=%d:"
+					"bin=%d:seller=%d:pre_bidder=%d",
+					arg->syncdata.inventory.timestamp,arg->syncdata.data_mask, arg->roleid, 
+					arg->auctionid, arg->bidprice, detail.info.bidprice, detail.info.binprice, 
+					detail.info.seller, detail.info.bidder);
+				Marshal::OctetsStream(pinventory->find(krole,txn)) >> pocket;
+				if(arg->syncdata.inventory.timestamp <= pocket.timestamp)
+				{
+					Log::log(LOG_ERR,"DBAuctionOpen, timestamp mismatch. %d<%d",
+							arg->syncdata.inventory.timestamp, pocket.timestamp);
+					throw DbException(DB_VERIFY_BAD);
+				}
+				delta = arg->syncdata.inventory.money - pocket.money;
+
+				if(detail.info.bidder!=0)
+				{
+					res->inform_loser.receiver = detail.info.bidder;
+					res->inform_loser.sndr_type = _MST_AUCTION;
+					res->inform_loser.sender = _AUCTION_BID_LOSE;
+					res->inform_loser.title = data;
+					MailSender::Send(pmailbox, res->inform_loser, detail.info.bidprice, txn); 
+				}
+
+				arg->syncdata.inventory.money -= arg->bidprice;
+				res->syncdata.inventory.money = arg->syncdata.inventory.money;
+				pinventory->insert(krole, Marshal::OctetsStream()<<arg->syncdata.inventory, txn);
+				pequipment->insert(krole, Marshal::OctetsStream()<<arg->syncdata.equipment, txn);
+
+				WriteRestSyncData(pstorehouse, plog, arg->roleid, arg->syncdata, delta, txn);
+
+				if(detail.info.binprice>=detail.info.bidprice && arg->bidprice >= detail.info.binprice)
+				{
+					res->inform_seller.receiver = detail.info.seller;
+					res->inform_seller.sndr_type = _MST_AUCTION;
+					res->inform_seller.sender = _AUCTION_ITEM_SOLD;
+					res->inform_seller.title = data;
+					MailSender::Send(pmailbox,res->inform_seller, (int)(arg->bidprice*0.95+0.5), txn); 
+
+					pauction->del(key,txn);
+					res->inform_winner.receiver = arg->roleid;
+					res->inform_winner.sndr_type = _MST_AUCTION;
+					res->inform_winner.sender = _AUCTION_BID_WIN;
+					res->inform_winner.title = data;
+					MailSender::Send(pmailbox,res->inform_winner, detail.item, 0, txn); 
+					res->retcode = ERR_AS_BID_BINSUCCESS;
+				}else{
+					if(detail.info.end_time-Timer::GetTime()<1200 && detail.prolong<7200)
+					{
+						detail.prolong += 1200;
+						detail.info.end_time += 1200;
+						res->extend_time = 1200;
+					}
+					detail.info.bidder = arg->roleid;
+					detail.info.bidprice = arg->bidprice;
+					res->bidprice = detail.info.bidprice;
+					pauction->insert(key,Marshal::OctetsStream()<<detail,txn);
+					res->retcode = ERR_SUCCESS;
+				}
+				res->syncdata.data_mask = arg->syncdata.data_mask;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBAuctionBid, roleid=%d, auctionid=%d, what=%s.\n",
+					arg->roleid,arg->auctionid,e.what());
+			res->syncdata.inventory.money = orignal_money;
+			res->retcode = ERR_AS_BID_LOWBID;
+		}
+		res->syncdata.inventory.items.clear();
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

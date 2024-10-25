@@ -1,0 +1,228 @@
+
+#ifndef __GNET_DBPLAYERGIVEPRESENT_HPP
+#define __GNET_DBPLAYERGIVEPRESENT_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbplayergivepresentarg"
+#include "dbplayergivepresentres"
+
+namespace GNET
+{
+
+class DBPlayerGivePresent : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbplayergivepresent"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBPlayerGivePresentArg *arg = (DBPlayerGivePresentArg *)argument;
+		DBPlayerGivePresentRes *res = (DBPlayerGivePresentRes *)result;
+		
+		unsigned int orignal_money = arg->syncdata.inventory.money;
+		
+		LOG_TRACE("DBPlayerGivePresent, roleid=%d userid=%d troleid= %d cashcost=%d logprice1=%d logprice2=%d", arg->roleid, arg->userid, arg->target_roleid, arg->cash_cost, arg->log_price1, arg->log_price2);
+		
+		Marshal::OctetsStream key, krole, title, ktargetrole;
+		int money_delta = 0;
+		try
+		{
+			StorageEnv::Storage * puser = StorageEnv::GetStorage("user");
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::Storage * pinventory = StorageEnv::GetStorage("inventory");
+			StorageEnv::Storage * pequipment = StorageEnv::GetStorage("equipment");
+			StorageEnv::Storage * pstorehouse = StorageEnv::GetStorage("storehouse");
+			StorageEnv::Storage * plog = arg->syncdata.logs.size()?StorageEnv::GetStorage("shoplog"):NULL;
+			StorageEnv::Storage * pmailbox = StorageEnv::GetStorage("mailbox");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				key << arg->userid;
+				krole << arg->roleid;
+				ktargetrole << arg->target_roleid;
+				
+				//验证参数是否正确
+				if ((arg->has_gift && arg->goods.size() != 2) ||
+						(!arg->has_gift && arg->goods.size() != 1))
+					throw DbException(DB_VERIFY_BAD);
+
+				//先验证赠送对象是否存在，赠送对象roleid是客户端从服务器查询过的，所以理论上不会有问题
+				Marshal::OctetsStream base_value;
+				if (!pbase->find(ktargetrole, base_value, txn))
+					throw DbException(DB_VERIFY_BAD);
+				
+				//检查赠送对象的邮箱状态
+				time_t now = Timer::GetTime();
+				Marshal::OctetsStream mailvalue;
+				GMailBox box;
+				if(pmailbox->find(ktargetrole,mailvalue,txn))
+					mailvalue >> box;
+				else
+				{
+					box.timestamp = now;
+					box.mails.clear();
+				}
+
+				int size = box.mails.size();
+                if (size > (SYS_MAIL_LIMIT - 2)) {	//赠送对象邮箱放不下2封邮件了
+                    res->retcode = ERR_GP_GIVE_TARGET_MAILBOX_FULL;
+                    res->syncdata.inventory.money = orignal_money;
+                    res->syncdata.inventory.items.clear();
+                }
+                else if (now-box.timestamp > 2592000)	//赠送对象角色被冻结
+                {
+                    res->retcode = ERR_MS_ACCOUNTFROZEN;
+                    res->syncdata.inventory.money = orignal_money;
+                    res->syncdata.inventory.items.clear();
+                }
+				else
+				{
+					GRolePocket pocket;
+					Marshal::OctetsStream(pinventory->find(krole,txn)) >> pocket;
+					if(arg->syncdata.inventory.timestamp <= pocket.timestamp)
+					{
+						Log::log(LOG_ERR,"DBPlayerGivePresent, timestamp mismatch. %d<%d",
+								arg->syncdata.inventory.timestamp, pocket.timestamp);
+						throw DbException(DB_VERIFY_BAD);
+					}
+					money_delta = arg->syncdata.inventory.money - pocket.money;
+
+					User u;
+					Marshal::OctetsStream(puser->find(key,txn))>>u;
+					GSysAuctionCash sa_cash;
+					if(u.cash_sysauction.size())
+						Marshal::OctetsStream(u.cash_sysauction)>>sa_cash;
+					unsigned int pocket_cash = arg->syncdata.cash_total-arg->syncdata.cash_used;
+					if (arg->cash_cost > pocket_cash)
+						throw DbException(DB_VERIFY_BAD);
+					if(arg->syncdata.cash_serial < u.use_serial || arg->syncdata.cash_used < u.cash_used)
+						throw DbException(DB_VERIFY_BAD);
+
+					GRoleInventory & goods = arg->goods[0];
+					
+					//如果是索取之后赠送的话检查索取邮件是否存在
+					Marshal::OctetsStream mailvalue2;
+					GMailBox box2;
+					bool found = false;
+					GMailVector::iterator i,ie;
+					if (arg->mail_id >= 0)
+					{
+						if(pmailbox->find(krole,mailvalue2,txn))
+							mailvalue2 >> box2;
+						for(i=box2.mails.begin(),ie=box2.mails.end();i!=ie;i++)
+						{
+							if(i->header.id==arg->mail_id)
+							{
+								if (i->header.sndr_type == _MST_PLAYERPRESENT && i->header.sender == PLAYERPRESENT_ASK)
+								{
+									Marshal::OctetsStream os(i->header.title);
+									int troleid = 0,titem_id=0;
+									os >> troleid >> titem_id;
+									if (troleid == arg->target_roleid && titem_id == (int)goods.id)
+									{
+										found = true;
+										break;
+									}
+								}
+							}
+						}
+						if (!found)
+							throw DbException(DB_VERIFY_BAD);
+					}
+
+					//发赠送物品的邮件
+					title << arg->roleid << goods.id << goods.count;
+					res->inform_target.receiver = arg->target_roleid;
+					res->inform_target.sndr_type = _MST_PLAYERPRESENT;
+					res->inform_target.sender = PLAYERPRESENT_GIVE;
+					res->inform_target.sender_name = arg->rolename;
+					res->inform_target.title = title;
+					MailSender::Send(pmailbox, res->inform_target, goods, 0, txn);
+
+					if (arg->has_gift)
+					{
+						//发赠送礼品的邮件
+						title.clear();
+						GRoleInventory & gift = arg->goods[1];
+						title << arg->roleid << gift.id << gift.count;
+						res->inform_target2.receiver = arg->target_roleid;
+						res->inform_target2.sndr_type = _MST_PLAYERPRESENT;
+						res->inform_target2.sender = PLAYERPRESENT_GIVE;
+						res->inform_target2.sender_name = arg->rolename;
+						res->inform_target2.title = title;
+						MailSender::Send(pmailbox, res->inform_target2, gift, 0, txn);
+					}
+
+					//删除索取邮件
+					if (arg->mail_id >= 0)
+					{
+						box2.timestamp = now;
+						box2.mails.erase(i);
+						pmailbox->insert(krole,Marshal::OctetsStream()<<box2, txn);
+					}
+					
+					//更新玩家的cash
+					unsigned int cash_used = arg->syncdata.cash_used + arg->cash_cost;
+					GameDBManager::GetInstance()->UpdateCash(cash_used - u.cash_used);
+					u.cash_used = cash_used;
+					u.use_serial = arg->syncdata.cash_serial + 1; //由于是在db操作的金钱，所以在这里进行流水号加1
+					puser->insert(key, Marshal::OctetsStream()<<u, txn);
+
+					pinventory->insert(krole, Marshal::OctetsStream()<<arg->syncdata.inventory, txn);
+					pequipment->insert(krole, Marshal::OctetsStream()<<arg->syncdata.equipment, txn);
+					WriteRestSyncData(pstorehouse, plog, arg->roleid, arg->syncdata, money_delta, txn);
+					
+					res->retcode = ERR_SUCCESS;
+					res->syncdata.cash_total = u.cash_add+u.cash_buy-u.cash_sell-sa_cash.cash_used_2-u.cash-sa_cash.cash_2; 
+					res->syncdata.cash_used = cash_used; 
+					res->syncdata.inventory.money = arg->syncdata.inventory.money;
+					res->syncdata.data_mask = arg->syncdata.data_mask | SYNC_MODIFYCASHUSED;
+					Log::formatlog("dbplayergivepresent","roleid=%d:target_roleid=%d:cash_cost=%d:cash_total=%d:cash_used=%d:pocket_cash=%d",arg->roleid,arg->target_roleid,arg->cash_cost,res->syncdata.cash_total,cash_used,res->syncdata.cash_total-res->syncdata.cash_used);
+					//记个购买商城物品log,与gs所记的相同
+					int cash_left = (int)pocket_cash - arg->log_price1;
+					Log::formatlog("gshop_trade","userid=%d:db_magic_number=%d:order_id=%d:item_id=%d:expire=%d:item_count=%d:cash_need=%d:cash_left=%d:guid1=%d:guid2=%d",arg->roleid, arg->userid, arg->syncdata.cash_serial, goods.id, goods.expire_date, goods.count, arg->log_price1, cash_left, goods.guid1, goods.guid2);
+					if (arg->has_gift)
+					{
+						GRoleInventory & gift = arg->goods[1];
+						cash_left -= arg->log_price2;
+						Log::formatlog("gshop_trade","userid=%d:db_magic_number=%d:order_id=%d:item_id=%d:expire=%d:item_count=%d:cash_need=%d:cash_left=%d:guid1=%d:guid2=%d",arg->roleid, arg->userid, arg->syncdata.cash_serial, gift.id, gift.expire_date, gift.count, arg->log_price2, cash_left, gift.guid1, gift.guid2);
+					}
+				}
+			}
+			catch( DbException e ) { throw; }
+			catch( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch( DbException e )
+		{
+			Log::log( LOG_ERR, "DBPlayerGivePresent, roleid=%d, what=%s\n", arg->roleid, e.what() );
+			res->retcode = ERR_VERIFYFAILED;
+			res->syncdata.inventory.money = orignal_money;
+			res->syncdata.inventory.items.clear();
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBPlayerGivePresentArg *arg = (DBPlayerGivePresentArg *)argument;
+		// DBPlayerGivePresentRes *res = (DBPlayerGivePresentRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

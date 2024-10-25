@@ -1,0 +1,64 @@
+#ifndef __GNET_GETROLEFORBIDRES_RPCDATA
+#define __GNET_GETROLEFORBIDRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "groleforbid"
+
+namespace GNET
+{
+	class GetRoleForbidRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		GRoleForbidVector value;
+
+	public:
+		GetRoleForbidRes ()
+		{
+		}
+
+		GetRoleForbidRes(const GetRoleForbidRes &rhs)
+			: retcode(rhs.retcode),value(rhs.value) { }
+
+		Rpc::Data *Clone() const { return new GetRoleForbidRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GetRoleForbidRes *r = dynamic_cast<const GetRoleForbidRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				value = r->value;
+			}
+			return *this;
+		}
+
+		GetRoleForbidRes& operator = (const GetRoleForbidRes &rhs)
+		{
+			const GetRoleForbidRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				value = r->value;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << value;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> value;
+			return os;
+		}
+
+	};
+};
+#endif

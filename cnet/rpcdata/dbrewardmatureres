@@ -1,0 +1,59 @@
+#ifndef __GNET_DBREWARDMATURERES_RPCDATA
+#define __GNET_DBREWARDMATURERES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBRewardMatureRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+
+	public:
+		DBRewardMatureRes (int l_retcode = 0)
+			: retcode(l_retcode)
+		{
+		}
+
+		DBRewardMatureRes(const DBRewardMatureRes &rhs)
+			: retcode(rhs.retcode) { }
+
+		Rpc::Data *Clone() const { return new DBRewardMatureRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBRewardMatureRes *r = dynamic_cast<const DBRewardMatureRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		DBRewardMatureRes& operator = (const DBRewardMatureRes &rhs)
+		{
+			const DBRewardMatureRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			return os;
+		}
+
+	};
+};
+#endif

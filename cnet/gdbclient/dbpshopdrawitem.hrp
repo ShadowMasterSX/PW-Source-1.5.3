@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBPSHOPDRAWITEM_HPP
+#define __GNET_DBPSHOPDRAWITEM_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbpshopdrawitemarg"
+#include "dbpshopdrawitemres"
+
+namespace GNET
+{
+
+class DBPShopDrawItem : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbpshopdrawitem"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBPShopDrawItemArg *arg = (DBPShopDrawItemArg *)argument;
+		// DBPShopDrawItemRes *res = (DBPShopDrawItemRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBPShopDrawItemArg *arg = (DBPShopDrawItemArg *)argument;
+		// DBPShopDrawItemRes *res = (DBPShopDrawItemRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

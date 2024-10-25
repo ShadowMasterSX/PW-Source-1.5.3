@@ -1,0 +1,50 @@
+	public:
+		int battle_id;
+		int map_type;
+		int battle_type;
+		unsigned int defender;
+		unsigned int attacker;
+		int end_time;
+		enum { PROTOCOL_TYPE = PROTOCOL_BATTLESTART };
+	public:
+		BattleStart() { type = PROTOCOL_BATTLESTART; }
+		BattleStart(void*) : Protocol(PROTOCOL_BATTLESTART) { }
+		BattleStart (int l_battle_id,int l_map_type,int l_battle_type,
+			unsigned int l_defender,unsigned int l_attacker,int l_end_time)
+			 : battle_id(l_battle_id),map_type(l_map_type),battle_type(l_battle_type)
+			,defender(l_defender),attacker(l_attacker),end_time(l_end_time)
+		{
+			type = PROTOCOL_BATTLESTART;
+		}
+
+		BattleStart(const BattleStart &rhs)
+			: Protocol(rhs),battle_id(rhs.battle_id),map_type(rhs.map_type),battle_type(rhs.battle_type)
+			,defender(rhs.defender),attacker(rhs.attacker),end_time(rhs.end_time) { }
+
+		GNET::Protocol *Clone() const { return new BattleStart(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << battle_id;
+			os << map_type;
+			os << battle_type;
+			os << defender;
+			os << attacker;
+			os << end_time;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> battle_id;
+			os >> map_type;
+			os >> battle_type;
+			os >> defender;
+			os >> attacker;
+			os >> end_time;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

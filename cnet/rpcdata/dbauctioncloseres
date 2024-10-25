@@ -1,0 +1,70 @@
+#ifndef __GNET_DBAUCTIONCLOSERES_RPCDATA
+#define __GNET_DBAUCTIONCLOSERES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailheader"
+
+namespace GNET
+{
+	class DBAuctionCloseRes : public GNET::Rpc::Data
+	{
+	public:
+		unsigned char retcode;
+		GMailHeader inform_seller;
+		GMailHeader inform_bidder;
+
+	public:
+		DBAuctionCloseRes (unsigned char l_retcode = 0,const GMailHeader& l_inform_seller = GMailHeader(),const GMailHeader& l_inform_bidder = GMailHeader())
+			: retcode(l_retcode),inform_seller(l_inform_seller),inform_bidder(l_inform_bidder)
+		{
+		}
+
+		DBAuctionCloseRes(const DBAuctionCloseRes &rhs)
+			: retcode(rhs.retcode),inform_seller(rhs.inform_seller),inform_bidder(rhs.inform_bidder) { }
+
+		Rpc::Data *Clone() const { return new DBAuctionCloseRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBAuctionCloseRes *r = dynamic_cast<const DBAuctionCloseRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				inform_seller = r->inform_seller;
+				inform_bidder = r->inform_bidder;
+			}
+			return *this;
+		}
+
+		DBAuctionCloseRes& operator = (const DBAuctionCloseRes &rhs)
+		{
+			const DBAuctionCloseRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				inform_seller = r->inform_seller;
+				inform_bidder = r->inform_bidder;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << inform_seller;
+			os << inform_bidder;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> inform_seller;
+			os >> inform_bidder;
+			return os;
+		}
+
+	};
+};
+#endif

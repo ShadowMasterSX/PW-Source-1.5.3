@@ -1,0 +1,58 @@
+
+#ifndef __GNET_DBFACTIONUPGRADE_HPP
+#define __GNET_DBFACTIONUPGRADE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbfactionupgradearg"
+#include "dbfactionupgraderes"
+#include "gfactiondbclient.hpp"
+
+namespace GNET
+{
+
+class DBFactionUpgrade : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbfactionupgrade"
+#undef	RPC_BASECLASS
+	OperWrapper::wref_t oper;
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBFactionUpgradeArg *arg = (DBFactionUpgradeArg *)argument;
+		DBFactionUpgradeRes *res = (DBFactionUpgradeRes *)result;
+		OperWrapper::href_t ref(oper);
+		if(ref)
+		{
+			ref->SetResult(result);
+			ref->Execute();
+		}
+		if(res->retcode==ERR_SUCCESS)
+			Factiondb::GetInstance()->OnUpgrade(arg->fid, res->level);
+		else if(res->retcode==ERR_OUTOFSYNC)
+		{
+			Log::log(LOG_ERR,"DBFactionUpgrade, outofsync factionid=%d.", arg->fid);
+			GFactionDBClient::GetInstance()->SendProtocol(Rpc::Call(RPC_GETFACTIONINFO,FactionId(arg->fid)));
+		}
+
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		DBFactionUpgradeArg *arg = (DBFactionUpgradeArg *)argument;
+		Log::log(LOG_ERR,"DBFactionUpgrade, timeout %d.", arg->fid);
+
+		GFactionDBClient::GetInstance()->SendProtocol(Rpc::Call(RPC_GETFACTIONINFO,FactionId(arg->fid)));
+	}
+
+};
+
+};
+#endif

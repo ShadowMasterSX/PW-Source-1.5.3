@@ -1,0 +1,127 @@
+#ifndef __GNET_DBPSHOPCREATE_HPP
+#define __GNET_DBPSHOPCREATE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbpshopcreatearg"
+#include "dbpshopcreateres"
+#include "pshopdetail"
+#include "utilfunction.h"
+
+namespace GNET
+{
+
+class DBPShopCreate : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbpshopcreate"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBPShopCreateArg *arg = (DBPShopCreateArg *)argument;
+		DBPShopCreateRes *res = (DBPShopCreateRes *)result;
+		unsigned int orignal_money = arg->syncdata.inventory.money;
+		try
+		{
+			StorageEnv::Storage * pinventory = StorageEnv::GetStorage("inventory");
+			StorageEnv::Storage * pequipment = StorageEnv::GetStorage("equipment");
+			StorageEnv::Storage * pstorehouse = StorageEnv::GetStorage("storehouse");
+			StorageEnv::Storage * plog = arg->syncdata.logs.size()?StorageEnv::GetStorage("shoplog"):NULL;
+			StorageEnv::Storage * pshop = StorageEnv::GetStorage("playershop");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				//是否有店铺
+				Marshal::OctetsStream key, value;
+				key << arg->roleid;
+				if(pshop->find(key, value, txn))
+				{
+					Log::log(LOG_ERR,"DBPShopCreate, shop exist. roleid=%d", arg->roleid);
+					throw DbException(DB_VERIFY_BAD);
+				}
+				
+				//获取包裹
+				key.clear();
+				key << arg->roleid;
+				GRolePocket pocket;
+				Marshal::OctetsStream(pinventory->find(key, txn)) >> pocket;
+				if(arg->syncdata.inventory.timestamp <= pocket.timestamp)
+				{
+					Log::log(LOG_ERR,"DBPShopCreate, timestamp mismatch. roleid=%d (%d<%d)",
+						arg->roleid, arg->syncdata.inventory.timestamp, pocket.timestamp);
+					throw DbException(DB_VERIFY_BAD);
+				}
+
+				int money_delta = arg->syncdata.inventory.money - pocket.money;
+
+				//扣除背包物品
+				GRoleInventory itemchange;
+				InvMan invman(arg->syncdata.inventory.items, arg->syncdata.inventory.capacity);
+				if(!invman.Remove(arg->item_id, arg->item_pos, arg->item_num, itemchange))
+				{	
+					Log::log(LOG_ERR,"DBPShopCreate, remove item from inventory fail roleid=%d item=%d pos=%d num=%d)",
+							arg->roleid, arg->item_id, arg->item_pos, arg->item_num);
+					throw DbException(DB_VERIFY_BAD);
+				}
+
+				res->syncdata.inventory.items.push_back(itemchange);
+
+				Log::formatlog("dbpshopcreate", "timestamp=%u:roleid=%d:item=%d:pos=%d:count=%d:createtime=%d",
+					arg->syncdata.inventory.timestamp,arg->roleid,arg->item_id,arg->item_pos,arg->item_num,arg->createtime);
+
+
+				//插入新店铺
+				PShopDetail shop;
+				shop.roleid = arg->roleid;
+				shop.shoptype  = arg->shoptype;
+				shop.status = PSHOP_STATUS_NORMAL;
+				shop.createtime = arg->createtime;
+				shop.expiretime = arg->createtime + PShopFunc::GetShopLifeByItem(arg->item_id);
+				pshop->insert(key, Marshal::OctetsStream()<<shop,txn);
+
+				//包裹/装备/仓库存盘
+				pinventory->insert(key, Marshal::OctetsStream()<<arg->syncdata.inventory,txn);
+				pequipment->insert(key, Marshal::OctetsStream()<<arg->syncdata.equipment,txn);
+				WriteRestSyncData(pstorehouse, plog, arg->roleid, arg->syncdata, money_delta, txn);
+
+				res->syncdata.inventory.money = arg->syncdata.inventory.money;
+				res->syncdata.data_mask = arg->syncdata.data_mask;
+				res->shop = shop;
+				res->retcode = ERR_SUCCESS;
+			}
+			catch(DbException e) { throw; }
+			catch(...)
+			{
+				DbException ee(DB_OLD_VERSION);
+				txn.abort(ee);
+				throw ee;
+			}
+		}
+		catch(DbException e)
+		{
+			Log::log(LOG_ERR, "DBPShopCreate, roleid=%d, what=%s\n", arg->roleid, e.what());
+			res->retcode = ERR_VERIFYFAILED;
+			res->syncdata.inventory.money = orignal_money;
+			res->syncdata.inventory.items.clear();
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBPShopCreateArg *arg = (DBPShopCreateArg *)argument;
+		// DBPShopCreateRes *res = (DBPShopCreateRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

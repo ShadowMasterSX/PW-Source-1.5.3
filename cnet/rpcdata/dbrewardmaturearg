@@ -1,0 +1,78 @@
+#ifndef __GNET_DBREWARDMATUREARG_RPCDATA
+#define __GNET_DBREWARDMATUREARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "grewarditem"
+
+namespace GNET
+{
+	class DBRewardMatureArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		int userid;
+		int bonus_reward;
+		GRewardItemVector rewardlist;
+
+	public:
+		DBRewardMatureArg (int l_roleid = 0,int l_userid = 0,int l_bonus_reward = 0
+			,const GRewardItemVector& l_rewardlist = GRewardItemVector())
+			: roleid(l_roleid),userid(l_userid),bonus_reward(l_bonus_reward)
+			,rewardlist(l_rewardlist)
+		{
+		}
+
+		DBRewardMatureArg(const DBRewardMatureArg &rhs)
+			: roleid(rhs.roleid),userid(rhs.userid),bonus_reward(rhs.bonus_reward),
+			rewardlist(rhs.rewardlist) { }
+
+		Rpc::Data *Clone() const { return new DBRewardMatureArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBRewardMatureArg *r = dynamic_cast<const DBRewardMatureArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				userid = r->userid;
+				bonus_reward = r->bonus_reward;
+				rewardlist = r->rewardlist;
+			}
+			return *this;
+		}
+
+		DBRewardMatureArg& operator = (const DBRewardMatureArg &rhs)
+		{
+			const DBRewardMatureArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				userid = r->userid;
+				bonus_reward = r->bonus_reward;
+				rewardlist = r->rewardlist;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << userid;
+			os << bonus_reward;
+			os << rewardlist;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> userid;
+			os >> bonus_reward;
+			os >> rewardlist;
+			return os;
+		}
+
+	};
+};
+#endif

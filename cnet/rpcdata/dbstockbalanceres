@@ -1,0 +1,75 @@
+#ifndef __GNET_DBSTOCKBALANCERES_RPCDATA
+#define __GNET_DBSTOCKBALANCERES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBStockBalanceRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		int volume_left;
+		int cash;
+		int money;
+
+	public:
+		DBStockBalanceRes (int l_volume_left = 0,int l_cash = 0,int l_money = 0)
+			: volume_left(l_volume_left),cash(l_cash),money(l_money)
+		{
+		}
+
+		DBStockBalanceRes(const DBStockBalanceRes &rhs)
+			: retcode(rhs.retcode),volume_left(rhs.volume_left),cash(rhs.cash),
+			money(rhs.money) { }
+
+		Rpc::Data *Clone() const { return new DBStockBalanceRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBStockBalanceRes *r = dynamic_cast<const DBStockBalanceRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				volume_left = r->volume_left;
+				cash = r->cash;
+				money = r->money;
+			}
+			return *this;
+		}
+
+		DBStockBalanceRes& operator = (const DBStockBalanceRes &rhs)
+		{
+			const DBStockBalanceRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				volume_left = r->volume_left;
+				cash = r->cash;
+				money = r->money;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << volume_left;
+			os << cash;
+			os << money;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> volume_left;
+			os >> cash;
+			os >> money;
+			return os;
+		}
+
+	};
+};
+#endif

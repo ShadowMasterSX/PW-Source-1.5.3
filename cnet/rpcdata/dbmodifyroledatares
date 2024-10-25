@@ -1,0 +1,64 @@
+#ifndef __GNET_DBMODIFYROLEDATARES_RPCDATA
+#define __GNET_DBMODIFYROLEDATARES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBModifyRoleDataRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		int64_t total_money;
+
+	public:
+		DBModifyRoleDataRes (int l_retcode = -1,int64_t l_total_money = 0)
+			: retcode(l_retcode),total_money(l_total_money)
+		{
+		}
+
+		DBModifyRoleDataRes(const DBModifyRoleDataRes &rhs)
+			: retcode(rhs.retcode),total_money(rhs.total_money) { }
+
+		Rpc::Data *Clone() const { return new DBModifyRoleDataRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBModifyRoleDataRes *r = dynamic_cast<const DBModifyRoleDataRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				total_money = r->total_money;
+			}
+			return *this;
+		}
+
+		DBModifyRoleDataRes& operator = (const DBModifyRoleDataRes &rhs)
+		{
+			const DBModifyRoleDataRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				total_money = r->total_money;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << total_money;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> total_money;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,78 @@
+#ifndef __GNET_DBWEBTRADESOLDRES_RPCDATA
+#define __GNET_DBWEBTRADESOLDRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailheader"
+
+namespace GNET
+{
+	class DBWebTradeSoldRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		GMailHeader inform_seller;
+		GMailHeader inform_buyer;
+		int buyer_roleid;
+
+	public:
+		DBWebTradeSoldRes (int l_retcode = 0,const GMailHeader& l_inform_seller = GMailHeader(),const GMailHeader& l_inform_buyer = GMailHeader()
+			,int l_buyer_roleid = 0)
+			: retcode(l_retcode),inform_seller(l_inform_seller),inform_buyer(l_inform_buyer)
+			,buyer_roleid(l_buyer_roleid)
+		{
+		}
+
+		DBWebTradeSoldRes(const DBWebTradeSoldRes &rhs)
+			: retcode(rhs.retcode),inform_seller(rhs.inform_seller),inform_buyer(rhs.inform_buyer),
+			buyer_roleid(rhs.buyer_roleid) { }
+
+		Rpc::Data *Clone() const { return new DBWebTradeSoldRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBWebTradeSoldRes *r = dynamic_cast<const DBWebTradeSoldRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				inform_seller = r->inform_seller;
+				inform_buyer = r->inform_buyer;
+				buyer_roleid = r->buyer_roleid;
+			}
+			return *this;
+		}
+
+		DBWebTradeSoldRes& operator = (const DBWebTradeSoldRes &rhs)
+		{
+			const DBWebTradeSoldRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				inform_seller = r->inform_seller;
+				inform_buyer = r->inform_buyer;
+				buyer_roleid = r->buyer_roleid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << inform_seller;
+			os << inform_buyer;
+			os << buyer_roleid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> inform_seller;
+			os >> inform_buyer;
+			os >> buyer_roleid;
+			return os;
+		}
+
+	};
+};
+#endif

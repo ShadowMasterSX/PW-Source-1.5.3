@@ -1,0 +1,60 @@
+#ifndef __GNET_CITYWAR_RPCDATA
+#define __GNET_CITYWAR_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gcity"
+
+namespace GNET
+{
+	class CityWar : public GNET::Rpc::Data
+	{
+	public:
+		std::vector<GCity> citylist;
+
+	public:
+		CityWar (std::vector<GCity> l_citylist = std::vector<GCity>())
+			: citylist(l_citylist)
+		{
+		}
+
+		CityWar(const CityWar &rhs)
+			: citylist(rhs.citylist) { }
+
+		Rpc::Data *Clone() const { return new CityWar(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const CityWar *r = dynamic_cast<const CityWar *>(&rhs);
+			if (r && r != this)
+			{
+				citylist = r->citylist;
+			}
+			return *this;
+		}
+
+		CityWar& operator = (const CityWar &rhs)
+		{
+			const CityWar *r = &rhs;
+			if (r && r != this)
+			{
+				citylist = r->citylist;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << citylist;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> citylist;
+			return os;
+		}
+
+	};
+};
+#endif

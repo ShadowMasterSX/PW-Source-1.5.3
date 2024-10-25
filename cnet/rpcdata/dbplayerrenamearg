@@ -1,0 +1,88 @@
+#ifndef __GNET_DBPLAYERRENAMEARG_RPCDATA
+#define __GNET_DBPLAYERRENAMEARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailsyncdata"
+
+namespace GNET
+{
+	class DBPlayerRenameArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		int item_id;
+		int item_num;
+		int item_pos;
+		Octets newname;
+		GMailSyncData syncdata;
+
+	public:
+		DBPlayerRenameArg (int l_roleid = -1,int l_item_id = -1,int l_item_num = 0
+			,int l_item_pos = -1,const Octets& l_newname = Octets(),const GMailSyncData& l_syncdata = GMailSyncData())
+			: roleid(l_roleid),item_id(l_item_id),item_num(l_item_num)
+			,item_pos(l_item_pos),newname(l_newname),syncdata(l_syncdata)
+		{
+		}
+
+		DBPlayerRenameArg(const DBPlayerRenameArg &rhs)
+			: roleid(rhs.roleid),item_id(rhs.item_id),item_num(rhs.item_num),
+			item_pos(rhs.item_pos),newname(rhs.newname),syncdata(rhs.syncdata) { }
+
+		Rpc::Data *Clone() const { return new DBPlayerRenameArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPlayerRenameArg *r = dynamic_cast<const DBPlayerRenameArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				item_id = r->item_id;
+				item_num = r->item_num;
+				item_pos = r->item_pos;
+				newname = r->newname;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		DBPlayerRenameArg& operator = (const DBPlayerRenameArg &rhs)
+		{
+			const DBPlayerRenameArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				item_id = r->item_id;
+				item_num = r->item_num;
+				item_pos = r->item_pos;
+				newname = r->newname;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << item_id;
+			os << item_num;
+			os << item_pos;
+			os << newname;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> item_id;
+			os >> item_num;
+			os >> item_pos;
+			os >> newname;
+			os >> syncdata;
+			return os;
+		}
+
+	};
+};
+#endif

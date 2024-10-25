@@ -1,0 +1,26 @@
+
+TOP_SRCDIR = ..
+
+SINGLE_THREAD = true
+DEBUG_VERSION = true
+
+include ../mk/gcc.defs.mk
+CC = icpc -w -xN -vec_report 
+LD  = icpc -w -xN -vec_report
+DEFINES += -O3 -DUSE_HASH_MAP -DUSE_LOGCLIENT -ipo 
+LDFLAGS += -O3 -DUSE_HASH_MAP -ipo -static 
+
+OBJS = logclientclient.o logclienttcpclient.o state.o stubs.o logclient.o log.o
+LIBOBJS = logclientclient.o logclienttcpclient.o state.o stubs.o glog.o log.o
+
+all : logclient lib
+
+logclient : $(OBJS) $(SHAREOBJ)
+	$(LD) $(LDFLAGS) -o $@ $(OBJS) $(SHAREOBJ) $(SHARE_SOBJ)
+
+lib: $(LIBOBJS)
+	rm ./liblogClisingleicpc.a -f
+	$(AR) crs ./liblogClisingleicpc.a $(LIBOBJS)
+
+include ../mk/gcc.rules.mk
+

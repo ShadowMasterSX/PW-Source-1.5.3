@@ -1,0 +1,45 @@
+	public:
+		int userid;
+		int zoneid;
+		int aid;
+		int point;
+		int cash;
+		enum { PROTOCOL_TYPE = PROTOCOL_USECASH };
+	public:
+		UseCash() { type = PROTOCOL_USECASH; }
+		UseCash(void*) : Protocol(PROTOCOL_USECASH) { }
+		UseCash (int l_userid = -1,int l_zoneid = -1,int l_aid = -1,
+			int l_point = -1,int l_cash = -1)
+			 : userid(l_userid),zoneid(l_zoneid),aid(l_aid)
+			,point(l_point),cash(l_cash)
+		{
+			type = PROTOCOL_USECASH;
+		}
+
+		UseCash(const UseCash &rhs)
+			: Protocol(rhs),userid(rhs.userid),zoneid(rhs.zoneid),aid(rhs.aid)
+			,point(rhs.point),cash(rhs.cash) { }
+
+		GNET::Protocol *Clone() const { return new UseCash(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			os << zoneid;
+			os << aid;
+			os << point;
+			os << cash;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			os >> zoneid;
+			os >> aid;
+			os >> point;
+			os >> cash;
+			return os;
+		}
+
+		bool SizePolicy(size_t size) const { return size <= 128; }

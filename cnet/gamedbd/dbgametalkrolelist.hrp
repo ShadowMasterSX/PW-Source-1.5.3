@@ -1,0 +1,131 @@
+
+#ifndef __GNET_DBGAMETALKROLELIST_HPP
+#define __GNET_DBGAMETALKROLELIST_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "grolebase"
+#include "grolestatus"
+#include "groleforbid"
+#include "user"
+#include "dbgametalkrolelistarg"
+#include "dbgametalkrolelistres"
+#include "gamedbmanager.h"
+#include "gametalkdefs.h"
+
+namespace GNET
+{
+
+class DBGameTalkRoleList : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbgametalkrolelist"
+#undef	RPC_BASECLASS
+
+	enum {
+		FBD_FORBID_LOGIN = 100,
+		FBD_FORBID_TALK = 101,
+		FBD_FORBID_CHEATER_LOGIN = 105,
+	};
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBGameTalkRoleListArg *arg = (DBGameTalkRoleListArg *)argument;
+		DBGameTalkRoleListRes *res = (DBGameTalkRoleListRes *)result;
+
+		LOG_TRACE("dbgametalkrolelist, userid=%d.\n", arg->userid);
+		try {
+			StorageEnv::Storage * puser = StorageEnv::GetStorage("user");
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::Storage * pstatus = StorageEnv::GetStorage("status");
+			StorageEnv::AtomTransaction txn;
+			try {
+				UserID id((unsigned int)arg->userid);
+				User user;
+				Marshal::OctetsStream suser;
+				if(puser->find(Marshal::OctetsStream() << id, suser, txn))
+					suser >> user;
+				else {
+					res->retcode = ERR_SUCCESS;
+					return;
+				}
+
+				if(0 != user.logicuid) {
+					RoleList rolelist(user.rolelist);
+					int roleid;
+					while((roleid = rolelist.GetNextRole()) >= 0) {
+						int r = user.logicuid + roleid;
+						GRoleBase base;
+						Marshal::OctetsStream sbase;
+						RoleId rid(r);
+						if(pbase->find(Marshal::OctetsStream() << rid, sbase, txn))
+							sbase >> base;
+						else
+							continue;
+
+						if(base.status == _ROLE_STATUS_MUSTDEL) continue;
+
+						GRoleStatus status;
+						Marshal::OctetsStream sstatus;
+						if(pstatus->find(Marshal::OctetsStream() << rid, sstatus, txn))
+							sstatus >> status;
+						else 
+							continue;
+
+						DBRoleDetail detail;
+						detail.info.roleid = (int64_t)base.id;
+						detail.info.rolename.swap(base.name);
+						detail.info.gender = base.gender;
+						detail.info.occupation = base.cls;
+						detail.info.level = status.level;
+
+						if(base.status == _ROLE_STATUS_READYDEL) {
+							detail.forbid.endtime[GT_FORBID_PREDELETE] = -1;
+						}
+						std::vector<GRoleForbid>::iterator it = base.forbid.begin();
+						std::vector<GRoleForbid>::iterator end = base.forbid.end();
+
+						for(; it != end; ++it) {
+							if(it->type == FBD_FORBID_LOGIN || it->type == FBD_FORBID_CHEATER_LOGIN) {
+								detail.forbid.endtime[GT_FORBID_LOGIN] = it->createtime + it->time;
+							} else if(it->type == FBD_FORBID_TALK) {
+								detail.forbid.endtime[GT_FORBID_MUTE] = it->createtime + it->time;
+							}
+						}
+						res->rolelist.push_back(detail);
+					}
+				}
+				res->retcode = ERR_SUCCESS;
+			}
+			catch (DbException e) { throw; }
+			catch (...) {
+				DbException ee(DB_OLD_VERSION);
+				txn.abort(ee);
+				throw ee;
+			}
+		}
+		catch (DbException e)
+		{
+			Log::log(LOG_ERR, "DBGameTalkRoleList, userid=%d, what=%s\n", arg->userid, e.what());
+			res->retcode = ERR_DATANOTFIND;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBGameTalkRoleListArg *arg = (DBGameTalkRoleListArg *)argument;
+		// DBGameTalkRoleListRes *res = (DBGameTalkRoleListRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

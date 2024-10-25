@@ -1,0 +1,65 @@
+#ifndef __GNET_ROLEEQUIPMENTRES_RPCDATA
+#define __GNET_ROLEEQUIPMENTRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "groleinventory"
+
+namespace GNET
+{
+	class RoleEquipmentRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		GRoleInventoryVector equipment;
+
+	public:
+		RoleEquipmentRes (int l_retcode = -1)
+			: retcode(l_retcode)
+		{
+		}
+
+		RoleEquipmentRes(const RoleEquipmentRes &rhs)
+			: retcode(rhs.retcode),equipment(rhs.equipment) { }
+
+		Rpc::Data *Clone() const { return new RoleEquipmentRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const RoleEquipmentRes *r = dynamic_cast<const RoleEquipmentRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				equipment = r->equipment;
+			}
+			return *this;
+		}
+
+		RoleEquipmentRes& operator = (const RoleEquipmentRes &rhs)
+		{
+			const RoleEquipmentRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				equipment = r->equipment;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << equipment;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> equipment;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,105 @@
+#ifndef __GNET_GSERVERDATA_RPCDATA
+#define __GNET_GSERVERDATA_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GServerData : public GNET::Rpc::Data
+	{
+	public:
+		int world_tag;
+		Octets wedding_data;
+		Octets dpsrank_data;
+		char reserved11;
+		short reserved12;
+		int reserved2;
+		int reserved3;
+		int reserved4;
+		int reserved5;
+
+	public:
+		GServerData (int l_world_tag = 0,const Octets& l_wedding_data = Octets(),const Octets& l_dpsrank_data = Octets()
+			,char l_reserved11 = 0,short l_reserved12 = 0,int l_reserved2 = 0
+			,int l_reserved3 = 0,int l_reserved4 = 0,int l_reserved5 = 0)
+			: world_tag(l_world_tag),wedding_data(l_wedding_data),dpsrank_data(l_dpsrank_data)
+			,reserved11(l_reserved11),reserved12(l_reserved12),reserved2(l_reserved2)
+			,reserved3(l_reserved3),reserved4(l_reserved4),reserved5(l_reserved5)
+		{
+		}
+
+		GServerData(const GServerData &rhs)
+			: world_tag(rhs.world_tag),wedding_data(rhs.wedding_data),dpsrank_data(rhs.dpsrank_data),
+			reserved11(rhs.reserved11),reserved12(rhs.reserved12),reserved2(rhs.reserved2),
+			reserved3(rhs.reserved3),reserved4(rhs.reserved4),reserved5(rhs.reserved5) { }
+
+		Rpc::Data *Clone() const { return new GServerData(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GServerData *r = dynamic_cast<const GServerData *>(&rhs);
+			if (r && r != this)
+			{
+				world_tag = r->world_tag;
+				wedding_data = r->wedding_data;
+				dpsrank_data = r->dpsrank_data;
+				reserved11 = r->reserved11;
+				reserved12 = r->reserved12;
+				reserved2 = r->reserved2;
+				reserved3 = r->reserved3;
+				reserved4 = r->reserved4;
+				reserved5 = r->reserved5;
+			}
+			return *this;
+		}
+
+		GServerData& operator = (const GServerData &rhs)
+		{
+			const GServerData *r = &rhs;
+			if (r && r != this)
+			{
+				world_tag = r->world_tag;
+				wedding_data = r->wedding_data;
+				dpsrank_data = r->dpsrank_data;
+				reserved11 = r->reserved11;
+				reserved12 = r->reserved12;
+				reserved2 = r->reserved2;
+				reserved3 = r->reserved3;
+				reserved4 = r->reserved4;
+				reserved5 = r->reserved5;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << world_tag;
+			os << wedding_data;
+			os << dpsrank_data;
+			os << reserved11;
+			os << reserved12;
+			os << reserved2;
+			os << reserved3;
+			os << reserved4;
+			os << reserved5;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> world_tag;
+			os >> wedding_data;
+			os >> dpsrank_data;
+			os >> reserved11;
+			os >> reserved12;
+			os >> reserved2;
+			os >> reserved3;
+			os >> reserved4;
+			os >> reserved5;
+			return os;
+		}
+
+	};
+};
+#endif

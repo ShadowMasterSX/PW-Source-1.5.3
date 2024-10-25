@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="rpcalls.xsl"?>
+
+<application namespace="GNET">
+	<!-- ************************************* -->
+	<!-- *******  define context object    *** -->
+	<!-- ************************************* -->
+
+	<!-- *************************************** -->
+	<!-- *******  define operation object    *** -->
+	<!-- *************************************** -->
+		<!-- if serversupply=true, means the data is provided by server-->
+	<operation name="testsync" type="0" needsync="true" needaddinfo="false">
+		<variable name="padding" type="int" default="0"/>
+	</operation>	
+	<operation name="create" type="1" needsync="true" needaddinfo="true">
+		<variable name="level" type="int" default="0" serversupply="true"/>
+		<variable name="money" type="unsigned int" default="0" serversupply="true"/>
+		<variable name="sp" type="int" default="0" serversupply="true"/>
+		<variable name="faction_name" type="Octets" default="Octets()" attr="ref"/>
+		<variable name="proclaim" type="Octets" default="Octets()" attr="ref"/>
+	</operation>
+	<operation name="changeproclaim" type="2" needsync="false" needaddinfo="false">
+		<variable name="proclaim" type="Octets" default="Octets()" attr="ref"/>
+	</operation>
+	<!--operation name="listapplicant" needsync="false" needaddinfo="false" >
+		<variable name="handle" type="int" default="-1"/>
+	</operation>
+	<operation name="applyjoin" needsync="false" needaddinfo="false" >
+		<variable name="faction_id" type="unsigned int" default="0"/>
+	</operation-->
+	<operation name="acceptjoin" type="3" needsync="false" needaddinfo="false" >
+		<variable name="applicant" type="int" default="-1"/>
+		<variable name="blAgree" type="char" default="0"/> <!-- whether agree -->
+	</operation>
+	<operation name="expelmember" type="4" needsync="false" needaddinfo="false" >
+		<variable name="memberid" type="int" default="-1"/>
+	</operation>
+	<operation name="appoint" type="5" needsync="false" needaddinfo="false" >
+		<variable name="memberid" type="int" default="-1"/>
+		<variable name="newoccup" type="char" default="-1"/>
+	</operation>
+	<operation name="masterresign" type="6" needsync="false" needaddinfo="false" >
+		<variable name="newmaster" type="int" default="-1"/>
+	</operation>
+	<operation name="resign" type="7" needsync="false" needaddinfo="false">
+		<variable name="padding" type="int" default="0"/>
+	</operation>
+	<!--operation name="impeachmaster"  needsync="false" needaddinfo="false" >
+		<variable name="blAgree" type="char" default="0"/>
+	</operation-->
+	<operation name="leave" type="8" needsync="false" needaddinfo="false" >
+		<variable name="paddings" type="char" default="0"/>
+	</operation>
+	<operation name="broadcast" type="9" needsync="false" needaddinfo="false" >
+		<variable name="msg" type="Octets" default="Octets()" attr="ref"/>
+	</operation>
+	<operation name="dismiss" type="10" needsync="false" needaddinfo="false">
+		<variable name="padding" type="int" default="0"/>
+	</operation>
+	<operation name="upgrade" type="11" needsync="true" needaddinfo="false">
+		<variable name="money" type="unsigned int" default="0" serversupply="true"/>
+		<variable name="padding" type="int" default="0"/>
+	</operation>
+	<operation name="degrade" type="12" needsync="false" needaddinfo="false">
+		<variable name="padding" type="int" default="0"/>
+	</operation>
+	<operation name="listmember" type="13" needsync="false" needaddinfo="false">
+		<variable name="handle" type="int" default="-1"/>
+	</operation>
+	<operation name="rename" type="14" needsync="false" needaddinfo="false">
+		<variable name="dst_roleid" type="int" default="-1"/>
+		<variable name="new_name" type="Octets" default="Octets()"/>
+	</operation>
+	<operation name="allianceapply" type="15" needsync="true" needaddinfo="false">
+		<variable name="dst_fid" type="int" default="0"/>
+	</operation>
+	<operation name="alliancereply" type="16" needsync="true" needaddinfo="false">
+		<variable name="dst_fid" type="int" default="0"/>
+		<variable name="agree" type="char" default="0"/>
+	</operation>
+	<operation name="hostileapply" type="17" needsync="true" needaddinfo="false">
+		<variable name="dst_fid" type="int" default="0"/>
+	</operation>
+	<operation name="hostilereply" type="18" needsync="true" needaddinfo="false">
+		<variable name="dst_fid" type="int" default="0"/>
+		<variable name="agree" type="char" default="0"/>
+	</operation>
+	<operation name="removerelationapply" type="19" needsync="true" needaddinfo="false">
+		<variable name="dst_fid" type="int" default="0"/>
+		<variable name="force" type="char" default="0"/>
+	</operation>
+	<operation name="removerelationreply" type="20" needsync="false" needaddinfo="false">
+		<variable name="dst_fid" type="int" default="0"/>
+		<variable name="agree" type="char" default="0"/>
+	</operation>
+	<operation name="listrelation" type="21" needsync="false" needaddinfo="false" >
+		<variable name="padding" type="int" default="0"/>
+	</operation>
+	<operation name="cancelexpelschedule" type="22" needsync="false" needaddinfo="false" >
+		<variable name="memberid" type="int" default="-1"/>
+    	</operation>
+	<operation name="accelerateexpelschedule" type="23" needsync="false" needaddinfo="false" >
+	    	<variable name="wastetime" type="int" default="0"/>
+	</operation>
+	<operation name="factionrename" type="24" needsync="false" needaddinfo="false" >
+		<variable name="faction_name" type="Octets" default="Octets()" attr="ref"/> 
+	</operation>
+	<!-- *************************************** -->
+	<!-- **  define operations a role can do *** -->
+	<!-- *************************************** -->
+	<!-- !!!role name can not be changed frequently-->
+	<role name="unmember" type="0">
+		<operation ref="testsync"/>
+		<operation ref="create"/>
+		<operation ref="accelerateexpelschedule"/>
+		<!--operation ref="applyjoin"/-->
+	</role>
+	<role name="system" type="1">
+		<operation ref="create"/>
+		<operation ref="degrade"/>
+	</role>
+	<role name="master" type="2"><!-- °ïÖ÷  -->
+		<operation ref="acceptjoin"/>
+		<operation ref="expelmember"/>
+		<operation ref="appoint"/>
+		<operation ref="masterresign"/>
+		<operation ref="broadcast"/>
+		<operation ref="changeproclaim"/>
+		<operation ref="upgrade"/>
+		<operation ref="leave"/>
+		<operation ref="listmember"/>
+		<operation ref="rename"/>
+		<operation ref="dismiss"/>
+		<operation ref="allianceapply"/>
+		<operation ref="alliancereply"/>
+		<operation ref="hostileapply"/>
+		<operation ref="hostilereply"/>
+		<operation ref="removerelationapply"/>
+		<operation ref="removerelationreply"/>
+		<operation ref="listrelation"/>
+		<operation ref="cancelexpelschedule"/> 
+		<operation ref="factionrename"/>
+	</role>
+	<role name="vicemaster" type="3"><!--¸±°ïÖ÷-->
+		<operation ref="acceptjoin"/>
+		<operation ref="expelmember"/>
+		<operation ref="appoint"/>
+		<operation ref="broadcast"/>
+		<operation ref="resign"/>
+		<operation ref="changeproclaim"/>
+		<operation ref="leave"/>
+		<operation ref="listmember"/>
+		<operation ref="rename"/>
+		<operation ref="allianceapply"/>
+		<operation ref="alliancereply"/>
+		<operation ref="hostileapply"/>
+		<operation ref="hostilereply"/>
+		<operation ref="removerelationapply"/>
+		<operation ref="removerelationreply"/>
+		<operation ref="listrelation"/>
+		<operation ref="cancelexpelschedule"/> 
+	</role>
+	<role name="bodyguard" type="4"> <!--ÌÃÖ÷-->
+		<operation ref="appoint"/>
+		<operation ref="acceptjoin"/>
+		<operation ref="resign"/>
+		<operation ref="leave"/>
+		<operation ref="listmember"/>
+		<operation ref="listrelation"/>
+	</role>
+	<role name="poineer" type="5"> <!--ÏãÖ÷-->
+		<operation ref="acceptjoin"/>
+		<operation ref="resign"/>
+		<operation ref="leave"/>
+		<operation ref="listmember"/>
+		<operation ref="listrelation"/>
+	</role>
+	<role name="member" type="6"> <!--°ïÖÚ-->
+		<operation ref="leave"/>
+		<operation ref="listmember"/>
+		<operation ref="listrelation"/>
+	</role>
+
+</application>

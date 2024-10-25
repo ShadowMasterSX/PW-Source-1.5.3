@@ -1,0 +1,32 @@
+	public:
+		std::vector<CountryBattleApplyEntry> list;
+		enum { PROTOCOL_TYPE = PROTOCOL_COUNTRYBATTLEAPPLY };
+	public:
+		CountryBattleApply() { type = PROTOCOL_COUNTRYBATTLEAPPLY; }
+		CountryBattleApply(void*) : Protocol(PROTOCOL_COUNTRYBATTLEAPPLY) { }
+		CountryBattleApply (const std::vector<CountryBattleApplyEntry>& l_list)
+			 : list(l_list)
+		{
+			type = PROTOCOL_COUNTRYBATTLEAPPLY;
+		}
+
+		CountryBattleApply(const CountryBattleApply &rhs)
+			: Protocol(rhs),list(rhs.list) { }
+
+		GNET::Protocol *Clone() const { return new CountryBattleApply(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << list;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> list;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 512; }

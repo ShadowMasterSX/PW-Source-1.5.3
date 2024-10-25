@@ -1,0 +1,83 @@
+#ifndef __GNET_DBBATTLEBONUSARG_RPCDATA
+#define __GNET_DBBATTLEBONUSARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "groleinventory"
+
+namespace GNET
+{
+	class DBBattleBonusArg : public GNET::Rpc::Data
+	{
+	public:
+		unsigned int factionid;
+		short cityid;
+		unsigned int money;
+		GRoleInventory item;
+		short isspecialbonus;
+
+	public:
+		DBBattleBonusArg (unsigned int l_factionid = 0,short l_cityid = 0,unsigned int l_money = 0
+			,const GRoleInventory& l_item = GRoleInventory(),short l_isspecialbonus = 0)
+			: factionid(l_factionid),cityid(l_cityid),money(l_money)
+			,item(l_item),isspecialbonus(l_isspecialbonus)
+		{
+		}
+
+		DBBattleBonusArg(const DBBattleBonusArg &rhs)
+			: factionid(rhs.factionid),cityid(rhs.cityid),money(rhs.money),
+			item(rhs.item),isspecialbonus(rhs.isspecialbonus) { }
+
+		Rpc::Data *Clone() const { return new DBBattleBonusArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBBattleBonusArg *r = dynamic_cast<const DBBattleBonusArg *>(&rhs);
+			if (r && r != this)
+			{
+				factionid = r->factionid;
+				cityid = r->cityid;
+				money = r->money;
+				item = r->item;
+				isspecialbonus = r->isspecialbonus;
+			}
+			return *this;
+		}
+
+		DBBattleBonusArg& operator = (const DBBattleBonusArg &rhs)
+		{
+			const DBBattleBonusArg *r = &rhs;
+			if (r && r != this)
+			{
+				factionid = r->factionid;
+				cityid = r->cityid;
+				money = r->money;
+				item = r->item;
+				isspecialbonus = r->isspecialbonus;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << factionid;
+			os << cityid;
+			os << money;
+			os << item;
+			os << isspecialbonus;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> factionid;
+			os >> cityid;
+			os >> money;
+			os >> item;
+			os >> isspecialbonus;
+			return os;
+		}
+
+	};
+};
+#endif

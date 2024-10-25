@@ -1,0 +1,124 @@
+
+#ifndef __GNET_DBFACTIONPROMOTE_HPP
+#define __GNET_DBFACTIONPROMOTE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbfactionpromotearg"
+#include "dbfactionpromoteres"
+
+namespace GNET
+{
+
+class DBFactionPromote : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbfactionpromote"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBFactionPromoteArg *arg = (DBFactionPromoteArg *)argument;
+		DBFactionPromoteRes *res = (DBFactionPromoteRes *)result;
+
+		Marshal::OctetsStream key;
+
+		try
+		{
+			GUserFaction user;
+			GFactionInfo info;
+			StorageEnv::Storage * puser = StorageEnv::GetStorage("userfaction");
+			StorageEnv::Storage * pinfo = StorageEnv::GetStorage("factioninfo");
+			StorageEnv::CommonTransaction txn;
+			try{
+				key << arg->roleid;
+				Marshal::OctetsStream(puser->find(key, txn)) >> user;
+				if(arg->fid==0 || user.fid!=arg->fid)
+				{
+					res->retcode = ERR_OUTOFSYNC;
+					return;
+				}
+				Log::formatlog("faction","type=promote:superior=%d:roleid=%d:factionid=%d:role=%d", 
+					arg->superior, arg->roleid, arg->fid, arg->newrole);
+
+				key.clear();
+				key << arg->fid;
+				Marshal::OctetsStream(pinfo->find(key, txn)) >> info;
+
+				GMemberVector::iterator itu = info.member.end(), its = info.member.end();
+				int count = 0;
+				for(GMemberVector::iterator it=info.member.begin();it!=info.member.end();++it)
+				{
+					if(it->role==arg->newrole)
+						count++;
+					if(it->rid==arg->roleid)
+						itu = it;
+					if(it->rid==arg->superior)
+						its = it;
+				}
+				if(itu==info.member.end() || its==info.member.end() || arg->suprole!=its->role)
+				{
+					Log::log( LOG_ERR, "DBFactionPromote, data out of sync fid=%d, superior=%d, roleid=%d suprole=%d\n", 
+							arg->fid, arg->superior, arg->roleid, arg->suprole );
+					res->retcode = ERR_OUTOFSYNC;
+					return;
+				}
+
+				if(count>=arg->max && arg->newrole!=_R_MASTER)
+				{
+					Log::log( LOG_ERR, "DBFactionPromote, data out of sync fid=%d, role=%d, count=%d\n", 
+							arg->fid, arg->newrole, count );
+					res->retcode = ERR_OUTOFSYNC;
+					return;
+				}
+
+				user.role = arg->newrole;
+				itu->role = arg->newrole;
+
+				if(arg->newrole==_R_MASTER)
+				{
+					GUserFaction master;
+					info.master.rid = arg->roleid;
+					its->role = _R_MEMBER;
+					key.clear();
+					key << arg->superior;
+					Marshal::OctetsStream(puser->find(key, txn)) >> master;
+					master.role = _R_MEMBER;
+					puser->insert(key, Marshal::OctetsStream()<<master, txn);
+				}
+				res->suprole = its->role;
+				res->newrole = itu->role;
+				pinfo->insert(Marshal::OctetsStream()<<arg->fid, Marshal::OctetsStream()<<info, txn);
+				puser->insert(Marshal::OctetsStream()<<arg->roleid, Marshal::OctetsStream()<<user, txn);
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBFactionPromote, fid=%d, superior=%d, roleid=%d, what=%s\n", arg->fid, 
+					arg->superior, arg->roleid, e.what() );
+			res->retcode = -1;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

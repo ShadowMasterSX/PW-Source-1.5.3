@@ -1,0 +1,38 @@
+	public:
+		Octets d_key1_encrypt;
+		Octets d_key2_encrypt;
+		int reserved1;
+		enum { PROTOCOL_TYPE = PROTOCOL_CERTKEY };
+	public:
+		CertKey() { type = PROTOCOL_CERTKEY; }
+		CertKey(void*) : Protocol(PROTOCOL_CERTKEY) { }
+		CertKey (Octets l_d_key1_encrypt,Octets l_d_key2_encrypt,int l_reserved1 = 0)
+			 : d_key1_encrypt(l_d_key1_encrypt),d_key2_encrypt(l_d_key2_encrypt),reserved1(l_reserved1)
+		{
+			type = PROTOCOL_CERTKEY;
+		}
+
+		CertKey(const CertKey &rhs)
+			: Protocol(rhs),d_key1_encrypt(rhs.d_key1_encrypt),d_key2_encrypt(rhs.d_key2_encrypt),reserved1(rhs.reserved1) { }
+
+		GNET::Protocol *Clone() const { return new CertKey(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << d_key1_encrypt;
+			os << d_key2_encrypt;
+			os << reserved1;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> d_key1_encrypt;
+			os >> d_key2_encrypt;
+			os >> reserved1;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 101; }
+
+		bool SizePolicy(size_t size) const { return size <= 8192; }

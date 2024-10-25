@@ -1,0 +1,95 @@
+#ifndef __GNET_DBWEBTRADESHELFARG_RPCDATA
+#define __GNET_DBWEBTRADESHELFARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBWebTradeShelfArg : public GNET::Rpc::Data
+	{
+	public:
+		int64_t sn;
+		int roleid;
+		int state;
+		int show_endtime;
+		int price;
+		int sell_endtime;
+		int buyer_roleid;
+
+	public:
+		DBWebTradeShelfArg (int64_t l_sn = 0,int l_roleid = 0,int l_state = 0
+			,int l_show_endtime = 0,int l_price = 0,int l_sell_endtime = 0
+			,int l_buyer_roleid = 0)
+			: sn(l_sn),roleid(l_roleid),state(l_state)
+			,show_endtime(l_show_endtime),price(l_price),sell_endtime(l_sell_endtime)
+			,buyer_roleid(l_buyer_roleid)
+		{
+		}
+
+		DBWebTradeShelfArg(const DBWebTradeShelfArg &rhs)
+			: sn(rhs.sn),roleid(rhs.roleid),state(rhs.state),
+			show_endtime(rhs.show_endtime),price(rhs.price),sell_endtime(rhs.sell_endtime),
+			buyer_roleid(rhs.buyer_roleid) { }
+
+		Rpc::Data *Clone() const { return new DBWebTradeShelfArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBWebTradeShelfArg *r = dynamic_cast<const DBWebTradeShelfArg *>(&rhs);
+			if (r && r != this)
+			{
+				sn = r->sn;
+				roleid = r->roleid;
+				state = r->state;
+				show_endtime = r->show_endtime;
+				price = r->price;
+				sell_endtime = r->sell_endtime;
+				buyer_roleid = r->buyer_roleid;
+			}
+			return *this;
+		}
+
+		DBWebTradeShelfArg& operator = (const DBWebTradeShelfArg &rhs)
+		{
+			const DBWebTradeShelfArg *r = &rhs;
+			if (r && r != this)
+			{
+				sn = r->sn;
+				roleid = r->roleid;
+				state = r->state;
+				show_endtime = r->show_endtime;
+				price = r->price;
+				sell_endtime = r->sell_endtime;
+				buyer_roleid = r->buyer_roleid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << sn;
+			os << roleid;
+			os << state;
+			os << show_endtime;
+			os << price;
+			os << sell_endtime;
+			os << buyer_roleid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> sn;
+			os >> roleid;
+			os >> state;
+			os >> show_endtime;
+			os >> price;
+			os >> sell_endtime;
+			os >> buyer_roleid;
+			return os;
+		}
+
+	};
+};
+#endif

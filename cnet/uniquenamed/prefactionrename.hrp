@@ -1,0 +1,99 @@
+
+#ifndef __GNET_PREFACTIONRENAME_HPP
+#define __GNET_PREFACTIONRENAME_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "prefactionrenamearg"
+#include "prefactionrenameres"
+
+namespace GNET
+{
+
+class PreFactionRename : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "prefactionrename"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		PreFactionRenameArg *arg = (PreFactionRenameArg *)argument;
+		PreFactionRenameRes *res = (PreFactionRenameRes *)result;
+
+		UniqueNameServer::GetInstance()->TransformName(arg->newname);
+
+		Octets name;
+		CharsetConverter::conv_charset_u2l( arg->newname, name );
+		LOG_TRACE( "PreFactionRename(zoneid=%d,name=%.*s)", arg->zid, name.size(), (char*)name.begin() );
+
+		try
+		{
+			StorageEnv::Storage * punamefaction = StorageEnv::GetStorage("unamefaction");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				Marshal::OctetsStream key_nextid, value_unamefaction, value_nextid;
+
+				if( punamefaction->find( arg->newname, value_unamefaction, txn ) )
+				{
+					int zoneid, factionid, status, time;
+					value_unamefaction >> zoneid >> factionid >> status >> time;
+					if( !(UNIQUENAME_ENGAGED == status && Timer::GetTime() - time > 300) )
+					{
+						res->retcode = ERR_FC_CREATE_DUP;
+						LOG_TRACE( "PreFactionRename(zoneid=%d,name=%.*s), duplicate, old:zoneid=%d,factionid=%d,status=%d,time=%d", 
+								arg->zid, name.size(), (char*)name.begin(), zoneid, factionid, status, time );
+						return;
+					}
+					else
+					{
+						res->retcode = ERR_FC_CREATE_DUP;
+						LOG_TRACE( "PreFactionRename(zoneid=%d,name=%.*s), duplicate, old:zoneid=%d,factionid=%d,status=%d,time=%d", 
+								arg->zid, name.size(), (char*)name.begin(), zoneid, factionid, status, time );
+						return;
+					}
+				}
+
+				value_unamefaction.clear();
+				int status = UNIQUENAME_ENGAGED;
+				value_unamefaction << arg->zid << (int)arg->fid << status << (int)Timer::GetTime();
+				punamefaction->insert( arg->newname, value_unamefaction, txn );
+
+				LOG_TRACE( "PreFactionRename(zoneid=%d,name=%.*s) ok, factionid=%d", arg->zid, name.size(), (char*)name.begin(), arg->fid );
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "PreCreateFaction, zoneid=%d, what=%s\n", arg->zid, e.what() );
+			res->retcode = -1;
+		}
+
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// PreFactionRenameArg *arg = (PreFactionRenameArg *)argument;
+		// PreFactionRenameRes *res = (PreFactionRenameRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

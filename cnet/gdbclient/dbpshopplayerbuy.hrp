@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBPSHOPPLAYERBUY_HPP
+#define __GNET_DBPSHOPPLAYERBUY_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbpshopplayerbuyarg"
+#include "dbpshopplayerbuyres"
+
+namespace GNET
+{
+
+class DBPShopPlayerBuy : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbpshopplayerbuy"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBPShopPlayerBuyArg *arg = (DBPShopPlayerBuyArg *)argument;
+		// DBPShopPlayerBuyRes *res = (DBPShopPlayerBuyRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBPShopPlayerBuyArg *arg = (DBPShopPlayerBuyArg *)argument;
+		// DBPShopPlayerBuyRes *res = (DBPShopPlayerBuyRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

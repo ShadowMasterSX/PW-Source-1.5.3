@@ -1,0 +1,67 @@
+
+#ifndef __GNET_DBROLENAMELIST_HPP
+#define __GNET_DBROLENAMELIST_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbrolenamelistarg"
+#include "dbrolenamelistres"
+#include "namemanager.h"
+#include "gamedbclient.hpp"
+
+namespace GNET
+{
+
+class DBRoleNameList : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbrolenamelist"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBRoleNameListArg *arg = (DBRoleNameListArg *)argument;
+		// DBRoleNameListRes *res = (DBRoleNameListRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBRoleNameListArg *arg = (DBRoleNameListArg *)argument;
+		DBRoleNameListRes *res = (DBRoleNameListRes *)result;
+		if (res->retcode == ERR_SUCCESS)
+		{
+			LOG_TRACE("DBRoleNameList size=%d handle=%d finish=%d",res->rolenamelist.size(), res->handle, res->finish);
+			NameManager::GetInstance()->InitName(res->rolenamelist, res->finish);
+			if (0 == res->finish)
+			{
+				//还有数据没有初始化
+				arg->handle = res->handle;
+				GameDBClient::GetInstance()->SendProtocol( Rpc::Call(RPC_DBROLENAMELIST,arg) );
+			}
+		}
+		else if (res->retcode == ERR_AGAIN)
+		{
+			//由于数据库死锁引起的，重新发送本消息
+			GameDBClient::GetInstance()->SendProtocol( Rpc::Call(RPC_DBROLENAMELIST,arg) );
+		}
+		else
+		{
+			//数据库错误
+			Log::log(LOG_ERR,"DBRoleNameList init failed!");
+		}
+	}
+
+	void OnTimeout()
+	{
+		DBRoleNameListArg *arg = (DBRoleNameListArg *)argument;
+		Log::log(LOG_ERR,"DBRoleNameList init timeout!");
+		//重新发送本消息
+		GameDBClient::GetInstance()->SendProtocol( Rpc::Call(RPC_DBROLENAMELIST,arg) );
+	}
+
+};
+
+};
+#endif

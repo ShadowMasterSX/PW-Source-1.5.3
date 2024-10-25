@@ -1,0 +1,159 @@
+#ifndef __GNET_GGLOBALCONTROLDATA_RPCDATA
+#define __GNET_GGLOBALCONTROLDATA_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GGlobalControlData : public GNET::Rpc::Data
+	{
+	public:
+		char cash_money_exchange_open;
+		int cash_money_exchange_rate;
+		std::vector<int> forbid_ctrl_list;
+		std::vector<int> forbid_item_list;
+		std::vector<int> forbid_service_list;
+		std::vector<int> forbid_task_list;
+		std::vector<int> forbid_skill_list;
+		std::vector<int> trigger_ctrl_list;
+		std::vector<int> forbid_shopitem_list;
+		std::vector<int> forbid_recipe_list;
+		int reserved3;
+		int reserved4;
+		int reserved5;
+		int reserved6;
+		int reserved7;
+		int reserved8;
+		int reserved9;
+		int reserved10;
+
+	public:
+		GGlobalControlData (char l_cash_money_exchange_open = 0,int l_cash_money_exchange_rate = 0,const std::vector<int>& l_forbid_ctrl_list = std::vector<int>()
+			,const std::vector<int>& l_forbid_item_list = std::vector<int>(),const std::vector<int>& l_forbid_service_list = std::vector<int>(),const std::vector<int>& l_forbid_task_list = std::vector<int>()
+			,const std::vector<int>& l_forbid_skill_list = std::vector<int>(),const std::vector<int>& l_trigger_ctrl_list = std::vector<int>(),const std::vector<int>& l_forbid_shopitem_list = std::vector<int>()
+			,const std::vector<int>& l_forbid_recipe_list = std::vector<int>(),int l_reserved3 = 0,int l_reserved4 = 0
+			,int l_reserved5 = 0,int l_reserved6 = 0,int l_reserved7 = 0
+			,int l_reserved8 = 0,int l_reserved9 = 0,int l_reserved10 = 0)
+			: cash_money_exchange_open(l_cash_money_exchange_open),cash_money_exchange_rate(l_cash_money_exchange_rate),forbid_ctrl_list(l_forbid_ctrl_list)
+			,forbid_item_list(l_forbid_item_list),forbid_service_list(l_forbid_service_list),forbid_task_list(l_forbid_task_list)
+			,forbid_skill_list(l_forbid_skill_list),trigger_ctrl_list(l_trigger_ctrl_list),forbid_shopitem_list(l_forbid_shopitem_list)
+			,forbid_recipe_list(l_forbid_recipe_list),reserved3(l_reserved3),reserved4(l_reserved4)
+			,reserved5(l_reserved5),reserved6(l_reserved6),reserved7(l_reserved7)
+			,reserved8(l_reserved8),reserved9(l_reserved9),reserved10(l_reserved10)
+		{
+		}
+
+		GGlobalControlData(const GGlobalControlData &rhs)
+			: cash_money_exchange_open(rhs.cash_money_exchange_open),cash_money_exchange_rate(rhs.cash_money_exchange_rate),forbid_ctrl_list(rhs.forbid_ctrl_list),
+			forbid_item_list(rhs.forbid_item_list),forbid_service_list(rhs.forbid_service_list),forbid_task_list(rhs.forbid_task_list),
+			forbid_skill_list(rhs.forbid_skill_list),trigger_ctrl_list(rhs.trigger_ctrl_list),forbid_shopitem_list(rhs.forbid_shopitem_list),
+			forbid_recipe_list(rhs.forbid_recipe_list),reserved3(rhs.reserved3),reserved4(rhs.reserved4),
+			reserved5(rhs.reserved5),reserved6(rhs.reserved6),reserved7(rhs.reserved7),
+			reserved8(rhs.reserved8),reserved9(rhs.reserved9),reserved10(rhs.reserved10) { }
+
+		Rpc::Data *Clone() const { return new GGlobalControlData(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GGlobalControlData *r = dynamic_cast<const GGlobalControlData *>(&rhs);
+			if (r && r != this)
+			{
+				cash_money_exchange_open = r->cash_money_exchange_open;
+				cash_money_exchange_rate = r->cash_money_exchange_rate;
+				forbid_ctrl_list = r->forbid_ctrl_list;
+				forbid_item_list = r->forbid_item_list;
+				forbid_service_list = r->forbid_service_list;
+				forbid_task_list = r->forbid_task_list;
+				forbid_skill_list = r->forbid_skill_list;
+				trigger_ctrl_list = r->trigger_ctrl_list;
+				forbid_shopitem_list = r->forbid_shopitem_list;
+				forbid_recipe_list = r->forbid_recipe_list;
+				reserved3 = r->reserved3;
+				reserved4 = r->reserved4;
+				reserved5 = r->reserved5;
+				reserved6 = r->reserved6;
+				reserved7 = r->reserved7;
+				reserved8 = r->reserved8;
+				reserved9 = r->reserved9;
+				reserved10 = r->reserved10;
+			}
+			return *this;
+		}
+
+		GGlobalControlData& operator = (const GGlobalControlData &rhs)
+		{
+			const GGlobalControlData *r = &rhs;
+			if (r && r != this)
+			{
+				cash_money_exchange_open = r->cash_money_exchange_open;
+				cash_money_exchange_rate = r->cash_money_exchange_rate;
+				forbid_ctrl_list = r->forbid_ctrl_list;
+				forbid_item_list = r->forbid_item_list;
+				forbid_service_list = r->forbid_service_list;
+				forbid_task_list = r->forbid_task_list;
+				forbid_skill_list = r->forbid_skill_list;
+				trigger_ctrl_list = r->trigger_ctrl_list;
+				forbid_shopitem_list = r->forbid_shopitem_list;
+				forbid_recipe_list = r->forbid_recipe_list;
+				reserved3 = r->reserved3;
+				reserved4 = r->reserved4;
+				reserved5 = r->reserved5;
+				reserved6 = r->reserved6;
+				reserved7 = r->reserved7;
+				reserved8 = r->reserved8;
+				reserved9 = r->reserved9;
+				reserved10 = r->reserved10;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << cash_money_exchange_open;
+			os << cash_money_exchange_rate;
+			os << forbid_ctrl_list;
+			os << forbid_item_list;
+			os << forbid_service_list;
+			os << forbid_task_list;
+			os << forbid_skill_list;
+			os << trigger_ctrl_list;
+			os << forbid_shopitem_list;
+			os << forbid_recipe_list;
+			os << reserved3;
+			os << reserved4;
+			os << reserved5;
+			os << reserved6;
+			os << reserved7;
+			os << reserved8;
+			os << reserved9;
+			os << reserved10;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> cash_money_exchange_open;
+			os >> cash_money_exchange_rate;
+			os >> forbid_ctrl_list;
+			os >> forbid_item_list;
+			os >> forbid_service_list;
+			os >> forbid_task_list;
+			os >> forbid_skill_list;
+			os >> trigger_ctrl_list;
+			os >> forbid_shopitem_list;
+			os >> forbid_recipe_list;
+			os >> reserved3;
+			os >> reserved4;
+			os >> reserved5;
+			os >> reserved6;
+			os >> reserved7;
+			os >> reserved8;
+			os >> reserved9;
+			os >> reserved10;
+			return os;
+		}
+
+	};
+};
+#endif

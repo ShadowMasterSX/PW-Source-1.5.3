@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBCOPYROLE_HPP
+#define __GNET_DBCOPYROLE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbcopyrolearg"
+
+
+namespace GNET
+{
+
+class DBCopyRole : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbcopyrole"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBCopyRoleArg *arg = (DBCopyRoleArg *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBCopyRoleArg *arg = (DBCopyRoleArg *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

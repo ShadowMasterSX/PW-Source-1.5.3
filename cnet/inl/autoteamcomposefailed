@@ -1,0 +1,35 @@
+	public:
+		int roleid;
+		int leader_id;
+		enum { PROTOCOL_TYPE = PROTOCOL_AUTOTEAMCOMPOSEFAILED };
+	public:
+		AutoTeamComposeFailed() { type = PROTOCOL_AUTOTEAMCOMPOSEFAILED; }
+		AutoTeamComposeFailed(void*) : Protocol(PROTOCOL_AUTOTEAMCOMPOSEFAILED) { }
+		AutoTeamComposeFailed (int l_roleid,int l_leader_id)
+			 : roleid(l_roleid),leader_id(l_leader_id)
+		{
+			type = PROTOCOL_AUTOTEAMCOMPOSEFAILED;
+		}
+
+		AutoTeamComposeFailed(const AutoTeamComposeFailed &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),leader_id(rhs.leader_id) { }
+
+		GNET::Protocol *Clone() const { return new AutoTeamComposeFailed(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << leader_id;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> leader_id;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 32; }

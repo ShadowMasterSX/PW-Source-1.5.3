@@ -1,0 +1,34 @@
+<project name="io" default="dist">
+
+<!-- property  -->
+<property name="src" value="./src/"/>
+<property name="build" value="./build/"/>
+
+<target name="init">
+	<mkdir dir="${build}" />
+	<mkdir dir="${src}/protocol"/>
+</target>
+
+<target name="compile" depends="init">
+	<javac encoding="GBK" srcdir="${src}" destdir="${build}"/>
+</target>
+
+<target name="dist" depends="compile">
+	<jar jarfile="./jio.jar" basedir="${build}" manifest="${src}/MANIFEST.MF"/>
+</target>
+
+<target name="clean">
+	<delete dir="${build}" />
+</target>
+
+<target name="example">
+	<path id="classpath">
+		<fileset dir=".">
+			<include name="**/*.jar"/>
+		</fileset>
+	</path>
+	<mkdir dir="test" />
+	<javac encoding="GBK" srcdir="example" destdir="test" classpathref="classpath"/>
+</target>
+
+</project>

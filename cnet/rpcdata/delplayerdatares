@@ -1,0 +1,59 @@
+#ifndef __GNET_DELPLAYERDATARES_RPCDATA
+#define __GNET_DELPLAYERDATARES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DelPlayerDataRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+
+	public:
+		DelPlayerDataRes (int l_retcode = 0)
+			: retcode(l_retcode)
+		{
+		}
+
+		DelPlayerDataRes(const DelPlayerDataRes &rhs)
+			: retcode(rhs.retcode) { }
+
+		Rpc::Data *Clone() const { return new DelPlayerDataRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DelPlayerDataRes *r = dynamic_cast<const DelPlayerDataRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		DelPlayerDataRes& operator = (const DelPlayerDataRes &rhs)
+		{
+			const DelPlayerDataRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			return os;
+		}
+
+	};
+};
+#endif

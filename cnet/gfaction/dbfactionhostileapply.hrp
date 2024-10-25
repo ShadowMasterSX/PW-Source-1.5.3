@@ -1,0 +1,54 @@
+
+#ifndef __GNET_DBFACTIONHOSTILEAPPLY_HPP
+#define __GNET_DBFACTIONHOSTILEAPPLY_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbfactionhostileapplyarg"
+
+
+namespace GNET
+{
+
+class DBFactionHostileApply : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbfactionhostileapply"
+#undef	RPC_BASECLASS
+	OperWrapper::wref_t oper;
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBFactionHostileApplyArg *arg = (DBFactionHostileApplyArg *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		DBFactionHostileApplyArg *arg = (DBFactionHostileApplyArg *)argument;
+		RpcRetcode *res = (RpcRetcode *)result;
+		
+		OperWrapper::href_t ref(oper);
+		if(ref)
+		{
+			ref->SetResult(result);
+			ref->Execute();
+		}
+		if(res->retcode==ERR_SUCCESS)
+			Factiondb::GetInstance()->OnHostileApply(arg->fid, arg->dst_fid, arg->end_time, arg->op_time);
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+		DBFactionHostileApplyArg *arg = (DBFactionHostileApplyArg *)argument;
+		Log::log(LOG_ERR,"DBFactionHostileApply timeout. fid=%d, dst_fid=%d.", arg->fid, arg->dst_fid);
+	}
+
+};
+
+};
+#endif

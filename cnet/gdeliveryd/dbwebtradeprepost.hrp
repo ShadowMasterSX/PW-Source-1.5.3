@@ -1,0 +1,120 @@
+
+#ifndef __GNET_DBWEBTRADEPREPOST_HPP
+#define __GNET_DBWEBTRADEPREPOST_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+
+#include "dbwebtradeprepostarg"
+#include "dbwebtradeprepostres"
+
+#include "webtradeprepost_re.hpp"
+#include "gproviderserver.hpp"
+#include "gdeliveryserver.hpp"
+#include "webtrademarket.h"
+
+namespace GNET
+{
+
+class DBWebTradePrePost : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbwebtradeprepost"
+#undef	RPC_BASECLASS
+	unsigned int save_linksid;
+	unsigned int save_localsid;
+	int          save_gsid;
+	void SyncGameServer( int roleid,GMailSyncData& syncdata, int retcode )
+	{
+		GProviderServer::GetInstance()->DispatchProtocol( save_gsid, GMailEndSync(0,retcode,roleid,syncdata));
+	}
+	void SendResult( int retcode,int64_t sn,const GWebTradeItem & info)
+	{
+		GDeliveryServer::GetInstance()->Send(
+				save_linksid,
+				WebTradePrePost_Re(retcode,sn,info,save_localsid)
+			);
+	}
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBWebTradePrePostArg *arg = (DBWebTradePrePostArg *)argument;
+		// DBWebTradePrePostRes *res = (DBWebTradePrePostRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		DBWebTradePrePostArg *arg = (DBWebTradePrePostArg *)argument;
+		DBWebTradePrePostRes *res = (DBWebTradePrePostRes *)result;
+		DEBUG_PRINT("dbwebtradeprepost: rpc return. retcode=%d sn=%lld roleid=%d", res->retcode, arg->sn, arg->roleid);
+		
+		GWebTradeItem info;
+		if(res->retcode == ERR_SUCCESS)
+		{
+			GRoleInventory item;
+			if(arg->posttype == 2)
+			{
+				item = res->syncdata.inventory.items[0];
+				item.count = arg->item_num;
+			}
+			info = GWebTradeItem(
+					arg->sn,
+					arg->roleid,
+					arg->userid,
+					res->name,
+					arg->posttype,
+					arg->money, 
+					arg->item_id,
+					arg->item_num,
+					arg->state,
+					0,
+					0,
+					arg->price,
+					arg->sellperiod,
+					arg->buyer_roleid,
+					res->buyer_userid,
+					res->buyer_name,
+					0);		//此时还没有生成商品id
+			if(!WebTradeMarket::GetInstance().OnDBPrePost(
+						GWebTradeDetail(
+							info,
+							item,
+							arg->post_time,
+							arg->deposit,
+							arg->loginip,
+							res->rolebrief)
+						)
+			  )
+			{
+				Log::log(LOG_WARNING,"dbwebtradeprepost: add webtrade to market failed. sn=%lld,roleid=%d", arg->sn,arg->roleid);
+			}
+			//寄售角色时要对角色进行锁定
+			if(arg->posttype == 4)
+			{
+				Thread::RWLock::WRScoped l(UserContainer::GetInstance().GetLocker());
+				UserInfo* userinfo=UserContainer::GetInstance().FindUser(arg->userid);
+				if(userinfo)
+					userinfo->role_status[arg->roleid % MAX_ROLE_COUNT] = _ROLE_STATUS_FROZEN;		
+			}
+		}
+		SendResult( res->retcode,arg->sn,info);
+		if(arg->posttype == 1 || arg->posttype == 2)
+			SyncGameServer(arg->roleid,res->syncdata,res->retcode);
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+		DBWebTradePrePostArg *arg = (DBWebTradePrePostArg *)argument;
+		Log::log(LOG_ERR,"dbwebtradeprepost: timeout. sn=%lld,roleid=%d", arg->sn,arg->roleid);
+		SendResult(ERR_TIMEOUT,0,GWebTradeItem());
+		//do not sync gameserver, because gameserver will timeout and disconnect this player
+	}
+
+};
+
+};
+#endif

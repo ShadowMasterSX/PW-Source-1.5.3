@@ -1,0 +1,47 @@
+	public:
+		int64_t localuid;
+		FactionIDBean factionid;
+		FactionInfoBean factioninfo;
+		FactionTitleBeanVector members;
+		Octets forbidlist;
+		enum { PROTOCOL_TYPE = PROTOCOL_FACTIONINFORESP };
+	public:
+		FactionInfoResp() { type = PROTOCOL_FACTIONINFORESP; }
+		FactionInfoResp(void*) : Protocol(PROTOCOL_FACTIONINFORESP) { }
+		FactionInfoResp (int64_t l_localuid,const FactionIDBean& l_factionid = FactionIDBean(),const FactionInfoBean& l_factioninfo = FactionInfoBean(),
+			const FactionTitleBeanVector& l_members = FactionTitleBeanVector(),const Octets& l_forbidlist = Octets())
+			 : localuid(l_localuid),factionid(l_factionid),factioninfo(l_factioninfo)
+			,members(l_members),forbidlist(l_forbidlist)
+		{
+			type = PROTOCOL_FACTIONINFORESP;
+		}
+
+		FactionInfoResp(const FactionInfoResp &rhs)
+			: Protocol(rhs),localuid(rhs.localuid),factionid(rhs.factionid),factioninfo(rhs.factioninfo)
+			,members(rhs.members),forbidlist(rhs.forbidlist) { }
+
+		GNET::Protocol *Clone() const { return new FactionInfoResp(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << localuid;
+			os << factionid;
+			os << factioninfo;
+			os << members;
+			os << forbidlist;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> localuid;
+			os >> factionid;
+			os >> factioninfo;
+			os >> members;
+			os >> forbidlist;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1048576; }

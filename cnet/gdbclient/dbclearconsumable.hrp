@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBCLEARCONSUMABLE_HPP
+#define __GNET_DBCLEARCONSUMABLE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbclearconsumablearg"
+
+
+namespace GNET
+{
+
+class DBClearConsumable : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbclearconsumable"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBClearConsumableArg *arg = (DBClearConsumableArg *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBClearConsumableArg *arg = (DBClearConsumableArg *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

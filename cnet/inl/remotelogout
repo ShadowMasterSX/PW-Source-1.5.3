@@ -1,0 +1,32 @@
+	public:
+		int userid;
+		enum { PROTOCOL_TYPE = PROTOCOL_REMOTELOGOUT };
+	public:
+		RemoteLogout() { type = PROTOCOL_REMOTELOGOUT; }
+		RemoteLogout(void*) : Protocol(PROTOCOL_REMOTELOGOUT) { }
+		RemoteLogout (int l_userid)
+			 : userid(l_userid)
+		{
+			type = PROTOCOL_REMOTELOGOUT;
+		}
+
+		RemoteLogout(const RemoteLogout &rhs)
+			: Protocol(rhs),userid(rhs.userid) { }
+
+		GNET::Protocol *Clone() const { return new RemoteLogout(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 32; }

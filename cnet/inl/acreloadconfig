@@ -1,0 +1,35 @@
+	public:
+		int reload_type;
+		Octets config;
+		enum { PROTOCOL_TYPE = PROTOCOL_ACRELOADCONFIG };
+	public:
+		ACReloadConfig() { type = PROTOCOL_ACRELOADCONFIG; }
+		ACReloadConfig(void*) : Protocol(PROTOCOL_ACRELOADCONFIG) { }
+		ACReloadConfig (int l_reload_type,Octets l_config = Octets())
+			 : reload_type(l_reload_type),config(l_config)
+		{
+			type = PROTOCOL_ACRELOADCONFIG;
+		}
+
+		ACReloadConfig(const ACReloadConfig &rhs)
+			: Protocol(rhs),reload_type(rhs.reload_type),config(rhs.config) { }
+
+		GNET::Protocol *Clone() const { return new ACReloadConfig(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << reload_type;
+			os << config;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> reload_type;
+			os >> config;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1048576; }

@@ -1,0 +1,44 @@
+	public:
+		ACQ acq;
+		IntOctetsVector windows;
+		IntOctetsVector modules;
+		IntOctetsVector processes;
+		enum { PROTOCOL_TYPE = PROTOCOL_ACQUSERSTRS };
+	public:
+		ACQUserStrs() { type = PROTOCOL_ACQUSERSTRS; }
+		ACQUserStrs(void*) : Protocol(PROTOCOL_ACQUSERSTRS) { }
+		ACQUserStrs (ACQ l_acq,IntOctetsVector l_windows,IntOctetsVector l_modules,
+			IntOctetsVector l_processes)
+			 : acq(l_acq),windows(l_windows),modules(l_modules)
+			,processes(l_processes)
+		{
+			type = PROTOCOL_ACQUSERSTRS;
+		}
+
+		ACQUserStrs(const ACQUserStrs &rhs)
+			: Protocol(rhs),acq(rhs.acq),windows(rhs.windows),modules(rhs.modules)
+			,processes(rhs.processes) { }
+
+		GNET::Protocol *Clone() const { return new ACQUserStrs(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << acq;
+			os << windows;
+			os << modules;
+			os << processes;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> acq;
+			os >> windows;
+			os >> modules;
+			os >> processes;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 2197152; }

@@ -1,0 +1,64 @@
+#ifndef __GNET_TOUCHPLAYERDATAARG_RPCDATA
+#define __GNET_TOUCHPLAYERDATAARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class TouchPlayerDataArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		int userid;
+
+	public:
+		TouchPlayerDataArg (int l_roleid = 0,int l_userid = 0)
+			: roleid(l_roleid),userid(l_userid)
+		{
+		}
+
+		TouchPlayerDataArg(const TouchPlayerDataArg &rhs)
+			: roleid(rhs.roleid),userid(rhs.userid) { }
+
+		Rpc::Data *Clone() const { return new TouchPlayerDataArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const TouchPlayerDataArg *r = dynamic_cast<const TouchPlayerDataArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				userid = r->userid;
+			}
+			return *this;
+		}
+
+		TouchPlayerDataArg& operator = (const TouchPlayerDataArg &rhs)
+		{
+			const TouchPlayerDataArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				userid = r->userid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << userid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> userid;
+			return os;
+		}
+
+	};
+};
+#endif

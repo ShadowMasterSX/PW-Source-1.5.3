@@ -1,0 +1,65 @@
+#ifndef __GNET_ROLEARG_RPCDATA
+#define __GNET_ROLEARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "roleid"
+
+namespace GNET
+{
+	class RoleArg : public GNET::Rpc::Data
+	{
+	public:
+		RoleId key;
+		int data_mask;
+
+	public:
+		RoleArg (const RoleId& l_key = RoleId(0),int l_data_mask = 0)
+			: key(l_key),data_mask(l_data_mask)
+		{
+		}
+
+		RoleArg(const RoleArg &rhs)
+			: key(rhs.key),data_mask(rhs.data_mask) { }
+
+		Rpc::Data *Clone() const { return new RoleArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const RoleArg *r = dynamic_cast<const RoleArg *>(&rhs);
+			if (r && r != this)
+			{
+				key = r->key;
+				data_mask = r->data_mask;
+			}
+			return *this;
+		}
+
+		RoleArg& operator = (const RoleArg &rhs)
+		{
+			const RoleArg *r = &rhs;
+			if (r && r != this)
+			{
+				key = r->key;
+				data_mask = r->data_mask;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << key;
+			os << data_mask;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> key;
+			os >> data_mask;
+			return os;
+		}
+
+	};
+};
+#endif

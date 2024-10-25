@@ -1,0 +1,55 @@
+
+#ifndef __GNET_ACCOUNTDELROLE_HPP
+#define __GNET_ACCOUNTDELROLE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "accountdelrolearg"
+#include "accountdelroleres"
+#include "gdeliveryserver.hpp"
+#include "gamedbclient.hpp"
+#include "dbdeleterole.hrp"
+namespace GNET
+{
+
+class AccountDelRole : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "accountdelrole"
+#undef	RPC_BASECLASS
+//	unsigned int rolelist;
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// AccountDelRoleArg *arg = (AccountDelRoleArg *)argument;
+		// AccountDelRoleRes *res = (AccountDelRoleRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		AccountDelRoleArg *arg = (AccountDelRoleArg *)argument;
+		AccountDelRoleRes *res = (AccountDelRoleRes *)result;
+		//if erasion succuss or the roleid has already be erased(NOTFOUND), erase the role in RoleDB(permanently)
+		DEBUG_PRINT("gdelivery::accountdelrole: roleid=%d,result=%d\n",arg->roleid,res->retcode);
+		if (res->retcode==ERR_NOTFOUND || res->retcode==ERR_SUCCESS)
+		{
+			/*
+			UserInfo::RoleList _rolelist(rolelist);
+			_rolelist.DelRole(arg->roleid % MAX_ROLE_COUNT);
+			*/
+			DBDeleteRole* rpc=(DBDeleteRole*) Rpc::Call(RPC_DBDELETEROLE,DBDeleteRoleArg(arg->roleid,false));//do not send result to client
+			GameDBClient::GetInstance()->SendProtocol(rpc);			
+		}
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

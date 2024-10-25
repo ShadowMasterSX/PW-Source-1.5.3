@@ -1,0 +1,44 @@
+	public:
+		int server_type;
+		int war_type;
+		int server_id;
+		int world_tag;
+		enum { PROTOCOL_TYPE = PROTOCOL_COUNTRYBATTLESERVERREGISTER };
+	public:
+		CountryBattleServerRegister() { type = PROTOCOL_COUNTRYBATTLESERVERREGISTER; }
+		CountryBattleServerRegister(void*) : Protocol(PROTOCOL_COUNTRYBATTLESERVERREGISTER) { }
+		CountryBattleServerRegister (int l_server_type,int l_war_type,int l_server_id,
+			int l_world_tag)
+			 : server_type(l_server_type),war_type(l_war_type),server_id(l_server_id)
+			,world_tag(l_world_tag)
+		{
+			type = PROTOCOL_COUNTRYBATTLESERVERREGISTER;
+		}
+
+		CountryBattleServerRegister(const CountryBattleServerRegister &rhs)
+			: Protocol(rhs),server_type(rhs.server_type),war_type(rhs.war_type),server_id(rhs.server_id)
+			,world_tag(rhs.world_tag) { }
+
+		GNET::Protocol *Clone() const { return new CountryBattleServerRegister(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << server_type;
+			os << war_type;
+			os << server_id;
+			os << world_tag;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> server_type;
+			os >> war_type;
+			os >> server_id;
+			os >> world_tag;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

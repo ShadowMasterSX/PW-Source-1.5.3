@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBPSHOPTIMEOUT_HPP
+#define __GNET_DBPSHOPTIMEOUT_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbpshoptimeoutarg"
+#include "dbpshoptimeoutres"
+
+namespace GNET
+{
+
+class DBPShopTimeout : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbpshoptimeout"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBPShopTimeoutArg *arg = (DBPShopTimeoutArg *)argument;
+		// DBPShopTimeoutRes *res = (DBPShopTimeoutRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBPShopTimeoutArg *arg = (DBPShopTimeoutArg *)argument;
+		// DBPShopTimeoutRes *res = (DBPShopTimeoutRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

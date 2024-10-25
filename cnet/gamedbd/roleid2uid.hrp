@@ -1,0 +1,73 @@
+
+#ifndef __GNET_ROLEID2UID_HPP
+#define __GNET_ROLEID2UID_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "roleid2uidarg"
+#include "roleid2uidres"
+
+namespace GNET
+{
+
+class Roleid2Uid : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "roleid2uid"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		Roleid2UidArg *arg = (Roleid2UidArg *)argument;
+		Roleid2UidRes *res = (Roleid2UidRes *)result;
+
+		LOG_TRACE( "Roleid2Uid, roleid=%d.\n", arg->roleid );
+
+		try
+		{
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::AtomTransaction txn;
+			try
+			{
+				GRoleBase	base;
+				Marshal::OctetsStream(pbase->find( Marshal::OctetsStream()<<arg->roleid, txn )) >> base;
+				if(base.userid)
+					res->userid = base.userid;
+				else
+					res->userid = LOGICUID(arg->roleid);
+
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "Roleid2Uid, roleid=%d, what=%s\n", arg->roleid, e.what() );
+			res->retcode = ERR_DATANOTFIND;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// Roleid2UidArg *arg = (Roleid2UidArg *)argument;
+		// Roleid2UidRes *res = (Roleid2UidRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

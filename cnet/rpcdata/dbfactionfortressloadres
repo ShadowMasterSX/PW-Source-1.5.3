@@ -1,0 +1,70 @@
+#ifndef __GNET_DBFACTIONFORTRESSLOADRES_RPCDATA
+#define __GNET_DBFACTIONFORTRESSLOADRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gfactionfortressdetail"
+
+namespace GNET
+{
+	class DBFactionFortressLoadRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		std::vector<GFactionFortressDetail> list;
+		Octets handle;
+
+	public:
+		DBFactionFortressLoadRes (int l_retcode = 0,const std::vector<GFactionFortressDetail>& l_list = std::vector<GFactionFortressDetail>(),const Octets& l_handle = Octets())
+			: retcode(l_retcode),list(l_list),handle(l_handle)
+		{
+		}
+
+		DBFactionFortressLoadRes(const DBFactionFortressLoadRes &rhs)
+			: retcode(rhs.retcode),list(rhs.list),handle(rhs.handle) { }
+
+		Rpc::Data *Clone() const { return new DBFactionFortressLoadRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBFactionFortressLoadRes *r = dynamic_cast<const DBFactionFortressLoadRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				list = r->list;
+				handle = r->handle;
+			}
+			return *this;
+		}
+
+		DBFactionFortressLoadRes& operator = (const DBFactionFortressLoadRes &rhs)
+		{
+			const DBFactionFortressLoadRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				list = r->list;
+				handle = r->handle;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << list;
+			os << handle;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> list;
+			os >> handle;
+			return os;
+		}
+
+	};
+};
+#endif

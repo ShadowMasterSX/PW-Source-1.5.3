@@ -1,0 +1,59 @@
+#ifndef __GNET_DBPLAYERPOSITIONRESETRES_RPCDATA
+#define __GNET_DBPLAYERPOSITIONRESETRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBPlayerPositionResetRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+
+	public:
+		DBPlayerPositionResetRes (int l_retcode = 0)
+			: retcode(l_retcode)
+		{
+		}
+
+		DBPlayerPositionResetRes(const DBPlayerPositionResetRes &rhs)
+			: retcode(rhs.retcode) { }
+
+		Rpc::Data *Clone() const { return new DBPlayerPositionResetRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPlayerPositionResetRes *r = dynamic_cast<const DBPlayerPositionResetRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		DBPlayerPositionResetRes& operator = (const DBPlayerPositionResetRes &rhs)
+		{
+			const DBPlayerPositionResetRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			return os;
+		}
+
+	};
+};
+#endif

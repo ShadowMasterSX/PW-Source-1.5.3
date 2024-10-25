@@ -1,0 +1,73 @@
+#ifndef __GNET_ROLEDETAILBEAN_RPCDATA
+#define __GNET_ROLEDETAILBEAN_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "roleinfobean"
+#include "rolestatusbean"
+#include "roleforbidbean"
+
+namespace GNET
+{
+	class RoleDetailBean : public GNET::Rpc::Data
+	{
+	public:
+		RoleInfoBean info;
+		RoleStatusBean status;
+		RoleForbidBean forbid;
+
+	public:
+		RoleDetailBean (const RoleInfoBean& l_info = RoleInfoBean(),const RoleStatusBean& l_status = RoleStatusBean(),const RoleForbidBean& l_forbid = RoleForbidBean())
+			: info(l_info),status(l_status),forbid(l_forbid)
+		{
+		}
+
+		RoleDetailBean(const RoleDetailBean &rhs)
+			: info(rhs.info),status(rhs.status),forbid(rhs.forbid) { }
+
+		Rpc::Data *Clone() const { return new RoleDetailBean(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const RoleDetailBean *r = dynamic_cast<const RoleDetailBean *>(&rhs);
+			if (r && r != this)
+			{
+				info = r->info;
+				status = r->status;
+				forbid = r->forbid;
+			}
+			return *this;
+		}
+
+		RoleDetailBean& operator = (const RoleDetailBean &rhs)
+		{
+			const RoleDetailBean *r = &rhs;
+			if (r && r != this)
+			{
+				info = r->info;
+				status = r->status;
+				forbid = r->forbid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << info;
+			os << status;
+			os << forbid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> info;
+			os >> status;
+			os >> forbid;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<RoleDetailBean>	RoleDetailBeanVector;
+};
+#endif

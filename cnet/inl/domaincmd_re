@@ -1,0 +1,38 @@
+	public:
+		Octets res;
+		int serial;
+		unsigned int localsid;
+		enum { PROTOCOL_TYPE = PROTOCOL_DOMAINCMD_RE };
+	public:
+		DomainCmd_Re() { type = PROTOCOL_DOMAINCMD_RE; }
+		DomainCmd_Re(void*) : Protocol(PROTOCOL_DOMAINCMD_RE) { }
+		DomainCmd_Re (Octets l_res,int l_serial,unsigned int l_localsid)
+			 : res(l_res),serial(l_serial),localsid(l_localsid)
+		{
+			type = PROTOCOL_DOMAINCMD_RE;
+		}
+
+		DomainCmd_Re(const DomainCmd_Re &rhs)
+			: Protocol(rhs),res(rhs.res),serial(rhs.serial),localsid(rhs.localsid) { }
+
+		GNET::Protocol *Clone() const { return new DomainCmd_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << res;
+			os << serial;
+			os << localsid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> res;
+			os >> serial;
+			os >> localsid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 65535; }

@@ -1,0 +1,70 @@
+
+#ifndef __GNET_DBFORCELOAD_HPP
+#define __GNET_DBFORCELOAD_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbforceloadarg"
+#include "dbforceloadres"
+
+namespace GNET
+{
+
+class DBForceLoad : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbforceload"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		//DBForceLoadArg *arg = (DBForceLoadArg *)argument;
+		DBForceLoadRes *res = (DBForceLoadRes *)result;
+		try
+		{
+			StorageEnv::Storage * pforce = StorageEnv::GetStorage("force");
+			StorageEnv::AtomTransaction txn;
+			Marshal::OctetsStream value;
+			try
+			{
+				if(pforce->find(Marshal::OctetsStream()<<(int)0,value,txn))
+					value >> res->list;
+				res->retcode = ERR_SUCCESS;
+				LOG_TRACE("DBForceLoad, count=%d update_time=%d.", res->list.list.size(), res->list.update_time);
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBForceLoad, what=%s\n", e.what() );
+			if(e.get_errno()==DB_LOCK_DEADLOCK)
+				res->retcode = ERR_AGAIN;
+			else
+				res->retcode = ERR_EXCEPTION;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBForceLoadArg *arg = (DBForceLoadArg *)argument;
+		// DBForceLoadRes *res = (DBForceLoadRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

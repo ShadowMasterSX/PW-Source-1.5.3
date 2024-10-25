@@ -1,0 +1,64 @@
+#ifndef __GNET_DBPSHOPSETTYPEARG_RPCDATA
+#define __GNET_DBPSHOPSETTYPEARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBPShopSetTypeArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		int newtype;
+
+	public:
+		DBPShopSetTypeArg (int l_roleid = 0,int l_newtype = 0)
+			: roleid(l_roleid),newtype(l_newtype)
+		{
+		}
+
+		DBPShopSetTypeArg(const DBPShopSetTypeArg &rhs)
+			: roleid(rhs.roleid),newtype(rhs.newtype) { }
+
+		Rpc::Data *Clone() const { return new DBPShopSetTypeArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPShopSetTypeArg *r = dynamic_cast<const DBPShopSetTypeArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				newtype = r->newtype;
+			}
+			return *this;
+		}
+
+		DBPShopSetTypeArg& operator = (const DBPShopSetTypeArg &rhs)
+		{
+			const DBPShopSetTypeArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				newtype = r->newtype;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << newtype;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> newtype;
+			return os;
+		}
+
+	};
+};
+#endif

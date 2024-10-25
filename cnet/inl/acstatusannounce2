@@ -1,0 +1,35 @@
+	public:
+		int status;
+		std::vector<ACOnlineStatus2> info_list;
+		enum { PROTOCOL_TYPE = PROTOCOL_ACSTATUSANNOUNCE2 };
+	public:
+		ACStatusAnnounce2() { type = PROTOCOL_ACSTATUSANNOUNCE2; }
+		ACStatusAnnounce2(void*) : Protocol(PROTOCOL_ACSTATUSANNOUNCE2) { }
+		ACStatusAnnounce2 (int l_status,std::vector<ACOnlineStatus2> l_info_list)
+			 : status(l_status),info_list(l_info_list)
+		{
+			type = PROTOCOL_ACSTATUSANNOUNCE2;
+		}
+
+		ACStatusAnnounce2(const ACStatusAnnounce2 &rhs)
+			: Protocol(rhs),status(rhs.status),info_list(rhs.info_list) { }
+
+		GNET::Protocol *Clone() const { return new ACStatusAnnounce2(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << status;
+			os << info_list;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> status;
+			os >> info_list;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 2097152; }

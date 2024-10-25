@@ -1,0 +1,70 @@
+#ifndef __GNET_DBPSHOPACTIVE_HPP
+#define __GNET_DBPSHOPACTIVE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbpshopactivearg"
+#include "dbpshopactiveres"
+#include "dbpshopget.hrp"
+#include "pshopactive_re.hpp"
+#include "pshopmarket.h"
+
+namespace GNET
+{
+
+class DBPShopActive : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbpshopactive"
+#undef	RPC_BASECLASS
+
+	unsigned int save_gsid;
+	unsigned int save_linksid;
+	unsigned int save_localsid;
+
+	void SyncGameServer(int roleid, int retcode, const GMailSyncData& data)
+    {
+		GProviderServer::GetInstance()->DispatchProtocol(save_gsid, GMailEndSync(0, retcode, roleid, data));
+	}
+	void SendResult(int retcode, int status, int expiretime)
+	{
+		GDeliveryServer::GetInstance()->Send(save_linksid, PShopActive_Re(retcode, save_localsid, status, expiretime));
+	}
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid){}
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBPShopActiveArg *arg = (DBPShopActiveArg *)argument;
+		DBPShopActiveRes *res = (DBPShopActiveRes *)result;
+		LOG_TRACE("DBPShopActive: RPC return, roleid=%d retcode=%d", arg->roleid, res->retcode);
+		if(res->retcode == ERR_SUCCESS)
+		{
+			if(PShopMarket::GetInstance().GetShop(arg->roleid))
+			{
+				//ÑÓ³ÙµêÆÌÊÙÃü
+				PShopMarket::GetInstance().OnModifyExpireTime(arg->roleid, res->detail.expiretime);
+			}
+			else
+			{
+				//µêÆÌ¹ýÆÚ,ÖØÐÂ¼ÓÔØ
+				PShopMarket::GetInstance().AddShop(res->detail);
+			}
+		}
+
+		SendResult(res->retcode, res->detail.status, res->detail.expiretime);
+		SyncGameServer(arg->roleid, res->retcode, res->syncdata);
+	}
+
+	void OnTimeout()
+	{
+		DBPShopActiveArg *arg = (DBPShopActiveArg *)argument;
+		Log::log(LOG_ERR,"DBPShopActive: Timeout. roleid=%d.", arg->roleid);
+		SendResult(ERR_TIMEOUT, 0, 0);
+		DBPShopGet::QueryShop(arg->roleid, save_linksid, save_localsid, 3, DBPShopGet::REASON_DB_TIMEOUT);
+	}
+
+};
+
+};
+#endif

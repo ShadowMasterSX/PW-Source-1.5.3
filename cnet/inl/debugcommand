@@ -1,0 +1,38 @@
+	public:
+		unsigned int roleid;
+		int tag;
+		Octets data;
+		enum { PROTOCOL_TYPE = PROTOCOL_DEBUGCOMMAND };
+	public:
+		DebugCommand() { type = PROTOCOL_DEBUGCOMMAND; }
+		DebugCommand(void*) : Protocol(PROTOCOL_DEBUGCOMMAND) { }
+		DebugCommand (unsigned int l_roleid,int l_tag,const Octets& l_data)
+			 : roleid(l_roleid),tag(l_tag),data(l_data)
+		{
+			type = PROTOCOL_DEBUGCOMMAND;
+		}
+
+		DebugCommand(const DebugCommand &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),tag(rhs.tag),data(rhs.data) { }
+
+		GNET::Protocol *Clone() const { return new DebugCommand(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << tag;
+			os << data;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> tag;
+			os >> data;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 256; }

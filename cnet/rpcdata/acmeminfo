@@ -1,0 +1,65 @@
+#ifndef __GNET_ACMEMINFO_RPCDATA
+#define __GNET_ACMEMINFO_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class ACMemInfo : public GNET::Rpc::Data
+	{
+	public:
+		int ct;
+		int count;
+
+	public:
+		ACMemInfo (int l_ct = 0,int l_count = 0)
+			: ct(l_ct),count(l_count)
+		{
+		}
+
+		ACMemInfo(const ACMemInfo &rhs)
+			: ct(rhs.ct),count(rhs.count) { }
+
+		Rpc::Data *Clone() const { return new ACMemInfo(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const ACMemInfo *r = dynamic_cast<const ACMemInfo *>(&rhs);
+			if (r && r != this)
+			{
+				ct = r->ct;
+				count = r->count;
+			}
+			return *this;
+		}
+
+		ACMemInfo& operator = (const ACMemInfo &rhs)
+		{
+			const ACMemInfo *r = &rhs;
+			if (r && r != this)
+			{
+				ct = r->ct;
+				count = r->count;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << ct;
+			os << count;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> ct;
+			os >> count;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<ACMemInfo>	ACMemInfoVector;
+};
+#endif

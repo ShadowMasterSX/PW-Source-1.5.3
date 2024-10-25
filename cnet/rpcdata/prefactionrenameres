@@ -1,0 +1,59 @@
+#ifndef __GNET_PREFACTIONRENAMERES_RPCDATA
+#define __GNET_PREFACTIONRENAMERES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class PreFactionRenameRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+
+	public:
+		PreFactionRenameRes (int l_retcode = -1)
+			: retcode(l_retcode)
+		{
+		}
+
+		PreFactionRenameRes(const PreFactionRenameRes &rhs)
+			: retcode(rhs.retcode) { }
+
+		Rpc::Data *Clone() const { return new PreFactionRenameRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const PreFactionRenameRes *r = dynamic_cast<const PreFactionRenameRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		PreFactionRenameRes& operator = (const PreFactionRenameRes &rhs)
+		{
+			const PreFactionRenameRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			return os;
+		}
+
+	};
+};
+#endif

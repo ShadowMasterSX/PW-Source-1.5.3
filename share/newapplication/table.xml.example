@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="table.xsl"?>
+
+<application debug="false" beans="com.world2.qc.db" beanbase="src/beans">
+
+<driver name="com.mysql.jdbc.Driver" />
+
+<connection name="auth0" poolsize="3" url="jdbc:mysql://172.16.2.114:3306/QC" username="yangming" password="yangming"/>
+
+
+<table name="groups" connection="auth0" operate="replaceA">
+	<column name="name"         sql-type="varchar(32)"      java-type="java.lang.String" not-null="true" />
+	<column name="description"  sql-type="varchar(255)"      java-type="java.lang.String" not-null="false" />
+	<delete name="byId" condition="WHERE id=?" />
+	<primarykey name="pk_groups" column="name" />
+</table>
+
+<table name="grouppriv" connection="auth0" operate="replaceA">
+	<column name="groupname"         sql-type="varchar(32)"   java-type="java.lang.String" not-null="true" />
+	<column name="privId"            sql-type="integer"       java-type="java.lang.Integer" not-null="true" />
+	<delete name="byGroupName" condition="WHERE groupname=?" />
+	<primarykey name="pk_groupspriv" column="groupname,privId" />
+</table>
+
+<!--
+<table name="groupuser" connection="auth0" operate="replaceA">
+	<column name="groupId"           sql-type="integer"     java-type="java.lang.Integer" not-null="true" />
+	<column name="userId"            sql-type="integer"     java-type="java.lang.Intefer" not-null="true" />
+	<delete name="byUserId" condition="WHERE userId=?" />
+	<primarykey name="pk_groupuser" column="groupId,userId" />
+</table>
+-->
+
+<table name="privilege" connection="auth0" operate="replaceA">
+	<column name="id"           sql-type="integer"     java-type="java.lang.Integer" not-null="true" />
+	<column name="name"         sql-type="varchar(32)"      java-type="java.lang.String" not-null="false" />
+	<column name="description"     sql-type="varchar(255)"     java-type="java.lang.String" not-null="false" />
+	<delete name="byId" condition="WHERE id=?" />
+	<primarykey name="pk_privilege" column="id" />
+</table>
+
+<table name="users" connection="auth0" operate="replaceA">
+	<column name="id"           sql-type="integer"     java-type="java.lang.Integer"  />
+	<column name="username"         sql-type="varchar(32)"      java-type="java.lang.String" not-null="true" />
+	<column name="realname"         sql-type="varchar(32)"      java-type="java.lang.String" not-null="true" />
+	<column name="lastloginDate"    sql-type="datetime"         java-type="java.sql.Timestamp" not-null="false" />
+	<column name="flag"             sql-type="integer"          java-type="java.lang.Integer" not-null="false" />
+	<update name="lastloginDate" column="lastloginDate"  condition="WHERE id=?" />
+	<delete name="byId" condition="WHERE id=?" />
+	<primarykey name="pk_users" column="id" />
+</table>
+
+<table name="userpriv" connection="auth0" operate="replaceA">
+	<column name="userId"           sql-type="integer"     java-type="java.lang.Integer" not-null="true"/>
+	<column name="privilege"        sql-type="integer"     java-type="java.lang.Integer" not-null="true" />
+	<delete name="byUserId" condition="WHERE userId=?" />
+	<primarykey name="pk_userpriv" column="userId,privilege" />
+</table>
+
+
+<table name="workform" connection="auth0" operate="replaceA">
+	<column name="id"               sql-type="integer"          java-type="java.lang.Integer"  />
+	<column name="workgroupname"    sql-type="varchar(50)"      java-type="java.lang.String" not-null="true" />
+	<column name="suggestion"       sql-type="varchar(255)"     java-type="java.lang.String" not-null="false" />
+	<column name="feedback"         sql-type="varchar(255)"     java-type="java.lang.String" not-null="false" />
+	<column name="employee"         sql-type="integer"          java-type="java.lang.Integer" not-null="true" />
+	<column name="assessor"         sql-type="integer"          java-type="java.lang.Integer" not-null="true" />
+	<column name="starttime"        sql-type="datetime"         java-type="java.sql.Timestamp" not-null="true" />
+	<column name="submittime"       sql-type="datetime"         java-type="java.sql.Timestamp" not-null="true" />
+        <delete name="byId" condition="WHERE id=?" />
+	<primarykey name="pk_workform" column="id" />
+</table>
+
+<table name="files" connection="auth0" operate="replaceA">
+	<column name="workformid"       sql-type="integer"          java-type="java.lang.Integer" not-null="true" />
+	<column name="fileURI"          sql-type="varchar(255)"     java-type="java.lang.String" not-null="true" />
+	<delete name="byWorkformId" condition="WHERE workformid=?" />
+</table>
+
+<table name="usertitlescore" connection="auth0" operate="replaceA">
+	<column name="workformId"   	sql-type="integer"          java-type="java.lang.Integer" not-null="true" />
+	<column name="titlename"   	sql-type="varchar(50)"      java-type="java.lang.String" not-null="true" />
+	<column name="score"     	sql-type="integer"          java-type="java.lang.Integer" not-null="true" />
+	<primarykey name="pk_usertitlescore" column="workformId,titlename" />
+
+</table>
+
+<table name="workgroup" connection="auth0" operate="replaceA">
+	<column name="name"  	 	sql-type="varchar(50)"          java-type="java.lang.String" not-null="true" />
+	<delete name="byName" condition="WHERE name=?" />
+	<primarykey name="pk_workgroup" column="name" />
+</table>
+
+<table name="titletoassess" connection="auth0" operate="replaceA">
+	<column name="workgroupname"   	sql-type="varchar(50)"      java-type="java.lang.String" not-null="true" />
+	<column name="title"   		sql-type="varchar(50)"      java-type="java.lang.String" not-null="true" />
+	<column name="maxscore"     	sql-type="integer"          java-type="java.lang.Integer" not-null="true" />
+	<delete name="byPK" condition="WHERE workgroupname=? and title=?" />
+	<primarykey name="pk_titletoassess" column="workgroupname,title" />
+</table>
+
+<table name="entrytoassess" connection="auth0" operate="replaceA">
+	<column name="titlename"   	sql-type="varchar(50)"      java-type="java.lang.String" not-null="true" />
+	<column name="content" 		sql-type="varchar(50)"      java-type="java.lang.String" not-null="true" />
+	<delete name="byAll" condition="WHERE titlename=? and content=?" />
+</table>
+
+
+<table name="maxids" connection="auth0" operate="replaceA">
+	<column name="id"               sql-type="integer"          java-type="java.lang.Integer"  />
+	<column name="privilegeId"               sql-type="integer"          java-type="java.lang.Integer"  />
+	<column name="userId"               sql-type="integer"          java-type="java.lang.Integer"  />
+	<column name="workformId"               sql-type="integer"          java-type="java.lang.Integer"  />
+
+	<update name="privilegeId" column="privilegeId"  condition="WHERE id=0" />
+	<update name="userId" column="userId" condition="WHERE id=0" />
+	<update name="workformId" column="workformId" condition="WHERE id=0" />
+
+	<primarykey name="pk_maxids" column="id" />
+</table>
+
+
+
+<query name="UserPrivilegeQuery">
+        <table name="users" alias="u" />
+	<table name="userpriv" alias="p"/>
+	<column name="userId" column="p.userId"/>
+        <column name="privilege" column="p.privilege" />
+        <select name="byUserId" condition="WHERE p.userId = ?"/>
+	<select name="byName" condition="WHERE u.username = ? and  p.userId = u.id"/>
+</query>
+
+<query name="workFormQuery">
+        <table name="workform" alias="w" />
+        <column name="id"               column="w.id"/>
+        <column name="workgroupname"    column="w.workgroupname"/>
+        <column name="suggestion"       column="w.suggestion" />
+        <column name="feedback"         column="w.feedback" />
+        <column name="employee"         column="w.employee" />
+        <column name="assessor"         column="w.assessor" />
+        <column name="starttime"        column="w.starttime" />
+        <column name="submittime"       column="w.submittime" />
+
+	<select name="byWorkGroupName" condition="WHERE w.workgroupname = ?"/>
+	<select name="byAssessor" condition="WHERE w.assessor = ?"/>
+	<select name="byId" condition="WHERE w.id = ?"/>	
+        <select name="byIdRange" condition="WHERE w.id >= ? and w.id &lt;=?"/>
+	<select name="bySubmitTimeRange" condition="WHERE w.submittime >= ? and w.submittime &lt;=?"/>
+	<select name="byEmployee" condition="WHERE w.employee = ?"/>
+	<select name="byEmplayeeAndSubmitTimeRange" condition="WHERE w.employee = ? and w.submittime >= ? and w.submittime &lt;=?"/>
+</query>
+
+
+<query name="MaxIdsQuery">
+        <table name="maxids" alias="i" />
+	<column name="privilegeId" column="i.privilegeId" />
+        <column name="userId" column="i.userId" />
+	<column name="workformId" column="i.workformId" />
+        <select name="byId" condition="WHERE i.id = ?"/>
+</query>
+
+<query name="UserQuery">
+        <table name="users" alias="u" />
+	<column name="userId" column="u.id"/>
+	<column name="username"  column="u.username" />
+	<column name="realname"  column="u.realname" />
+	<column name="lastloginDate"   column="u.lastloginDate" />
+	<column name="flag"            column="u.flag" />
+	<select name="all"/>	
+        <select name="byUserId" condition="WHERE u.id = ?"/>
+	<select name="byName" condition="WHERE u.username = ?"/>
+</query>
+
+<query name="PrivUserQuery">
+        <table name="users" alias="u" />
+	<table name="userpriv" alias="p"/>
+	<column name="userId" column="u.id"/>
+	<column name="username"  column="u.username" />
+	<column name="realname"  column="u.realname" />
+	<column name="lastloginDate"   column="u.lastloginDate" />
+	<column name="flag"            column="u.flag" />
+        <select name="byPriv" condition="WHERE u.id = p.userId AND p.privilege = ?"/>
+</query>
+
+<query name="WorkGroupQuery">
+        <table name="workgroup" alias="w" />
+        <column name="name" column="w.name"/>
+        <select name="All"/>
+</query>
+
+<query name="EntrysOfTitles">
+	<table name="titletoassess" alias="t" />
+        <column name="title"        column="t.title" />
+        <column name="maxscore"     column="t.maxscore" />
+        <select name="byWorkGroup" condition="WHERE t.workgroupname = ? "/>
+</query>
+
+<query name="TitlesOfWorkGroupQuery">
+	<table name="entrytoassess" alias="e" />
+        <column name="content"      column="e.content" />
+        <select name="byTilte" condition="WHERE e.titlename = ? "/>
+</query>
+
+<query name="UserTitileScoreQuery">
+	<table name="usertitlescore" alias="us" />
+	<column name="titlename"  column="us.titlename"/>
+        <column name="score"      column="us.score" />
+        <select name="byWorkformId" condition="WHERE us.workformId = ? "/>
+</query>
+
+<query name="filesQuery">
+	<table name="files" alias="f" />
+	<column name="fileURI"  column="f.fileURI"/>
+        <select name="byWorkFormId" condition="WHERE f.workformid = ? "/>
+</query>
+
+<sql name="WorkFormDaystat">
+select <column name="left(w.submittime,10)" alias="day" java-type="java.lang.String"/>,<column name="count(*)" alias="cnt" java-type="Long"/>
+from workform w
+where assessor=<parameter name="assessor" java-type="Integer"/> AND submittime &gt; <parameter name="startTime" java-type="java.sql.Timestamp"/> AND submittime&lt;<parameter name="endTime" java-type="java.sql.Timestamp"/>
+group by left(w.submittime,10)
+</sql>
+
+
+</application>
+
+

@@ -1,0 +1,117 @@
+
+#ifndef __GNET_DBREFWITHDRAWTRANS_HPP
+#define __GNET_DBREFWITHDRAWTRANS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbrefwithdrawtransarg"
+
+
+namespace GNET
+{
+
+class DBRefWithdrawTrans : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbrefwithdrawtrans"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBRefWithdrawTransArg *arg = (DBRefWithdrawTransArg *)argument;
+		RpcRetcode *res = (RpcRetcode *)result;
+		try
+		{
+			StorageEnv::Storage *puser = StorageEnv::GetStorage("user");
+			StorageEnv::Storage * pstatus = StorageEnv::GetStorage("status");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				GRoleStatus status;
+				Marshal::OctetsStream(pstatus->find(Marshal::OctetsStream()<<arg->roleid, txn)) >> status;
+				if (status.level < REF_LIMIT_REFERRERLEVEL)
+				{
+					res->retcode = REF_ERR_REFREFERRERLEVEL;
+					return;
+				}
+				User u;
+				Marshal::OctetsStream(puser->find(Marshal::OctetsStream()<<arg->referrer.userid, txn)) >> u;
+				GRefStore referrer_store;
+				if (u.reference.size())
+				{
+					Marshal::OctetsStream os_ref(u.reference);
+					os_ref >> referrer_store;
+				}
+				referrer_store.bonus_add = arg->referrer.bonus_add;
+
+				std::vector<GReferral>::iterator it, ie = arg->referrals.end();
+				LOG_TRACE("DBRefWithdrawTrans: referrer=%d, referrals count=%d\n", arg->referrer.userid, arg->referrals.size());
+				for (it = arg->referrals.begin(); it != ie; ++it)
+				{
+					if (it->userid == arg->referrer.userid)
+					{
+						referrer_store.bonus_total1 = it->bonus_total1;
+						referrer_store.bonus_total2 = it->bonus_total2;
+						referrer_store.bonus_withdraw = it->bonus_withdraw;
+						referrer_store.bonus_withdraw_today = it->bonus_withdraw_today;
+						referrer_store.max_role_level = it->max_role_level;
+						referrer_store.rolenames = it->rolenames;
+					}
+					else
+					{
+						User u_referral;
+						Marshal::OctetsStream(puser->find(Marshal::OctetsStream()<<it->userid, txn)) >> u_referral;
+						GRefStore referral_store;
+						if (u_referral.reference.size())
+						{
+							Marshal::OctetsStream os_ref(u_referral.reference);
+							os_ref >>referral_store;
+						}
+						referral_store.bonus_total1 = it->bonus_total1;
+						referral_store.bonus_total2 = it->bonus_total2;
+						referral_store.bonus_withdraw = it->bonus_withdraw;
+						referral_store.bonus_withdraw_today = it->bonus_withdraw_today;
+						referral_store.max_role_level = it->max_role_level;
+						referral_store.rolenames = it->rolenames;
+						u_referral.reference = Marshal::OctetsStream() << referral_store;
+						puser->insert( Marshal::OctetsStream()<<it->userid, Marshal::OctetsStream()<<u_referral, txn );
+						LOG_TRACE("DBRefWithdrawTrans: referral=%d, bonus_total1=%d, bonus_total2=%d, bonus_withdraw=%d bonus_withdraw_today=%d max_role_level %d rolenames.size=%d", it->userid, it->bonus_total1, it->bonus_total2, it->bonus_withdraw, it->bonus_withdraw_today, it->max_role_level, it->rolenames.size());
+					}
+				}
+				u.reference = Marshal::OctetsStream() << referrer_store;
+				puser->insert( Marshal::OctetsStream()<<arg->referrer.userid, Marshal::OctetsStream()<<u, txn );
+				res->retcode = ERR_SUCCESS;
+			}
+			catch (DbException &e) { throw e; }
+			catch ( ... )
+			{
+				DbException ee(DB_OLD_VERSION);
+				txn.abort(ee);
+				throw ee;
+			}
+		}
+		catch (DbException &e)
+		{
+			Log::log(LOG_ERR, "gamedbd: DBRefWithdrawTrans failed, what=%s\n", e.what());
+			res->retcode = ERR_FAILED;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBRefWithdrawTransArg *arg = (DBRefWithdrawTransArg *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,42 @@
+	public:
+		int retcode;
+		int userid;
+		int zoneid;
+		int sn;
+		enum { PROTOCOL_TYPE = PROTOCOL_ADDCASH_RE };
+	public:
+		AddCash_Re() { type = PROTOCOL_ADDCASH_RE; }
+		AddCash_Re(void*) : Protocol(PROTOCOL_ADDCASH_RE) { }
+		AddCash_Re (int l_retcode = -1,int l_userid = -1,int l_zoneid = -1,
+			int l_sn = 0)
+			 : retcode(l_retcode),userid(l_userid),zoneid(l_zoneid)
+			,sn(l_sn)
+		{
+			type = PROTOCOL_ADDCASH_RE;
+		}
+
+		AddCash_Re(const AddCash_Re &rhs)
+			: Protocol(rhs),retcode(rhs.retcode),userid(rhs.userid),zoneid(rhs.zoneid)
+			,sn(rhs.sn) { }
+
+		GNET::Protocol *Clone() const { return new AddCash_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << userid;
+			os << zoneid;
+			os << sn;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> userid;
+			os >> zoneid;
+			os >> sn;
+			return os;
+		}
+
+		bool SizePolicy(size_t size) const { return size <= 256; }

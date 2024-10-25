@@ -1,0 +1,90 @@
+
+#ifndef __GNET_DBKEDELETECANDIDATE_HPP
+#define __GNET_DBKEDELETECANDIDATE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbkedeletecandidatearg"
+#include "dbkedeletecandidateres"
+
+namespace GNET
+{
+
+class DBKEDeleteCandidate : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbkedeletecandidate"
+#undef	RPC_BASECLASS
+
+	int Find(KECandidateVector & list, int roleid)
+	{
+		for(size_t i=0; i<list.size(); i++)
+		{
+			if(list[i].roleid == roleid)
+				return (int)i;
+		}
+		return -1;
+	}
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBKEDeleteCandidateArg *arg = (DBKEDeleteCandidateArg *)argument;
+		DBKEDeleteCandidateRes *res = (DBKEDeleteCandidateRes *)result;
+		LOG_TRACE("DBKEDeleteCandidate, candidate_list.size=%d, reason=%d.", arg->candidate_list.size(),arg->reason);
+		try
+		{
+			StorageEnv::Storage * pking = StorageEnv::GetStorage("kingelection");
+			StorageEnv::AtomTransaction txn;
+			try
+			{
+				KingElectionDetail detail;
+				Marshal::OctetsStream( pking->find(Marshal::OctetsStream()<<(int)0,txn) ) >> detail;
+				for(size_t i=0; i<arg->candidate_list.size(); i++)
+				{
+					int rst = Find(detail.candidate_list, arg->candidate_list[i]);
+					if(rst != -1)
+					{
+						detail.candidate_list.erase(detail.candidate_list.begin() + rst);
+					}
+					else
+					{
+						res->retcode = ERR_VERIFYFAILED;
+						return;
+					}
+				}
+				pking->insert(Marshal::OctetsStream()<<(int)0, Marshal::OctetsStream()<<detail, txn);
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBKEDeleteCandidate, what=%s\n", e.what() );
+			res->retcode = ERR_EXCEPTION;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBKEDeleteCandidateArg *arg = (DBKEDeleteCandidateArg *)argument;
+		// DBKEDeleteCandidateRes *res = (DBKEDeleteCandidateRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

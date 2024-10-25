@@ -1,0 +1,123 @@
+
+#ifndef __GNET_MOVEROLECREATE_HPP
+#define __GNET_MOVEROLECREATE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "storage.h"
+#include "moverolecreatearg"
+#include "moverolecreateres"
+
+namespace GNET
+{
+
+class MoveRoleCreate : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "moverolecreate"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		/*
+		MoveRoleCreateArg *arg = (MoveRoleCreateArg *)argument;
+		MoveRoleCreateRes *res = (MoveRoleCreateRes *)result;
+
+		UniqueNameServer::GetInstance()->TransformName(arg->rolename);
+
+		Octets name;
+		CharsetConverter::conv_charset_u2l( arg->rolename, name );
+		LOG_TRACE( "MoveRoleCreate(fromzoneid=%d,zoneid=%d,userid=%d,name=%.*s)",
+					arg->fromzoneid,arg->zoneid,arg->userid,name.size(),(char*)name.begin());
+
+		try
+		{
+			StorageEnv::Storage * punamerole = StorageEnv::GetStorage("unamerole");
+			StorageEnv::Storage * puidrole = StorageEnv::GetStorage("uidrole");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				Marshal::OctetsStream key_userid, value_unamerole, value_uidrole;
+				if( punamerole->find( arg->rolename, value_unamerole, txn ) )
+				{
+					int zoneid, roleid, status, time;
+					value_unamerole >> zoneid >> roleid >> status >> time;
+					if( zoneid == arg->fromzoneid )
+					{
+						LOG_TRACE("MoveRoleCreate(fromzoneid=%d,zoneid=%d,userid=%d,name=%.*s), same as fromzoneid, old:zoneid=%d,roleid=%d,status=%d,time=%d.",arg->fromzoneid,arg->zoneid,arg->userid,name.size(),(char*)name.begin(),zoneid,roleid,status,time);
+					}
+					else if( !(UNIQUENAME_ENGAGED == status && Timer::GetTime() - time > 300) )
+					{
+						res->retcode = ERR_DUPLICATRECORD;
+						LOG_TRACE("MoveRoleCreate(fromzoneid=%d,zoneid=%d,userid=%d,name=%.*s), duplicate, old:zoneid=%d,roleid=%d,status=%d,time=%d.",arg->fromzoneid,arg->zoneid,arg->userid,name.size(),(char*)name.begin(),zoneid,roleid,status,time);
+						return;
+					}
+					else
+					{
+						res->retcode = ERR_DUPLICATRECORD;
+						LOG_TRACE("MoveRoleCreate(fromzoneid=%d,zoneid=%d,userid=%d,name=%.*s), duplicate2, old:zoneid=%d,roleid=%d,status=%d,time=%d.",arg->fromzoneid,arg->zoneid,arg->userid,name.size(),(char*)name.begin(),zoneid,roleid,status,time);
+						return;
+					}
+				}
+				int status = UNIQUENAME_ENGAGED;
+				value_unamerole.clear();
+				value_unamerole << arg->zoneid << arg->userid << status << (int)Timer::GetTime();
+				punamerole->insert( arg->rolename, value_unamerole, txn );
+
+				RoleList rolelist;
+				key_userid << arg->userid;
+				unsigned int roles = 0;
+				if( puidrole->find( key_userid, value_uidrole, txn ) )
+				{
+					value_uidrole >> roles;
+					rolelist.SetRoleList(roles);
+				}
+				int id = rolelist.AddRole();
+				if( id < 0 )
+				{
+					res->retcode = ERR_NOFREESPACE;
+					LOG_TRACE("MoveRoleCreate(fromzoneid=%d,zoneid=%d,userid=%d,name=%.*s), nofreespace, rolelist=%x", arg->fromzoneid,arg->zoneid,arg->userid,name.size(),(char*)name.begin(),rolelist.GetRoleList());
+					return;
+				}
+				value_uidrole.clear();
+				value_uidrole << rolelist.GetRoleList();
+				res->roleid = arg->userid + id;
+				puidrole->insert( key_userid, value_uidrole, txn );
+				LOG_TRACE("MoveRoleCreate(fromzoneid=%d,zoneid=%d,userid=%d,name=%.*s), ok, old rolelist=%x,new rolelist=%x", arg->fromzoneid,arg->zoneid,arg->userid,name.size(),(char*)name.begin(),roles,rolelist.GetRoleList());
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "MoveRoleCreate, fromzoneid=%d, zoneid=%d, userid=%d, what=%s\n",
+						arg->fromzoneid, arg->zoneid, arg->userid, e.what() );
+			res->retcode = -1;
+		}
+		*/
+
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// MoveRoleCreateArg *arg = (MoveRoleCreateArg *)argument;
+		// MoveRoleCreateRes *res = (MoveRoleCreateRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

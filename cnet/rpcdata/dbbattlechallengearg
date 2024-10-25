@@ -1,0 +1,96 @@
+#ifndef __GNET_DBBATTLECHALLENGEARG_RPCDATA
+#define __GNET_DBBATTLECHALLENGEARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailsyncdata"
+
+namespace GNET
+{
+	class DBBattleChallengeArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		short cityid;
+		int factionid;
+		unsigned int deposit;
+		unsigned int maxbonus;
+		int challenge_time;
+		GMailSyncData syncdata;
+
+	public:
+		DBBattleChallengeArg (int l_roleid = 0,short l_cityid = 0,int l_factionid = 0
+			,unsigned int l_deposit = 0,unsigned int l_maxbonus = 0,int l_challenge_time = 0
+			,const GMailSyncData& l_syncdata = GMailSyncData())
+			: roleid(l_roleid),cityid(l_cityid),factionid(l_factionid)
+			,deposit(l_deposit),maxbonus(l_maxbonus),challenge_time(l_challenge_time)
+			,syncdata(l_syncdata)
+		{
+		}
+
+		DBBattleChallengeArg(const DBBattleChallengeArg &rhs)
+			: roleid(rhs.roleid),cityid(rhs.cityid),factionid(rhs.factionid),
+			deposit(rhs.deposit),maxbonus(rhs.maxbonus),challenge_time(rhs.challenge_time),
+			syncdata(rhs.syncdata) { }
+
+		Rpc::Data *Clone() const { return new DBBattleChallengeArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBBattleChallengeArg *r = dynamic_cast<const DBBattleChallengeArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				cityid = r->cityid;
+				factionid = r->factionid;
+				deposit = r->deposit;
+				maxbonus = r->maxbonus;
+				challenge_time = r->challenge_time;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		DBBattleChallengeArg& operator = (const DBBattleChallengeArg &rhs)
+		{
+			const DBBattleChallengeArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				cityid = r->cityid;
+				factionid = r->factionid;
+				deposit = r->deposit;
+				maxbonus = r->maxbonus;
+				challenge_time = r->challenge_time;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << cityid;
+			os << factionid;
+			os << deposit;
+			os << maxbonus;
+			os << challenge_time;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> cityid;
+			os >> factionid;
+			os >> deposit;
+			os >> maxbonus;
+			os >> challenge_time;
+			os >> syncdata;
+			return os;
+		}
+
+	};
+};
+#endif

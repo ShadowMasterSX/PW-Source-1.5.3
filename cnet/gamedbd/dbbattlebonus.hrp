@@ -1,0 +1,126 @@
+
+#ifndef __GNET_DBBATTLEBONUS_HPP
+#define __GNET_DBBATTLEBONUS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbbattlebonusarg"
+#include "dbbattlebonusres"
+
+namespace GNET
+{
+
+class DBBattleBonus : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbbattlebonus"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBBattleBonusArg *arg = (DBBattleBonusArg *)argument;
+		DBBattleBonusRes *res = (DBBattleBonusRes *)result;
+		Marshal::OctetsStream key, value;
+		try
+		{
+			StorageEnv::Storage * pcity = StorageEnv::GetStorage("city");
+			StorageEnv::Storage * pmailbox = StorageEnv::GetStorage("mailbox");
+			StorageEnv::Storage * pinfo = StorageEnv::GetStorage("factioninfo");
+			StorageEnv::CommonTransaction txn;
+			GTerritoryStore store;
+			try{
+				key << 0;
+				Marshal::OctetsStream(pcity->find(key,txn)) >> store;
+				time_t now = Timer::GetTime();
+				time_t week = now/604800;
+				bool sent=false;
+				if(arg->isspecialbonus==1)
+				{
+					time_t last = store.special_time/604800;
+					if(week != last)
+						store.special_time = now;
+					else
+						sent = true;		
+				}
+				else
+				{
+					std::vector<GTerritoryDetail>::iterator it=store.cities.begin(),ie=store.cities.end();
+					for(;it!=ie;++it)
+					{
+						if(it->owner==arg->factionid)
+						{
+							time_t last = it->bonus_time/604800;
+							if(week!=last)
+							{
+								it->bonus_time = now;
+							}
+							else 
+							{
+								sent = true;
+								now = it->bonus_time;
+							}
+						}
+					}
+				}
+
+				if(!sent)
+				{
+					Log::formatlog("sendbonus","factionid=%d:money=%d:itemid=%d:count=%d", arg->factionid, arg->money,arg->item.id,arg->item.count);
+					res->inform_master.receiver  = _ROLE_INVALID;
+					res->inform_master.sndr_type = _MST_BATTLE;
+					res->inform_master.sender    = _BATTLE_BONUS;
+					if(arg->isspecialbonus == 1)
+					{
+						value<<(unsigned int)arg->cityid;
+					}
+					else
+					{
+						value<<(unsigned int)-1;
+					}
+					res->inform_master.title=value;
+					MailSender::SendMaster(pmailbox, pinfo, res->inform_master, arg->factionid, arg->item,arg->money, txn);
+					pcity->insert(key,Marshal::OctetsStream()<<store,txn);
+					res->retcode = ERR_SUCCESS;
+				}
+				else
+				{
+					Log::log( LOG_ERR, "DBBattleBonus, bonus already sent, factionid=%d,time=%d", 
+						arg->factionid,now);
+					res->retcode = ERR_BS_ALREADYSENT;
+				}
+
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBBattleBonus, factionid=%d, money=%d, what=%s\n", 
+				arg->factionid,arg->money,e.what() );
+			res->inform_master.receiver  = _ROLE_INVALID;
+			if(e.get_errno()==DB_LOCK_DEADLOCK)
+				res->retcode = ERR_AGAIN;
+			else
+				res->retcode = ERR_EXCEPTION;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,136 @@
+#ifndef __GNET_WEBORDERITEMDETAIL_RPCDATA
+#define __GNET_WEBORDERITEMDETAIL_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class WebOrderItemDetail : public GNET::Rpc::Data
+	{
+	public:
+		int userid;
+		int roleid;
+		int goods_id;
+		int count;
+		int proctype;
+		int goods_flag;
+		int goods_price;
+		int goods_price_before_discount;
+		int goods_paytype;
+		unsigned int attach_money;
+		int time_stamp;
+		int reserved1;
+		int reserved2;
+		int reserved3;
+
+	public:
+		WebOrderItemDetail (int l_roleid = 0,int l_goods_id = 0,int l_count = 0
+			,int l_proctype = 0,int l_goods_flag = 0,int l_goods_price = 0
+			,int l_goods_price_before_discount = 0,int l_goods_paytype = 0,unsigned int l_attach_money = 0
+			,int l_time_stamp = 0,int l_reserved1 = 0,int l_reserved2 = 0
+			,int l_reserved3 = 0)
+			: roleid(l_roleid),goods_id(l_goods_id),count(l_count)
+			,proctype(l_proctype),goods_flag(l_goods_flag),goods_price(l_goods_price)
+			,goods_price_before_discount(l_goods_price_before_discount),goods_paytype(l_goods_paytype),attach_money(l_attach_money)
+			,time_stamp(l_time_stamp),reserved1(l_reserved1),reserved2(l_reserved2)
+			,reserved3(l_reserved3)
+		{
+		}
+
+		WebOrderItemDetail(const WebOrderItemDetail &rhs)
+			: userid(rhs.userid),roleid(rhs.roleid),goods_id(rhs.goods_id),
+			count(rhs.count),proctype(rhs.proctype),goods_flag(rhs.goods_flag),
+			goods_price(rhs.goods_price),goods_price_before_discount(rhs.goods_price_before_discount),goods_paytype(rhs.goods_paytype),
+			attach_money(rhs.attach_money),time_stamp(rhs.time_stamp),reserved1(rhs.reserved1),
+			reserved2(rhs.reserved2),reserved3(rhs.reserved3) { }
+
+		Rpc::Data *Clone() const { return new WebOrderItemDetail(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const WebOrderItemDetail *r = dynamic_cast<const WebOrderItemDetail *>(&rhs);
+			if (r && r != this)
+			{
+				userid = r->userid;
+				roleid = r->roleid;
+				goods_id = r->goods_id;
+				count = r->count;
+				proctype = r->proctype;
+				goods_flag = r->goods_flag;
+				goods_price = r->goods_price;
+				goods_price_before_discount = r->goods_price_before_discount;
+				goods_paytype = r->goods_paytype;
+				attach_money = r->attach_money;
+				time_stamp = r->time_stamp;
+				reserved1 = r->reserved1;
+				reserved2 = r->reserved2;
+				reserved3 = r->reserved3;
+			}
+			return *this;
+		}
+
+		WebOrderItemDetail& operator = (const WebOrderItemDetail &rhs)
+		{
+			const WebOrderItemDetail *r = &rhs;
+			if (r && r != this)
+			{
+				userid = r->userid;
+				roleid = r->roleid;
+				goods_id = r->goods_id;
+				count = r->count;
+				proctype = r->proctype;
+				goods_flag = r->goods_flag;
+				goods_price = r->goods_price;
+				goods_price_before_discount = r->goods_price_before_discount;
+				goods_paytype = r->goods_paytype;
+				attach_money = r->attach_money;
+				time_stamp = r->time_stamp;
+				reserved1 = r->reserved1;
+				reserved2 = r->reserved2;
+				reserved3 = r->reserved3;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			os << roleid;
+			os << goods_id;
+			os << count;
+			os << proctype;
+			os << goods_flag;
+			os << goods_price;
+			os << goods_price_before_discount;
+			os << goods_paytype;
+			os << attach_money;
+			os << time_stamp;
+			os << reserved1;
+			os << reserved2;
+			os << reserved3;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			os >> roleid;
+			os >> goods_id;
+			os >> count;
+			os >> proctype;
+			os >> goods_flag;
+			os >> goods_price;
+			os >> goods_price_before_discount;
+			os >> goods_paytype;
+			os >> attach_money;
+			os >> time_stamp;
+			os >> reserved1;
+			os >> reserved2;
+			os >> reserved3;
+			return os;
+		}
+
+	};
+};
+#endif

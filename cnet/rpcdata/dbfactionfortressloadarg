@@ -1,0 +1,59 @@
+#ifndef __GNET_DBFACTIONFORTRESSLOADARG_RPCDATA
+#define __GNET_DBFACTIONFORTRESSLOADARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBFactionFortressLoadArg : public GNET::Rpc::Data
+	{
+	public:
+		Octets handle;
+
+	public:
+		DBFactionFortressLoadArg (const Octets& l_handle = Octets())
+			: handle(l_handle)
+		{
+		}
+
+		DBFactionFortressLoadArg(const DBFactionFortressLoadArg &rhs)
+			: handle(rhs.handle) { }
+
+		Rpc::Data *Clone() const { return new DBFactionFortressLoadArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBFactionFortressLoadArg *r = dynamic_cast<const DBFactionFortressLoadArg *>(&rhs);
+			if (r && r != this)
+			{
+				handle = r->handle;
+			}
+			return *this;
+		}
+
+		DBFactionFortressLoadArg& operator = (const DBFactionFortressLoadArg &rhs)
+		{
+			const DBFactionFortressLoadArg *r = &rhs;
+			if (r && r != this)
+			{
+				handle = r->handle;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << handle;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> handle;
+			return os;
+		}
+
+	};
+};
+#endif

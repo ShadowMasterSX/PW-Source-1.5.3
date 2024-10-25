@@ -1,0 +1,35 @@
+	public:
+		int retcode;
+		PFactionInfoVector faction_info;
+		enum { PROTOCOL_TYPE = PROTOCOL_PLAYERFACTIONINFO_RE };
+	public:
+		PlayerFactionInfo_Re() { type = PROTOCOL_PLAYERFACTIONINFO_RE; }
+		PlayerFactionInfo_Re(void*) : Protocol(PROTOCOL_PLAYERFACTIONINFO_RE) { }
+		PlayerFactionInfo_Re (int l_retcode,PFactionInfoVector l_faction_info)
+			 : retcode(l_retcode),faction_info(l_faction_info)
+		{
+			type = PROTOCOL_PLAYERFACTIONINFO_RE;
+		}
+
+		PlayerFactionInfo_Re(const PlayerFactionInfo_Re &rhs)
+			: Protocol(rhs),retcode(rhs.retcode),faction_info(rhs.faction_info) { }
+
+		GNET::Protocol *Clone() const { return new PlayerFactionInfo_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << faction_info;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> faction_info;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 102400; }

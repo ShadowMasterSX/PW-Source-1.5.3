@@ -1,0 +1,38 @@
+	public:
+		int roleid;
+		int battle_id;
+		int world_tag;
+		enum { PROTOCOL_TYPE = PROTOCOL_TANKBATTLEPLAYERENTER };
+	public:
+		TankBattlePlayerEnter() { type = PROTOCOL_TANKBATTLEPLAYERENTER; }
+		TankBattlePlayerEnter(void*) : Protocol(PROTOCOL_TANKBATTLEPLAYERENTER) { }
+		TankBattlePlayerEnter (int l_roleid,int l_battle_id,int l_world_tag)
+			 : roleid(l_roleid),battle_id(l_battle_id),world_tag(l_world_tag)
+		{
+			type = PROTOCOL_TANKBATTLEPLAYERENTER;
+		}
+
+		TankBattlePlayerEnter(const TankBattlePlayerEnter &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),battle_id(rhs.battle_id),world_tag(rhs.world_tag) { }
+
+		GNET::Protocol *Clone() const { return new TankBattlePlayerEnter(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << battle_id;
+			os << world_tag;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> battle_id;
+			os >> world_tag;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

@@ -1,0 +1,87 @@
+
+#ifndef __GNET_DBGAMETALKFACTIONINFO_HPP
+#define __GNET_DBGAMETALKFACTIONINFO_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbgametalkfactioninfoarg"
+#include "dbgametalkfactioninfores"
+#include "factionidbean"
+#include "factioninforesp.hpp"
+#include <cstring>
+
+namespace GNET
+{
+
+//static const char *TitleList[] = {"帮主", "副帮主", "堂主", "香主", "帮众"};
+
+class DBGameTalkFactionInfo : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbgametalkfactioninfo"
+#undef	RPC_BASECLASS
+	int64_t localuid;
+	FactionIDBean factionid;
+	Manager * save_manager;
+	Manager::Session::ID save_sid;
+
+	//title is from 2 to 6
+	enum {
+		TitleOffset = 2,
+		TitleCount = 5
+	};
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBGameTalkFactionInfoArg *arg = (DBGameTalkFactionInfoArg *)argument;
+		// DBGameTalkFactionInfoRes *res = (DBGameTalkFactionInfoRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBGameTalkFactionInfoArg *arg = (DBGameTalkFactionInfoArg *)argument;
+		DBGameTalkFactionInfoRes *res = (DBGameTalkFactionInfoRes *)result;
+		if(res->retcode != ERR_SUCCESS) return;
+
+		GameTalkManager *gtm = GameTalkManager::GetInstance();
+		FactionInfoResp resp;
+		resp.localuid = localuid;
+		resp.factionid = factionid;
+		resp.factioninfo.factionname.swap(res->name);
+		resp.factioninfo.announcement.swap(res->announce);
+		resp.factioninfo.extinfo.swap(res->exinfo);
+		
+		for(int i = 0; i < TitleCount; ++i) {
+			FactionTitleBean title;
+			title.titleid = TitleOffset + i;
+			resp.members.push_back(title);
+		}
+
+		DBFactionMemberVector::iterator it = res->members.begin();
+		DBFactionMemberVector::iterator end = res->members.end();
+		for(; it != end; ++it) {
+			if(it->title < TitleOffset || it->title > (TitleOffset + TitleCount - 1)) continue;
+
+			RoleBean role;
+			role.info.roleid = (int64_t)it->info.roleid;
+			role.info.rolename.swap(it->info.name);
+			role.status.status = gtm->GetRoleStatus(it->info.roleid);
+			resp.members[it->title - TitleOffset].titlemembers.push_back(role);
+		};
+
+		if(!save_manager->Send(save_sid, resp)) {
+			Log::log(LOG_ERR, "DBGameTalkFactionInfo Send FactionInfoResp failed.");
+		};
+	}
+
+	void OnTimeout()
+	{
+		Log::log(LOG_ERR, "DBGameTalkFactionInfo timeout.");
+	}
+
+};
+
+};
+#endif

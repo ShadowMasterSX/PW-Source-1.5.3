@@ -1,0 +1,93 @@
+
+#ifndef __GNET_DBGETMAILATTACH_HPP
+#define __GNET_DBGETMAILATTACH_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "gmailsyncdata"
+#include "dbgetmailattacharg"
+#include "dbgetmailattachres"
+#include "gmailsyncdata"
+#include "getmailattachobj_re.hpp"
+#include "gmailendsync.hpp"
+#include "gproviderserver.hpp"
+#include "postoffice.h"
+#include "mapuser.h"
+namespace GNET
+{
+
+class DBGetMailAttach : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbgetmailattach"
+#undef	RPC_BASECLASS
+	unsigned int save_gsid;
+	unsigned int save_linksid;
+	unsigned int save_localsid;
+	bool SyncGameServer( DBGetMailAttachArg& arg, GMailSyncData& syncdata, int retcode)
+	{
+		Thread::RWLock::RDScoped l(UserContainer::GetInstance().GetLocker());
+		PlayerInfo * pinfo = UserContainer::GetInstance().FindRoleOnline( arg.mail_id.roleid );
+		if ( NULL!=pinfo)
+			return GProviderServer::GetInstance()->DispatchProtocol(
+				save_gsid,
+				GMailEndSync(0/*must be zero*/,
+					retcode,
+					arg.mail_id.roleid,
+					syncdata
+				)
+			);
+		else
+			return false;	
+	}	
+	bool SendResult( int retcode,DBGetMailAttachArg& arg,int money_left=0,int item_left=0 )
+	{
+		return GDeliveryServer::GetInstance()->Send(
+				save_linksid,
+				GetMailAttachObj_Re( 
+					retcode,
+					arg.mail_id.mail_id,
+					money_left,
+					item_left,
+					save_localsid
+				)	
+			);
+	}
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBGetMailAttachArg *arg = (DBGetMailAttachArg *)argument;
+		// DBGetMailAttachRes *res = (DBGetMailAttachRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBGetMailAttachArg *arg = (DBGetMailAttachArg *)argument;
+		DBGetMailAttachRes *res = (DBGetMailAttachRes *)result;
+		DEBUG_PRINT("dbgetmailattach: rpc return. retcode=%d,roleid=%d,mailid=%d,attachtype=%d\n",
+				res->retcode,arg->mail_id.roleid,arg->mail_id.mail_id,arg->attach_type);
+		if ( res->retcode==ERR_SUCCESS )
+		{
+			if ( res->money_left==0 )
+				PostOffice::GetInstance().MarkGetAttachment(arg->mail_id.roleid,arg->mail_id.mail_id,_MA_ATTACH_MONEY);
+			if ( res->item_left==0 )
+				PostOffice::GetInstance().MarkGetAttachment(arg->mail_id.roleid,arg->mail_id.mail_id,_MA_ATTACH_OBJ);
+		}
+		SyncGameServer(*arg,res->syncdata, res->retcode);
+		SendResult( res->retcode,*arg,res->money_left,res->item_left );
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		DBGetMailAttachArg *arg = (DBGetMailAttachArg *)argument;
+		Log::log(LOG_ERR,"dbgetmailattach: timeout.roleid=%d,mailid=%d,attachtype=%d\n",
+				arg->mail_id.roleid,arg->mail_id.mail_id,arg->attach_type);
+		//SyncGameServer( *arg,arg->syncdata );
+		SendResult( ERR_TIMEOUT,*arg );
+	}
+
+};
+
+};
+#endif

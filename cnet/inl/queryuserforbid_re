@@ -1,0 +1,38 @@
+	public:
+		int userid;
+		int list_type;
+		GRoleForbidVector forbid;
+		enum { PROTOCOL_TYPE = PROTOCOL_QUERYUSERFORBID_RE };
+	public:
+		QueryUserForbid_Re() { type = PROTOCOL_QUERYUSERFORBID_RE; }
+		QueryUserForbid_Re(void*) : Protocol(PROTOCOL_QUERYUSERFORBID_RE) { }
+		QueryUserForbid_Re (int l_userid,int l_list_type,GRoleForbidVector l_forbid)
+			 : userid(l_userid),list_type(l_list_type),forbid(l_forbid)
+		{
+			type = PROTOCOL_QUERYUSERFORBID_RE;
+		}
+
+		QueryUserForbid_Re(const QueryUserForbid_Re &rhs)
+			: Protocol(rhs),userid(rhs.userid),list_type(rhs.list_type),forbid(rhs.forbid) { }
+
+		GNET::Protocol *Clone() const { return new QueryUserForbid_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			os << list_type;
+			os << forbid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			os >> list_type;
+			os >> forbid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 101; }
+
+		bool SizePolicy(size_t size) const { return size <= 4096; }

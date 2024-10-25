@@ -1,0 +1,32 @@
+	public:
+		unsigned int version;
+		enum { PROTOCOL_TYPE = PROTOCOL_ANNOUNCELINKVERSION };
+	public:
+		AnnounceLinkVersion() { type = PROTOCOL_ANNOUNCELINKVERSION; }
+		AnnounceLinkVersion(void*) : Protocol(PROTOCOL_ANNOUNCELINKVERSION) { }
+		AnnounceLinkVersion (unsigned int l_version)
+			 : version(l_version)
+		{
+			type = PROTOCOL_ANNOUNCELINKVERSION;
+		}
+
+		AnnounceLinkVersion(const AnnounceLinkVersion &rhs)
+			: Protocol(rhs),version(rhs.version) { }
+
+		GNET::Protocol *Clone() const { return new AnnounceLinkVersion(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << version;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> version;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 101; }
+
+		bool SizePolicy(size_t size) const { return size <= 512; }

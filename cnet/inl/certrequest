@@ -1,0 +1,32 @@
+	public:
+		int reserved1;
+		enum { PROTOCOL_TYPE = PROTOCOL_CERTREQUEST };
+	public:
+		CertRequest() { type = PROTOCOL_CERTREQUEST; }
+		CertRequest(void*) : Protocol(PROTOCOL_CERTREQUEST) { }
+		CertRequest (int l_reserved1 = 0)
+			 : reserved1(l_reserved1)
+		{
+			type = PROTOCOL_CERTREQUEST;
+		}
+
+		CertRequest(const CertRequest &rhs)
+			: Protocol(rhs),reserved1(rhs.reserved1) { }
+
+		GNET::Protocol *Clone() const { return new CertRequest(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << reserved1;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> reserved1;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 101; }
+
+		bool SizePolicy(size_t size) const { return size <= 8192; }

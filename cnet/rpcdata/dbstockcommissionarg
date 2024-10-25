@@ -1,0 +1,60 @@
+#ifndef __GNET_DBSTOCKCOMMISSIONARG_RPCDATA
+#define __GNET_DBSTOCKCOMMISSIONARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "stockorder"
+
+namespace GNET
+{
+	class DBStockCommissionArg : public GNET::Rpc::Data
+	{
+	public:
+		StockOrder order;
+
+	public:
+		DBStockCommissionArg (const StockOrder& l_order = StockOrder())
+			: order(l_order)
+		{
+		}
+
+		DBStockCommissionArg(const DBStockCommissionArg &rhs)
+			: order(rhs.order) { }
+
+		Rpc::Data *Clone() const { return new DBStockCommissionArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBStockCommissionArg *r = dynamic_cast<const DBStockCommissionArg *>(&rhs);
+			if (r && r != this)
+			{
+				order = r->order;
+			}
+			return *this;
+		}
+
+		DBStockCommissionArg& operator = (const DBStockCommissionArg &rhs)
+		{
+			const DBStockCommissionArg *r = &rhs;
+			if (r && r != this)
+			{
+				order = r->order;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << order;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> order;
+			return os;
+		}
+
+	};
+};
+#endif

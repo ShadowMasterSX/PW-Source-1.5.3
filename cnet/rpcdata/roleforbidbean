@@ -1,0 +1,64 @@
+#ifndef __GNET_ROLEFORBIDBEAN_RPCDATA
+#define __GNET_ROLEFORBIDBEAN_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class RoleForbidBean : public GNET::Rpc::Data
+	{
+	public:
+		std::map<int,int64_t> endtime;
+		Octets extinfo;
+
+	public:
+		RoleForbidBean (const Octets& l_extinfo = Octets())
+			: extinfo(l_extinfo)
+		{
+		}
+
+		RoleForbidBean(const RoleForbidBean &rhs)
+			: endtime(rhs.endtime),extinfo(rhs.extinfo) { }
+
+		Rpc::Data *Clone() const { return new RoleForbidBean(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const RoleForbidBean *r = dynamic_cast<const RoleForbidBean *>(&rhs);
+			if (r && r != this)
+			{
+				endtime = r->endtime;
+				extinfo = r->extinfo;
+			}
+			return *this;
+		}
+
+		RoleForbidBean& operator = (const RoleForbidBean &rhs)
+		{
+			const RoleForbidBean *r = &rhs;
+			if (r && r != this)
+			{
+				endtime = r->endtime;
+				extinfo = r->extinfo;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << endtime;
+			os << extinfo;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> endtime;
+			os >> extinfo;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,52 @@
+
+#ifndef __GNET_DBGETPLAYERPROFILEDATA_HPP
+#define __GNET_DBGETPLAYERPROFILEDATA_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbgetplayerprofiledataarg"
+#include "dbgetplayerprofiledatares"
+#include "playerprofileman.h"
+
+namespace GNET
+{
+
+class DBGetPlayerProfileData : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbgetplayerprofiledata"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBGetPlayerProfileDataArg *arg = (DBGetPlayerProfileDataArg *)argument;
+		// DBGetPlayerProfileDataRes *res = (DBGetPlayerProfileDataRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBGetPlayerProfileDataArg *arg = (DBGetPlayerProfileDataArg *)argument;
+		DBGetPlayerProfileDataRes *res = (DBGetPlayerProfileDataRes *)result;
+		
+		LOG_TRACE( "PlayerProfile DBGetPlayerProfileData roleid=%d, ret=%d\n", arg->roleid, res->retcode);
+
+		char state = -1;
+		if(res->retcode == ERR_DATANOTFIND) state = PlayerProfileMan::STATE_UNSET;
+		if(res->retcode == ERR_SUCCESS) state = PlayerProfileMan::STATE_READY;
+
+		if(state != -1) {
+			PlayerProfileMan::GetInstance()->UpdatePlayerProfile(arg->roleid, state, res->gender, res->data);
+		}
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

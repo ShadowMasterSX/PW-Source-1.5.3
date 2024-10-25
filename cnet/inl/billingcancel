@@ -1,0 +1,35 @@
+	public:
+		int userid;
+		Octets chargeno;
+		enum { PROTOCOL_TYPE = PROTOCOL_BILLINGCANCEL };
+	public:
+		BillingCancel() { type = PROTOCOL_BILLINGCANCEL; }
+		BillingCancel(void*) : Protocol(PROTOCOL_BILLINGCANCEL) { }
+		BillingCancel (int l_userid,Octets l_chargeno)
+			 : userid(l_userid),chargeno(l_chargeno)
+		{
+			type = PROTOCOL_BILLINGCANCEL;
+		}
+
+		BillingCancel(const BillingCancel &rhs)
+			: Protocol(rhs),userid(rhs.userid),chargeno(rhs.chargeno) { }
+
+		GNET::Protocol *Clone() const { return new BillingCancel(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			os << chargeno;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			os >> chargeno;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 256; }

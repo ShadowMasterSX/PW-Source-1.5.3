@@ -1,0 +1,189 @@
+
+#ifndef __GNET_DBBATTLECHALLENGE_HPP
+#define __GNET_DBBATTLECHALLENGE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbbattlechallengearg"
+#include "dbbattlechallengeres"
+#include "groleinventory"
+#include "grolestorehouse"
+#include "gshoplog"
+#include "gmailsyncdata"
+#include "gterritorydetail"
+#include "gterritorystore"
+#include "utilfunction.h"
+#include "gchallengerinfo"
+#include "gchallengerinfolist"
+namespace GNET
+{
+
+class DBBattleChallenge : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbbattlechallenge"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DEBUG_PRINT("gamedbd:dbbattlechallenge");
+		DBBattleChallengeArg *arg = (DBBattleChallengeArg *)argument;
+		DBBattleChallengeRes *res = (DBBattleChallengeRes *)result;
+		
+		unsigned int orignal_money = arg->syncdata.inventory.money;
+		Marshal::OctetsStream key,krole,challengedata;
+		try
+		{
+
+			StorageEnv::Storage * pcity = StorageEnv::GetStorage("city");
+			StorageEnv::Storage * pinventory = StorageEnv::GetStorage("inventory");
+			StorageEnv::Storage * pequipment = StorageEnv::GetStorage("equipment");
+			//StorageEnv::Storage * pmailbox = StorageEnv::GetStorage("mailbox");
+			//StorageEnv::Storage * pinfo = StorageEnv::GetStorage("factioninfo");
+			StorageEnv::Storage * pstorehouse = StorageEnv::GetStorage("storehouse");
+			StorageEnv::Storage * plog = arg->syncdata.logs.size()?StorageEnv::GetStorage("shoplog"):NULL;
+			StorageEnv::CommonTransaction txn;
+			int delta = arg->syncdata.inventory.money; 
+			try{
+				GTerritoryStore store;
+				GRolePocket pocket;
+
+				key << 0;
+				Marshal::OctetsStream(pcity->find(key,txn)) >> store;
+				std::vector<GTerritoryDetail>::iterator it=store.cities.begin(),ie=store.cities.end();
+				for(;it!=ie;++it)
+				{
+					if(it->id==(short)arg->cityid)
+						break;
+				}
+				if(it==ie)
+				{
+					res->retcode = ERR_NOTFOUND;
+					return;
+				}
+				Log::formatlog("challenge", "mask=%d:owner=%d:roleid=%d:city=%d:faction=%d:deposit=%d:"
+					"prebidder=%d:predep=%d:challange_time=%d:maxbonus=%d",
+					arg->syncdata.data_mask, it->owner, arg->roleid, arg->cityid, arg->factionid,
+					arg->deposit, it->challenger, it->deposit,arg->challenge_time,arg->maxbonus);
+
+				krole << arg->roleid;
+
+				res->inform_loser.receiver  = _ROLE_INVALID;
+				Marshal::OctetsStream(pinventory->find(krole,txn)) >> pocket;
+				if(arg->syncdata.inventory.timestamp <= pocket.timestamp)
+				{
+					Log::log(LOG_ERR,"DBBattleChallenge, timestamp mismatch. %d<%d",
+						arg->syncdata.inventory.timestamp, pocket.timestamp);
+					throw DbException(DB_VERIFY_BAD);
+				}
+				delta -= pocket.money;
+				
+				//arg->syncdata.inventory.money -= arg->deposit;
+				//检查完美银票是否足够支付
+				unsigned int pwrd_silver_note_cnt = 0;
+				GRoleInventoryVector& v = arg->syncdata.inventory.items;
+				GRoleInventoryVector::iterator item_it = v.begin();
+				while(item_it != v.end()) {
+					if(item_it->id == PWRD_SILVER_NOTE_ID) pwrd_silver_note_cnt += item_it->count;
+					++item_it;
+				}
+				if(pwrd_silver_note_cnt < arg->deposit) {
+					Log::log(LOG_ERR,"DBBattleChallenge, not enough silver note. %d<%d", pwrd_silver_note_cnt, arg->deposit);
+					throw DbException(DB_VERIFY_BAD);
+				}
+				
+				//扣除相应的完美银票
+				int need_note_cnt = arg->deposit;
+				item_it = v.begin();
+				while(item_it != v.end()) {
+					if(need_note_cnt == 0) break; //已经扣了足够的数量了
+					
+					if(item_it->id == PWRD_SILVER_NOTE_ID) {
+						if(item_it->count >= need_note_cnt) { //该包裹位置的银票数量已经足够
+							item_it->count -= need_note_cnt; //扣除
+							res->syncdata.inventory.items.push_back(*item_it);
+							if(item_it->count == 0) item_it = v.erase(item_it); //如果恰好全部扣除，从包裹中删除
+							break;
+						} else { //该位置有银票，但数量不足
+							need_note_cnt -= item_it->count; //更新还需要的数量
+							item_it->count = 0;
+							res->syncdata.inventory.items.push_back(*item_it);
+							item_it = v.erase(item_it); //扣没了，从包裹中删除
+						}
+					} else {
+						++item_it;
+					}
+				}
+				
+				pinventory->insert(krole, Marshal::OctetsStream()<<arg->syncdata.inventory, txn);
+				pequipment->insert(krole, Marshal::OctetsStream()<<arg->syncdata.equipment, txn);
+				WriteRestSyncData(pstorehouse, plog, arg->roleid, arg->syncdata, delta, txn);
+				/*
+				if(it->challenger && it->deposit>0)
+				{
+					res->inform_loser.receiver = it->challenger;
+					res->inform_loser.sndr_type = _MST_BATTLE;
+					res->inform_loser.sender = _BATTLE_BID_FAILED;
+					if(MailSender::SendMaster(pmailbox, pinfo, res->inform_loser, it->challenger, 
+							it->deposit, txn)!=0)
+						Log::log(LOG_ERR,"DBBattleChallenge, faction not found %d", it->challenger);
+				}
+				*/
+				res->challenge_res=0;
+				if(it->deposit<arg->deposit)
+				{	
+					it->challenge_time=arg->challenge_time;
+					it->deposit = arg->deposit;
+					it->challenger=arg->factionid;
+					it->maxbonus = arg->maxbonus;
+					res->challenge_res=1;
+				}
+				GChallengerInfoList gci;
+				GChallengerInfo info;
+				if(it->challengerdetails.size())
+					Marshal::OctetsStream(it->challengerdetails)>>gci;
+				info.faction=arg->factionid;
+				info.time=arg->challenge_time;
+				info.deposit=arg->deposit;
+				gci.challengerlist.push_back(info);
+				challengedata<<gci;
+				it->challengerdetails=challengedata;
+				pcity->insert(key,Marshal::OctetsStream()<<store,txn);
+				
+				res->syncdata.inventory.money = arg->syncdata.inventory.money;
+				res->syncdata.data_mask = arg->syncdata.data_mask;
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBBattleChallenge, roleid=%d, cityid=%d, what=%s.\n",
+				arg->roleid, arg->cityid, e.what() );
+			res->syncdata.inventory.money = orignal_money;
+			res->syncdata.inventory.items.clear();
+			res->syncdata.data_mask = 0;
+			res->retcode = ERR_EXCEPTION;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,67 @@
+
+#ifndef __GNET_QUERYUSERID_HPP
+#define __GNET_QUERYUSERID_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "queryuseridarg"
+#include "queryuseridres"
+#include "gamedbclient.hpp"
+
+namespace GNET
+{
+
+class QueryUserid : public ProxyRpc
+{
+#define	RPC_BASECLASS	ProxyRpc
+	#include "queryuserid"
+#undef	RPC_BASECLASS
+
+	bool Delivery(Manager::Session::ID proxy_sid, const OctetsStream& osArg)
+	{
+		QueryUseridArg arg;
+		osArg >> arg;
+
+		int roleid = -1;
+		if( UserContainer::GetInstance().FindRoleId(arg.rolename, roleid) )
+		{
+			PlayerInfo * pinfo = UserContainer::GetInstance().FindRole(roleid);
+			if(pinfo)
+			{
+				LOG_TRACE("QueryUserid: userid=%d, roleid=%d", pinfo->userid, roleid);
+				SetResult(QueryUseridRes(0, pinfo->userid, roleid, pinfo->level));
+				SendToSponsor();
+				return false;
+			}
+		}
+		LOG_TRACE("QueryUserid: sid=%d, namesize=%d", proxy_sid, arg.rolename.size());
+		if( GameDBClient::GetInstance()->SendProtocol( *this ) )
+		{
+			return true;
+		}
+		else
+		{
+			SetResult(QueryUseridRes(ERR_DELIVER_SEND, 0, 0, 0));
+			SendToSponsor();
+			return false;
+		}
+	}
+
+	void PostProcess(Manager::Session::ID proxy_sid,const OctetsStream& osArg, const OctetsStream& osRes)
+	{
+		// QueryUseridArg arg;
+		// osArg >> arg;
+		// QueryUseridRes res;
+		// osRes >> res;
+		// SetResult( &res ); // if you modified res, do not forget to call this. 
+	}
+
+	void OnTimeout( )
+	{
+	}
+
+};
+
+};
+#endif

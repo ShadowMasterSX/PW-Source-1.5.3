@@ -1,0 +1,87 @@
+#ifndef __GNET_CROSSINFODATA_RPCDATA
+#define __GNET_CROSSINFODATA_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class CrossInfoData : public GNET::Rpc::Data
+	{
+	public:
+		int remote_roleid;
+		int data_timestamp;
+		int cross_timestamp;
+		int src_zoneid;
+		int reserved1;
+		int reserved2;
+
+	public:
+		CrossInfoData (int l_remote_roleid = 0,int l_data_timestamp = 0,int l_cross_timestamp = 0
+			,int l_src_zoneid = 0,int l_reserved1 = 0,int l_reserved2 = 0)
+			: remote_roleid(l_remote_roleid),data_timestamp(l_data_timestamp),cross_timestamp(l_cross_timestamp)
+			,src_zoneid(l_src_zoneid),reserved1(l_reserved1),reserved2(l_reserved2)
+		{
+		}
+
+		CrossInfoData(const CrossInfoData &rhs)
+			: remote_roleid(rhs.remote_roleid),data_timestamp(rhs.data_timestamp),cross_timestamp(rhs.cross_timestamp),
+			src_zoneid(rhs.src_zoneid),reserved1(rhs.reserved1),reserved2(rhs.reserved2) { }
+
+		Rpc::Data *Clone() const { return new CrossInfoData(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const CrossInfoData *r = dynamic_cast<const CrossInfoData *>(&rhs);
+			if (r && r != this)
+			{
+				remote_roleid = r->remote_roleid;
+				data_timestamp = r->data_timestamp;
+				cross_timestamp = r->cross_timestamp;
+				src_zoneid = r->src_zoneid;
+				reserved1 = r->reserved1;
+				reserved2 = r->reserved2;
+			}
+			return *this;
+		}
+
+		CrossInfoData& operator = (const CrossInfoData &rhs)
+		{
+			const CrossInfoData *r = &rhs;
+			if (r && r != this)
+			{
+				remote_roleid = r->remote_roleid;
+				data_timestamp = r->data_timestamp;
+				cross_timestamp = r->cross_timestamp;
+				src_zoneid = r->src_zoneid;
+				reserved1 = r->reserved1;
+				reserved2 = r->reserved2;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << remote_roleid;
+			os << data_timestamp;
+			os << cross_timestamp;
+			os << src_zoneid;
+			os << reserved1;
+			os << reserved2;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> remote_roleid;
+			os >> data_timestamp;
+			os >> cross_timestamp;
+			os >> src_zoneid;
+			os >> reserved1;
+			os >> reserved2;
+			return os;
+		}
+
+	};
+};
+#endif

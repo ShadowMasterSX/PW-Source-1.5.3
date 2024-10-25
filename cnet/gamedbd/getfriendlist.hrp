@@ -1,0 +1,74 @@
+
+#ifndef __GNET_GETFRIENDLIST_HPP
+#define __GNET_GETFRIENDLIST_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "dbbuffer.h"
+#include "roleid"
+#include "gfriendinfo"
+#include "ggroupinfo"
+#include "friendlistres"
+#include "gfriendextra"
+
+namespace GNET
+{
+
+class GetFriendList : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getfriendlist"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		RoleId *arg = (RoleId *)argument;
+		FriendListRes *res = (FriendListRes *)result;
+
+		LOG_TRACE( "GetFriendList, roleid=%d.\n", arg->id );
+		try
+		{
+			StorageEnv::Storage * pfriends = StorageEnv::GetStorage("friends");
+			StorageEnv::Storage * pfriendext = StorageEnv::GetStorage("friendext");
+			StorageEnv::AtomTransaction txn;
+			try{
+				Marshal::OctetsStream value,value1;
+				GFriendExtra gfriendext;
+				if(pfriends->find(Marshal::OctetsStream() << *arg, value, txn))	
+					value >> res->value;
+				if(pfriendext->find(Marshal::OctetsStream() << *arg,value1,txn))
+				{
+					value1 >> gfriendext;
+					res->sendmail_info = gfriendext.sendaumailinfo;
+					res->extra_info = gfriendext.friendExtInfo;
+				}
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "GetFriendList, roleid=%d, what=%s\n", arg->id, e.what() );
+			res->retcode = ERR_DATANOTFIND;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

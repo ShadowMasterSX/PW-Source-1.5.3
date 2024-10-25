@@ -1,0 +1,56 @@
+	public:
+		int tid;
+		unsigned char sys_type;
+		int receiver;
+		Octets title;
+		Octets context;
+		Octets obj;
+		Octets checksum;
+		enum { PROTOCOL_TYPE = PROTOCOL_SYSRECOVEREDOBJMAIL };
+	public:
+		SysRecoveredObjMail() { type = PROTOCOL_SYSRECOVEREDOBJMAIL; }
+		SysRecoveredObjMail(void*) : Protocol(PROTOCOL_SYSRECOVEREDOBJMAIL) { }
+		SysRecoveredObjMail (int l_tid,unsigned char l_sys_type,int l_receiver,
+			Octets l_title,Octets l_context,const Octets& l_obj,
+			const Octets& l_checksum)
+			 : tid(l_tid),sys_type(l_sys_type),receiver(l_receiver)
+			,title(l_title),context(l_context),obj(l_obj)
+			,checksum(l_checksum)
+		{
+			type = PROTOCOL_SYSRECOVEREDOBJMAIL;
+		}
+
+		SysRecoveredObjMail(const SysRecoveredObjMail &rhs)
+			: Protocol(rhs),tid(rhs.tid),sys_type(rhs.sys_type),receiver(rhs.receiver)
+			,title(rhs.title),context(rhs.context),obj(rhs.obj)
+			,checksum(rhs.checksum) { }
+
+		GNET::Protocol *Clone() const { return new SysRecoveredObjMail(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << tid;
+			os << sys_type;
+			os << receiver;
+			os << title;
+			os << context;
+			os << obj;
+			os << checksum;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> tid;
+			os >> sys_type;
+			os >> receiver;
+			os >> title;
+			os >> context;
+			os >> obj;
+			os >> checksum;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 4096; }

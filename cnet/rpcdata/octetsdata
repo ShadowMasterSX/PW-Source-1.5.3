@@ -1,0 +1,60 @@
+#ifndef __GNET_OCTETSDATA_RPCDATA
+#define __GNET_OCTETSDATA_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class OctetsData : public GNET::Rpc::Data
+	{
+	public:
+		Octets octets_value;
+
+	public:
+		OctetsData (Octets l_octets_value = Octets())
+			: octets_value(l_octets_value)
+		{
+		}
+
+		OctetsData(const OctetsData &rhs)
+			: octets_value(rhs.octets_value) { }
+
+		Rpc::Data *Clone() const { return new OctetsData(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const OctetsData *r = dynamic_cast<const OctetsData *>(&rhs);
+			if (r && r != this)
+			{
+				octets_value = r->octets_value;
+			}
+			return *this;
+		}
+
+		OctetsData& operator = (const OctetsData &rhs)
+		{
+			const OctetsData *r = &rhs;
+			if (r && r != this)
+			{
+				octets_value = r->octets_value;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << octets_value;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> octets_value;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<OctetsData>	OctetsDataVector;
+};
+#endif

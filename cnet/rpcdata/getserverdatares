@@ -1,0 +1,70 @@
+#ifndef __GNET_GETSERVERDATARES_RPCDATA
+#define __GNET_GETSERVERDATARES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gserverdata"
+
+namespace GNET
+{
+	class GetServerDataRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		int data_mask;
+		GServerData data;
+
+	public:
+		GetServerDataRes (int l_retcode = -1,int l_data_mask = 0,const GServerData& l_data = GServerData())
+			: retcode(l_retcode),data_mask(l_data_mask),data(l_data)
+		{
+		}
+
+		GetServerDataRes(const GetServerDataRes &rhs)
+			: retcode(rhs.retcode),data_mask(rhs.data_mask),data(rhs.data) { }
+
+		Rpc::Data *Clone() const { return new GetServerDataRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GetServerDataRes *r = dynamic_cast<const GetServerDataRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				data_mask = r->data_mask;
+				data = r->data;
+			}
+			return *this;
+		}
+
+		GetServerDataRes& operator = (const GetServerDataRes &rhs)
+		{
+			const GetServerDataRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				data_mask = r->data_mask;
+				data = r->data;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << data_mask;
+			os << data;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> data_mask;
+			os >> data;
+			return os;
+		}
+
+	};
+};
+#endif

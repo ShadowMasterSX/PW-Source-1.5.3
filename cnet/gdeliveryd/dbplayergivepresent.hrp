@@ -1,0 +1,103 @@
+
+#ifndef __GNET_DBPLAYERGIVEPRESENT_HPP
+#define __GNET_DBPLAYERGIVEPRESENT_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbplayergivepresentarg"
+#include "dbplayergivepresentres"
+
+#include "referencemanager.h"
+#include "rewardmanager.h"
+
+#include "playergivepresent_re.hpp"
+#include "deletemail_re.hpp"
+
+namespace GNET
+{
+
+class DBPlayerGivePresent : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbplayergivepresent"
+#undef	RPC_BASECLASS
+	
+	int save_level;
+	int save_linksid;
+	int save_localsid;
+	int save_gsid;
+	
+	void SyncGameServer(int retcode, const GMailSyncData& sync, int roleid)
+	{
+		GProviderServer::GetInstance()->DispatchProtocol(
+				save_gsid, 
+				GMailEndSync(0,retcode,roleid, sync)
+				);
+	}
+
+	void SendResult(int retcode, int roleid, int cash_used)
+	{
+		GDeliveryServer::GetInstance()->Send(
+				save_linksid, 
+				PlayerGivePresent_Re(save_localsid, roleid, cash_used, retcode)
+				);
+	}
+
+	void SendDeleteMail(int roleid, unsigned char mail_id)
+	{
+		GDeliveryServer::GetInstance()->Send(
+				save_linksid, 
+				DeleteMail_Re( 0,roleid,save_localsid,mail_id )
+				);
+	}
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBPlayerGivePresentArg *arg = (DBPlayerGivePresentArg *)argument;
+		// DBPlayerGivePresentRes *res = (DBPlayerGivePresentRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBPlayerGivePresentArg *arg = (DBPlayerGivePresentArg *)argument;
+		DBPlayerGivePresentRes *res = (DBPlayerGivePresentRes *)result;
+		
+		LOG_TRACE("DBPlayerGivePresent roleid=%d ret=%d", arg->roleid, res->retcode);
+		
+		//通知gs解除玩家外部交易状态,res里的syncdata已经在gamedbd里处理完毕
+		SyncGameServer(res->retcode, res->syncdata, arg->roleid);
+		//通知客户端赠送结果
+		SendResult(res->retcode, arg->target_roleid, arg->cash_cost);
+
+		if (ERR_SUCCESS == res->retcode)
+		{
+			//赠予对象邮筒里添加新邮件
+			PostOffice::GetInstance().AddNewMail( res->inform_target.receiver,res->inform_target );
+			if (arg->has_gift)
+				PostOffice::GetInstance().AddNewMail( res->inform_target2.receiver,res->inform_target2 );
+			if (arg->mail_id >= 0)
+			{
+				//删除索取邮件
+				PostOffice::GetInstance().DeleteMail( arg->roleid,arg->mail_id );
+				SendDeleteMail(arg->roleid,(unsigned char)arg->mail_id);
+			}
+			//增加玩家消费值
+			ReferenceManager::GetInstance()->OnReferralUseCash(arg->roleid, arg->cash_cost, save_level);
+			RewardManager::GetInstance()->OnUseCash(arg->roleid, arg->cash_cost);
+		}
+	}
+
+	void OnTimeout()
+	{
+		DBPlayerGivePresentArg *arg = (DBPlayerGivePresentArg *)argument;
+		Log::log(LOG_ERR, "DBPlayerGivePresent timeout, roleid=%d", arg->roleid);
+
+		SendResult(ERR_TIMEOUT, arg->target_roleid, arg->cash_cost);
+	}
+
+};
+
+};
+#endif

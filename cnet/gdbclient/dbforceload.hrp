@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBFORCELOAD_HPP
+#define __GNET_DBFORCELOAD_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbforceloadarg"
+#include "dbforceloadres"
+
+namespace GNET
+{
+
+class DBForceLoad : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbforceload"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBForceLoadArg *arg = (DBForceLoadArg *)argument;
+		// DBForceLoadRes *res = (DBForceLoadRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBForceLoadArg *arg = (DBForceLoadArg *)argument;
+		// DBForceLoadRes *res = (DBForceLoadRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

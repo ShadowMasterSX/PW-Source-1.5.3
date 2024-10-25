@@ -1,0 +1,104 @@
+
+#ifndef __GNET_DBFACTIONFORTRESSCHALLENGE_HPP
+#define __GNET_DBFACTIONFORTRESSCHALLENGE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbfactionfortresschallengearg"
+#include "dbfactionfortresschallengeres"
+
+namespace GNET
+{
+
+class DBFactionFortressChallenge : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbfactionfortresschallenge"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBFactionFortressChallengeArg *arg = (DBFactionFortressChallengeArg *)argument;
+		DBFactionFortressChallengeRes *res = (DBFactionFortressChallengeRes *)result;
+		unsigned int orignal_money = arg->syncdata.inventory.money;
+
+		try
+		{
+			StorageEnv::Storage * pfortress = StorageEnv::GetStorage("factionfortress");
+			StorageEnv::Storage * pinventory = StorageEnv::GetStorage("inventory");
+			StorageEnv::Storage * pequipment = StorageEnv::GetStorage("equipment");
+			StorageEnv::Storage * pstorehouse = StorageEnv::GetStorage("storehouse");
+			StorageEnv::Storage * plog = arg->syncdata.logs.size()?StorageEnv::GetStorage("shoplog"):NULL;
+			StorageEnv::CommonTransaction txn;
+		
+			Marshal::OctetsStream krole;
+			krole << arg->roleid;
+			Log::formatlog("factionfortress","challenge:timestamp=%u:mask=%d:roleid=%d:factionid=%d:target_factionid=%d",
+				arg->syncdata.inventory.timestamp,arg->syncdata.data_mask, arg->roleid, arg->factionid, arg->target_factionid);
+			
+			try
+			{
+				Marshal::OctetsStream key;
+				key << arg->target_factionid;
+				GFactionFortressDetail detail;
+				Marshal::OctetsStream(pfortress->find(key, txn)) >> detail;
+				detail.info2.challenge_list.push_back(arg->factionid);
+				//检查inventory时戳，计算金钱变化
+				GRolePocket pocket;
+				Marshal::OctetsStream(pinventory->find(krole, txn)) >> pocket;
+				if(arg->syncdata.inventory.timestamp <= pocket.timestamp)
+				{
+					Log::log(LOG_ERR,"DBFactionFortressChallenge, timestamp mismatch. %d<%d",
+						arg->syncdata.inventory.timestamp, pocket.timestamp);
+					throw DbException(DB_VERIFY_BAD);
+				}
+				int delta = arg->syncdata.inventory.money - pocket.money;
+				//消耗，生成syncdata
+				if(arg->syncdata.inventory.money < FACTION_FORTRESS_CHALLENGE_FEE)
+					throw DbException(DB_VERIFY_BAD);
+				arg->syncdata.inventory.money -= FACTION_FORTRESS_CHALLENGE_FEE; 
+				//存盘
+				pfortress->insert(key, Marshal::OctetsStream()<<detail, txn);
+				pinventory->insert(krole, Marshal::OctetsStream()<<arg->syncdata.inventory, txn);
+				pequipment->insert(krole, Marshal::OctetsStream()<<arg->syncdata.equipment, txn);
+				WriteRestSyncData(pstorehouse, plog, arg->roleid, arg->syncdata, delta, txn);
+				res->syncdata.inventory.money = arg->syncdata.inventory.money;
+				res->syncdata.inventory.items.clear();
+				res->syncdata.data_mask = arg->syncdata.data_mask;
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log(LOG_ERR, "DBFactionFortressChallenge, roleid=%d, factionid=%d, what=%s.", arg->roleid, arg->factionid, e.what());
+			res->retcode = ERR_EXCEPTION;
+			res->syncdata.inventory.money = orignal_money; 
+			res->syncdata.inventory.items.clear();
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBFactionFortressChallengeArg *arg = (DBFactionFortressChallengeArg *)argument;
+		// DBFactionFortressChallengeRes *res = (DBFactionFortressChallengeRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

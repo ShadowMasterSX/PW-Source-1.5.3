@@ -1,0 +1,136 @@
+
+#ifndef __GNET_DBSTOCKTRANSACTION_HPP
+#define __GNET_DBSTOCKTRANSACTION_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbstocktransactionarg"
+#include "dbstocktransactionres"
+#include "gsysauctioncash"
+
+namespace GNET
+{
+
+class DBStockTransaction : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbstocktransaction"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBStockTransactionArg *arg = (DBStockTransactionArg *)argument;
+		DBStockTransactionRes *res = (DBStockTransactionRes *)result;
+		unsigned int orignal_money = arg->syncdata.inventory.money;
+
+		LOG_TRACE( "DBStockTransaction, userid=%d,withdraw=%d,cash=%d,money=%d", 
+			arg->userid,arg->withdraw,arg->cash,arg->money);
+
+		try
+		{
+			StorageEnv::Storage * puser = StorageEnv::GetStorage("user");
+			StorageEnv::Storage * pinventory = StorageEnv::GetStorage("inventory");
+			StorageEnv::Storage * pequipment = StorageEnv::GetStorage("equipment");
+			StorageEnv::Storage * pstorehouse = StorageEnv::GetStorage("storehouse");
+			StorageEnv::Storage * plog = arg->syncdata.logs.size()?StorageEnv::GetStorage("shoplog"):NULL;
+			StorageEnv::CommonTransaction txn;
+			Marshal::OctetsStream key,krole;
+			int money_delta = 0;
+			try
+			{
+				if(arg->cash<0 || arg->money<0)
+					throw DbException(DB_VERIFY_BAD);
+
+				GRolePocket bag;
+				key << arg->userid;
+				krole << arg->roleid;
+				Marshal::OctetsStream(pinventory->find(krole,txn)) >> bag;
+				if(arg->syncdata.inventory.timestamp <= bag.timestamp)
+				{
+					Log::log(LOG_ERR,"DBStockTransaction, timestamp mismatch. %d<%d",
+							arg->syncdata.inventory.timestamp, bag.timestamp);
+					throw DbException(DB_VERIFY_BAD);
+				}
+				money_delta = arg->syncdata.inventory.money - bag.money;
+
+				User u;
+				GSysAuctionCash sa_cash;
+				Marshal::OctetsStream(puser->find(key,txn))>>u;
+				if(u.cash_sysauction.size())
+					Marshal::OctetsStream(u.cash_sysauction)>>sa_cash;
+
+				if(arg->withdraw)
+				{
+					if(u.cash_add+u.cash_buy>MAX_USER_CASH+CASH_BALANCE_THRESHOLD)
+					{
+						res->retcode = -1;
+						return;
+					}
+					if(arg->cash > u.cash || arg->money > u.money)
+						throw DbException(DB_VERIFY_BAD);
+					if(arg->syncdata.inventory.money+arg->money>MAX_CASH_IN_POCKET)
+						throw DbException(DB_VERIFY_BAD);
+					u.cash -= arg->cash;
+					u.money -= arg->money;
+					arg->syncdata.inventory.money += arg->money;
+				}
+				else
+				{
+					u.cash += arg->cash;
+					u.money += arg->money;
+					arg->syncdata.inventory.money -= arg->money;
+				}	
+				if(u.use_serial<arg->syncdata.cash_serial && u.cash_used<arg->syncdata.cash_used)
+				{
+					GameDBManager::GetInstance()->UpdateCash(arg->syncdata.cash_used - u.cash_used);
+					u.cash_used =  arg->syncdata.cash_used;
+					u.use_serial = arg->syncdata.cash_serial;
+				}
+
+				puser->insert(key, Marshal::OctetsStream()<<u, txn);
+				pinventory->insert(krole, Marshal::OctetsStream()<<arg->syncdata.inventory, txn);
+				pequipment->insert(krole, Marshal::OctetsStream()<<arg->syncdata.equipment, txn);
+
+				WriteRestSyncData(pstorehouse, plog, arg->roleid, arg->syncdata, money_delta, txn);
+
+				res->cash = u.cash;
+				res->money = u.money;
+				res->syncdata.cash_total = u.cash_add+u.cash_buy-u.cash_sell-sa_cash.cash_used_2-u.cash-sa_cash.cash_2;
+				res->syncdata.cash_used = arg->syncdata.cash_used;
+				res->syncdata.inventory.money = arg->syncdata.inventory.money;
+				res->syncdata.data_mask = arg->syncdata.data_mask | SYNC_CASHTOTAL;
+				Log::formatlog("stocktransaction","roleid=%d:cash=%d:money=%d:withdraw=%d:user_cash=%d:"
+					"user_money=%d:pocket_cash=%d:pocket_money=%d",arg->roleid, arg->cash, arg->money,
+					arg->withdraw, u.cash, u.money, res->syncdata.cash_total, arg->syncdata.inventory.money);
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBStockTransaction, roleid=%d, what=%s\n", arg->roleid, e.what() );
+			res->retcode = -1;
+			res->syncdata.inventory.money = orignal_money;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

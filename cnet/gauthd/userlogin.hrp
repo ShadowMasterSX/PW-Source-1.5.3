@@ -1,0 +1,77 @@
+
+#ifndef __GNET_USERLOGIN_HPP
+#define __GNET_USERLOGIN_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "userloginarg"
+#include "userloginres"
+
+#include "gauthserver.hpp"
+#include "kickoutuser.hpp"
+namespace GNET
+{
+
+class UserLogin : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "userlogin"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		UserLoginArg *arg = (UserLoginArg *)argument;
+		UserLoginRes *res = (UserLoginRes *)result;
+
+		GAuthServer* ausm=GAuthServer::GetInstance();
+		char zoneid;
+		{
+			Thread::Mutex::Scoped l(ausm->locker_zonemap);	
+			if (ausm->zonemap.find(sid) == ausm->zonemap.end()) return;
+			zoneid=ausm->zonemap[sid];  
+		}
+		
+		Thread::RWLock::WRScoped l(ausm->locker_map);
+		if (ausm->usermap.find(arg->userid)!=ausm->usermap.end())
+		{
+			if (arg->blkickuser)
+			{
+				/*send kickuser to proper delivery server*/
+				ausm->Send(ausm->usermap[arg->userid].sid,KickoutUser(arg->userid,ausm->usermap[arg->userid].localsid));
+			}
+			else
+			{
+				res->retcode=ERR_MULTILOGIN;
+				return;
+			}
+		}
+		res->retcode=ERR_SUCCESS;
+		res->blIsGM=1;
+		res->func=0;
+		res->funcparm=0;
+		res->remain_playtime=2954000;
+		res->free_time_left=0;
+		res->free_time_end=0;
+		ausm->usermap[arg->userid]=UserInfo(sid,arg->localsid,zoneid);
+		DEBUG_PRINT("gauthd::userlogin: user(id=%d,localsid=%d) login successfully from zone %d\n",arg->userid,arg->localsid,zoneid);
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// UserLoginArg *arg = (UserLoginArg *)argument;
+		// UserLoginRes *res = (UserLoginRes *)result;
+		
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,32 @@
+	public:
+		std::map<int, std::vector<std::pair<int, std::pair<int, time_t> > > > cheaters;
+		enum { PROTOCOL_TYPE = PROTOCOL_ACCHEATERS };
+	public:
+		ACCheaters() { type = PROTOCOL_ACCHEATERS; }
+		ACCheaters(void*) : Protocol(PROTOCOL_ACCHEATERS) { }
+		ACCheaters (std::map<int, std::vector<std::pair<int, std::pair<int, time_t> > > > l_cheaters)
+			 : cheaters(l_cheaters)
+		{
+			type = PROTOCOL_ACCHEATERS;
+		}
+
+		ACCheaters(const ACCheaters &rhs)
+			: Protocol(rhs),cheaters(rhs.cheaters) { }
+
+		GNET::Protocol *Clone() const { return new ACCheaters(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << cheaters;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> cheaters;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1048576; }

@@ -1,0 +1,59 @@
+#ifndef __GNET_DBPUTFORCERES_RPCDATA
+#define __GNET_DBPUTFORCERES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBPutForceRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+
+	public:
+		DBPutForceRes (int l_retcode = -1)
+			: retcode(l_retcode)
+		{
+		}
+
+		DBPutForceRes(const DBPutForceRes &rhs)
+			: retcode(rhs.retcode) { }
+
+		Rpc::Data *Clone() const { return new DBPutForceRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPutForceRes *r = dynamic_cast<const DBPutForceRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		DBPutForceRes& operator = (const DBPutForceRes &rhs)
+		{
+			const DBPutForceRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			return os;
+		}
+
+	};
+};
+#endif

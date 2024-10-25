@@ -1,0 +1,87 @@
+#ifndef __GNET_DBBUYPOINTARG_RPCDATA
+#define __GNET_DBBUYPOINTARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBBuyPointArg : public GNET::Rpc::Data
+	{
+	public:
+		int buyer;
+		unsigned int localsid;
+		int sellid;
+		int seller;
+		int timestamp;
+		int money;
+
+	public:
+		DBBuyPointArg (int l_buyer = 0,unsigned int l_localsid = 0,int l_sellid = 0
+			,int l_seller = 0,int l_timestamp = 0,int l_money = 0)
+			: buyer(l_buyer),localsid(l_localsid),sellid(l_sellid)
+			,seller(l_seller),timestamp(l_timestamp),money(l_money)
+		{
+		}
+
+		DBBuyPointArg(const DBBuyPointArg &rhs)
+			: buyer(rhs.buyer),localsid(rhs.localsid),sellid(rhs.sellid),
+			seller(rhs.seller),timestamp(rhs.timestamp),money(rhs.money) { }
+
+		Rpc::Data *Clone() const { return new DBBuyPointArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBBuyPointArg *r = dynamic_cast<const DBBuyPointArg *>(&rhs);
+			if (r && r != this)
+			{
+				buyer = r->buyer;
+				localsid = r->localsid;
+				sellid = r->sellid;
+				seller = r->seller;
+				timestamp = r->timestamp;
+				money = r->money;
+			}
+			return *this;
+		}
+
+		DBBuyPointArg& operator = (const DBBuyPointArg &rhs)
+		{
+			const DBBuyPointArg *r = &rhs;
+			if (r && r != this)
+			{
+				buyer = r->buyer;
+				localsid = r->localsid;
+				sellid = r->sellid;
+				seller = r->seller;
+				timestamp = r->timestamp;
+				money = r->money;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << buyer;
+			os << localsid;
+			os << sellid;
+			os << seller;
+			os << timestamp;
+			os << money;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> buyer;
+			os >> localsid;
+			os >> sellid;
+			os >> seller;
+			os >> timestamp;
+			os >> money;
+			return os;
+		}
+
+	};
+};
+#endif

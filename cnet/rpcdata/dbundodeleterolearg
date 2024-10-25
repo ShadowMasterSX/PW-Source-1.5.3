@@ -1,0 +1,59 @@
+#ifndef __GNET_DBUNDODELETEROLEARG_RPCDATA
+#define __GNET_DBUNDODELETEROLEARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBUndoDeleteRoleArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+
+	public:
+		DBUndoDeleteRoleArg (int l_roleid = -1)
+			: roleid(l_roleid)
+		{
+		}
+
+		DBUndoDeleteRoleArg(const DBUndoDeleteRoleArg &rhs)
+			: roleid(rhs.roleid) { }
+
+		Rpc::Data *Clone() const { return new DBUndoDeleteRoleArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBUndoDeleteRoleArg *r = dynamic_cast<const DBUndoDeleteRoleArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+			}
+			return *this;
+		}
+
+		DBUndoDeleteRoleArg& operator = (const DBUndoDeleteRoleArg &rhs)
+		{
+			const DBUndoDeleteRoleArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			return os;
+		}
+
+	};
+};
+#endif

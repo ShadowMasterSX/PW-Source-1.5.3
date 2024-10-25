@@ -1,0 +1,35 @@
+	public:
+		char open;
+		int rate;
+		enum { PROTOCOL_TYPE = PROTOCOL_CASHMONEYEXCHANGENOTIFY };
+	public:
+		CashMoneyExchangeNotify() { type = PROTOCOL_CASHMONEYEXCHANGENOTIFY; }
+		CashMoneyExchangeNotify(void*) : Protocol(PROTOCOL_CASHMONEYEXCHANGENOTIFY) { }
+		CashMoneyExchangeNotify (char l_open,int l_rate)
+			 : open(l_open),rate(l_rate)
+		{
+			type = PROTOCOL_CASHMONEYEXCHANGENOTIFY;
+		}
+
+		CashMoneyExchangeNotify(const CashMoneyExchangeNotify &rhs)
+			: Protocol(rhs),open(rhs.open),rate(rhs.rate) { }
+
+		GNET::Protocol *Clone() const { return new CashMoneyExchangeNotify(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << open;
+			os << rate;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> open;
+			os >> rate;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

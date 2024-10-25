@@ -1,0 +1,65 @@
+#ifndef __GNET_FORBIDUSERRES_RPCDATA
+#define __GNET_FORBIDUSERRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "groleforbid"
+
+namespace GNET
+{
+	class ForbidUserRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		GRoleForbid forbid;
+
+	public:
+		ForbidUserRes (int l_retcode = 0)
+			: retcode(l_retcode)
+		{
+		}
+
+		ForbidUserRes(const ForbidUserRes &rhs)
+			: retcode(rhs.retcode),forbid(rhs.forbid) { }
+
+		Rpc::Data *Clone() const { return new ForbidUserRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const ForbidUserRes *r = dynamic_cast<const ForbidUserRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				forbid = r->forbid;
+			}
+			return *this;
+		}
+
+		ForbidUserRes& operator = (const ForbidUserRes &rhs)
+		{
+			const ForbidUserRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				forbid = r->forbid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << forbid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> forbid;
+			return os;
+		}
+
+	};
+};
+#endif

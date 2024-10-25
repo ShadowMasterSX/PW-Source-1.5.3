@@ -1,0 +1,64 @@
+#ifndef __GNET_UID2LOGICUIDRES_RPCDATA
+#define __GNET_UID2LOGICUIDRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class Uid2LogicuidRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		int logicuid;
+
+	public:
+		Uid2LogicuidRes (int l_retcode = -1,int l_logicuid = 0)
+			: retcode(l_retcode),logicuid(l_logicuid)
+		{
+		}
+
+		Uid2LogicuidRes(const Uid2LogicuidRes &rhs)
+			: retcode(rhs.retcode),logicuid(rhs.logicuid) { }
+
+		Rpc::Data *Clone() const { return new Uid2LogicuidRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const Uid2LogicuidRes *r = dynamic_cast<const Uid2LogicuidRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				logicuid = r->logicuid;
+			}
+			return *this;
+		}
+
+		Uid2LogicuidRes& operator = (const Uid2LogicuidRes &rhs)
+		{
+			const Uid2LogicuidRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				logicuid = r->logicuid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << logicuid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> logicuid;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,136 @@
+#ifndef __GNET_GFORCEGLOBALDATA_RPCDATA
+#define __GNET_GFORCEGLOBALDATA_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GForceGlobalData : public GNET::Rpc::Data
+	{
+	public:
+		int force_id;
+		int player_count;
+		int development;
+		int construction;
+		int activity;
+		int activity_level;
+		int reserved1;
+		int reserved2;
+		int reserved3;
+		int reserved4;
+		int reserved5;
+		int reserved6;
+		int reserved7;
+		int reserved8;
+
+	public:
+		GForceGlobalData (int l_force_id = 0,int l_player_count = 0,int l_development = 0
+			,int l_construction = 0,int l_activity = 0,int l_activity_level = 0
+			,int l_reserved1 = 0,int l_reserved2 = 0,int l_reserved3 = 0
+			,int l_reserved4 = 0,int l_reserved5 = 0,int l_reserved6 = 0
+			,int l_reserved7 = 0,int l_reserved8 = 0)
+			: force_id(l_force_id),player_count(l_player_count),development(l_development)
+			,construction(l_construction),activity(l_activity),activity_level(l_activity_level)
+			,reserved1(l_reserved1),reserved2(l_reserved2),reserved3(l_reserved3)
+			,reserved4(l_reserved4),reserved5(l_reserved5),reserved6(l_reserved6)
+			,reserved7(l_reserved7),reserved8(l_reserved8)
+		{
+		}
+
+		GForceGlobalData(const GForceGlobalData &rhs)
+			: force_id(rhs.force_id),player_count(rhs.player_count),development(rhs.development),
+			construction(rhs.construction),activity(rhs.activity),activity_level(rhs.activity_level),
+			reserved1(rhs.reserved1),reserved2(rhs.reserved2),reserved3(rhs.reserved3),
+			reserved4(rhs.reserved4),reserved5(rhs.reserved5),reserved6(rhs.reserved6),
+			reserved7(rhs.reserved7),reserved8(rhs.reserved8) { }
+
+		Rpc::Data *Clone() const { return new GForceGlobalData(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GForceGlobalData *r = dynamic_cast<const GForceGlobalData *>(&rhs);
+			if (r && r != this)
+			{
+				force_id = r->force_id;
+				player_count = r->player_count;
+				development = r->development;
+				construction = r->construction;
+				activity = r->activity;
+				activity_level = r->activity_level;
+				reserved1 = r->reserved1;
+				reserved2 = r->reserved2;
+				reserved3 = r->reserved3;
+				reserved4 = r->reserved4;
+				reserved5 = r->reserved5;
+				reserved6 = r->reserved6;
+				reserved7 = r->reserved7;
+				reserved8 = r->reserved8;
+			}
+			return *this;
+		}
+
+		GForceGlobalData& operator = (const GForceGlobalData &rhs)
+		{
+			const GForceGlobalData *r = &rhs;
+			if (r && r != this)
+			{
+				force_id = r->force_id;
+				player_count = r->player_count;
+				development = r->development;
+				construction = r->construction;
+				activity = r->activity;
+				activity_level = r->activity_level;
+				reserved1 = r->reserved1;
+				reserved2 = r->reserved2;
+				reserved3 = r->reserved3;
+				reserved4 = r->reserved4;
+				reserved5 = r->reserved5;
+				reserved6 = r->reserved6;
+				reserved7 = r->reserved7;
+				reserved8 = r->reserved8;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << force_id;
+			os << player_count;
+			os << development;
+			os << construction;
+			os << activity;
+			os << activity_level;
+			os << reserved1;
+			os << reserved2;
+			os << reserved3;
+			os << reserved4;
+			os << reserved5;
+			os << reserved6;
+			os << reserved7;
+			os << reserved8;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> force_id;
+			os >> player_count;
+			os >> development;
+			os >> construction;
+			os >> activity;
+			os >> activity_level;
+			os >> reserved1;
+			os >> reserved2;
+			os >> reserved3;
+			os >> reserved4;
+			os >> reserved5;
+			os >> reserved6;
+			os >> reserved7;
+			os >> reserved8;
+			return os;
+		}
+
+	};
+};
+#endif

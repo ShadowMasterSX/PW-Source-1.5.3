@@ -1,0 +1,79 @@
+#ifndef __GNET_DBPSHOPMANAGEFUNDRES_RPCDATA
+#define __GNET_DBPSHOPMANAGEFUNDRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "groleinventory"
+#include "gmailsyncdata"
+
+namespace GNET
+{
+	class DBPShopManageFundRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		unsigned int money;
+		GRoleInventoryVector yinpiao;
+		GMailSyncData syncdata;
+
+	public:
+		DBPShopManageFundRes (int l_retcode = 0,unsigned int l_money = 0,const GRoleInventoryVector& l_yinpiao = GRoleInventoryVector()
+			,const GMailSyncData& l_syncdata = GMailSyncData())
+			: retcode(l_retcode),money(l_money),yinpiao(l_yinpiao)
+			,syncdata(l_syncdata)
+		{
+		}
+
+		DBPShopManageFundRes(const DBPShopManageFundRes &rhs)
+			: retcode(rhs.retcode),money(rhs.money),yinpiao(rhs.yinpiao),
+			syncdata(rhs.syncdata) { }
+
+		Rpc::Data *Clone() const { return new DBPShopManageFundRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPShopManageFundRes *r = dynamic_cast<const DBPShopManageFundRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				money = r->money;
+				yinpiao = r->yinpiao;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		DBPShopManageFundRes& operator = (const DBPShopManageFundRes &rhs)
+		{
+			const DBPShopManageFundRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				money = r->money;
+				yinpiao = r->yinpiao;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << money;
+			os << yinpiao;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> money;
+			os >> yinpiao;
+			os >> syncdata;
+			return os;
+		}
+
+	};
+};
+#endif

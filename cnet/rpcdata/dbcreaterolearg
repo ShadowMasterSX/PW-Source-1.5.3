@@ -1,0 +1,88 @@
+#ifndef __GNET_DBCREATEROLEARG_RPCDATA
+#define __GNET_DBCREATEROLEARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "roleinfo"
+
+namespace GNET
+{
+	class DBCreateRoleArg : public GNET::Rpc::Data
+	{
+	public:
+		int userid;
+		unsigned int logicuid;
+		int roleid;
+		RoleInfo roleinfo;
+		int au_suggest_referrer;
+		int player_suggest_referrer;
+
+	public:
+		DBCreateRoleArg (int l_userid = -1,unsigned int l_logicuid = 0,int l_roleid = -1
+			,const RoleInfo& l_roleinfo = RoleInfo(),int l_au_suggest_referrer = 0,int l_player_suggest_referrer = 0)
+			: userid(l_userid),logicuid(l_logicuid),roleid(l_roleid)
+			,roleinfo(l_roleinfo),au_suggest_referrer(l_au_suggest_referrer),player_suggest_referrer(l_player_suggest_referrer)
+		{
+		}
+
+		DBCreateRoleArg(const DBCreateRoleArg &rhs)
+			: userid(rhs.userid),logicuid(rhs.logicuid),roleid(rhs.roleid),
+			roleinfo(rhs.roleinfo),au_suggest_referrer(rhs.au_suggest_referrer),player_suggest_referrer(rhs.player_suggest_referrer) { }
+
+		Rpc::Data *Clone() const { return new DBCreateRoleArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBCreateRoleArg *r = dynamic_cast<const DBCreateRoleArg *>(&rhs);
+			if (r && r != this)
+			{
+				userid = r->userid;
+				logicuid = r->logicuid;
+				roleid = r->roleid;
+				roleinfo = r->roleinfo;
+				au_suggest_referrer = r->au_suggest_referrer;
+				player_suggest_referrer = r->player_suggest_referrer;
+			}
+			return *this;
+		}
+
+		DBCreateRoleArg& operator = (const DBCreateRoleArg &rhs)
+		{
+			const DBCreateRoleArg *r = &rhs;
+			if (r && r != this)
+			{
+				userid = r->userid;
+				logicuid = r->logicuid;
+				roleid = r->roleid;
+				roleinfo = r->roleinfo;
+				au_suggest_referrer = r->au_suggest_referrer;
+				player_suggest_referrer = r->player_suggest_referrer;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			os << logicuid;
+			os << roleid;
+			os << roleinfo;
+			os << au_suggest_referrer;
+			os << player_suggest_referrer;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			os >> logicuid;
+			os >> roleid;
+			os >> roleinfo;
+			os >> au_suggest_referrer;
+			os >> player_suggest_referrer;
+			return os;
+		}
+
+	};
+};
+#endif

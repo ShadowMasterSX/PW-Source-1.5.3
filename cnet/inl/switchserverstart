@@ -1,0 +1,50 @@
+	public:
+		int roleid;
+		int link_id;
+		unsigned int localsid;
+		int src_gsid;
+		int dst_gsid;
+		Octets key;
+		enum { PROTOCOL_TYPE = PROTOCOL_SWITCHSERVERSTART };
+	public:
+		SwitchServerStart() { type = PROTOCOL_SWITCHSERVERSTART; }
+		SwitchServerStart(void*) : Protocol(PROTOCOL_SWITCHSERVERSTART) { }
+		SwitchServerStart (int l_roleid,int l_link_id,unsigned int l_localsid,
+			int l_src_gsid,int l_dst_gsid,Octets l_key)
+			 : roleid(l_roleid),link_id(l_link_id),localsid(l_localsid)
+			,src_gsid(l_src_gsid),dst_gsid(l_dst_gsid),key(l_key)
+		{
+			type = PROTOCOL_SWITCHSERVERSTART;
+		}
+
+		SwitchServerStart(const SwitchServerStart &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),link_id(rhs.link_id),localsid(rhs.localsid)
+			,src_gsid(rhs.src_gsid),dst_gsid(rhs.dst_gsid),key(rhs.key) { }
+
+		GNET::Protocol *Clone() const { return new SwitchServerStart(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << link_id;
+			os << localsid;
+			os << src_gsid;
+			os << dst_gsid;
+			os << key;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> link_id;
+			os >> localsid;
+			os >> src_gsid;
+			os >> dst_gsid;
+			os >> key;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 101; }
+
+		bool SizePolicy(size_t size) const { return size <= 512; }

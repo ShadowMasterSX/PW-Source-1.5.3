@@ -1,0 +1,65 @@
+#ifndef __GNET_ROLETASKRES_RPCDATA
+#define __GNET_ROLETASKRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "groletask"
+
+namespace GNET
+{
+	class RoleTaskRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		GRoleTask value;
+
+	public:
+		RoleTaskRes (int l_retcode = -1)
+			: retcode(l_retcode)
+		{
+		}
+
+		RoleTaskRes(const RoleTaskRes &rhs)
+			: retcode(rhs.retcode),value(rhs.value) { }
+
+		Rpc::Data *Clone() const { return new RoleTaskRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const RoleTaskRes *r = dynamic_cast<const RoleTaskRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				value = r->value;
+			}
+			return *this;
+		}
+
+		RoleTaskRes& operator = (const RoleTaskRes &rhs)
+		{
+			const RoleTaskRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				value = r->value;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << value;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> value;
+			return os;
+		}
+
+	};
+};
+#endif

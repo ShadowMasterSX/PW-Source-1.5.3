@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBGAMETALKFACTIONINFO_HPP
+#define __GNET_DBGAMETALKFACTIONINFO_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbgametalkfactioninfoarg"
+#include "dbgametalkfactioninfores"
+
+namespace GNET
+{
+
+class DBGameTalkFactionInfo : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbgametalkfactioninfo"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBGameTalkFactionInfoArg *arg = (DBGameTalkFactionInfoArg *)argument;
+		// DBGameTalkFactionInfoRes *res = (DBGameTalkFactionInfoRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBGameTalkFactionInfoArg *arg = (DBGameTalkFactionInfoArg *)argument;
+		// DBGameTalkFactionInfoRes *res = (DBGameTalkFactionInfoRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

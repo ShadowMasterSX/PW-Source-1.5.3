@@ -1,0 +1,59 @@
+	public:
+		int retcode;
+		int roleid;
+		int remote_roleid;
+		int userid;
+		char flag;
+		int dst_zoneid;
+		Octets roleinfo_pack;
+		char is_remote_roleid_changed;
+		enum { PROTOCOL_TYPE = PROTOCOL_SENDDATAANDIDENTITY_RE };
+	public:
+		SendDataAndIdentity_Re() { type = PROTOCOL_SENDDATAANDIDENTITY_RE; }
+		SendDataAndIdentity_Re(void*) : Protocol(PROTOCOL_SENDDATAANDIDENTITY_RE) { }
+		SendDataAndIdentity_Re (int l_retcode,int l_roleid = 0,int l_remote_roleid = 0,
+			int l_userid = 0,char l_flag = 0,int l_dst_zoneid = 0,
+			const Octets& l_roleinfo_pack = Octets(),char l_is_remote_roleid_changed = 0)
+			 : retcode(l_retcode),roleid(l_roleid),remote_roleid(l_remote_roleid)
+			,userid(l_userid),flag(l_flag),dst_zoneid(l_dst_zoneid)
+			,roleinfo_pack(l_roleinfo_pack),is_remote_roleid_changed(l_is_remote_roleid_changed)
+		{
+			type = PROTOCOL_SENDDATAANDIDENTITY_RE;
+		}
+
+		SendDataAndIdentity_Re(const SendDataAndIdentity_Re &rhs)
+			: Protocol(rhs),retcode(rhs.retcode),roleid(rhs.roleid),remote_roleid(rhs.remote_roleid)
+			,userid(rhs.userid),flag(rhs.flag),dst_zoneid(rhs.dst_zoneid)
+			,roleinfo_pack(rhs.roleinfo_pack),is_remote_roleid_changed(rhs.is_remote_roleid_changed) { }
+
+		GNET::Protocol *Clone() const { return new SendDataAndIdentity_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << roleid;
+			os << remote_roleid;
+			os << userid;
+			os << flag;
+			os << dst_zoneid;
+			os << roleinfo_pack;
+			os << is_remote_roleid_changed;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> roleid;
+			os >> remote_roleid;
+			os >> userid;
+			os >> flag;
+			os >> dst_zoneid;
+			os >> roleinfo_pack;
+			os >> is_remote_roleid_changed;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 8192; }

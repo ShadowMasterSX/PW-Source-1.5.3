@@ -1,0 +1,9 @@
+		GNET::Protocol *Clone() const {  return new GetRoleEquipment(*this); }
+	public:
+		enum { PROTOCOL_TYPE = RPC_GETROLEEQUIPMENT };
+		GetRoleEquipment(Type type, Rpc::Data *argument, Rpc::Data *result)
+			: RPC_BASECLASS(type, argument, result ) { }
+		GetRoleEquipment(const GetRoleEquipment &rhs) : RPC_BASECLASS(rhs) { }
+		int  PriorPolicy( ) const { return 1; }
+		bool SizePolicy(size_t size) const { return size <= 65536; }
+		bool TimePolicy(int timeout) const { return timeout <= 10; }

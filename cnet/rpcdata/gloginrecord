@@ -1,0 +1,64 @@
+#ifndef __GNET_GLOGINRECORD_RPCDATA
+#define __GNET_GLOGINRECORD_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GLoginRecord : public GNET::Rpc::Data
+	{
+	public:
+		int login_time;
+		int login_ip;
+
+	public:
+		GLoginRecord (int l_login_time = 0,int l_login_ip = 0)
+			: login_time(l_login_time),login_ip(l_login_ip)
+		{
+		}
+
+		GLoginRecord(const GLoginRecord &rhs)
+			: login_time(rhs.login_time),login_ip(rhs.login_ip) { }
+
+		Rpc::Data *Clone() const { return new GLoginRecord(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GLoginRecord *r = dynamic_cast<const GLoginRecord *>(&rhs);
+			if (r && r != this)
+			{
+				login_time = r->login_time;
+				login_ip = r->login_ip;
+			}
+			return *this;
+		}
+
+		GLoginRecord& operator = (const GLoginRecord &rhs)
+		{
+			const GLoginRecord *r = &rhs;
+			if (r && r != this)
+			{
+				login_time = r->login_time;
+				login_ip = r->login_ip;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << login_time;
+			os << login_ip;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> login_time;
+			os >> login_ip;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,58 @@
+
+#ifndef __GNET_DBCOUNTRYBATTLEBONUS_HPP
+#define __GNET_DBCOUNTRYBATTLEBONUS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbcountrybattlebonusarg"
+#include "dbcountrybattlebonusres"
+#include "gamedbclient.hpp"
+#include "postoffice.h"
+
+namespace GNET
+{
+
+class DBCountryBattleBonus : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbcountrybattlebonus"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBCountryBattleBonusArg *arg = (DBCountryBattleBonusArg *)argument;
+		// DBCountryBattleBonusRes *res = (DBCountryBattleBonusRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBCountryBattleBonusArg *arg = (DBCountryBattleBonusArg *)argument;
+		DBCountryBattleBonusRes *res = (DBCountryBattleBonusRes *)result;
+
+		if( res->retcode == ERR_AGAIN ) {
+			GameDBClient::GetInstance()->SendProtocol(Rpc::Call(RPC_DBCOUNTRYBATTLEBONUS,arg));
+		} else  {
+			if(res->retcode != ERR_SUCCESS) {
+				Log::log(LOG_ERR, "DBCountryBattleBonus, failed, ret=%d roleid=%d", res->retcode, arg->roleid);
+			}
+			
+			if(res->inform_player.receiver != _ROLE_INVALID) {
+				PostOffice::GetInstance().AddNewMail( res->inform_player.receiver, res->inform_player);
+			}
+		}
+
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		DBCountryBattleBonusArg *arg = (DBCountryBattleBonusArg *)argument;
+		Log::log(LOG_ERR, "DBCountryBattleBonus, timeout, roleid=%d,money=%d", arg->roleid, arg->money);
+		GameDBClient::GetInstance()->SendProtocol(Rpc::Call(RPC_DBCOUNTRYBATTLEBONUS,arg));
+	}
+
+};
+
+};
+#endif

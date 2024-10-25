@@ -1,0 +1,25 @@
+
+<project name="gen" default="dist">
+
+<property name="src" value="./src"/>
+<property name="build" value="./build"/>
+
+<target name="init">
+	<mkdir dir="${build}" />
+</target>
+
+<target name="compile" depends="init">
+	<javac srcdir="${src}" 
+          destdir="${build}" 
+            debug="on" 
+           source="1.5"
+           target="1.5"
+         encoding="gbk"
+    />
+</target>
+
+<target name="dist" depends="compile">
+	<jar jarfile="gen.jar" basedir="${build}" manifest="${src}/MANIFEST.MF"/>
+	<delete dir="${build}" />
+</target>
+</project>

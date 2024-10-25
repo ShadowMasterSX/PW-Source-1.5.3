@@ -1,0 +1,9 @@
+		GNET::Protocol *Clone() const {  return new AddMember(*this); }
+	public:
+		enum { PROTOCOL_TYPE = RPC_ADDMEMBER };
+		AddMember(Type type, Rpc::Data *argument, Rpc::Data *result)
+			: RPC_BASECLASS(type, argument, result ) { }
+		AddMember(const AddMember &rhs) : RPC_BASECLASS(rhs) { }
+		int  PriorPolicy( ) const { return 1; }
+		bool SizePolicy(size_t size) const { return size <= 64; }
+		bool TimePolicy(int timeout) const { return timeout <= 30; }

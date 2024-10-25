@@ -1,0 +1,76 @@
+#ifndef __GNET_DBGETMAILATTACHRES_RPCDATA
+#define __GNET_DBGETMAILATTACHRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailsyncdata"
+
+namespace GNET
+{
+	class DBGetMailAttachRes : public GNET::Rpc::Data
+	{
+	public:
+		unsigned char retcode;
+		unsigned int money_left;
+		unsigned int item_left;
+		GMailSyncData syncdata;
+
+	public:
+		DBGetMailAttachRes (const GMailSyncData& l_syncdata = GMailSyncData())
+			: syncdata(l_syncdata)
+		{
+		}
+
+		DBGetMailAttachRes(const DBGetMailAttachRes &rhs)
+			: retcode(rhs.retcode),money_left(rhs.money_left),item_left(rhs.item_left),
+			syncdata(rhs.syncdata) { }
+
+		Rpc::Data *Clone() const { return new DBGetMailAttachRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBGetMailAttachRes *r = dynamic_cast<const DBGetMailAttachRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				money_left = r->money_left;
+				item_left = r->item_left;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		DBGetMailAttachRes& operator = (const DBGetMailAttachRes &rhs)
+		{
+			const DBGetMailAttachRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				money_left = r->money_left;
+				item_left = r->item_left;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << money_left;
+			os << item_left;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> money_left;
+			os >> item_left;
+			os >> syncdata;
+			return os;
+		}
+
+	};
+};
+#endif

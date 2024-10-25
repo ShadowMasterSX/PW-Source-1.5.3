@@ -1,0 +1,50 @@
+	public:
+		int retcode;
+		int roleid;
+		int remote_roleid;
+		int userid;
+		char flag;
+		int remote_zoneid;
+		enum { PROTOCOL_TYPE = PROTOCOL_REMOTELOGINQUERY };
+	public:
+		RemoteLoginQuery() { type = PROTOCOL_REMOTELOGINQUERY; }
+		RemoteLoginQuery(void*) : Protocol(PROTOCOL_REMOTELOGINQUERY) { }
+		RemoteLoginQuery (int l_retcode,int l_roleid,int l_remote_roleid,
+			int l_userid,char l_flag,int l_remote_zoneid)
+			 : retcode(l_retcode),roleid(l_roleid),remote_roleid(l_remote_roleid)
+			,userid(l_userid),flag(l_flag),remote_zoneid(l_remote_zoneid)
+		{
+			type = PROTOCOL_REMOTELOGINQUERY;
+		}
+
+		RemoteLoginQuery(const RemoteLoginQuery &rhs)
+			: Protocol(rhs),retcode(rhs.retcode),roleid(rhs.roleid),remote_roleid(rhs.remote_roleid)
+			,userid(rhs.userid),flag(rhs.flag),remote_zoneid(rhs.remote_zoneid) { }
+
+		GNET::Protocol *Clone() const { return new RemoteLoginQuery(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << roleid;
+			os << remote_roleid;
+			os << userid;
+			os << flag;
+			os << remote_zoneid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> roleid;
+			os >> remote_roleid;
+			os >> userid;
+			os >> flag;
+			os >> remote_zoneid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 256; }

@@ -1,0 +1,65 @@
+#ifndef __GNET_DBAUTOLOCKSETARG_RPCDATA
+#define __GNET_DBAUTOLOCKSETARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gpair"
+
+namespace GNET
+{
+	class DBAutolockSetArg : public GNET::Rpc::Data
+	{
+	public:
+		int userid;
+		std::vector<GPair> autolock;
+
+	public:
+		DBAutolockSetArg (std::vector<GPair> l_autolock = std::vector<GPair>())
+			: autolock(l_autolock)
+		{
+		}
+
+		DBAutolockSetArg(const DBAutolockSetArg &rhs)
+			: userid(rhs.userid),autolock(rhs.autolock) { }
+
+		Rpc::Data *Clone() const { return new DBAutolockSetArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBAutolockSetArg *r = dynamic_cast<const DBAutolockSetArg *>(&rhs);
+			if (r && r != this)
+			{
+				userid = r->userid;
+				autolock = r->autolock;
+			}
+			return *this;
+		}
+
+		DBAutolockSetArg& operator = (const DBAutolockSetArg &rhs)
+		{
+			const DBAutolockSetArg *r = &rhs;
+			if (r && r != this)
+			{
+				userid = r->userid;
+				autolock = r->autolock;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			os << autolock;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			os >> autolock;
+			return os;
+		}
+
+	};
+};
+#endif

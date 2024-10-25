@@ -1,0 +1,35 @@
+	public:
+		unsigned int tid;
+		char paddings;
+		enum { PROTOCOL_TYPE = PROTOCOL_GTRADEDISCARD };
+	public:
+		GTradeDiscard() { type = PROTOCOL_GTRADEDISCARD; }
+		GTradeDiscard(void*) : Protocol(PROTOCOL_GTRADEDISCARD) { }
+		GTradeDiscard (unsigned int l_tid,char l_paddings)
+			 : tid(l_tid),paddings(l_paddings)
+		{
+			type = PROTOCOL_GTRADEDISCARD;
+		}
+
+		GTradeDiscard(const GTradeDiscard &rhs)
+			: Protocol(rhs),tid(rhs.tid),paddings(rhs.paddings) { }
+
+		GNET::Protocol *Clone() const { return new GTradeDiscard(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << tid;
+			os << paddings;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> tid;
+			os >> paddings;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 32; }

@@ -1,0 +1,44 @@
+	public:
+		int userid;
+		int time;
+		char operation;
+		Octets reason;
+		enum { PROTOCOL_TYPE = PROTOCOL_ACFORBIDCHEATER };
+	public:
+		ACForbidCheater() { type = PROTOCOL_ACFORBIDCHEATER; }
+		ACForbidCheater(void*) : Protocol(PROTOCOL_ACFORBIDCHEATER) { }
+		ACForbidCheater (int l_userid,int l_time = 600,char l_operation = 0,
+			const Octets& l_reason = Octets())
+			 : userid(l_userid),time(l_time),operation(l_operation)
+			,reason(l_reason)
+		{
+			type = PROTOCOL_ACFORBIDCHEATER;
+		}
+
+		ACForbidCheater(const ACForbidCheater &rhs)
+			: Protocol(rhs),userid(rhs.userid),time(rhs.time),operation(rhs.operation)
+			,reason(rhs.reason) { }
+
+		GNET::Protocol *Clone() const { return new ACForbidCheater(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			os << time;
+			os << operation;
+			os << reason;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			os >> time;
+			os >> operation;
+			os >> reason;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 256; }

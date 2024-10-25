@@ -1,0 +1,65 @@
+#ifndef __GNET_GITEM_RPCDATA
+#define __GNET_GITEM_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GItem : public GNET::Rpc::Data
+	{
+	public:
+		unsigned int id;
+		unsigned int count;
+
+	public:
+		GItem (unsigned int l_id = 0,unsigned int l_count = 0)
+			: id(l_id),count(l_count)
+		{
+		}
+
+		GItem(const GItem &rhs)
+			: id(rhs.id),count(rhs.count) { }
+
+		Rpc::Data *Clone() const { return new GItem(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GItem *r = dynamic_cast<const GItem *>(&rhs);
+			if (r && r != this)
+			{
+				id = r->id;
+				count = r->count;
+			}
+			return *this;
+		}
+
+		GItem& operator = (const GItem &rhs)
+		{
+			const GItem *r = &rhs;
+			if (r && r != this)
+			{
+				id = r->id;
+				count = r->count;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << id;
+			os << count;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> id;
+			os >> count;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<GItem>	GItemVector;
+};
+#endif

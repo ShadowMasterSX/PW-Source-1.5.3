@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBPLAYERASKFORPRESENT_HPP
+#define __GNET_DBPLAYERASKFORPRESENT_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbplayeraskforpresentarg"
+#include "dbplayeraskforpresentres"
+
+namespace GNET
+{
+
+class DBPlayerAskForPresent : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbplayeraskforpresent"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBPlayerAskForPresentArg *arg = (DBPlayerAskForPresentArg *)argument;
+		// DBPlayerAskForPresentRes *res = (DBPlayerAskForPresentRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBPlayerAskForPresentArg *arg = (DBPlayerAskForPresentArg *)argument;
+		// DBPlayerAskForPresentRes *res = (DBPlayerAskForPresentRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

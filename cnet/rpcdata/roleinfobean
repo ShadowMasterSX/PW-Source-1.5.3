@@ -1,0 +1,96 @@
+#ifndef __GNET_ROLEINFOBEAN_RPCDATA
+#define __GNET_ROLEINFOBEAN_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class RoleInfoBean : public GNET::Rpc::Data
+	{
+	public:
+		int64_t roleid;
+		Octets rolename;
+		unsigned char gender;
+		int race;
+		int occupation;
+		int level;
+		Octets extinfo;
+
+	public:
+		RoleInfoBean (int64_t l_roleid = 0,const Octets& l_rolename = Octets(),unsigned char l_gender = 0
+			,int l_race = 0,int l_occupation = 0,int l_level = 0
+			,const Octets& l_extinfo = Octets())
+			: roleid(l_roleid),rolename(l_rolename),gender(l_gender)
+			,race(l_race),occupation(l_occupation),level(l_level)
+			,extinfo(l_extinfo)
+		{
+		}
+
+		RoleInfoBean(const RoleInfoBean &rhs)
+			: roleid(rhs.roleid),rolename(rhs.rolename),gender(rhs.gender),
+			race(rhs.race),occupation(rhs.occupation),level(rhs.level),
+			extinfo(rhs.extinfo) { }
+
+		Rpc::Data *Clone() const { return new RoleInfoBean(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const RoleInfoBean *r = dynamic_cast<const RoleInfoBean *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				rolename = r->rolename;
+				gender = r->gender;
+				race = r->race;
+				occupation = r->occupation;
+				level = r->level;
+				extinfo = r->extinfo;
+			}
+			return *this;
+		}
+
+		RoleInfoBean& operator = (const RoleInfoBean &rhs)
+		{
+			const RoleInfoBean *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				rolename = r->rolename;
+				gender = r->gender;
+				race = r->race;
+				occupation = r->occupation;
+				level = r->level;
+				extinfo = r->extinfo;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << rolename;
+			os << gender;
+			os << race;
+			os << occupation;
+			os << level;
+			os << extinfo;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> rolename;
+			os >> gender;
+			os >> race;
+			os >> occupation;
+			os >> level;
+			os >> extinfo;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<RoleInfoBean>	RoleInfoBeanVector;
+};
+#endif

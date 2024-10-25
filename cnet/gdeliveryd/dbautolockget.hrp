@@ -1,0 +1,69 @@
+
+#ifndef __GNET_DBAUTOLOCKGET_HPP
+#define __GNET_DBAUTOLOCKGET_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbautolockgetarg"
+#include "dbautolockgetres"
+#include "iwebautolockget_re.hpp"
+
+namespace GNET
+{
+
+class DBAutolockGet : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbautolockget"
+#undef	RPC_BASECLASS
+	int save_sid;
+	int save_tid; // iwebÓÃ
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBAutolockGetArg *arg = (DBAutolockGetArg *)argument;
+		// DBAutolockGetRes *res = (DBAutolockGetRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBAutolockGetArg *arg = (DBAutolockGetArg *)argument;
+		DBAutolockGetRes *res = (DBAutolockGetRes *)result;
+		GDeliveryServer* dsm=GDeliveryServer::GetInstance();
+		if(res->retcode==ERR_SUCCESS)
+		{
+			int gmsettime = -1;
+			int gmlocktime = -1;
+			for (size_t i = 0; i < res->autolock.size(); i++)
+			{
+				GPair& p = res->autolock[i];
+				if (p.key == LOCKSET_TIME_GM)
+				{
+					gmsettime = p.value;
+				}
+				else if (p.key == LOCKTIME_GM)
+				{
+					gmlocktime = p.value;
+				}
+			}
+			dsm->Send(save_sid, IWebAutolockGet_Re(save_tid, ERR_SUCCESS, arg->userid, gmsettime, gmlocktime));
+		}
+		else
+		{
+			dsm->Send(save_sid, IWebAutolockGet_Re(save_tid, res->retcode, arg->userid));
+		}
+	}
+
+	void OnTimeout()
+	{
+		DBAutolockGetArg *arg = (DBAutolockGetArg *)argument;
+		GDeliveryServer* dsm=GDeliveryServer::GetInstance();
+		dsm->Send(save_sid, IWebAutolockGet_Re(save_tid, ERR_DATABASE_TIMEOUT, arg->userid));
+	}
+
+};
+
+};
+#endif

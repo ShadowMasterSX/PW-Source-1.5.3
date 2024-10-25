@@ -1,0 +1,69 @@
+#ifndef __GNET_DBWEBTRADECANCELPOSTARG_RPCDATA
+#define __GNET_DBWEBTRADECANCELPOSTARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBWebTradeCancelPostArg : public GNET::Rpc::Data
+	{
+	public:
+		int64_t sn;
+		int roleid;
+		char reason;
+
+	public:
+		DBWebTradeCancelPostArg (int64_t l_sn = 0,int l_roleid = 0,char l_reason = 0)
+			: sn(l_sn),roleid(l_roleid),reason(l_reason)
+		{
+		}
+
+		DBWebTradeCancelPostArg(const DBWebTradeCancelPostArg &rhs)
+			: sn(rhs.sn),roleid(rhs.roleid),reason(rhs.reason) { }
+
+		Rpc::Data *Clone() const { return new DBWebTradeCancelPostArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBWebTradeCancelPostArg *r = dynamic_cast<const DBWebTradeCancelPostArg *>(&rhs);
+			if (r && r != this)
+			{
+				sn = r->sn;
+				roleid = r->roleid;
+				reason = r->reason;
+			}
+			return *this;
+		}
+
+		DBWebTradeCancelPostArg& operator = (const DBWebTradeCancelPostArg &rhs)
+		{
+			const DBWebTradeCancelPostArg *r = &rhs;
+			if (r && r != this)
+			{
+				sn = r->sn;
+				roleid = r->roleid;
+				reason = r->reason;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << sn;
+			os << roleid;
+			os << reason;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> sn;
+			os >> roleid;
+			os >> reason;
+			return os;
+		}
+
+	};
+};
+#endif

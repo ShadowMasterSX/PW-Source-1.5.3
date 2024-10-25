@@ -1,0 +1,111 @@
+#ifndef __GNET_SSOEXTRAINFO1_RPCDATA
+#define __GNET_SSOEXTRAINFO1_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class SSOExtraInfo1 : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		Octets rolename;
+		int level;
+		int sec_level;
+		int reputation;
+		int create_time;
+		int factionid;
+		std::vector<std::pair<int,int> > item;
+		int reincarn_times;
+		int realm_level;
+
+	public:
+		SSOExtraInfo1 (int l_roleid = 0,int l_level = 0,int l_sec_level = 0
+			,int l_reputation = 0,int l_create_time = 0,int l_factionid = 0
+			,int l_reincarn_times = 0,int l_realm_level = 0)
+			: roleid(l_roleid),level(l_level),sec_level(l_sec_level)
+			,reputation(l_reputation),create_time(l_create_time),factionid(l_factionid)
+			,reincarn_times(l_reincarn_times),realm_level(l_realm_level)
+		{
+		}
+
+		SSOExtraInfo1(const SSOExtraInfo1 &rhs)
+			: roleid(rhs.roleid),rolename(rhs.rolename),level(rhs.level),
+			sec_level(rhs.sec_level),reputation(rhs.reputation),create_time(rhs.create_time),
+			factionid(rhs.factionid),item(rhs.item),reincarn_times(rhs.reincarn_times),
+			realm_level(rhs.realm_level) { }
+
+		Rpc::Data *Clone() const { return new SSOExtraInfo1(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const SSOExtraInfo1 *r = dynamic_cast<const SSOExtraInfo1 *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				rolename = r->rolename;
+				level = r->level;
+				sec_level = r->sec_level;
+				reputation = r->reputation;
+				create_time = r->create_time;
+				factionid = r->factionid;
+				item = r->item;
+				reincarn_times = r->reincarn_times;
+				realm_level = r->realm_level;
+			}
+			return *this;
+		}
+
+		SSOExtraInfo1& operator = (const SSOExtraInfo1 &rhs)
+		{
+			const SSOExtraInfo1 *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				rolename = r->rolename;
+				level = r->level;
+				sec_level = r->sec_level;
+				reputation = r->reputation;
+				create_time = r->create_time;
+				factionid = r->factionid;
+				item = r->item;
+				reincarn_times = r->reincarn_times;
+				realm_level = r->realm_level;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << rolename;
+			os << level;
+			os << sec_level;
+			os << reputation;
+			os << create_time;
+			os << factionid;
+			os << item;
+			os << reincarn_times;
+			os << realm_level;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> rolename;
+			os >> level;
+			os >> sec_level;
+			os >> reputation;
+			os >> create_time;
+			os >> factionid;
+			os >> item;
+			os >> reincarn_times;
+			os >> realm_level;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,83 @@
+#ifndef __GNET_DBKECANDIDATEAPPLYARG_RPCDATA
+#define __GNET_DBKECANDIDATEAPPLYARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailsyncdata"
+
+namespace GNET
+{
+	class DBKECandidateApplyArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		int serial_num;
+		unsigned int item_id;
+		int item_num;
+		GMailSyncData syncdata;
+
+	public:
+		DBKECandidateApplyArg (int l_roleid = 0,int l_serial_num = 0,unsigned int l_item_id = 0
+			,int l_item_num = 0,const GMailSyncData& l_syncdata = GMailSyncData())
+			: roleid(l_roleid),serial_num(l_serial_num),item_id(l_item_id)
+			,item_num(l_item_num),syncdata(l_syncdata)
+		{
+		}
+
+		DBKECandidateApplyArg(const DBKECandidateApplyArg &rhs)
+			: roleid(rhs.roleid),serial_num(rhs.serial_num),item_id(rhs.item_id),
+			item_num(rhs.item_num),syncdata(rhs.syncdata) { }
+
+		Rpc::Data *Clone() const { return new DBKECandidateApplyArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBKECandidateApplyArg *r = dynamic_cast<const DBKECandidateApplyArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				serial_num = r->serial_num;
+				item_id = r->item_id;
+				item_num = r->item_num;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		DBKECandidateApplyArg& operator = (const DBKECandidateApplyArg &rhs)
+		{
+			const DBKECandidateApplyArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				serial_num = r->serial_num;
+				item_id = r->item_id;
+				item_num = r->item_num;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << serial_num;
+			os << item_id;
+			os << item_num;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> serial_num;
+			os >> item_id;
+			os >> item_num;
+			os >> syncdata;
+			return os;
+		}
+
+	};
+};
+#endif

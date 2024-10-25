@@ -1,0 +1,78 @@
+#ifndef __GNET_DBROLENAMELISTRES_RPCDATA
+#define __GNET_DBROLENAMELISTRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "groleidandname"
+
+namespace GNET
+{
+	class DBRoleNameListRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		int handle;
+		char finish;
+		std::vector<GRoleIDandName> rolenamelist;
+
+	public:
+		DBRoleNameListRes (int l_retcode = -1,int l_handle = -1,char l_finish = 0
+			)
+			: retcode(l_retcode),handle(l_handle),finish(l_finish)
+			
+		{
+		}
+
+		DBRoleNameListRes(const DBRoleNameListRes &rhs)
+			: retcode(rhs.retcode),handle(rhs.handle),finish(rhs.finish),
+			rolenamelist(rhs.rolenamelist) { }
+
+		Rpc::Data *Clone() const { return new DBRoleNameListRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBRoleNameListRes *r = dynamic_cast<const DBRoleNameListRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				handle = r->handle;
+				finish = r->finish;
+				rolenamelist = r->rolenamelist;
+			}
+			return *this;
+		}
+
+		DBRoleNameListRes& operator = (const DBRoleNameListRes &rhs)
+		{
+			const DBRoleNameListRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				handle = r->handle;
+				finish = r->finish;
+				rolenamelist = r->rolenamelist;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << handle;
+			os << finish;
+			os << rolenamelist;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> handle;
+			os >> finish;
+			os >> rolenamelist;
+			return os;
+		}
+
+	};
+};
+#endif

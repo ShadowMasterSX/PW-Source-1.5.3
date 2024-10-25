@@ -1,0 +1,84 @@
+
+#ifndef __GNET_GETSERVERDATA_HPP
+#define __GNET_GETSERVERDATA_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "getserverdataarg"
+#include "getserverdatares"
+#include "localmacro.h"
+
+namespace GNET
+{
+
+class GetServerData : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getserverdata"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		GetServerDataArg *arg = (GetServerDataArg *)argument;
+		GetServerDataRes *res = (GetServerDataRes *)result;
+
+		LOG_TRACE( "GetServerData, world_tag=%d data_mask=%d.\n",arg->world_tag, arg->data_mask);
+
+		try
+		{
+			StorageEnv::Storage * pserver= StorageEnv::GetStorage("serverdata");
+			StorageEnv::CommonTransaction txn;
+			Marshal::OctetsStream key, value;
+			
+			try
+			{
+				key << arg->world_tag;
+				GServerData data;
+				if(pserver->find(key, value, txn))
+					value >> data;
+				else
+					data.world_tag = arg->world_tag;
+
+				res->data.world_tag = data.world_tag;
+				if(arg->data_mask & CDBMASK_SERVERDATA_WEDDING)
+					res->data.wedding_data.swap(data.wedding_data);
+				if(arg->data_mask & CDBMASK_SERVERDATA_DPSRANK)
+					res->data.dpsrank_data.swap(data.dpsrank_data);
+				
+				res->data_mask = arg->data_mask;
+				res->retcode = ERR_SUCCESS;				
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			res->retcode = ERR_EXCEPTION;
+			Log::log( LOG_ERR, "GetServerData, world_tag=%d, data_mask=%d, what=%s\n", arg->world_tag, arg->data_mask, e.what() );
+		}
+		Log::formatlog("getserverdata", "world_tag=%d data_mask=%d retcode=%d", arg->world_tag, arg->data_mask, res->retcode);
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// GetServerDataArg *arg = (GetServerDataArg *)argument;
+		// GetServerDataRes *res = (GetServerDataRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

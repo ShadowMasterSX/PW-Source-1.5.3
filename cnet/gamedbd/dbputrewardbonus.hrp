@@ -1,0 +1,78 @@
+
+#ifndef __GNET_DBPUTREWARDBONUS_HPP
+#define __GNET_DBPUTREWARDBONUS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbputrewardbonusarg"
+
+
+namespace GNET
+{
+
+class DBPutRewardBonus : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbputrewardbonus"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBPutRewardBonusArg *arg = (DBPutRewardBonusArg *)argument;
+		RpcRetcode *res = (RpcRetcode *)result;
+		try
+		{
+			StorageEnv::Storage * puser = StorageEnv::GetStorage("user");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				Marshal::OctetsStream key_user;
+				key_user << arg->userid;
+				User u;
+				Marshal::OctetsStream(puser->find(key_user,txn))>>u;
+				GRewardStore store;
+				if (u.consume_reward.size())
+				{
+					Marshal::OctetsStream   os_reward(u.consume_reward);
+					os_reward >> store;
+				}
+				store.bonus_reward = arg->bonus_reward;
+				u.consume_reward = Marshal::OctetsStream() << store;
+				puser->insert(key_user, Marshal::OctetsStream() << u, txn);
+				res->retcode = ERR_SUCCESS;
+			}
+			catch (DbException &e) { throw e; }
+			catch ( ... )
+			{
+				DbException ee(DB_OLD_VERSION);
+				txn.abort(ee);
+				throw ee;
+			}
+		}
+		catch (DbException &e)
+		{
+			Log::log(LOG_ERR, "gamedbd: DBPutRewardBonus failed, what=%s\n", e.what());
+			res->retcode = ERR_FAILED;
+		}
+
+
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBPutRewardBonusArg *arg = (DBPutRewardBonusArg *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

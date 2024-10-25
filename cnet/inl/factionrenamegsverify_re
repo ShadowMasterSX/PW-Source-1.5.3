@@ -1,0 +1,59 @@
+	public:
+		int rid;
+		unsigned int fid;
+		int retcode;
+		Octets newname;
+		int item_id;
+		int item_num;
+		int item_pos;
+		GMailSyncData syncdata;
+		enum { PROTOCOL_TYPE = PROTOCOL_FACTIONRENAMEGSVERIFY_RE };
+	public:
+		FactionRenameGsVerify_Re() { type = PROTOCOL_FACTIONRENAMEGSVERIFY_RE; }
+		FactionRenameGsVerify_Re(void*) : Protocol(PROTOCOL_FACTIONRENAMEGSVERIFY_RE) { }
+		FactionRenameGsVerify_Re (int l_rid = -1,unsigned int l_fid = 0,int l_retcode = -1,
+			const Octets& l_newname = Octets(),int l_item_id = -1,int l_item_num = 0,
+			int l_item_pos = -1,const GMailSyncData& l_syncdata = GMailSyncData())
+			 : rid(l_rid),fid(l_fid),retcode(l_retcode)
+			,newname(l_newname),item_id(l_item_id),item_num(l_item_num)
+			,item_pos(l_item_pos),syncdata(l_syncdata)
+		{
+			type = PROTOCOL_FACTIONRENAMEGSVERIFY_RE;
+		}
+
+		FactionRenameGsVerify_Re(const FactionRenameGsVerify_Re &rhs)
+			: Protocol(rhs),rid(rhs.rid),fid(rhs.fid),retcode(rhs.retcode)
+			,newname(rhs.newname),item_id(rhs.item_id),item_num(rhs.item_num)
+			,item_pos(rhs.item_pos),syncdata(rhs.syncdata) { }
+
+		GNET::Protocol *Clone() const { return new FactionRenameGsVerify_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << rid;
+			os << fid;
+			os << retcode;
+			os << newname;
+			os << item_id;
+			os << item_num;
+			os << item_pos;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> rid;
+			os >> fid;
+			os >> retcode;
+			os >> newname;
+			os >> item_id;
+			os >> item_num;
+			os >> item_pos;
+			os >> syncdata;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 131072; }

@@ -1,0 +1,63 @@
+#ifndef __GNET_GFACTIONRESOURCEBATTLEROLE_RPCDATA
+#define __GNET_GFACTIONRESOURCEBATTLEROLE_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GFactionResourceBattleRole : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		unsigned char rank;
+
+	public:
+		GFactionResourceBattleRole ()
+		{
+		}
+
+		GFactionResourceBattleRole(const GFactionResourceBattleRole &rhs)
+			: roleid(rhs.roleid),rank(rhs.rank) { }
+
+		Rpc::Data *Clone() const { return new GFactionResourceBattleRole(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GFactionResourceBattleRole *r = dynamic_cast<const GFactionResourceBattleRole *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				rank = r->rank;
+			}
+			return *this;
+		}
+
+		GFactionResourceBattleRole& operator = (const GFactionResourceBattleRole &rhs)
+		{
+			const GFactionResourceBattleRole *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				rank = r->rank;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << rank;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> rank;
+			return os;
+		}
+
+	};
+};
+#endif

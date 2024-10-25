@@ -1,0 +1,35 @@
+	public:
+		ACQ acq;
+		IntOctetsVector params;
+		enum { PROTOCOL_TYPE = PROTOCOL_ACQUERY };
+	public:
+		ACQuery() { type = PROTOCOL_ACQUERY; }
+		ACQuery(void*) : Protocol(PROTOCOL_ACQUERY) { }
+		ACQuery (ACQ l_acq,IntOctetsVector l_params)
+			 : acq(l_acq),params(l_params)
+		{
+			type = PROTOCOL_ACQUERY;
+		}
+
+		ACQuery(const ACQuery &rhs)
+			: Protocol(rhs),acq(rhs.acq),params(rhs.params) { }
+
+		GNET::Protocol *Clone() const { return new ACQuery(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << acq;
+			os << params;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> acq;
+			os >> params;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1024; }

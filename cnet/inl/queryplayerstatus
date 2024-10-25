@@ -1,0 +1,32 @@
+	public:
+		IntVector rolelist;
+		enum { PROTOCOL_TYPE = PROTOCOL_QUERYPLAYERSTATUS };
+	public:
+		QueryPlayerStatus() { type = PROTOCOL_QUERYPLAYERSTATUS; }
+		QueryPlayerStatus(void*) : Protocol(PROTOCOL_QUERYPLAYERSTATUS) { }
+		QueryPlayerStatus (IntVector l_rolelist)
+			 : rolelist(l_rolelist)
+		{
+			type = PROTOCOL_QUERYPLAYERSTATUS;
+		}
+
+		QueryPlayerStatus(const QueryPlayerStatus &rhs)
+			: Protocol(rhs),rolelist(rhs.rolelist) { }
+
+		GNET::Protocol *Clone() const { return new QueryPlayerStatus(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << rolelist;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> rolelist;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1024; }

@@ -1,0 +1,66 @@
+
+#ifndef __GNET_DBGAMETALKROLELIST_HPP
+#define __GNET_DBGAMETALKROLELIST_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbgametalkrolelistarg"
+#include "dbgametalkrolelistres"
+#include "gametalkmanager.h"
+#include "gametalkclient.hpp"
+#include "rolelistresp.hpp"
+
+namespace GNET
+{
+
+class DBGameTalkRoleList : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbgametalkrolelist"
+#undef	RPC_BASECLASS
+
+	Manager * save_manager;
+	Manager::Session::ID save_sid;
+	
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBGameTalkRoleListArg *arg = (DBGameTalkRoleListArg *)argument;
+		// DBGameTalkRoleListRes *res = (DBGameTalkRoleListRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBGameTalkRoleListArg *arg = (DBGameTalkRoleListArg *)argument;
+		DBGameTalkRoleListRes *res = (DBGameTalkRoleListRes *)result;
+		GameTalkManager *gtm = GameTalkManager::GetInstance();
+		RoleListResp resp;
+		resp.userid = (int64_t)arg->userid;
+
+		if(res->retcode != ERR_SUCCESS) return;
+
+		std::vector<DBRoleDetail>::iterator it = res->rolelist.begin();
+		std::vector<DBRoleDetail>::iterator end = res->rolelist.end();
+		for(; it != end; ++it) {
+			RoleDetailBean role;
+			role.info = it->info;
+			role.forbid = it->forbid;
+			role.status.status = gtm->GetRoleStatus((int)role.info.roleid);
+			resp.roles.push_back(role);
+		};
+
+		if(!save_manager->Send(save_sid, resp)) {
+			Log::log(LOG_ERR, "DBGameTalkRolelist send RoleListResp failed.");
+		}
+	}
+
+	void OnTimeout()
+	{
+		Log::log(LOG_ERR, "DBGameTalkRoleList Timeout.");
+	}
+
+};
+
+};
+#endif

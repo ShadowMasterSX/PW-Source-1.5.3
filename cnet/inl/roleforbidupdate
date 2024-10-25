@@ -1,0 +1,32 @@
+	public:
+		std::map<int64_t,RoleForbidBean> forbid;
+		enum { PROTOCOL_TYPE = PROTOCOL_ROLEFORBIDUPDATE };
+	public:
+		RoleForbidUpdate() { type = PROTOCOL_ROLEFORBIDUPDATE; }
+		RoleForbidUpdate(void*) : Protocol(PROTOCOL_ROLEFORBIDUPDATE) { }
+		RoleForbidUpdate (const std::map<int64_t,RoleForbidBean>& l_forbid)
+			 : forbid(l_forbid)
+		{
+			type = PROTOCOL_ROLEFORBIDUPDATE;
+		}
+
+		RoleForbidUpdate(const RoleForbidUpdate &rhs)
+			: Protocol(rhs),forbid(rhs.forbid) { }
+
+		GNET::Protocol *Clone() const { return new RoleForbidUpdate(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << forbid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> forbid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 65535; }

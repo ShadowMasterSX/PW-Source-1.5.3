@@ -1,0 +1,35 @@
+	public:
+		int64_t localrid;
+		std::vector<int64_t> rolelist;
+		enum { PROTOCOL_TYPE = PROTOCOL_ROLESTATUSREQ };
+	public:
+		RoleStatusReq() { type = PROTOCOL_ROLESTATUSREQ; }
+		RoleStatusReq(void*) : Protocol(PROTOCOL_ROLESTATUSREQ) { }
+		RoleStatusReq (int64_t l_localrid,const std::vector<int64_t>& l_rolelist = std::vector<int64_t>())
+			 : localrid(l_localrid),rolelist(l_rolelist)
+		{
+			type = PROTOCOL_ROLESTATUSREQ;
+		}
+
+		RoleStatusReq(const RoleStatusReq &rhs)
+			: Protocol(rhs),localrid(rhs.localrid),rolelist(rhs.rolelist) { }
+
+		GNET::Protocol *Clone() const { return new RoleStatusReq(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << localrid;
+			os << rolelist;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> localrid;
+			os >> rolelist;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 65535; }

@@ -1,0 +1,63 @@
+
+#ifndef __GNET_DBPUTFACTIONFORTRESS_HPP
+#define __GNET_DBPUTFACTIONFORTRESS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbputfactionfortressarg"
+#include "dbputfactionfortressres"
+
+#include "factionfortressmanager.h"
+
+namespace GNET
+{
+
+class DBPutFactionFortress : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbputfactionfortress"
+#undef	RPC_BASECLASS
+
+	size_t save_counter;
+	
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBPutFactionFortressArg *arg = (DBPutFactionFortressArg *)argument;
+		// DBPutFactionFortressRes *res = (DBPutFactionFortressRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		DBPutFactionFortressArg *arg = (DBPutFactionFortressArg *)argument;
+		DBPutFactionFortressRes *res = (DBPutFactionFortressRes *)result;
+
+		if(res->retcode == ERR_SUCCESS)
+		{
+			if(!FactionFortressMan::GetInstance().OnDBPutFortress(arg->detail.factionid, save_counter))
+			{
+				FactionFortressMan::GetInstance().OnDBSyncFailed(arg->detail.factionid);
+				Log::log(LOG_WARNING,"dbputfactionfortress: OnDBPutFortress failed. factionid=%d", arg->detail.factionid);
+			}
+		}
+		else
+		{
+			FactionFortressMan::GetInstance().OnDBSyncFailed(arg->detail.factionid);
+			Log::log(LOG_ERR,"dbputfactionfortress: failed. factionid=%d retcode=%d", arg->detail.factionid, res->retcode);
+		}
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+		DBPutFactionFortressArg *arg = (DBPutFactionFortressArg *)argument;
+		FactionFortressMan::GetInstance().OnDBSyncFailed(arg->detail.factionid);
+		Log::log(LOG_ERR,"dbputfactionfortress: timeout. factionid=%d", arg->detail.factionid);
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,72 @@
+#ifndef __GNET_DBPSHOPPLAYERBUY_HPP
+#define __GNET_DBPSHOPPLAYERBUY_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbpshopplayerbuyarg"
+#include "dbpshopplayerbuyres"
+#include "dbpshopget.hrp"
+#include "pshopplayerbuy_re.hpp"
+
+namespace GNET
+{
+
+class DBPShopPlayerBuy : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbpshopplayerbuy"
+#undef	RPC_BASECLASS
+
+	unsigned int save_gsid;
+	unsigned int save_linksid;
+	unsigned int save_localsid;
+	void SendResult(const DBPShopPlayerBuyArg *arg, int retcode, const PShopItem &item)
+	{
+		GDeliveryServer::GetInstance()->Send(save_linksid, PShopPlayerBuy_Re(retcode, save_localsid, arg->master, arg->item_id, arg->item_pos, arg->item_count, item));
+	}
+	void SyncGameServer(int roleid, int retcode, const GMailSyncData& data)
+	{
+		GProviderServer::GetInstance()->DispatchProtocol(save_gsid, GMailEndSync(0, retcode, roleid, data));
+	}
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid) {}
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBPShopPlayerBuyArg *arg = (DBPShopPlayerBuyArg *)argument;
+		DBPShopPlayerBuyRes *res = (DBPShopPlayerBuyRes *)result;
+		LOG_TRACE("DBPShopPlayerBuy: RPC return, roleid=%d retcode=%d", arg->roleid, res->retcode);
+		PShopObj *obj = PShopMarket::GetInstance().GetShop(arg->master);
+		if(res->retcode == ERR_SUCCESS)
+		{
+			//交易成功,同步店铺数据
+			int owner = arg->master;//店主ROLEID
+			PShopMarket::GetInstance().OnRemoveItemSale(owner, arg->item_pos);
+			PShopMarket::GetInstance().OnAddItemSale(owner, res->itemchange);
+			if(obj)
+			{
+				obj->SetMoney(res->money);
+				obj->SetYinPiao(res->yinpiao);
+				obj->Trace();
+			}
+			PShopMarket::GetInstance().Trace();
+		}
+
+		if(obj) obj->SetBusy(false);
+		SendResult(arg, res->retcode, res->itemchange);
+		SyncGameServer(arg->roleid, res->retcode, res->syncdata);
+	}
+
+	void OnTimeout()
+	{
+		DBPShopPlayerBuyArg *arg = (DBPShopPlayerBuyArg *)argument;
+		Log::log(LOG_ERR,"DBPShopPlayerBuy: Timeout. roleid=%d", arg->roleid);
+		PShopObj *obj = PShopMarket::GetInstance().GetShop(arg->master);
+		if(obj) obj->SetBusy(false);
+		SendResult(arg, ERR_TIMEOUT, PShopItem());
+		DBPShopGet::QueryShop(arg->master, save_linksid, save_localsid, 3, DBPShopGet::REASON_DB_TIMEOUT);
+	}
+};
+
+};
+#endif

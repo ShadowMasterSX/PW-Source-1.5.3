@@ -1,0 +1,59 @@
+#ifndef __GNET_MINT_RPCDATA
+#define __GNET_MINT_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class MInt : public GNET::Rpc::Data
+	{
+	public:
+		int id;
+
+	public:
+		MInt ()
+		{
+		}
+
+		MInt(const MInt &rhs)
+			: id(rhs.id) { }
+
+		Rpc::Data *Clone() const { return new MInt(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const MInt *r = dynamic_cast<const MInt *>(&rhs);
+			if (r && r != this)
+			{
+				id = r->id;
+			}
+			return *this;
+		}
+
+		MInt& operator = (const MInt &rhs)
+		{
+			const MInt *r = &rhs;
+			if (r && r != this)
+			{
+				id = r->id;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << id;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> id;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<MInt>	MIntVector;
+};
+#endif

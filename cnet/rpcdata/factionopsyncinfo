@@ -1,0 +1,64 @@
+#ifndef __GNET_FACTIONOPSYNCINFO_RPCDATA
+#define __GNET_FACTIONOPSYNCINFO_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class FactionOPSyncInfo : public GNET::Rpc::Data
+	{
+	public:
+		unsigned int player_money;
+		int player_sp;
+
+	public:
+		FactionOPSyncInfo (unsigned int l_player_money = 0,int l_player_sp = 0)
+			: player_money(l_player_money),player_sp(l_player_sp)
+		{
+		}
+
+		FactionOPSyncInfo(const FactionOPSyncInfo &rhs)
+			: player_money(rhs.player_money),player_sp(rhs.player_sp) { }
+
+		Rpc::Data *Clone() const { return new FactionOPSyncInfo(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const FactionOPSyncInfo *r = dynamic_cast<const FactionOPSyncInfo *>(&rhs);
+			if (r && r != this)
+			{
+				player_money = r->player_money;
+				player_sp = r->player_sp;
+			}
+			return *this;
+		}
+
+		FactionOPSyncInfo& operator = (const FactionOPSyncInfo &rhs)
+		{
+			const FactionOPSyncInfo *r = &rhs;
+			if (r && r != this)
+			{
+				player_money = r->player_money;
+				player_sp = r->player_sp;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << player_money;
+			os << player_sp;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> player_money;
+			os >> player_sp;
+			return os;
+		}
+
+	};
+};
+#endif

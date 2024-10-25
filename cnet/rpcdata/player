@@ -1,0 +1,65 @@
+#ifndef __GNET_PLAYER_RPCDATA
+#define __GNET_PLAYER_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class Player : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		unsigned int localsid;
+
+	public:
+		Player (int l_roleid = -1,unsigned int l_localsid = 0)
+			: roleid(l_roleid),localsid(l_localsid)
+		{
+		}
+
+		Player(const Player &rhs)
+			: roleid(rhs.roleid),localsid(rhs.localsid) { }
+
+		Rpc::Data *Clone() const { return new Player(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const Player *r = dynamic_cast<const Player *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				localsid = r->localsid;
+			}
+			return *this;
+		}
+
+		Player& operator = (const Player &rhs)
+		{
+			const Player *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				localsid = r->localsid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << localsid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> localsid;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<Player>	PlayerVector;
+};
+#endif

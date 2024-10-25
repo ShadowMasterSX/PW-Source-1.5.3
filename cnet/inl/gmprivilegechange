@@ -1,0 +1,32 @@
+	public:
+		int userid;
+		enum { PROTOCOL_TYPE = PROTOCOL_GMPRIVILEGECHANGE };
+	public:
+		GMPrivilegeChange() { type = PROTOCOL_GMPRIVILEGECHANGE; }
+		GMPrivilegeChange(void*) : Protocol(PROTOCOL_GMPRIVILEGECHANGE) { }
+		GMPrivilegeChange (int l_userid)
+			 : userid(l_userid)
+		{
+			type = PROTOCOL_GMPRIVILEGECHANGE;
+		}
+
+		GMPrivilegeChange(const GMPrivilegeChange &rhs)
+			: Protocol(rhs),userid(rhs.userid) { }
+
+		GNET::Protocol *Clone() const { return new GMPrivilegeChange(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 32; }

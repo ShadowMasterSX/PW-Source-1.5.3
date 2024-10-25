@@ -1,0 +1,24 @@
+
+TOP_SRCDIR = ..
+
+SINGLE_THREAD = true
+DEBUG_VERSION = false
+
+include ../mk/gcc.defs.mk
+CC = icpc -w -xN 
+LD = icpc -w -xN
+
+LOG_DIR = ../logclient
+INCLUDES += -I$(TOP_SRCDIR)/logclient -I$(TOP_SRCDIR)/log_inl -I$(TOP_SRCDIR)/include
+DEFINES += -DUSE_HASH_MAP -DUSE_LOGCLIENT -O3 -ipo 
+LDFLAGS += -DUSE_HASH_MAP -static -O3 -ipo 
+
+OBJS = glinkserver.o gdeliveryclient.o gproviderserver.o state.o stubs.o glinkd.o gfactionclient.o
+
+all : glinkd
+
+glinkd : $(SHAREOBJ) $(OBJS) $(SHARE_SOBJ)  $(LOGSTUB) $(LOGOBJ)
+	$(LD) $(LDFLAGS) -o $@ $(SHAREOBJ) $(OBJS) $(SHARE_SOBJ) $(LOGSTUB) $(LOGOBJ)
+
+include ../mk/gcc.rules.mk
+

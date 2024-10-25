@@ -1,0 +1,35 @@
+	public:
+		int roleid;
+		char operation;
+		enum { PROTOCOL_TYPE = PROTOCOL_PLAYERENTERLEAVEGT };
+	public:
+		PlayerEnterLeaveGT() { type = PROTOCOL_PLAYERENTERLEAVEGT; }
+		PlayerEnterLeaveGT(void*) : Protocol(PROTOCOL_PLAYERENTERLEAVEGT) { }
+		PlayerEnterLeaveGT (int l_roleid,char l_operation)
+			 : roleid(l_roleid),operation(l_operation)
+		{
+			type = PROTOCOL_PLAYERENTERLEAVEGT;
+		}
+
+		PlayerEnterLeaveGT(const PlayerEnterLeaveGT &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),operation(rhs.operation) { }
+
+		GNET::Protocol *Clone() const { return new PlayerEnterLeaveGT(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << operation;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> operation;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 16; }

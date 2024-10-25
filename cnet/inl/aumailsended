@@ -1,0 +1,38 @@
+	public:
+		int roleid;
+		int level;
+		char ext_reward;
+		enum { PROTOCOL_TYPE = PROTOCOL_AUMAILSENDED };
+	public:
+		AUMailSended() { type = PROTOCOL_AUMAILSENDED; }
+		AUMailSended(void*) : Protocol(PROTOCOL_AUMAILSENDED) { }
+		AUMailSended (int l_roleid,int l_level,char l_ext_reward)
+			 : roleid(l_roleid),level(l_level),ext_reward(l_ext_reward)
+		{
+			type = PROTOCOL_AUMAILSENDED;
+		}
+
+		AUMailSended(const AUMailSended &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),level(rhs.level),ext_reward(rhs.ext_reward) { }
+
+		GNET::Protocol *Clone() const { return new AUMailSended(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << level;
+			os << ext_reward;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> level;
+			os >> ext_reward;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1024; }

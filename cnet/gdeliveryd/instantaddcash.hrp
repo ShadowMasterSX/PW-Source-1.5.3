@@ -1,0 +1,81 @@
+
+#ifndef __GNET_INSTANTADDCASH_HPP
+#define __GNET_INSTANTADDCASH_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "instantaddcasharg"
+#include "instantaddcashres"
+#include "useraddcash_re.hpp"
+#include "gdeliveryserver.hpp"
+
+namespace GNET
+{
+
+class InstantAddCash : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "instantaddcash"
+#undef	RPC_BASECLASS
+	unsigned int save_linksid;
+	unsigned int save_localsid;
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// InstantAddCashArg *arg = (InstantAddCashArg *)argument;
+		// InstantAddCashRes *res = (InstantAddCashRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		InstantAddCashArg *arg = (InstantAddCashArg *)argument;
+		InstantAddCashRes *res = (InstantAddCashRes *)result;
+		DEBUG_PRINT("instantaddcash: rpc return. retcode=%d,userid=%d,cardnum=%.*s", 
+				res->retcode, arg->userid, arg->cardnum.size(), (char*)arg->cardnum.begin());
+/*
+0	成功 
+1	卡号不存在 
+2	用户不存在 
+3	计费区不存在 
+4	密码错误 
+5	该卡已过期 
+6	规定时间内同一张卡充值次数超限（防止试充值卡密码）
+7	超时错误
+8	网络通信错误
+11	用户在该服务器已有金元宝在等待划拨，请稍候再试 
+12	用户已有点卡充值未处理完，请稍候再试 
+13	用户被封禁，不能充值 
+-1	其他错误（出现的情况有：卡号不符合规定，Usepointcard存储过程执行出错，au的InstantAddCash程序抛出异常）
+ */
+		
+		int retcode = res->retcode;
+		if(retcode != 0)
+		{
+			if(retcode == 1) retcode = ERR_CASH_CARD_NUM_PASSWD_WRONG;
+			else if(retcode == 4) retcode = ERR_CASH_CARD_NUM_PASSWD_WRONG;
+			else if(retcode == 5) retcode = ERR_CASH_CARD_EXPIRED;
+			else if(retcode == 6) retcode = ERR_CASH_CARD_USED_TOO_OFTEN;
+			else if(retcode == 7) retcode = ERR_TIMEOUT;
+			else if(retcode == 8) retcode = ERR_FC_NETWORKERR;
+			else if(retcode == 11) retcode = ERR_CASH_ACCOUNT_BUSY;
+			else if(retcode == 12) retcode = ERR_CASH_ACCOUNT_BUSY;
+			else retcode = -1;
+		}
+		GDeliveryServer::GetInstance()->Send(save_linksid,UserAddCash_Re(retcode,save_localsid));
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+		InstantAddCashArg *arg = (InstantAddCashArg *)argument;
+		DEBUG_PRINT("instantaddcash: rpc timeout. userid=%d,cardnum=%.*s", arg->userid, arg->cardnum.size(), (char*)arg->cardnum.begin());
+		GDeliveryServer::GetInstance()->Send(save_linksid,UserAddCash_Re(ERR_TIMEOUT,save_localsid));
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,44 @@
+	public:
+		int roleid;
+		int link_id;
+		unsigned int localsid;
+		int dst_gsid;
+		enum { PROTOCOL_TYPE = PROTOCOL_SWITCHSERVERSUCCESS };
+	public:
+		SwitchServerSuccess() { type = PROTOCOL_SWITCHSERVERSUCCESS; }
+		SwitchServerSuccess(void*) : Protocol(PROTOCOL_SWITCHSERVERSUCCESS) { }
+		SwitchServerSuccess (int l_roleid,int l_link_id,unsigned int l_localsid,
+			int l_dst_gsid)
+			 : roleid(l_roleid),link_id(l_link_id),localsid(l_localsid)
+			,dst_gsid(l_dst_gsid)
+		{
+			type = PROTOCOL_SWITCHSERVERSUCCESS;
+		}
+
+		SwitchServerSuccess(const SwitchServerSuccess &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),link_id(rhs.link_id),localsid(rhs.localsid)
+			,dst_gsid(rhs.dst_gsid) { }
+
+		GNET::Protocol *Clone() const { return new SwitchServerSuccess(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << link_id;
+			os << localsid;
+			os << dst_gsid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> link_id;
+			os >> localsid;
+			os >> dst_gsid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 101; }
+
+		bool SizePolicy(size_t size) const { return size <= 32; }

@@ -1,0 +1,50 @@
+	public:
+		int roleid;
+		char withdraw;
+		int cash;
+		int money;
+		unsigned int localsid;
+		GMailSyncData syncdata;
+		enum { PROTOCOL_TYPE = PROTOCOL_STOCKTRANSACTION };
+	public:
+		StockTransaction() { type = PROTOCOL_STOCKTRANSACTION; }
+		StockTransaction(void*) : Protocol(PROTOCOL_STOCKTRANSACTION) { }
+		StockTransaction (int l_roleid,char l_withdraw = 0,int l_cash = 0,
+			int l_money = 0,unsigned int l_localsid = 0,const GMailSyncData& l_syncdata = GMailSyncData())
+			 : roleid(l_roleid),withdraw(l_withdraw),cash(l_cash)
+			,money(l_money),localsid(l_localsid),syncdata(l_syncdata)
+		{
+			type = PROTOCOL_STOCKTRANSACTION;
+		}
+
+		StockTransaction(const StockTransaction &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),withdraw(rhs.withdraw),cash(rhs.cash)
+			,money(rhs.money),localsid(rhs.localsid),syncdata(rhs.syncdata) { }
+
+		GNET::Protocol *Clone() const { return new StockTransaction(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << withdraw;
+			os << cash;
+			os << money;
+			os << localsid;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> withdraw;
+			os >> cash;
+			os >> money;
+			os >> localsid;
+			os >> syncdata;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 131072; }

@@ -1,0 +1,64 @@
+#ifndef __GNET_ACONLINESTATUS_RPCDATA
+#define __GNET_ACONLINESTATUS_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class ACOnlineStatus : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		int ip;
+
+	public:
+		ACOnlineStatus (int l_roleid = -1,int l_ip = 0)
+			: roleid(l_roleid),ip(l_ip)
+		{
+		}
+
+		ACOnlineStatus(const ACOnlineStatus &rhs)
+			: roleid(rhs.roleid),ip(rhs.ip) { }
+
+		Rpc::Data *Clone() const { return new ACOnlineStatus(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const ACOnlineStatus *r = dynamic_cast<const ACOnlineStatus *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				ip = r->ip;
+			}
+			return *this;
+		}
+
+		ACOnlineStatus& operator = (const ACOnlineStatus &rhs)
+		{
+			const ACOnlineStatus *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				ip = r->ip;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << ip;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> ip;
+			return os;
+		}
+
+	};
+};
+#endif

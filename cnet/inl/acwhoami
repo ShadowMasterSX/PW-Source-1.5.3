@@ -1,0 +1,35 @@
+	public:
+		int clienttype;
+		int subid;
+		enum { PROTOCOL_TYPE = PROTOCOL_ACWHOAMI };
+	public:
+		ACWhoAmI() { type = PROTOCOL_ACWHOAMI; }
+		ACWhoAmI(void*) : Protocol(PROTOCOL_ACWHOAMI) { }
+		ACWhoAmI (int l_clienttype,int l_subid)
+			 : clienttype(l_clienttype),subid(l_subid)
+		{
+			type = PROTOCOL_ACWHOAMI;
+		}
+
+		ACWhoAmI(const ACWhoAmI &rhs)
+			: Protocol(rhs),clienttype(rhs.clienttype),subid(rhs.subid) { }
+
+		GNET::Protocol *Clone() const { return new ACWhoAmI(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << clienttype;
+			os << subid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> clienttype;
+			os >> subid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 16; }

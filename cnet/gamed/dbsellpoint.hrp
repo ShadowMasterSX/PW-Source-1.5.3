@@ -1,0 +1,49 @@
+
+#ifndef __GNET_DBSELLPOINT_HPP
+#define __GNET_DBSELLPOINT_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "sellpointarg"
+#include "sellpointres"
+#include "../gdbclient/db_if.h"
+
+namespace GNET
+{
+class DBSellPoint : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbsellpoint"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// SellPointArg *arg = (SellPointArg *)argument;
+		// SellPointRes *res = (SellPointRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	/*
+		// TODO
+		SellPointArg *arg = (SellPointArg *)argument;
+		SellPointRes *res = (SellPointRes *)result;
+		GDB::itemlist emptylist={0,0};
+		if ( res->retcode==ERR_SUCCESS )
+			player_end_sync( arg->roleid,res->money,emptylist,false );
+		else
+			player_end_sync( arg->roleid,arg->money,emptylist,false );
+			*/
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

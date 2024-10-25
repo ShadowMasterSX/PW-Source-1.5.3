@@ -1,0 +1,73 @@
+
+#ifndef __GNET_FORBIDUSER_HPP
+#define __GNET_FORBIDUSER_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "forbiduserarg"
+#include "forbiduserres"
+
+#include "gamedbclient.hpp"
+
+namespace GNET
+{
+
+class ForbidUser : public ProxyRpc
+{
+#define	RPC_BASECLASS	ProxyRpc
+	#include "forbiduser"
+#undef	RPC_BASECLASS
+
+	bool Delivery(Manager::Session::ID proxy_sid, const OctetsStream& osArg)
+	{
+		ForbidUserArg arg;
+		osArg >> arg;
+
+		STAT_MIN5("ForbidUser", 1);
+		LOG_TRACE("ForbidUser: operation=%d,userid=%d,forbid_time=%d,reason_size=%d" , arg.operation, arg.userid, arg.time, arg.reason.size());
+
+
+		if ( arg.operation == 1 ) // forbid user
+		{
+			UserInfo * pinfo = UserContainer::GetInstance().FindUser(arg.userid);
+
+			if (NULL!=pinfo)
+			{
+				GDeliveryServer::GetInstance()->Send(pinfo->linksid,
+					KickoutUser(arg.userid, pinfo->localsid, (arg.time != -1)?ERR_ACKICKOUT:0));
+				UserContainer::GetInstance().UserLogout(pinfo, KICKOUT_LOCAL, true);
+			}
+		}
+
+		if( GameDBClient::GetInstance()->SendProtocol( *this ) )
+		{
+			return true;
+		}
+		else
+		{
+			SetResult(RpcRetcode(ERR_DELIVER_SEND));
+			SendToSponsor();
+			return false;
+		}
+	}
+
+	void PostProcess(Manager::Session::ID proxy_sid,const OctetsStream& osArg, const OctetsStream& osRes)
+	{
+		// TODO
+		// ForbidUserArg arg;
+		// osArg >> arg;
+		// RpcRetcode res;
+		// osRes >> res;
+		// SetResult( &res ); // if you modified res, do not forget to call this. 
+	}
+
+	void OnTimeout( )
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

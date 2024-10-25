@@ -1,0 +1,65 @@
+#ifndef __GNET_DBPSHOPTIMEOUTRES_RPCDATA
+#define __GNET_DBPSHOPTIMEOUTRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailheader"
+
+namespace GNET
+{
+	class DBPShopTimeoutRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		GMailHeaderVector maillist;
+
+	public:
+		DBPShopTimeoutRes (int l_retcode = 0,const GMailHeaderVector& l_maillist = GMailHeaderVector())
+			: retcode(l_retcode),maillist(l_maillist)
+		{
+		}
+
+		DBPShopTimeoutRes(const DBPShopTimeoutRes &rhs)
+			: retcode(rhs.retcode),maillist(rhs.maillist) { }
+
+		Rpc::Data *Clone() const { return new DBPShopTimeoutRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPShopTimeoutRes *r = dynamic_cast<const DBPShopTimeoutRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				maillist = r->maillist;
+			}
+			return *this;
+		}
+
+		DBPShopTimeoutRes& operator = (const DBPShopTimeoutRes &rhs)
+		{
+			const DBPShopTimeoutRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				maillist = r->maillist;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << maillist;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> maillist;
+			return os;
+		}
+
+	};
+};
+#endif

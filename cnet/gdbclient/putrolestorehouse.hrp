@@ -1,0 +1,50 @@
+
+#ifndef __GNET_PUTROLESTOREHOUSE_HPP
+#define __GNET_PUTROLESTOREHOUSE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#ifdef USE_BDB
+#include "dbbuffer.h"
+#endif
+#include "rolestorehousepair"
+
+
+namespace GNET
+{
+
+class PutRoleStorehouse : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "putrolestorehouse"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+#ifdef USE_BDB
+		RoleStorehousePair *arg = (RoleStorehousePair *)argument;
+		RpcRetcode *res = (RpcRetcode *)result;
+		Marshal::OctetsStream key, value;
+		key << arg->key;
+		value << arg->value;
+		res->retcode = DBBuffer::buf_insert( "storehouse", key, value );
+#endif
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// RoleStorehousePair *arg = (RoleStorehousePair *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

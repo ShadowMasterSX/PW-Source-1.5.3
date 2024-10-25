@@ -1,0 +1,133 @@
+
+#ifndef __GNET_PRECREATEROLE_HPP
+#define __GNET_PRECREATEROLE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "storage.h"
+#include "precreaterolearg"
+#include "precreateroleres"
+#include "localmacro.h"
+#include "timer.h"
+#include "uniquenameserver.hpp"
+namespace GNET
+{
+
+class PreCreateRole : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "precreaterole"
+#undef	RPC_BASECLASS
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		PreCreateRoleArg *arg = (PreCreateRoleArg *)argument;
+		PreCreateRoleRes *res = (PreCreateRoleRes *)result;
+
+		UniqueNameServer::GetInstance()->TransformName(arg->rolename);
+
+		Octets name;
+		CharsetConverter::conv_charset_u2l( arg->rolename, name );
+		LOG_TRACE( "PreCreateRole(zoneid=%d,userid=%d,name=%.*s)", arg->zoneid,arg->userid,name.size(),(char*)name.begin());
+
+		try
+		{
+			StorageEnv::Storage * punamerole = StorageEnv::GetStorage("unamerole");
+			StorageEnv::Storage * puidrole   = StorageEnv::GetStorage("uidrole");
+			StorageEnv::Storage * plogicuid  = StorageEnv::GetStorage("logicuid");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				Marshal::OctetsStream key_userid, value_unamerole, value_uidrole;
+				if( punamerole->find( arg->rolename, value_unamerole, txn ) )
+				{
+					int zoneid, roleid, status, time;
+					value_unamerole >> zoneid >> roleid >> status >> time;
+					if( !(UNIQUENAME_ENGAGED == status && Timer::GetTime() - time > 300) )
+					{
+						res->retcode = ERR_DUPLICATRECORD;
+						LOG_TRACE("PreCreateRole(zoneid=%d,userid=%d,name=%.*s),duplicate,old:zoneid=%d,roleid=%d,status=%d,time=%d.",
+								arg->zoneid,arg->userid,name.size(),(char*)name.begin(),zoneid,roleid,status,time);
+						return;
+					}
+					else
+					{
+						res->retcode = ERR_DUPLICATRECORD;
+						LOG_TRACE("PreCreateRole(zoneid=%d,userid=%d,name=%.*s), duplicate2, old:zoneid=%d,roleid=%d,status=%d,time=%d.",
+								arg->zoneid,arg->userid,name.size(),(char*)name.begin(),zoneid,roleid,status,time);
+						return;
+					}
+				}
+				key_userid << arg->userid;
+				unsigned int roles = 0, logicuid = 0;
+				RoleList rolelist;
+				if( puidrole->find( key_userid, value_uidrole, txn ) )
+				{
+					value_uidrole >> roles;
+					if(value_uidrole.size()==8)
+						value_uidrole >> logicuid;
+					else
+						logicuid = arg->userid;
+					rolelist.SetRoleList(roles);
+				}
+				int id = rolelist.AddRole();
+				if( id < 0 )
+				{
+					res->retcode = ERR_NOFREESPACE;
+					LOG_TRACE("PreCreateRole(zoneid=%d,userid=%d,name=%.*s), nofreespace, rolelist=%x",
+							arg->zoneid,arg->userid,name.size(),(char*)name.begin(),rolelist.GetRoleList());
+					return;
+				}
+
+				if(!logicuid)
+					logicuid = LogicuidManager::Instance().AllocLogicuid();
+				if (!logicuid)
+				{
+					res->retcode = ERR_NOFREESPACE;
+					Log::log( LOG_ERR,"PreCreateRole(zoneid=%d,userid=%d), cannot allocate logicuid", arg->zoneid,arg->userid);
+					return;
+				}
+
+				int status = UNIQUENAME_ENGAGED;
+				value_unamerole.clear();
+				value_unamerole << arg->zoneid << (logicuid+id) << status << (int)Timer::GetTime();
+				plogicuid->insert( Marshal::OctetsStream()<<logicuid, key_userid, txn);
+				punamerole->insert( arg->rolename, value_unamerole, txn );
+				puidrole->insert( key_userid, Marshal::OctetsStream()<<rolelist.GetRoleList()<<logicuid, txn );
+
+				res->logicuid = logicuid;
+				res->roleid   = logicuid + id;
+				res->retcode  = ERR_SUCCESS;
+
+				LOG_TRACE("PreCreateRole(zoneid=%d,userid=%d,name=%.*s), ok, old rolelist=%x,new rolelist=%x",
+						arg->zoneid,arg->userid,name.size(),(char*)name.begin(),roles,rolelist.GetRoleList());
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "PreCreateRole, zoneid=%d, userid=%d, what=%s\n", arg->zoneid, arg->userid, e.what() );
+			res->retcode = -1;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// PreCreateRoleArg *arg = (PreCreateRoleArg *)argument;
+		// PreCreateRoleRes *res = (PreCreateRoleRes *)result;
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

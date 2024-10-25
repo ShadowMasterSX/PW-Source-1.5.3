@@ -1,0 +1,64 @@
+#ifndef __GNET_DBVERIFYMASTERARG_RPCDATA
+#define __GNET_DBVERIFYMASTERARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBVerifyMasterArg : public GNET::Rpc::Data
+	{
+	public:
+		Octets name;
+		Octets faction;
+
+	public:
+		DBVerifyMasterArg (const Octets& l_name = Octets(0),const Octets& l_faction = Octets(0))
+			: name(l_name),faction(l_faction)
+		{
+		}
+
+		DBVerifyMasterArg(const DBVerifyMasterArg &rhs)
+			: name(rhs.name),faction(rhs.faction) { }
+
+		Rpc::Data *Clone() const { return new DBVerifyMasterArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBVerifyMasterArg *r = dynamic_cast<const DBVerifyMasterArg *>(&rhs);
+			if (r && r != this)
+			{
+				name = r->name;
+				faction = r->faction;
+			}
+			return *this;
+		}
+
+		DBVerifyMasterArg& operator = (const DBVerifyMasterArg &rhs)
+		{
+			const DBVerifyMasterArg *r = &rhs;
+			if (r && r != this)
+			{
+				name = r->name;
+				faction = r->faction;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << name;
+			os << faction;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> name;
+			os >> faction;
+			return os;
+		}
+
+	};
+};
+#endif

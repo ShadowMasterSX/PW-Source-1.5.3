@@ -1,0 +1,83 @@
+#ifndef __GNET_DBSYSAUCTIONCASHTRANSFERARG_RPCDATA
+#define __GNET_DBSYSAUCTIONCASHTRANSFERARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailsyncdata"
+
+namespace GNET
+{
+	class DBSysAuctionCashTransferArg : public GNET::Rpc::Data
+	{
+	public:
+		int userid;
+		int roleid;
+		char withdraw;
+		unsigned int cash_transfer;
+		GMailSyncData syncdata;
+
+	public:
+		DBSysAuctionCashTransferArg (int l_userid = 0,int l_roleid = 0,char l_withdraw = 0
+			,unsigned int l_cash_transfer = 0,const GMailSyncData& l_syncdata = GMailSyncData())
+			: userid(l_userid),roleid(l_roleid),withdraw(l_withdraw)
+			,cash_transfer(l_cash_transfer),syncdata(l_syncdata)
+		{
+		}
+
+		DBSysAuctionCashTransferArg(const DBSysAuctionCashTransferArg &rhs)
+			: userid(rhs.userid),roleid(rhs.roleid),withdraw(rhs.withdraw),
+			cash_transfer(rhs.cash_transfer),syncdata(rhs.syncdata) { }
+
+		Rpc::Data *Clone() const { return new DBSysAuctionCashTransferArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBSysAuctionCashTransferArg *r = dynamic_cast<const DBSysAuctionCashTransferArg *>(&rhs);
+			if (r && r != this)
+			{
+				userid = r->userid;
+				roleid = r->roleid;
+				withdraw = r->withdraw;
+				cash_transfer = r->cash_transfer;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		DBSysAuctionCashTransferArg& operator = (const DBSysAuctionCashTransferArg &rhs)
+		{
+			const DBSysAuctionCashTransferArg *r = &rhs;
+			if (r && r != this)
+			{
+				userid = r->userid;
+				roleid = r->roleid;
+				withdraw = r->withdraw;
+				cash_transfer = r->cash_transfer;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			os << roleid;
+			os << withdraw;
+			os << cash_transfer;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			os >> roleid;
+			os >> withdraw;
+			os >> cash_transfer;
+			os >> syncdata;
+			return os;
+		}
+
+	};
+};
+#endif

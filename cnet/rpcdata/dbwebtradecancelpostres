@@ -1,0 +1,65 @@
+#ifndef __GNET_DBWEBTRADECANCELPOSTRES_RPCDATA
+#define __GNET_DBWEBTRADECANCELPOSTRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailheader"
+
+namespace GNET
+{
+	class DBWebTradeCancelPostRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		GMailHeader inform_seller;
+
+	public:
+		DBWebTradeCancelPostRes (int l_retcode = 0,const GMailHeader& l_inform_seller = GMailHeader())
+			: retcode(l_retcode),inform_seller(l_inform_seller)
+		{
+		}
+
+		DBWebTradeCancelPostRes(const DBWebTradeCancelPostRes &rhs)
+			: retcode(rhs.retcode),inform_seller(rhs.inform_seller) { }
+
+		Rpc::Data *Clone() const { return new DBWebTradeCancelPostRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBWebTradeCancelPostRes *r = dynamic_cast<const DBWebTradeCancelPostRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				inform_seller = r->inform_seller;
+			}
+			return *this;
+		}
+
+		DBWebTradeCancelPostRes& operator = (const DBWebTradeCancelPostRes &rhs)
+		{
+			const DBWebTradeCancelPostRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				inform_seller = r->inform_seller;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << inform_seller;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> inform_seller;
+			return os;
+		}
+
+	};
+};
+#endif

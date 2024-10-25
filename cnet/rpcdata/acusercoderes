@@ -1,0 +1,71 @@
+#ifndef __GNET_ACUSERCODERES_RPCDATA
+#define __GNET_ACUSERCODERES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "accoderes"
+
+namespace GNET
+{
+	class ACUserCodeRes : public GNET::Rpc::Data
+	{
+	public:
+		short count;
+		short type;
+		ACCodeResVector res;
+
+	public:
+		ACUserCodeRes (short l_count = 0,short l_type = 0,ACCodeResVector l_res = ACCodeResVector())
+			: count(l_count),type(l_type),res(l_res)
+		{
+		}
+
+		ACUserCodeRes(const ACUserCodeRes &rhs)
+			: count(rhs.count),type(rhs.type),res(rhs.res) { }
+
+		Rpc::Data *Clone() const { return new ACUserCodeRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const ACUserCodeRes *r = dynamic_cast<const ACUserCodeRes *>(&rhs);
+			if (r && r != this)
+			{
+				count = r->count;
+				type = r->type;
+				res = r->res;
+			}
+			return *this;
+		}
+
+		ACUserCodeRes& operator = (const ACUserCodeRes &rhs)
+		{
+			const ACUserCodeRes *r = &rhs;
+			if (r && r != this)
+			{
+				count = r->count;
+				type = r->type;
+				res = r->res;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << count;
+			os << type;
+			os << res;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> count;
+			os >> type;
+			os >> res;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<ACUserCodeRes>	ACUserCodeResVector;
+};
+#endif

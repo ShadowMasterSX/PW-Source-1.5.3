@@ -1,0 +1,114 @@
+
+#ifndef __GNET_DBBATTLESET_HPP
+#define __GNET_DBBATTLESET_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "gterritorydetail"
+#include "gterritorystore"
+#include "dbbattlesetarg"
+#include "dbbattlesetres"
+
+namespace GNET
+{
+
+class DBBattleSet : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbbattleset"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBBattleSetArg *arg = (DBBattleSetArg *)argument;
+		DBBattleSetRes *res = (DBBattleSetRes *)result;
+
+		try
+		{
+			StorageEnv::Storage * pcity = StorageEnv::GetStorage("city");
+			StorageEnv::AtomTransaction txn;
+			GTerritoryStore store;
+			try{
+				Log::formatlog("dbbattleset", "count=%d:reason=%d", arg->cities.size(), arg->reason);
+				if(arg->reason==_BATTLE_INITIALIZE)
+				{
+					store.cities.swap(arg->cities);
+					pcity->insert(Marshal::OctetsStream()<<0, Marshal::OctetsStream()<<store, 
+						txn, DB_NOOVERWRITE);
+					res->retcode = ERR_SUCCESS;
+				}
+				else if(arg->reason==_BATTLE_SETTIME)
+				{
+					Marshal::OctetsStream(pcity->find(Marshal::OctetsStream()<<0,txn)) >> store;
+					if(arg->cities.size()!=store.cities.size())
+						throw DbException(DB_VERIFY_BAD);
+					std::vector<GTerritoryDetail>::iterator i,it=store.cities.begin();
+					std::vector<GTerritoryDetail>::iterator ie=store.cities.end();
+					i = arg->cities.begin();
+					for(;it!=ie;++it,++i)
+					{
+						if(i->id!=it->id)
+							throw DbException(DB_VERIFY_BAD);
+						it->battle_time = i->battle_time;
+					}
+					pcity->insert(Marshal::OctetsStream()<<0,Marshal::OctetsStream()<<store,txn);
+				}
+				else if(arg->reason==_BATTLE_DEBUG)
+				{
+					if(arg->cities.size()!=0)
+					{
+						GTerritoryDetail& city = arg->cities.front(); 
+						Marshal::OctetsStream(pcity->find(Marshal::OctetsStream()<<0,txn)) >> store;
+						std::vector<GTerritoryDetail>::iterator it=store.cities.begin(),ie=store.cities.end();
+						for(;it!=ie;++it)
+						{
+							if(it->id==city.id)
+							{
+								it->owner = city.owner;
+								it->color = 40;
+								break;
+							}
+						}
+					}
+					pcity->insert(Marshal::OctetsStream()<<0,Marshal::OctetsStream()<<store,txn);
+				}
+				else if(arg->reason==_BATTLE_EXTEND)
+				{
+					store.cities.swap(arg->cities);
+					pcity->insert(Marshal::OctetsStream()<<0, Marshal::OctetsStream()<<store, 
+						txn);
+					res->retcode = ERR_SUCCESS;
+				}
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBBattleSet, what=%s\n", e.what() );
+			if(e.get_errno()==DB_LOCK_DEADLOCK)
+				res->retcode = ERR_AGAIN;
+			else
+				res->retcode = ERR_EXCEPTION;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

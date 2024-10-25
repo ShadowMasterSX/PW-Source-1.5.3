@@ -1,0 +1,65 @@
+
+#ifndef __GNET_DBAUCTIONGET_HPP
+#define __GNET_DBAUCTIONGET_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbauctiongetarg"
+#include "dbauctiongetres"
+
+namespace GNET
+{
+
+class DBAuctionGet : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbauctionget"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBAuctionGetArg *arg = (DBAuctionGetArg *)argument;
+		DBAuctionGetRes *res = (DBAuctionGetRes *)result;
+
+		Marshal::OctetsStream key, value;
+		LOG_TRACE( "DBAuctionGet: auctionid=%d.\n", arg->auctionid);
+		try
+		{
+			StorageEnv::Storage * pauction = StorageEnv::GetStorage("auction");
+			StorageEnv::AtomTransaction txn;
+			try{
+				Marshal::OctetsStream(pauction->find( Marshal::OctetsStream()<<arg->auctionid,txn))>>res->item;
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			LOG_TRACE("DBAuctionGet, auctionid=%d what=%s.\n",arg->auctionid, e.what() );
+			if(e.get_errno()==DB_LOCK_DEADLOCK)
+				res->retcode = ERR_AGAIN;
+			else
+				res->retcode = ERR_AS_BID_NOTFOUND;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,88 @@
+#ifndef __GNET_GREWARDITEM_RPCDATA
+#define __GNET_GREWARDITEM_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GRewardItem : public GNET::Rpc::Data
+	{
+	public:
+		int reward_time;
+		int reward_bonus;
+		int reserved1;
+		int reserved2;
+		int reserved3;
+		int reserved4;
+
+	public:
+		GRewardItem (int l_reward_time = 0,int l_reward_bonus = 0,int l_reserved1 = 0
+			,int l_reserved2 = 0,int l_reserved3 = 0,int l_reserved4 = 0)
+			: reward_time(l_reward_time),reward_bonus(l_reward_bonus),reserved1(l_reserved1)
+			,reserved2(l_reserved2),reserved3(l_reserved3),reserved4(l_reserved4)
+		{
+		}
+
+		GRewardItem(const GRewardItem &rhs)
+			: reward_time(rhs.reward_time),reward_bonus(rhs.reward_bonus),reserved1(rhs.reserved1),
+			reserved2(rhs.reserved2),reserved3(rhs.reserved3),reserved4(rhs.reserved4) { }
+
+		Rpc::Data *Clone() const { return new GRewardItem(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GRewardItem *r = dynamic_cast<const GRewardItem *>(&rhs);
+			if (r && r != this)
+			{
+				reward_time = r->reward_time;
+				reward_bonus = r->reward_bonus;
+				reserved1 = r->reserved1;
+				reserved2 = r->reserved2;
+				reserved3 = r->reserved3;
+				reserved4 = r->reserved4;
+			}
+			return *this;
+		}
+
+		GRewardItem& operator = (const GRewardItem &rhs)
+		{
+			const GRewardItem *r = &rhs;
+			if (r && r != this)
+			{
+				reward_time = r->reward_time;
+				reward_bonus = r->reward_bonus;
+				reserved1 = r->reserved1;
+				reserved2 = r->reserved2;
+				reserved3 = r->reserved3;
+				reserved4 = r->reserved4;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << reward_time;
+			os << reward_bonus;
+			os << reserved1;
+			os << reserved2;
+			os << reserved3;
+			os << reserved4;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> reward_time;
+			os >> reward_bonus;
+			os >> reserved1;
+			os >> reserved2;
+			os >> reserved3;
+			os >> reserved4;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<GRewardItem>	GRewardItemVector;
+};
+#endif

@@ -1,0 +1,32 @@
+	public:
+		std::set<int> factionids;
+		enum { PROTOCOL_TYPE = PROTOCOL_NOTIFYFACTIONFORTRESSID };
+	public:
+		NotifyFactionFortressID() { type = PROTOCOL_NOTIFYFACTIONFORTRESSID; }
+		NotifyFactionFortressID(void*) : Protocol(PROTOCOL_NOTIFYFACTIONFORTRESSID) { }
+		NotifyFactionFortressID (const std::set<int>& l_factionids)
+			 : factionids(l_factionids)
+		{
+			type = PROTOCOL_NOTIFYFACTIONFORTRESSID;
+		}
+
+		NotifyFactionFortressID(const NotifyFactionFortressID &rhs)
+			: Protocol(rhs),factionids(rhs.factionids) { }
+
+		GNET::Protocol *Clone() const { return new NotifyFactionFortressID(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << factionids;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> factionids;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 4096; }

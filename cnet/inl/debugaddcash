@@ -1,0 +1,33 @@
+	public:
+		int userid;
+		int cash;
+		enum { PROTOCOL_TYPE = PROTOCOL_DEBUGADDCASH };
+	public:
+		DebugAddCash() { type = PROTOCOL_DEBUGADDCASH; }
+		DebugAddCash(void*) : Protocol(PROTOCOL_DEBUGADDCASH) { }
+		DebugAddCash (int l_userid = -1,int l_cash = 0)
+			 : userid(l_userid),cash(l_cash)
+		{
+			type = PROTOCOL_DEBUGADDCASH;
+		}
+
+		DebugAddCash(const DebugAddCash &rhs)
+			: Protocol(rhs),userid(rhs.userid),cash(rhs.cash) { }
+
+		GNET::Protocol *Clone() const { return new DebugAddCash(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			os << cash;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			os >> cash;
+			return os;
+		}
+
+		bool SizePolicy(size_t size) const { return size <= 256; }

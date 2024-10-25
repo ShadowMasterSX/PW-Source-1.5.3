@@ -1,0 +1,198 @@
+
+#ifndef __GNET_DBSENDMASSMAIL_HPP
+#define __GNET_DBSENDMASSMAIL_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "gmailheader"
+#include "gmail"
+#include "gmailbox"
+
+#include "utilfunction.h"
+
+#include "dbsendmassmailarg"
+#include "dbsendmassmailres"
+
+namespace GNET
+{
+
+class DBSendMassMail : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbsendmassmail"
+#undef	RPC_BASECLASS
+
+	unsigned char NextMailid(GMailBox& box)
+	{		
+		unsigned char id = 0;
+		size_t size = box.mails.size();
+		if(size) 
+			id = box.mails[size-1].header.id+1;
+		for(GMailVector::iterator it=box.mails.begin(),ie=box.mails.end();it!=ie;++it)
+		{
+			if(it->header.id==id)
+			{
+				id++;
+				it = box.mails.begin();
+			}
+		}
+		return id;
+	}
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBSendMassMailArg *arg = (DBSendMassMailArg *)argument;
+		DBSendMassMailRes *res = (DBSendMassMailRes *)result;
+
+		int src = arg->mail.header.sender;
+
+		res->syncdata.inventory.money = arg->syncdata.inventory.money;
+		res->syncdata.inventory.items.clear();
+
+		try
+		{
+			StorageEnv::Storage * pmailbox = StorageEnv::GetStorage("mailbox");
+			StorageEnv::Storage * pinventory = StorageEnv::GetStorage("inventory");
+			StorageEnv::Storage * pequipment = StorageEnv::GetStorage("equipment");
+			StorageEnv::Storage * pstorehouse = StorageEnv::GetStorage("storehouse");
+			StorageEnv::Storage * plog = arg->syncdata.logs.size()?StorageEnv::GetStorage("shoplog"):NULL;
+			int money_delta = 0;
+			StorageEnv::CommonTransaction txn;
+			try{
+				Marshal::OctetsStream  keysrc;
+				keysrc << src;
+				
+				switch(arg->mail.header.sndr_type)					
+				{
+					case _MST_PLAYER:
+					{
+						GRolePocket pocket;
+						Marshal::OctetsStream(pinventory->find(keysrc,txn)) >> pocket;
+						if(arg->syncdata.inventory.timestamp <= pocket.timestamp)
+						{
+							Log::log(LOG_ERR,"DBSendMassMail, timestamp mismatch. %d<%d",
+								arg->syncdata.inventory.timestamp, pocket.timestamp);
+							throw DbException(DB_VERIFY_BAD);
+						}
+						money_delta = arg->syncdata.inventory.money - pocket.money;
+
+						if(arg->cost_money)
+						{
+							if(arg->cost_money > arg->syncdata.inventory.money)
+								throw DbException(DB_VERIFY_BAD);
+							arg->syncdata.inventory.money -= arg->cost_money; 
+						
+							// 目前需求不用对附件做处理
+						}
+						if(arg->cost_obj_id > 0 && arg->cost_obj_num > 0)
+						{
+							GRoleInventoryVector::iterator it;
+							GRoleInventoryVector& v = arg->syncdata.inventory.items;
+							unsigned int pos;
+							for(pos=0;pos<v.size();pos++)
+							{
+								if(v[pos].pos == arg->cost_obj_pos)
+									break;
+							}
+							if(pos >= v.size())
+								throw DbException(DB_VERIFY_BAD);
+
+							int count = arg->cost_obj_num;
+							if((v[pos].proctype&ITEM_NONTRADABLE)||v[pos].id != (unsigned int)arg->cost_obj_id 
+									|| v[pos].count < count)
+								throw DbException(DB_VERIFY_BAD);
+
+							if(v[pos].count==count)
+							{
+								v[pos].count = 0;
+								res->syncdata.inventory.items.push_back(v[pos]);
+								v.erase(v.begin()+pos); 
+							} else {
+								v[pos].count -= count;
+								res->syncdata.inventory.items.push_back(v[pos]);
+							}
+
+							// 目前需求不用对附件做处理
+						}
+
+						pinventory->insert(keysrc, Marshal::OctetsStream()<<arg->syncdata.inventory,txn);
+						pequipment->insert(keysrc, Marshal::OctetsStream()<<arg->syncdata.equipment,txn);
+						WriteRestSyncData(pstorehouse, plog, src, arg->syncdata, money_delta, txn);
+								
+						arg->mail.header.receiver = arg->mail.header.send_time;
+
+						std::vector<int>::iterator it = arg->receiver_list.begin();
+						std::vector<int>::iterator ie = arg->receiver_list.end();
+
+						time_t now = Timer::GetTime();
+						for(; it != ie; ++it)
+						{
+							GMailBox box;
+							int dst = *it;
+							Marshal::OctetsStream key,value;
+							key << dst;
+							if(pmailbox->find(key,value,txn))
+								value >> box;
+							else
+							{
+								box.timestamp = now;
+								box.mails.clear();
+							}
+							int size = box.mails.size();
+							if(size>=PLAYER_MAIL_LIMIT)							
+							{
+								res->result.push_back(MassMailRes(dst,0,ERR_MS_BOXFULL));
+								continue;
+							}
+						
+							arg->mail.header.id = NextMailid(box);
+							Log::formatlog("sendmassmail", "timestamp=%u:src=%d:dst=%d:mid=%d:size=%d:money=%d:item=%d:count=%d:pos=%d",
+								arg->syncdata.inventory.timestamp, src, dst, arg->mail.header.id, 
+								arg->mail.context.size(), arg->mail.attach_money, arg->mail.attach_obj.id, 
+								arg->mail.attach_obj.count, arg->mail.attach_obj.pos);
+
+							box.mails.push_back(arg->mail);
+							pmailbox->insert( key, Marshal::OctetsStream()<<box, txn );
+							
+							res->result.push_back(MassMailRes(dst, arg->mail.header.id, ERR_SUCCESS));
+						}
+
+						res->syncdata.inventory.money = arg->syncdata.inventory.money;
+						res->syncdata.data_mask = arg->syncdata.data_mask;
+						res->retcode = ERR_SUCCESS;
+					}//case _MST_PLAYER
+				}
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBSendMassMail, src=%d, masstype=%d, what=%s\n", src, arg->mass_type, e.what() );
+			res->retcode = ERR_EXCEPTION;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBSendMassMailArg *arg = (DBSendMassMailArg *)argument;
+		// DBSendMassMailRes *res = (DBSendMassMailRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

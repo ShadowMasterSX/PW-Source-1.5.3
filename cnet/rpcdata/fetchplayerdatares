@@ -1,0 +1,65 @@
+#ifndef __GNET_FETCHPLAYERDATARES_RPCDATA
+#define __GNET_FETCHPLAYERDATARES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "crossplayerdata"
+
+namespace GNET
+{
+	class FetchPlayerDataRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		CrossPlayerData data;
+
+	public:
+		FetchPlayerDataRes (int l_retcode = 0,const CrossPlayerData& l_data = CrossPlayerData())
+			: retcode(l_retcode),data(l_data)
+		{
+		}
+
+		FetchPlayerDataRes(const FetchPlayerDataRes &rhs)
+			: retcode(rhs.retcode),data(rhs.data) { }
+
+		Rpc::Data *Clone() const { return new FetchPlayerDataRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const FetchPlayerDataRes *r = dynamic_cast<const FetchPlayerDataRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				data = r->data;
+			}
+			return *this;
+		}
+
+		FetchPlayerDataRes& operator = (const FetchPlayerDataRes &rhs)
+		{
+			const FetchPlayerDataRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				data = r->data;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << data;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> data;
+			return os;
+		}
+
+	};
+};
+#endif

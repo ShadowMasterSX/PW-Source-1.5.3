@@ -1,0 +1,49 @@
+
+#ifndef __GNET_DBKECANDIDATECONFIRM_HPP
+#define __GNET_DBKECANDIDATECONFIRM_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbkecandidateconfirmarg"
+#include "dbkecandidateconfirmres"
+
+#include "kingelection.h"
+#include "gamedbclient.hpp"
+
+namespace GNET
+{
+
+class DBKECandidateConfirm : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbkecandidateconfirm"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBKECandidateConfirmArg *arg = (DBKECandidateConfirmArg *)argument;
+		// DBKECandidateConfirmRes *res = (DBKECandidateConfirmRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		//DBKECandidateConfirmArg *arg = (DBKECandidateConfirmArg *)argument;
+		DBKECandidateConfirmRes *res = (DBKECandidateConfirmRes *)result;
+		DEBUG_PRINT("dbkecandidateconfirm: rpc return. retcode=%d", res->retcode);
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+		DBKECandidateConfirmArg *arg = (DBKECandidateConfirmArg *)argument;
+		Log::log(LOG_ERR,"dbkecandidateconfirm: timeout.\n");
+		GameDBClient::GetInstance()->SendProtocol( Rpc::Call(RPC_DBKECANDIDATECONFIRM,arg) );
+	}
+
+};
+
+};
+#endif

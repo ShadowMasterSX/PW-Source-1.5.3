@@ -1,0 +1,58 @@
+
+#ifndef __GNET_ADDMEMBER_HPP
+#define __GNET_ADDMEMBER_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "addmemberarg"
+#include "addmemberres"
+
+namespace GNET
+{
+
+class AddMember : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "addmember"
+#undef	RPC_BASECLASS
+	OperWrapper::wref_t oper;
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		AddMemberArg *arg = (AddMemberArg *)argument;
+		AddMemberRes *res = (AddMemberRes *)result;
+		OperWrapper::href_t ref(oper);
+		if(ref)
+		{
+			ref->SetResult(result);
+			ref->Execute();
+		}
+		if(res->retcode==ERR_SUCCESS)
+		{
+			FMemberInfo user;
+			user.roleid = arg->rid;
+			user.level = res->level;
+			user.occupation = res->cls;
+			user.reputation = res->reputation;
+			user.reincarn_times = res->reincarn_times;
+			user.gender = res->gender;
+			user.name.swap(res->name);
+			user.froleid = _R_MEMBER;
+			Factiondb::GetInstance()->OnJoin(arg->fid, user);
+		}
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

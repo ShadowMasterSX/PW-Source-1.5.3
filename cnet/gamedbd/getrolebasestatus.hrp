@@ -1,0 +1,78 @@
+
+#ifndef __GNET_GETROLEBASESTATUS_HPP
+#define __GNET_GETROLEBASESTATUS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "dbbuffer.h"
+#include "roleid"
+#include "getrolebasestatusres"
+
+namespace GNET
+{
+
+class GetRoleBaseStatus : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getrolebasestatus"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		RoleId *arg = (RoleId *)argument;
+		GetRoleBaseStatusRes *res = (GetRoleBaseStatusRes *)result;
+		Marshal::OctetsStream key, value_status;
+
+		LOG_TRACE( "GetRoleBaseStatus, roleid=%d.\n", arg->id );
+
+		try
+		{
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::Storage * pstatus = StorageEnv::GetStorage("status");
+			StorageEnv::AtomTransaction txn;
+			try
+			{
+				key << *arg;
+				Marshal::OctetsStream(pbase->find( key, txn )) >> res->base;
+				if (res->base.status == _ROLE_STATUS_READYDEL
+					&& Timer::GetTime()-res->base.delete_time
+						> GameDBManager::GetInstance()->GetDeleteRole_Timeout() )
+					res->base.status =  _ROLE_STATUS_MUSTDEL;
+
+				res->retcode = ERR_SUCCESS;
+
+				if( pstatus->find( key, value_status, txn ) )
+					value_status >> res->status;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "GetRoleBaseStatus, roleid=%d, what=%s\n", arg->id, e.what() );
+			res->retcode = ERR_DATANOTFIND;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// RoleId *arg = (RoleId *)argument;
+		// GetRoleBaseStatusRes *res = (GetRoleBaseStatusRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

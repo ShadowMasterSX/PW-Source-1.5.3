@@ -1,0 +1,155 @@
+#ifndef __GNET_DBWEBTRADEPREPOSTARG_RPCDATA
+#define __GNET_DBWEBTRADEPREPOSTARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailsyncdata"
+
+namespace GNET
+{
+	class DBWebTradePrePostArg : public GNET::Rpc::Data
+	{
+	public:
+		int64_t sn;
+		int roleid;
+		int userid;
+		Octets name;
+		int posttype;
+		unsigned int money;
+		unsigned int item_id;
+		int item_pos;
+		int item_num;
+		int price;
+		int sellperiod;
+		int buyer_roleid;
+		int64_t post_time;
+		int state;
+		unsigned int deposit;
+		int loginip;
+		GMailSyncData syncdata;
+
+	public:
+		DBWebTradePrePostArg (int64_t l_sn = 0,int l_roleid = 0,int l_userid = 0
+			,const Octets& l_name = Octets(),int l_posttype = 0,unsigned int l_money = 0
+			,unsigned int l_item_id = 0,int l_item_pos = -1,int l_item_num = 0
+			,int l_price = 0,int l_sellperiod = 0,int l_buyer_roleid = 0
+			,int64_t l_post_time = 0,int l_state = 0,unsigned int l_deposit = 0
+			,int l_loginip = 0,const GMailSyncData& l_syncdata = GMailSyncData())
+			: sn(l_sn),roleid(l_roleid),userid(l_userid)
+			,name(l_name),posttype(l_posttype),money(l_money)
+			,item_id(l_item_id),item_pos(l_item_pos),item_num(l_item_num)
+			,price(l_price),sellperiod(l_sellperiod),buyer_roleid(l_buyer_roleid)
+			,post_time(l_post_time),state(l_state),deposit(l_deposit)
+			,loginip(l_loginip),syncdata(l_syncdata)
+		{
+		}
+
+		DBWebTradePrePostArg(const DBWebTradePrePostArg &rhs)
+			: sn(rhs.sn),roleid(rhs.roleid),userid(rhs.userid),
+			name(rhs.name),posttype(rhs.posttype),money(rhs.money),
+			item_id(rhs.item_id),item_pos(rhs.item_pos),item_num(rhs.item_num),
+			price(rhs.price),sellperiod(rhs.sellperiod),buyer_roleid(rhs.buyer_roleid),
+			post_time(rhs.post_time),state(rhs.state),deposit(rhs.deposit),
+			loginip(rhs.loginip),syncdata(rhs.syncdata) { }
+
+		Rpc::Data *Clone() const { return new DBWebTradePrePostArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBWebTradePrePostArg *r = dynamic_cast<const DBWebTradePrePostArg *>(&rhs);
+			if (r && r != this)
+			{
+				sn = r->sn;
+				roleid = r->roleid;
+				userid = r->userid;
+				name = r->name;
+				posttype = r->posttype;
+				money = r->money;
+				item_id = r->item_id;
+				item_pos = r->item_pos;
+				item_num = r->item_num;
+				price = r->price;
+				sellperiod = r->sellperiod;
+				buyer_roleid = r->buyer_roleid;
+				post_time = r->post_time;
+				state = r->state;
+				deposit = r->deposit;
+				loginip = r->loginip;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		DBWebTradePrePostArg& operator = (const DBWebTradePrePostArg &rhs)
+		{
+			const DBWebTradePrePostArg *r = &rhs;
+			if (r && r != this)
+			{
+				sn = r->sn;
+				roleid = r->roleid;
+				userid = r->userid;
+				name = r->name;
+				posttype = r->posttype;
+				money = r->money;
+				item_id = r->item_id;
+				item_pos = r->item_pos;
+				item_num = r->item_num;
+				price = r->price;
+				sellperiod = r->sellperiod;
+				buyer_roleid = r->buyer_roleid;
+				post_time = r->post_time;
+				state = r->state;
+				deposit = r->deposit;
+				loginip = r->loginip;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << sn;
+			os << roleid;
+			os << userid;
+			os << name;
+			os << posttype;
+			os << money;
+			os << item_id;
+			os << item_pos;
+			os << item_num;
+			os << price;
+			os << sellperiod;
+			os << buyer_roleid;
+			os << post_time;
+			os << state;
+			os << deposit;
+			os << loginip;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> sn;
+			os >> roleid;
+			os >> userid;
+			os >> name;
+			os >> posttype;
+			os >> money;
+			os >> item_id;
+			os >> item_pos;
+			os >> item_num;
+			os >> price;
+			os >> sellperiod;
+			os >> buyer_roleid;
+			os >> post_time;
+			os >> state;
+			os >> deposit;
+			os >> loginip;
+			os >> syncdata;
+			return os;
+		}
+
+	};
+};
+#endif

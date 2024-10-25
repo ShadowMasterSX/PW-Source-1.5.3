@@ -1,0 +1,71 @@
+
+#ifndef __GNET_PUTROLETASK_HPP
+#define __GNET_PUTROLETASK_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "dbbuffer.h"
+#include "roletaskpair"
+
+
+namespace GNET
+{
+
+class PutRoleTask : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "putroletask"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		RoleTaskPair *arg = (RoleTaskPair *)argument;
+
+		LOG_TRACE( "PutRoleTask, roleid=%d.\n", arg->key.id );
+		/*
+		RpcRetcode *res = (RpcRetcode *)result;
+		Marshal::OctetsStream key;
+
+		try
+		{
+			StorageEnv::Storage * ptask = StorageEnv::GetStorage("task");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				key << arg->key;
+				ptask->insert( key, Marshal::OctetsStream() << arg->value, txn );
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "PutRoleTask, roleid=%d, what=%s\n", arg->key.id, e.what() );
+			res->retcode = -1;
+		}
+		*/
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// RoleTaskPair *arg = (RoleTaskPair *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

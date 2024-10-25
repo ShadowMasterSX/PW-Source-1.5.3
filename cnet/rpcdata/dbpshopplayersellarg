@@ -1,0 +1,96 @@
+#ifndef __GNET_DBPSHOPPLAYERSELLARG_RPCDATA
+#define __GNET_DBPSHOPPLAYERSELLARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailsyncdata"
+
+namespace GNET
+{
+	class DBPShopPlayerSellArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		int master;
+		int item_id;
+		int item_pos;
+		int item_count;
+		int inv_pos;
+		GMailSyncData syncdata;
+
+	public:
+		DBPShopPlayerSellArg (int l_roleid = 0,int l_master = 0,int l_item_id = 0
+			,int l_item_pos = 0,int l_item_count = 0,int l_inv_pos = 0
+			,const GMailSyncData& l_syncdata = GMailSyncData())
+			: roleid(l_roleid),master(l_master),item_id(l_item_id)
+			,item_pos(l_item_pos),item_count(l_item_count),inv_pos(l_inv_pos)
+			,syncdata(l_syncdata)
+		{
+		}
+
+		DBPShopPlayerSellArg(const DBPShopPlayerSellArg &rhs)
+			: roleid(rhs.roleid),master(rhs.master),item_id(rhs.item_id),
+			item_pos(rhs.item_pos),item_count(rhs.item_count),inv_pos(rhs.inv_pos),
+			syncdata(rhs.syncdata) { }
+
+		Rpc::Data *Clone() const { return new DBPShopPlayerSellArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPShopPlayerSellArg *r = dynamic_cast<const DBPShopPlayerSellArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				master = r->master;
+				item_id = r->item_id;
+				item_pos = r->item_pos;
+				item_count = r->item_count;
+				inv_pos = r->inv_pos;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		DBPShopPlayerSellArg& operator = (const DBPShopPlayerSellArg &rhs)
+		{
+			const DBPShopPlayerSellArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				master = r->master;
+				item_id = r->item_id;
+				item_pos = r->item_pos;
+				item_count = r->item_count;
+				inv_pos = r->inv_pos;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << master;
+			os << item_id;
+			os << item_pos;
+			os << item_count;
+			os << inv_pos;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> master;
+			os >> item_id;
+			os >> item_pos;
+			os >> item_count;
+			os >> inv_pos;
+			os >> syncdata;
+			return os;
+		}
+
+	};
+};
+#endif

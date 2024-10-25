@@ -1,0 +1,70 @@
+#ifndef __GNET_DBPSHOPLOADRES_RPCDATA
+#define __GNET_DBPSHOPLOADRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "pshopdetail"
+
+namespace GNET
+{
+	class DBPShopLoadRes : public GNET::Rpc::Data
+	{
+	public:
+		short retcode;
+		PShopDetailVector shops;
+		Octets handle;
+
+	public:
+		DBPShopLoadRes (short l_retcode = 0,const PShopDetailVector& l_shops = PShopDetailVector(),const Octets& l_handle = Octets())
+			: retcode(l_retcode),shops(l_shops),handle(l_handle)
+		{
+		}
+
+		DBPShopLoadRes(const DBPShopLoadRes &rhs)
+			: retcode(rhs.retcode),shops(rhs.shops),handle(rhs.handle) { }
+
+		Rpc::Data *Clone() const { return new DBPShopLoadRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPShopLoadRes *r = dynamic_cast<const DBPShopLoadRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				shops = r->shops;
+				handle = r->handle;
+			}
+			return *this;
+		}
+
+		DBPShopLoadRes& operator = (const DBPShopLoadRes &rhs)
+		{
+			const DBPShopLoadRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				shops = r->shops;
+				handle = r->handle;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << shops;
+			os << handle;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> shops;
+			os >> handle;
+			return os;
+		}
+
+	};
+};
+#endif

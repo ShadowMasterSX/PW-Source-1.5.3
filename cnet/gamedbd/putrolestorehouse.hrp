@@ -1,0 +1,69 @@
+
+#ifndef __GNET_PUTROLESTOREHOUSE_HPP
+#define __GNET_PUTROLESTOREHOUSE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "dbbuffer.h"
+#include "rolestorehousepair"
+
+
+namespace GNET
+{
+
+class PutRoleStorehouse : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "putrolestorehouse"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		RoleStorehousePair *arg = (RoleStorehousePair *)argument;
+
+		Log::formatlog("putstorehouse","roleid=%d:sid=%d", arg->key.id, sid);
+		/*
+		RpcRetcode *res = (RpcRetcode *)result;
+
+		try
+		{
+			StorageEnv::Storage * pstorehouse = StorageEnv::GetStorage("storehouse");
+			StorageEnv::AtomTransaction txn;
+			try
+			{
+				pstorehouse->insert( Marshal::OctetsStream() << arg->key, Marshal::OctetsStream() << arg->value, txn );
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "PutRoleStorehouse, roleid=%d, what=%s\n", arg->key.id, e.what() );
+			res->retcode = -1;
+		}
+		*/
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// RoleStorehousePair *arg = (RoleStorehousePair *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

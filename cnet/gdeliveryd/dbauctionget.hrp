@@ -1,0 +1,76 @@
+
+#ifndef __GNET_DBAUCTIONGET_HPP
+#define __GNET_DBAUCTIONGET_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbauctiongetarg"
+#include "dbauctiongetres"
+#include "auctionget_re.hpp"
+#include "gdeliveryserver.hpp"
+namespace GNET
+{
+
+class DBAuctionGet : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbauctionget"
+#undef	RPC_BASECLASS
+	int retry;
+	unsigned int save_linksid;
+	unsigned int save_localsid;
+	void SendResult( int retcode,DBAuctionGetArg& arg,const GAuctionDetail& item=GAuctionDetail() )
+	{
+		if ( save_linksid==0 || save_localsid==0 )
+			return;
+		GDeliveryServer::GetInstance()->Send(
+				save_linksid,
+				AuctionGet_Re(retcode,arg.auctionid,item,save_localsid)
+			);	
+	}
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// AuctionId *arg = (AuctionId *)argument;
+		// DBAuctionGetRes *res = (DBAuctionGetRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBAuctionGetArg *arg = (DBAuctionGetArg *)argument;
+		DBAuctionGetRes *res = (DBAuctionGetRes *)result;
+		if ( res->retcode==ERR_SUCCESS )
+		{
+			AuctionMarket::GetInstance().UpdateAuction( res->item.category, res->item);
+		}else if( arg->reason && res->retcode==ERR_AGAIN)
+		{
+			DBAuctionGet* rpc = (DBAuctionGet*) Rpc::Call(RPC_DBAUCTIONGET,DBAuctionGetArg(arg->auctionid,1));
+			rpc->retry = retry--;
+			rpc->save_linksid=0;
+			rpc->save_localsid=0;
+			GameDBClient::GetInstance()->SendProtocol(rpc);
+		}
+
+		SendResult(res->retcode,*arg,res->item);
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		DBAuctionGetArg *arg = (DBAuctionGetArg *)argument;
+		SendResult( ERR_TIMEOUT,*arg );
+		if(arg->reason && retry-->0)
+		{
+			Log::log( LOG_ERR,"dbauctionget: timeout. auctionid=%d retry=%d\n", arg->auctionid, retry);
+			DBAuctionGet* rpc = (DBAuctionGet*) Rpc::Call(RPC_DBAUCTIONGET,DBAuctionGetArg(arg->auctionid,1));
+			rpc->retry = retry;
+			rpc->save_linksid=0;
+			rpc->save_localsid=0;
+			GameDBClient::GetInstance()->SendProtocol(rpc);
+		}
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,60 @@
+#ifndef __GNET_DBREFUPDATEREFERRALARG_RPCDATA
+#define __GNET_DBREFUPDATEREFERRALARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "greferral"
+
+namespace GNET
+{
+	class DBRefUpdateReferralArg : public GNET::Rpc::Data
+	{
+	public:
+		GReferral referral;
+
+	public:
+		DBRefUpdateReferralArg (const GReferral& l_referral = GReferral())
+			: referral(l_referral)
+		{
+		}
+
+		DBRefUpdateReferralArg(const DBRefUpdateReferralArg &rhs)
+			: referral(rhs.referral) { }
+
+		Rpc::Data *Clone() const { return new DBRefUpdateReferralArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBRefUpdateReferralArg *r = dynamic_cast<const DBRefUpdateReferralArg *>(&rhs);
+			if (r && r != this)
+			{
+				referral = r->referral;
+			}
+			return *this;
+		}
+
+		DBRefUpdateReferralArg& operator = (const DBRefUpdateReferralArg &rhs)
+		{
+			const DBRefUpdateReferralArg *r = &rhs;
+			if (r && r != this)
+			{
+				referral = r->referral;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << referral;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> referral;
+			return os;
+		}
+
+	};
+};
+#endif

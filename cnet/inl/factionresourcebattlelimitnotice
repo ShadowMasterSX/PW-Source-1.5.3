@@ -1,0 +1,35 @@
+	public:
+		char status;
+		std::vector<GFactionResourceBattleLimit> limit_data;
+		enum { PROTOCOL_TYPE = PROTOCOL_FACTIONRESOURCEBATTLELIMITNOTICE };
+	public:
+		FactionResourceBattleLimitNotice() { type = PROTOCOL_FACTIONRESOURCEBATTLELIMITNOTICE; }
+		FactionResourceBattleLimitNotice(void*) : Protocol(PROTOCOL_FACTIONRESOURCEBATTLELIMITNOTICE) { }
+		FactionResourceBattleLimitNotice (char l_status,const std::vector<GFactionResourceBattleLimit>& l_limit_data)
+			 : status(l_status),limit_data(l_limit_data)
+		{
+			type = PROTOCOL_FACTIONRESOURCEBATTLELIMITNOTICE;
+		}
+
+		FactionResourceBattleLimitNotice(const FactionResourceBattleLimitNotice &rhs)
+			: Protocol(rhs),status(rhs.status),limit_data(rhs.limit_data) { }
+
+		GNET::Protocol *Clone() const { return new FactionResourceBattleLimitNotice(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << status;
+			os << limit_data;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> status;
+			os >> limit_data;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 2048; }

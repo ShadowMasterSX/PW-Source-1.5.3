@@ -1,0 +1,59 @@
+#ifndef __GNET_ACCOUNTDELROLERES_RPCDATA
+#define __GNET_ACCOUNTDELROLERES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class AccountDelRoleRes : public GNET::Rpc::Data
+	{
+	public:
+		char retcode;
+
+	public:
+		AccountDelRoleRes (char l_retcode = -1)
+			: retcode(l_retcode)
+		{
+		}
+
+		AccountDelRoleRes(const AccountDelRoleRes &rhs)
+			: retcode(rhs.retcode) { }
+
+		Rpc::Data *Clone() const { return new AccountDelRoleRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const AccountDelRoleRes *r = dynamic_cast<const AccountDelRoleRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		AccountDelRoleRes& operator = (const AccountDelRoleRes &rhs)
+		{
+			const AccountDelRoleRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			return os;
+		}
+
+	};
+};
+#endif

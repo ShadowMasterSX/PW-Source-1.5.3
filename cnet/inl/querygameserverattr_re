@@ -1,0 +1,32 @@
+	public:
+		GameAttrVector attr;
+		enum { PROTOCOL_TYPE = PROTOCOL_QUERYGAMESERVERATTR_RE };
+	public:
+		QueryGameServerAttr_Re() { type = PROTOCOL_QUERYGAMESERVERATTR_RE; }
+		QueryGameServerAttr_Re(void*) : Protocol(PROTOCOL_QUERYGAMESERVERATTR_RE) { }
+		QueryGameServerAttr_Re (const GameAttrVector& l_attr)
+			 : attr(l_attr)
+		{
+			type = PROTOCOL_QUERYGAMESERVERATTR_RE;
+		}
+
+		QueryGameServerAttr_Re(const QueryGameServerAttr_Re &rhs)
+			: Protocol(rhs),attr(rhs.attr) { }
+
+		GNET::Protocol *Clone() const { return new QueryGameServerAttr_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << attr;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> attr;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 101; }
+
+		bool SizePolicy(size_t size) const { return size <= 2048; }

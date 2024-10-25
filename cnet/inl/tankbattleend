@@ -1,0 +1,35 @@
+	public:
+		int battle_id;
+		int world_tag;
+		enum { PROTOCOL_TYPE = PROTOCOL_TANKBATTLEEND };
+	public:
+		TankBattleEnd() { type = PROTOCOL_TANKBATTLEEND; }
+		TankBattleEnd(void*) : Protocol(PROTOCOL_TANKBATTLEEND) { }
+		TankBattleEnd (int l_battle_id,int l_world_tag)
+			 : battle_id(l_battle_id),world_tag(l_world_tag)
+		{
+			type = PROTOCOL_TANKBATTLEEND;
+		}
+
+		TankBattleEnd(const TankBattleEnd &rhs)
+			: Protocol(rhs),battle_id(rhs.battle_id),world_tag(rhs.world_tag) { }
+
+		GNET::Protocol *Clone() const { return new TankBattleEnd(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << battle_id;
+			os << world_tag;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> battle_id;
+			os >> world_tag;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

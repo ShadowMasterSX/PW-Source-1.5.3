@@ -1,0 +1,111 @@
+
+#ifndef __GNET_GETUSERFACTION_HPP
+#define __GNET_GETUSERFACTION_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "dbbuffer.h"
+#include "userfactionarg"
+#include "userfactionres"
+
+namespace GNET
+{
+
+class GetUserFaction : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getuserfaction"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		UserFactionArg *arg = (UserFactionArg *)argument;
+		UserFactionRes *res = (UserFactionRes *)result;
+
+		Marshal::OctetsStream key, value, oext;
+
+		try
+		{
+			StorageEnv::Storage * puserfaction = StorageEnv::GetStorage("userfaction");
+			StorageEnv::Storage * pstatus = StorageEnv::GetStorage("status");
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::CommonTransaction txn;
+			try{
+				key << arg->rid;
+				if(puserfaction->find(key,value,txn))
+				{
+					value >> res->value;
+					res->retcode = ERR_SUCCESS;
+					if(arg->reason==REASON_LOGIN)
+					{
+						GFactionExtend ext;
+						time_t now = Timer::GetTime();
+						if(res->value.extend.size()>0)
+						{
+							try{
+								Marshal::OctetsStream os(res->value.extend);
+								os >> ext;
+							}catch(Marshal::Exception){ }
+						}
+						else
+							ext.jointime = 0;
+						ext.logintime = now;
+						oext << ext;
+						res->value.extend = oext;
+						puserfaction->insert(key, Marshal::OctetsStream()<<res->value, txn);
+
+						GRoleBase base;
+						Marshal::OctetsStream(pbase->find(key, txn)) >> base;
+						res->gender = base.gender;
+
+						GRoleStatus status;
+						Marshal::OctetsStream(pstatus->find(key,txn)) >> status;
+
+						res->level = status.level;
+						res->reincarn_times = (unsigned char)GetRoleReincarnationTimes(status.reincarnation_data);
+						res->reputation = status.reputation;
+						
+						//此结构由gs定义
+						struct faction_contrib
+						{
+							int consume_contrib;
+							int exp_contrib;
+							int cumulate_contrib;
+						};
+						if(status.faction_contrib.size() == sizeof(faction_contrib))
+						{
+							faction_contrib * pContrib = (faction_contrib *)status.faction_contrib.begin();
+							res->contrib = pContrib->cumulate_contrib;
+						}
+					}
+				}else
+					res->retcode = ERR_DATANOTFIND;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "GetUserFaction, roleid=%d, what=%s\n", arg->rid, e.what() );
+			res->retcode = -1;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

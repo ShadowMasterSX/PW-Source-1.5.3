@@ -1,0 +1,54 @@
+#ifndef __GNET_DBPSHOPSETTYPE_HPP
+#define __GNET_DBPSHOPSETTYPE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbpshopsettypearg"
+#include "dbpshopsettyperes"
+#include "pshopmarket.h"
+#include "dbpshopget.hrp"
+#include "pshopsettype_re.hpp"
+
+namespace GNET
+{
+
+class DBPShopSetType : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbpshopsettype"
+#undef	RPC_BASECLASS
+
+	unsigned int save_linksid;
+	unsigned int save_localsid;
+
+	void SendResult(int retcode, int newtype)
+	{
+		GDeliveryServer::GetInstance()->Send(save_linksid, PShopSetType_Re(retcode, save_localsid, newtype));
+	}
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid) {}
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBPShopSetTypeArg *arg = (DBPShopSetTypeArg *)argument;
+		DBPShopSetTypeRes *res = (DBPShopSetTypeRes *)result;
+		LOG_TRACE("DBPShopSetType: RPC return, roleid=%d retcode=%d", arg->roleid, res->retcode);
+		if(res->retcode == ERR_SUCCESS)
+		{
+			PShopMarket::GetInstance().OnModifyType(arg->roleid, arg->newtype);
+			PShopMarket::GetInstance().Trace();
+		}
+		SendResult(res->retcode, arg->newtype);
+	}
+
+	void OnTimeout()
+	{
+		DBPShopSetTypeArg *arg = (DBPShopSetTypeArg *)argument;
+		Log::log(LOG_ERR,"DBPShopSetType: Timeout. roleid=%d.", arg->roleid);
+		SendResult(ERR_TIMEOUT, arg->newtype);
+		DBPShopGet::QueryShop(arg->roleid, save_linksid, save_localsid, 3/*retry*/, DBPShopGet::REASON_DB_TIMEOUT);
+	}
+};
+
+};
+#endif

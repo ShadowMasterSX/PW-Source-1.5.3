@@ -1,0 +1,70 @@
+#ifndef __GNET_TEAMBEAN_RPCDATA
+#define __GNET_TEAMBEAN_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class TeamBean : public GNET::Rpc::Data
+	{
+	public:
+		int64_t teamid;
+		int64_t captain;
+		std::vector<int64_t> members;
+
+	public:
+		TeamBean (int64_t l_teamid = 0,int64_t l_captain = 0,const std::vector<int64_t>& l_members = std::vector<int64_t>())
+			: teamid(l_teamid),captain(l_captain),members(l_members)
+		{
+		}
+
+		TeamBean(const TeamBean &rhs)
+			: teamid(rhs.teamid),captain(rhs.captain),members(rhs.members) { }
+
+		Rpc::Data *Clone() const { return new TeamBean(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const TeamBean *r = dynamic_cast<const TeamBean *>(&rhs);
+			if (r && r != this)
+			{
+				teamid = r->teamid;
+				captain = r->captain;
+				members = r->members;
+			}
+			return *this;
+		}
+
+		TeamBean& operator = (const TeamBean &rhs)
+		{
+			const TeamBean *r = &rhs;
+			if (r && r != this)
+			{
+				teamid = r->teamid;
+				captain = r->captain;
+				members = r->members;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << teamid;
+			os << captain;
+			os << members;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> teamid;
+			os >> captain;
+			os >> members;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<TeamBean>	TeamBeanVector;
+};
+#endif

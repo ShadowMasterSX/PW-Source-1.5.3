@@ -1,0 +1,35 @@
+	public:
+		int roleid;
+		unsigned char emotion;
+		enum { PROTOCOL_TYPE = PROTOCOL_SETCHATEMOTION };
+	public:
+		SetChatEmotion() { type = PROTOCOL_SETCHATEMOTION; }
+		SetChatEmotion(void*) : Protocol(PROTOCOL_SETCHATEMOTION) { }
+		SetChatEmotion (int l_roleid,unsigned char l_emotion)
+			 : roleid(l_roleid),emotion(l_emotion)
+		{
+			type = PROTOCOL_SETCHATEMOTION;
+		}
+
+		SetChatEmotion(const SetChatEmotion &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),emotion(rhs.emotion) { }
+
+		GNET::Protocol *Clone() const { return new SetChatEmotion(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << emotion;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> emotion;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 32; }

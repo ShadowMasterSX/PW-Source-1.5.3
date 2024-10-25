@@ -1,0 +1,44 @@
+	public:
+		int factionid;
+		int sponsor;
+		Octets data;
+		std::vector<int> member;
+		enum { PROTOCOL_TYPE = PROTOCOL_FACTIONCONGREGATEREQUEST };
+	public:
+		FactionCongregateRequest() { type = PROTOCOL_FACTIONCONGREGATEREQUEST; }
+		FactionCongregateRequest(void*) : Protocol(PROTOCOL_FACTIONCONGREGATEREQUEST) { }
+		FactionCongregateRequest (int l_factionid,int l_sponsor,const Octets& l_data,
+			const std::vector<int>& l_member)
+			 : factionid(l_factionid),sponsor(l_sponsor),data(l_data)
+			,member(l_member)
+		{
+			type = PROTOCOL_FACTIONCONGREGATEREQUEST;
+		}
+
+		FactionCongregateRequest(const FactionCongregateRequest &rhs)
+			: Protocol(rhs),factionid(rhs.factionid),sponsor(rhs.sponsor),data(rhs.data)
+			,member(rhs.member) { }
+
+		GNET::Protocol *Clone() const { return new FactionCongregateRequest(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << factionid;
+			os << sponsor;
+			os << data;
+			os << member;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> factionid;
+			os >> sponsor;
+			os >> data;
+			os >> member;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1024; }

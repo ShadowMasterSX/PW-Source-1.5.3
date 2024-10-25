@@ -1,0 +1,42 @@
+
+#ifndef __GNET_POSTCREATEFAMILY_HPP
+#define __GNET_POSTCREATEFAMILY_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "postcreatefamilyarg"
+#include "postcreatefamilyres"
+
+namespace GNET
+{
+
+class PostCreateFamily : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "postcreatefamily"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// PostCreateFamilyArg *arg = (PostCreateFamilyArg *)argument;
+		// PostCreateFamilyRes *res = (PostCreateFamilyRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// PostCreateFamilyArg *arg = (PostCreateFamilyArg *)argument;
+		// PostCreateFamilyRes *res = (PostCreateFamilyRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,69 @@
+#ifndef __GNET_GCITY_RPCDATA
+#define __GNET_GCITY_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GCity : public GNET::Rpc::Data
+	{
+	public:
+		char id;
+		char level;
+		unsigned int owner;
+
+	public:
+		GCity (char l_id = 0,char l_level = 0,unsigned int l_owner = 0)
+			: id(l_id),level(l_level),owner(l_owner)
+		{
+		}
+
+		GCity(const GCity &rhs)
+			: id(rhs.id),level(rhs.level),owner(rhs.owner) { }
+
+		Rpc::Data *Clone() const { return new GCity(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GCity *r = dynamic_cast<const GCity *>(&rhs);
+			if (r && r != this)
+			{
+				id = r->id;
+				level = r->level;
+				owner = r->owner;
+			}
+			return *this;
+		}
+
+		GCity& operator = (const GCity &rhs)
+		{
+			const GCity *r = &rhs;
+			if (r && r != this)
+			{
+				id = r->id;
+				level = r->level;
+				owner = r->owner;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << id;
+			os << level;
+			os << owner;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> id;
+			os >> level;
+			os >> owner;
+			return os;
+		}
+
+	};
+};
+#endif

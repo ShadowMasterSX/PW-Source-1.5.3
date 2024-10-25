@@ -1,0 +1,64 @@
+#ifndef __GNET_ADDMEMBERARG_RPCDATA
+#define __GNET_ADDMEMBERARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class AddMemberArg : public GNET::Rpc::Data
+	{
+	public:
+		unsigned int fid;
+		unsigned int rid;
+
+	public:
+		AddMemberArg (unsigned int l_fid = 0,unsigned int l_rid = 0)
+			: fid(l_fid),rid(l_rid)
+		{
+		}
+
+		AddMemberArg(const AddMemberArg &rhs)
+			: fid(rhs.fid),rid(rhs.rid) { }
+
+		Rpc::Data *Clone() const { return new AddMemberArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const AddMemberArg *r = dynamic_cast<const AddMemberArg *>(&rhs);
+			if (r && r != this)
+			{
+				fid = r->fid;
+				rid = r->rid;
+			}
+			return *this;
+		}
+
+		AddMemberArg& operator = (const AddMemberArg &rhs)
+		{
+			const AddMemberArg *r = &rhs;
+			if (r && r != this)
+			{
+				fid = r->fid;
+				rid = r->rid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << fid;
+			os << rid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> fid;
+			os >> rid;
+			return os;
+		}
+
+	};
+};
+#endif

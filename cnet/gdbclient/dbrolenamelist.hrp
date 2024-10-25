@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBROLENAMELIST_HPP
+#define __GNET_DBROLENAMELIST_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbrolenamelistarg"
+#include "dbrolenamelistres"
+
+namespace GNET
+{
+
+class DBRoleNameList : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbrolenamelist"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBRoleNameListArg *arg = (DBRoleNameListArg *)argument;
+		// DBRoleNameListRes *res = (DBRoleNameListRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBRoleNameListArg *arg = (DBRoleNameListArg *)argument;
+		// DBRoleNameListRes *res = (DBRoleNameListRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

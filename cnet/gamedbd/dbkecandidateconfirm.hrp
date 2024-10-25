@@ -1,0 +1,95 @@
+
+#ifndef __GNET_DBKECANDIDATECONFIRM_HPP
+#define __GNET_DBKECANDIDATECONFIRM_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbkecandidateconfirmarg"
+#include "dbkecandidateconfirmres"
+
+#include "kingelectiondetail"
+#include "kecandidate"
+
+namespace GNET
+{
+
+class DBKECandidateConfirm : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbkecandidateconfirm"
+#undef	RPC_BASECLASS
+
+	int Find(KECandidateVector & list, int roleid)
+	{
+		for(size_t i=0; i<list.size(); i++)
+		{
+			if(list[i].roleid == roleid)
+				return (int)i;
+		}
+		return -1;
+	}
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBKECandidateConfirmArg *arg = (DBKECandidateConfirmArg *)argument;
+		DBKECandidateConfirmRes *res = (DBKECandidateConfirmRes *)result;
+		LOG_TRACE("DBKECandidateConfirm, candidate_list.size=%d.", arg->candidate_list.size());
+		try
+		{
+			StorageEnv::Storage * pking = StorageEnv::GetStorage("kingelection");
+			StorageEnv::AtomTransaction txn;
+			try
+			{
+				KingElectionDetail detail;
+				Marshal::OctetsStream( pking->find(Marshal::OctetsStream()<<(int)0,txn) ) >> detail;
+				KECandidateVector list;
+				for(size_t i=0; i<arg->candidate_list.size(); i++)
+				{
+					int rst = Find(detail.candidate_list, arg->candidate_list[i]);
+					if(rst != -1)
+					{
+						list.push_back(detail.candidate_list[rst]);
+					}
+					else
+					{
+						res->retcode = ERR_VERIFYFAILED;
+						return;
+					}
+				}
+				detail.candidate_list.swap(list);
+				pking->insert(Marshal::OctetsStream()<<(int)0, Marshal::OctetsStream()<<detail, txn);
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBKECandidateConfirm, what=%s\n", e.what() );
+			res->retcode = ERR_EXCEPTION;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBKECandidateConfirmArg *arg = (DBKECandidateConfirmArg *)argument;
+		// DBKECandidateConfirmRes *res = (DBKECandidateConfirmRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

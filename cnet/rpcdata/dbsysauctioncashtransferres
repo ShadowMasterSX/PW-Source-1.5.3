@@ -1,0 +1,70 @@
+#ifndef __GNET_DBSYSAUCTIONCASHTRANSFERRES_RPCDATA
+#define __GNET_DBSYSAUCTIONCASHTRANSFERRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailsyncdata"
+
+namespace GNET
+{
+	class DBSysAuctionCashTransferRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		unsigned int cash;
+		GMailSyncData syncdata;
+
+	public:
+		DBSysAuctionCashTransferRes (int l_retcode = 0,unsigned int l_cash = 0,const GMailSyncData& l_syncdata = GMailSyncData())
+			: retcode(l_retcode),cash(l_cash),syncdata(l_syncdata)
+		{
+		}
+
+		DBSysAuctionCashTransferRes(const DBSysAuctionCashTransferRes &rhs)
+			: retcode(rhs.retcode),cash(rhs.cash),syncdata(rhs.syncdata) { }
+
+		Rpc::Data *Clone() const { return new DBSysAuctionCashTransferRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBSysAuctionCashTransferRes *r = dynamic_cast<const DBSysAuctionCashTransferRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				cash = r->cash;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		DBSysAuctionCashTransferRes& operator = (const DBSysAuctionCashTransferRes &rhs)
+		{
+			const DBSysAuctionCashTransferRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				cash = r->cash;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << cash;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> cash;
+			os >> syncdata;
+			return os;
+		}
+
+	};
+};
+#endif

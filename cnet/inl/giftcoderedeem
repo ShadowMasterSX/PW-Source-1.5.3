@@ -1,0 +1,35 @@
+	public:
+		int roleid;
+		Octets cardnumber;
+		enum { PROTOCOL_TYPE = PROTOCOL_GIFTCODEREDEEM };
+	public:
+		GiftCodeRedeem() { type = PROTOCOL_GIFTCODEREDEEM; }
+		GiftCodeRedeem(void*) : Protocol(PROTOCOL_GIFTCODEREDEEM) { }
+		GiftCodeRedeem (int l_roleid,Octets l_cardnumber)
+			 : roleid(l_roleid),cardnumber(l_cardnumber)
+		{
+			type = PROTOCOL_GIFTCODEREDEEM;
+		}
+
+		GiftCodeRedeem(const GiftCodeRedeem &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),cardnumber(rhs.cardnumber) { }
+
+		GNET::Protocol *Clone() const { return new GiftCodeRedeem(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << cardnumber;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> cardnumber;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 128; }

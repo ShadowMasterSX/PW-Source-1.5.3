@@ -1,0 +1,156 @@
+#ifndef __GNET_DBPSHOPTIMEOUT_HPP
+#define __GNET_DBPSHOPTIMEOUT_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbpshoptimeoutarg"
+#include "dbpshoptimeoutres"
+#include "utilfunction.h"
+
+namespace GNET
+{
+
+class DBPShopTimeout : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbpshoptimeout"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBPShopTimeoutArg *arg = (DBPShopTimeoutArg *)argument;
+		DBPShopTimeoutRes *res = (DBPShopTimeoutRes *)result;
+		LOG_TRACE("DBPShopTimeout, roleid=%d", arg->roleid);
+
+		try
+		{
+			StorageEnv::Storage * pshop = StorageEnv::GetStorage("playershop");
+			StorageEnv::Storage * pmailbox = StorageEnv::GetStorage("mailbox");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				Marshal::OctetsStream key, value;
+				key << arg->roleid;
+				if(!pshop->find(key, value, txn))
+				{
+					//错误:可能是RPC超时,多次请求造成的
+					Log::log(LOG_ERR,"DBPShopTimeout, role%d no find)",arg->roleid);
+					throw DbException(DB_NOTFOUND);
+				}
+
+				PShopDetail detail;
+				value >> detail;
+
+				if(detail.status == PSHOP_STATUS_NORMAL)
+				{
+					//店铺过期但不删除
+					//邮件通知店铺主人
+					detail.expiretime += PSHOP_DELETE_DELAY;
+					detail.status = PSHOP_STATUS_EXPIRED;
+					pshop->insert(key, Marshal::OctetsStream()<<detail,txn);
+
+					GMailHeader header;
+					header.id = 0;
+					header.sender = PLAYERSHOP_TIMEOUT;
+					header.sndr_type = _MST_PLAYERSHOP;
+					header.receiver = detail.roleid;
+					MailSender::Send(pmailbox, header, 0, txn);
+					res->maillist.push_back(header);
+				}
+				else if(detail.status == PSHOP_STATUS_EXPIRED && arg->delflag) // 避免timeout重复发送
+				{
+					//删除店铺
+					//邮件返回物品金钱
+					OnShopDelete(detail, res->maillist, pmailbox, txn);
+					pshop->del(key,txn);
+				}
+				else
+				{
+					Log::log(LOG_ERR,"DBPShopTimeout, status err. roleid=%d status=%d flag%d)",arg->roleid, detail.status, arg->delflag);
+					throw DbException(DB_VERIFY_BAD);					
+				}
+
+				res->retcode = ERR_SUCCESS;
+			}
+			catch(DbException e) { throw; }
+			catch(...)
+			{
+				DbException ee(DB_OLD_VERSION);
+				txn.abort(ee);
+				throw ee;
+			}
+		}
+		catch(DbException e)
+		{
+			Log::log(LOG_ERR, "DBPShopTimeout, roleid=%d, what=%s\n", arg->roleid, e.what());
+			res->maillist.clear();
+			if(e.get_errno()==DB_LOCK_DEADLOCK)
+				res->retcode = ERR_AGAIN;
+			else if(e.get_errno()==DB_NOTFOUND)
+				res->retcode = ERR_PLAYERSHOP_NOTFIND;
+			else
+				res->retcode = DB_VERIFY_BAD;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid) {}
+	void OnTimeout() {}
+	void OnShopDelete(PShopDetail &detail, GMailHeaderVector &maillist, StorageEnv::Storage *pmailbox, StorageEnv::CommonTransaction &txn)
+	{
+		//第一步: 店铺被删除
+		GMailHeader hdr;
+		hdr.id = 0;
+		hdr.sender = PLAYERSHOP_DELETED;
+		hdr.sndr_type = _MST_PLAYERSHOP;
+		hdr.receiver = detail.roleid;
+		MailSender::Send(pmailbox, hdr, 0, txn);
+		maillist.push_back(hdr);
+
+		//第二步: 返还金钱
+		if(detail.money > 0)
+		{
+			GMailHeader header;
+			header.id = 0;
+			header.sender = PLAYERSHOP_RETURN_MONEY;
+			header.sndr_type = _MST_PLAYERSHOP;
+			header.receiver = detail.roleid;
+			MailSender::Send(pmailbox, header, detail.money, txn);
+			maillist.push_back(header);
+		}
+
+		//第三步:返还物品
+		GRoleInventoryVector invlist;
+		for(size_t i=0; i<detail.store.size(); ++i)
+			invlist.push_back(detail.store[i]);
+		for(size_t i=0; i<detail.slist.size(); ++i)
+			invlist.push_back(detail.slist[i].item);
+		for(size_t i=0; i<invlist.size(); ++i)
+		{
+			GRoleInventory &inv = invlist[i];
+			GMailHeader header;
+			header.id = 0;
+			header.sender = PLAYERSHOP_RETURN_ITEM;
+			header.sndr_type = _MST_PLAYERSHOP;
+			header.receiver = detail.roleid;
+			MailSender::Send(pmailbox, header, inv, 0, txn);
+			maillist.push_back(header);
+		}
+
+		//第四步:返还银票
+		for(size_t i=0; i<detail.yinpiao.size(); ++i)
+		{
+			GMailHeader header;
+			header.id = 0;
+			header.sender = PLAYERSHOP_RETURN_ITEM;
+			header.sndr_type = _MST_PLAYERSHOP;
+			header.receiver = detail.roleid;
+			MailSender::Send(pmailbox, header, detail.yinpiao[i], 0, txn);
+			maillist.push_back(header);
+		}
+	}
+};
+
+};
+#endif

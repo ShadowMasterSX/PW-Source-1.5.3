@@ -1,0 +1,59 @@
+#ifndef __GNET_GETUSERCOUPONARG_RPCDATA
+#define __GNET_GETUSERCOUPONARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GetUserCouponArg : public GNET::Rpc::Data
+	{
+	public:
+		int userid;
+
+	public:
+		GetUserCouponArg (int l_userid = 0)
+			: userid(l_userid)
+		{
+		}
+
+		GetUserCouponArg(const GetUserCouponArg &rhs)
+			: userid(rhs.userid) { }
+
+		Rpc::Data *Clone() const { return new GetUserCouponArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GetUserCouponArg *r = dynamic_cast<const GetUserCouponArg *>(&rhs);
+			if (r && r != this)
+			{
+				userid = r->userid;
+			}
+			return *this;
+		}
+
+		GetUserCouponArg& operator = (const GetUserCouponArg &rhs)
+		{
+			const GetUserCouponArg *r = &rhs;
+			if (r && r != this)
+			{
+				userid = r->userid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			return os;
+		}
+
+	};
+};
+#endif

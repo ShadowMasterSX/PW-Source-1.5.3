@@ -1,0 +1,44 @@
+	public:
+		unsigned int stamp;
+		int userid;
+		Octets authenticator;
+		AccntParamVector attributes;
+		enum { PROTOCOL_TYPE = PROTOCOL_ACCOUNTINGREQUEST };
+	public:
+		AccountingRequest() { type = PROTOCOL_ACCOUNTINGREQUEST; }
+		AccountingRequest(void*) : Protocol(PROTOCOL_ACCOUNTINGREQUEST) { }
+		AccountingRequest (unsigned int l_stamp,int l_userid,const Octets& l_authenticator,
+			AccntParamVector l_attributes)
+			 : stamp(l_stamp),userid(l_userid),authenticator(l_authenticator)
+			,attributes(l_attributes)
+		{
+			type = PROTOCOL_ACCOUNTINGREQUEST;
+		}
+
+		AccountingRequest(const AccountingRequest &rhs)
+			: Protocol(rhs),stamp(rhs.stamp),userid(rhs.userid),authenticator(rhs.authenticator)
+			,attributes(rhs.attributes) { }
+
+		GNET::Protocol *Clone() const { return new AccountingRequest(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << stamp;
+			os << userid;
+			os << authenticator;
+			os << attributes;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> stamp;
+			os >> userid;
+			os >> authenticator;
+			os >> attributes;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 101; }
+
+		bool SizePolicy(size_t size) const { return size <= 128; }

@@ -1,0 +1,75 @@
+#ifndef __GNET_GROUPBEAN_RPCDATA
+#define __GNET_GROUPBEAN_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GroupBean : public GNET::Rpc::Data
+	{
+	public:
+		int gtype;
+		int64_t groupid;
+		Octets groupname;
+		std::vector<int64_t> friendlist;
+
+	public:
+		GroupBean ()
+		{
+		}
+
+		GroupBean(const GroupBean &rhs)
+			: gtype(rhs.gtype),groupid(rhs.groupid),groupname(rhs.groupname),
+			friendlist(rhs.friendlist) { }
+
+		Rpc::Data *Clone() const { return new GroupBean(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GroupBean *r = dynamic_cast<const GroupBean *>(&rhs);
+			if (r && r != this)
+			{
+				gtype = r->gtype;
+				groupid = r->groupid;
+				groupname = r->groupname;
+				friendlist = r->friendlist;
+			}
+			return *this;
+		}
+
+		GroupBean& operator = (const GroupBean &rhs)
+		{
+			const GroupBean *r = &rhs;
+			if (r && r != this)
+			{
+				gtype = r->gtype;
+				groupid = r->groupid;
+				groupname = r->groupname;
+				friendlist = r->friendlist;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << gtype;
+			os << groupid;
+			os << groupname;
+			os << friendlist;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> gtype;
+			os >> groupid;
+			os >> groupname;
+			os >> friendlist;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<GroupBean>	GroupBeanVector;
+};
+#endif

@@ -1,0 +1,64 @@
+#ifndef __GNET_ROLESTATUSBEAN_RPCDATA
+#define __GNET_ROLESTATUSBEAN_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class RoleStatusBean : public GNET::Rpc::Data
+	{
+	public:
+		unsigned char status;
+		Octets extinfo;
+
+	public:
+		RoleStatusBean (unsigned char l_status = 0,const Octets& l_extinfo = Octets())
+			: status(l_status),extinfo(l_extinfo)
+		{
+		}
+
+		RoleStatusBean(const RoleStatusBean &rhs)
+			: status(rhs.status),extinfo(rhs.extinfo) { }
+
+		Rpc::Data *Clone() const { return new RoleStatusBean(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const RoleStatusBean *r = dynamic_cast<const RoleStatusBean *>(&rhs);
+			if (r && r != this)
+			{
+				status = r->status;
+				extinfo = r->extinfo;
+			}
+			return *this;
+		}
+
+		RoleStatusBean& operator = (const RoleStatusBean &rhs)
+		{
+			const RoleStatusBean *r = &rhs;
+			if (r && r != this)
+			{
+				status = r->status;
+				extinfo = r->extinfo;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << status;
+			os << extinfo;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> status;
+			os >> extinfo;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,33 @@
+	public:
+		Octets rolename;
+		int ret;
+		enum { PROTOCOL_TYPE = PROTOCOL_VERIFYMASTER_RE };
+	public:
+		VerifyMaster_Re() { type = PROTOCOL_VERIFYMASTER_RE; }
+		VerifyMaster_Re(void*) : Protocol(PROTOCOL_VERIFYMASTER_RE) { }
+		VerifyMaster_Re (const Octets& l_rolename = Octets(0),int l_ret = -1)
+			 : rolename(l_rolename),ret(l_ret)
+		{
+			type = PROTOCOL_VERIFYMASTER_RE;
+		}
+
+		VerifyMaster_Re(const VerifyMaster_Re &rhs)
+			: Protocol(rhs),rolename(rhs.rolename),ret(rhs.ret) { }
+
+		GNET::Protocol *Clone() const { return new VerifyMaster_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << rolename;
+			os << ret;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> rolename;
+			os >> ret;
+			return os;
+		}
+
+		bool SizePolicy(size_t size) const { return size <= 128; }

@@ -1,0 +1,65 @@
+#ifndef __GNET_ROLESTATUSPAIR_RPCDATA
+#define __GNET_ROLESTATUSPAIR_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "roleid"
+#include "grolestatus"
+
+namespace GNET
+{
+	class RoleStatusPair : public GNET::Rpc::Data
+	{
+	public:
+		RoleId key;
+		GRoleStatus value;
+
+	public:
+		RoleStatusPair ()
+		{
+		}
+
+		RoleStatusPair(const RoleStatusPair &rhs)
+			: key(rhs.key),value(rhs.value) { }
+
+		Rpc::Data *Clone() const { return new RoleStatusPair(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const RoleStatusPair *r = dynamic_cast<const RoleStatusPair *>(&rhs);
+			if (r && r != this)
+			{
+				key = r->key;
+				value = r->value;
+			}
+			return *this;
+		}
+
+		RoleStatusPair& operator = (const RoleStatusPair &rhs)
+		{
+			const RoleStatusPair *r = &rhs;
+			if (r && r != this)
+			{
+				key = r->key;
+				value = r->value;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << key;
+			os << value;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> key;
+			os >> value;
+			return os;
+		}
+
+	};
+};
+#endif

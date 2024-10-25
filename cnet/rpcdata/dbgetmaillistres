@@ -1,0 +1,65 @@
+#ifndef __GNET_DBGETMAILLISTRES_RPCDATA
+#define __GNET_DBGETMAILLISTRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailheader"
+
+namespace GNET
+{
+	class DBGetMailListRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		GMailHeaderVector maillist;
+
+	public:
+		DBGetMailListRes (int l_retcode = -1,const GMailHeaderVector& l_maillist = GMailHeaderVector())
+			: retcode(l_retcode),maillist(l_maillist)
+		{
+		}
+
+		DBGetMailListRes(const DBGetMailListRes &rhs)
+			: retcode(rhs.retcode),maillist(rhs.maillist) { }
+
+		Rpc::Data *Clone() const { return new DBGetMailListRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBGetMailListRes *r = dynamic_cast<const DBGetMailListRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				maillist = r->maillist;
+			}
+			return *this;
+		}
+
+		DBGetMailListRes& operator = (const DBGetMailListRes &rhs)
+		{
+			const DBGetMailListRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				maillist = r->maillist;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << maillist;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> maillist;
+			return os;
+		}
+
+	};
+};
+#endif

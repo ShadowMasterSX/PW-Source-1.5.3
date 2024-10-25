@@ -1,0 +1,69 @@
+#ifndef __GNET_CASHSERIALARG_RPCDATA
+#define __GNET_CASHSERIALARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class CashSerialArg : public GNET::Rpc::Data
+	{
+	public:
+		int userid;
+		int zoneid;
+		char force;
+
+	public:
+		CashSerialArg (int l_userid = -1,int l_zoneid = -1,char l_force = 0)
+			: userid(l_userid),zoneid(l_zoneid),force(l_force)
+		{
+		}
+
+		CashSerialArg(const CashSerialArg &rhs)
+			: userid(rhs.userid),zoneid(rhs.zoneid),force(rhs.force) { }
+
+		Rpc::Data *Clone() const { return new CashSerialArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const CashSerialArg *r = dynamic_cast<const CashSerialArg *>(&rhs);
+			if (r && r != this)
+			{
+				userid = r->userid;
+				zoneid = r->zoneid;
+				force = r->force;
+			}
+			return *this;
+		}
+
+		CashSerialArg& operator = (const CashSerialArg &rhs)
+		{
+			const CashSerialArg *r = &rhs;
+			if (r && r != this)
+			{
+				userid = r->userid;
+				zoneid = r->zoneid;
+				force = r->force;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			os << zoneid;
+			os << force;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			os >> zoneid;
+			os >> force;
+			return os;
+		}
+
+	};
+};
+#endif

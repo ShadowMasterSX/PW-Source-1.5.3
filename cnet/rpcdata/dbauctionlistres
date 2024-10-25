@@ -1,0 +1,70 @@
+#ifndef __GNET_DBAUCTIONLISTRES_RPCDATA
+#define __GNET_DBAUCTIONLISTRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gauctiondetail"
+
+namespace GNET
+{
+	class DBAuctionListRes : public GNET::Rpc::Data
+	{
+	public:
+		short retcode;
+		std::vector<GAuctionDetail> items;
+		Octets handle;
+
+	public:
+		DBAuctionListRes (short l_retcode = 0,const std::vector<GAuctionDetail>& l_items = std::vector<GAuctionDetail>(),const Octets& l_handle = Octets())
+			: retcode(l_retcode),items(l_items),handle(l_handle)
+		{
+		}
+
+		DBAuctionListRes(const DBAuctionListRes &rhs)
+			: retcode(rhs.retcode),items(rhs.items),handle(rhs.handle) { }
+
+		Rpc::Data *Clone() const { return new DBAuctionListRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBAuctionListRes *r = dynamic_cast<const DBAuctionListRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				items = r->items;
+				handle = r->handle;
+			}
+			return *this;
+		}
+
+		DBAuctionListRes& operator = (const DBAuctionListRes &rhs)
+		{
+			const DBAuctionListRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				items = r->items;
+				handle = r->handle;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << items;
+			os << handle;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> items;
+			os >> handle;
+			return os;
+		}
+
+	};
+};
+#endif

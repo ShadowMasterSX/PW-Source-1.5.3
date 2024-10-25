@@ -1,0 +1,64 @@
+#ifndef __GNET_DBCOPYROLEARG_RPCDATA
+#define __GNET_DBCOPYROLEARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBCopyRoleArg : public GNET::Rpc::Data
+	{
+	public:
+		int srcroleid;
+		int dstroleid;
+
+	public:
+		DBCopyRoleArg (int l_srcroleid = 0,int l_dstroleid = 0)
+			: srcroleid(l_srcroleid),dstroleid(l_dstroleid)
+		{
+		}
+
+		DBCopyRoleArg(const DBCopyRoleArg &rhs)
+			: srcroleid(rhs.srcroleid),dstroleid(rhs.dstroleid) { }
+
+		Rpc::Data *Clone() const { return new DBCopyRoleArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBCopyRoleArg *r = dynamic_cast<const DBCopyRoleArg *>(&rhs);
+			if (r && r != this)
+			{
+				srcroleid = r->srcroleid;
+				dstroleid = r->dstroleid;
+			}
+			return *this;
+		}
+
+		DBCopyRoleArg& operator = (const DBCopyRoleArg &rhs)
+		{
+			const DBCopyRoleArg *r = &rhs;
+			if (r && r != this)
+			{
+				srcroleid = r->srcroleid;
+				dstroleid = r->dstroleid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << srcroleid;
+			os << dstroleid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> srcroleid;
+			os >> dstroleid;
+			return os;
+		}
+
+	};
+};
+#endif

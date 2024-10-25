@@ -1,0 +1,64 @@
+#ifndef __GNET_DBKEDELETEKINGARG_RPCDATA
+#define __GNET_DBKEDELETEKINGARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBKEDeleteKingArg : public GNET::Rpc::Data
+	{
+	public:
+		int king_roleid;
+		int reason;
+
+	public:
+		DBKEDeleteKingArg (int l_king_roleid = 0,int l_reason = 0)
+			: king_roleid(l_king_roleid),reason(l_reason)
+		{
+		}
+
+		DBKEDeleteKingArg(const DBKEDeleteKingArg &rhs)
+			: king_roleid(rhs.king_roleid),reason(rhs.reason) { }
+
+		Rpc::Data *Clone() const { return new DBKEDeleteKingArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBKEDeleteKingArg *r = dynamic_cast<const DBKEDeleteKingArg *>(&rhs);
+			if (r && r != this)
+			{
+				king_roleid = r->king_roleid;
+				reason = r->reason;
+			}
+			return *this;
+		}
+
+		DBKEDeleteKingArg& operator = (const DBKEDeleteKingArg &rhs)
+		{
+			const DBKEDeleteKingArg *r = &rhs;
+			if (r && r != this)
+			{
+				king_roleid = r->king_roleid;
+				reason = r->reason;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << king_roleid;
+			os << reason;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> king_roleid;
+			os >> reason;
+			return os;
+		}
+
+	};
+};
+#endif

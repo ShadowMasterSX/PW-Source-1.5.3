@@ -1,0 +1,6 @@
+bool=<>;
+int=<>;
+float=<>;
+@SKILLLEVEL=<value,int>;
+PLAYER=<hp,int>,<mp,int>,<skill,SKILL>,<level,int>,<@skilllevel,SKILLLEVEL>;
+SKILL=<level,int>,<hitback,float>,<player,PLAYER>,<enemy,PLAYER>;

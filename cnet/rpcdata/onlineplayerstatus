@@ -1,0 +1,78 @@
+#ifndef __GNET_ONLINEPLAYERSTATUS_RPCDATA
+#define __GNET_ONLINEPLAYERSTATUS_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class OnlinePlayerStatus : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		int gid;
+		int link_id;
+		unsigned int link_sid;
+
+	public:
+		OnlinePlayerStatus (int l_roleid = -1,int l_gid = -1,int l_link_id = -1
+			,unsigned int l_link_sid = 0)
+			: roleid(l_roleid),gid(l_gid),link_id(l_link_id)
+			,link_sid(l_link_sid)
+		{
+		}
+
+		OnlinePlayerStatus(const OnlinePlayerStatus &rhs)
+			: roleid(rhs.roleid),gid(rhs.gid),link_id(rhs.link_id),
+			link_sid(rhs.link_sid) { }
+
+		Rpc::Data *Clone() const { return new OnlinePlayerStatus(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const OnlinePlayerStatus *r = dynamic_cast<const OnlinePlayerStatus *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				gid = r->gid;
+				link_id = r->link_id;
+				link_sid = r->link_sid;
+			}
+			return *this;
+		}
+
+		OnlinePlayerStatus& operator = (const OnlinePlayerStatus &rhs)
+		{
+			const OnlinePlayerStatus *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				gid = r->gid;
+				link_id = r->link_id;
+				link_sid = r->link_sid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << gid;
+			os << link_id;
+			os << link_sid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> gid;
+			os >> link_id;
+			os >> link_sid;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<OnlinePlayerStatus>	OnlinePlayerStatusVector;
+};
+#endif

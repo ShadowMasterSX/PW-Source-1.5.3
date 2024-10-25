@@ -1,0 +1,80 @@
+
+#ifndef __GNET_DBDELETEROLE_HPP
+#define __GNET_DBDELETEROLE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbdeleterolearg"
+#include "dbdeleteroleres"
+#include "deleterole_re.hpp"
+
+#include "announcefactionroledel.hrp"
+#include "gfactionclient.hpp"
+#include "mapuser.h"
+
+#include "postdeleterole.hrp"
+#include "uniquenameclient.hpp"
+#include "gdeliveryserver.hpp" //for zoneid
+#include "gametalkmanager.h"
+namespace GNET
+{
+
+class DBDeleteRole : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbdeleterole"
+#undef	RPC_BASECLASS
+	void NotifyUniqueNameSvr(int zoneid,int userid,int roleid,Octets& rolename)
+	{
+		DEBUG_PRINT("dbdeleterole: Notify UniqueNameServer. zoneid=%d,roleid=%d,rolename.size=%d\n",
+				zoneid,roleid,rolename.size() );
+		UniqueNameClient::GetInstance()->SendProtocol(
+				Rpc::Call( RPC_POSTDELETEROLE,PostDeleteRoleArg(userid,zoneid,roleid,rolename) )
+			);	
+	}
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBDeleteRoleArg *arg = (DBDeleteRoleArg *)argument;
+		// DBDeleteRoleRes *res = (DBDeleteRoleRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBDeleteRoleArg *arg = (DBDeleteRoleArg *)argument;
+		DBDeleteRoleRes *res = (DBDeleteRoleRes *)result;  
+		
+		GDeliveryServer* dsm=GDeliveryServer::GetInstance();
+		//remove user baseinfo from cache
+		dsm->rbcache.remove(arg->roleid);
+		
+		Thread::RWLock::WRScoped l(UserContainer::GetInstance().GetLocker());
+		UserInfo * pinfo = UserContainer::GetInstance().FindUser(res->userid);
+		
+		if (res->retcode == ERR_SUCCESS)
+		{
+			if (!GFactionClient::GetInstance()->SendProtocol(
+					Rpc::Call(RPC_ANNOUNCEFACTIONROLEDEL,AnnounceFactionRoleDelArg(arg->roleid,dsm->zoneid,res->faction)) ) )
+			{
+				Log::log(LOG_ERR,"dbdeleterole::delete role %d in GameDBD successfully. But Announce FactionServer failed.",arg->roleid);
+			}
+			STAT_DAY("role-delete",1);
+			if (pinfo!=NULL)
+			{
+				pinfo->rolelist.DelRole(arg->roleid % MAX_ROLE_COUNT);
+			}
+			if ( !arg->create_rollback )
+				NotifyUniqueNameSvr(dsm->zoneid,res->userid,arg->roleid,res->rolename);
+			GameTalkManager::GetInstance()->NotifyRemoveRole(res->userid, arg->roleid);
+		}
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+	}
+
+};
+
+};
+#endif

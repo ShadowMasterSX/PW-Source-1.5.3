@@ -1,0 +1,107 @@
+
+#ifndef __GNET_RENAMEROLE_HPP
+#define __GNET_RENAMEROLE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "renamerolearg"
+
+
+namespace GNET
+{
+
+class RenameRole : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "renamerole"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		RenameRoleArg *arg = (RenameRoleArg *)argument;
+		RpcRetcode *res = (RpcRetcode *)result;
+
+		Marshal::OctetsStream key_roleid, value_rolename, value_base, value_base_new;
+
+		LOG_TRACE( "RenameRole, roleid=%d", arg->roleid );
+
+		try
+		{
+			StorageEnv::Storage * prolename = StorageEnv::GetStorage("rolename");
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				int oldroleid = -1;//, status = 0;
+				GRoleBase	base;
+				key_roleid << arg->roleid;
+
+				if( !prolename->find( arg->oldname, value_rolename, txn ) )
+				{
+					res->retcode = 4;
+					return;
+				}
+				value_rolename >> oldroleid; // >> status;
+				if( arg->roleid != oldroleid )
+				{
+					res->retcode = 5;
+					return;
+				}
+				if( prolename->find( arg->newname, value_rolename, txn ) )
+				{
+					res->retcode = 6;
+					return;
+				}
+
+				value_rolename.clear();
+				value_rolename << oldroleid;
+				prolename->del( arg->oldname, txn );
+				prolename->insert( arg->newname, value_rolename, txn );
+
+				value_base = pbase->find( key_roleid, txn );
+				value_base >> base;
+				base.name = arg->newname;
+				value_base_new << base;
+				pbase->insert( key_roleid, value_base_new, txn );
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( Marshal::Exception e )
+			{
+				Log::log( LOG_ERR, "RenameRole, cannot rename this role, roleid=%d\n", arg->roleid );
+				res->retcode = 7;
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "RenameRole, roleid=%d, what=%s\n", arg->roleid, e.what() );
+			res->retcode = -1;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// RenameRoleArg *arg = (RenameRoleArg *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

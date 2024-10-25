@@ -1,0 +1,83 @@
+#ifndef __GNET_ROLEMSGBEAN_RPCDATA
+#define __GNET_ROLEMSGBEAN_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class RoleMsgBean : public GNET::Rpc::Data
+	{
+	public:
+		int64_t sender;
+		Octets sendername;
+		int64_t time;
+		int emotiongroup;
+		Octets content;
+
+	public:
+		RoleMsgBean (int64_t l_sender = 0,const Octets& l_sendername = Octets(),int64_t l_time = 0
+			,int l_emotiongroup = 0,const Octets& l_content = Octets())
+			: sender(l_sender),sendername(l_sendername),time(l_time)
+			,emotiongroup(l_emotiongroup),content(l_content)
+		{
+		}
+
+		RoleMsgBean(const RoleMsgBean &rhs)
+			: sender(rhs.sender),sendername(rhs.sendername),time(rhs.time),
+			emotiongroup(rhs.emotiongroup),content(rhs.content) { }
+
+		Rpc::Data *Clone() const { return new RoleMsgBean(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const RoleMsgBean *r = dynamic_cast<const RoleMsgBean *>(&rhs);
+			if (r && r != this)
+			{
+				sender = r->sender;
+				sendername = r->sendername;
+				time = r->time;
+				emotiongroup = r->emotiongroup;
+				content = r->content;
+			}
+			return *this;
+		}
+
+		RoleMsgBean& operator = (const RoleMsgBean &rhs)
+		{
+			const RoleMsgBean *r = &rhs;
+			if (r && r != this)
+			{
+				sender = r->sender;
+				sendername = r->sendername;
+				time = r->time;
+				emotiongroup = r->emotiongroup;
+				content = r->content;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << sender;
+			os << sendername;
+			os << time;
+			os << emotiongroup;
+			os << content;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> sender;
+			os >> sendername;
+			os >> time;
+			os >> emotiongroup;
+			os >> content;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<RoleMsgBean>	RoleMsgBeanVector;
+};
+#endif

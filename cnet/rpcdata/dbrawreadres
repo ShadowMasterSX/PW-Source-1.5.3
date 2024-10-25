@@ -1,0 +1,70 @@
+#ifndef __GNET_DBRAWREADRES_RPCDATA
+#define __GNET_DBRAWREADRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "rawkeyvalue"
+
+namespace GNET
+{
+	class DBRawReadRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		Octets handle;
+		std::vector<RawKeyValue> values;
+
+	public:
+		DBRawReadRes (int l_retcode = -1,Octets l_handle = Octets(),const std::vector<RawKeyValue>& l_values = std::vector<RawKeyValue>())
+			: retcode(l_retcode),handle(l_handle),values(l_values)
+		{
+		}
+
+		DBRawReadRes(const DBRawReadRes &rhs)
+			: retcode(rhs.retcode),handle(rhs.handle),values(rhs.values) { }
+
+		Rpc::Data *Clone() const { return new DBRawReadRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBRawReadRes *r = dynamic_cast<const DBRawReadRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				handle = r->handle;
+				values = r->values;
+			}
+			return *this;
+		}
+
+		DBRawReadRes& operator = (const DBRawReadRes &rhs)
+		{
+			const DBRawReadRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				handle = r->handle;
+				values = r->values;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << handle;
+			os << values;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> handle;
+			os >> values;
+			return os;
+		}
+
+	};
+};
+#endif

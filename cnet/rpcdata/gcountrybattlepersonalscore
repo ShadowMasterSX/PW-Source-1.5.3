@@ -1,0 +1,123 @@
+#ifndef __GNET_GCOUNTRYBATTLEPERSONALSCORE_RPCDATA
+#define __GNET_GCOUNTRYBATTLEPERSONALSCORE_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GCountryBattlePersonalScore : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		int cls;
+		int minor_str;
+		int combat_time;
+		int attend_time;
+		int kill_count;
+		int death_count;
+		int contribute_val;
+		int damage;
+		int hurt;
+		int damage_minor_str;
+		int kill_minor_str;
+
+	public:
+		GCountryBattlePersonalScore (int l_roleid = 0,int l_cls = 0,int l_minor_str = 0
+			,int l_combat_time = 0,int l_attend_time = 0,int l_kill_count = 0
+			,int l_death_count = 0,int l_contribute_val = 0,int l_damage = 0
+			,int l_hurt = 0,int l_damage_minor_str = 0,int l_kill_minor_str = 0)
+			: roleid(l_roleid),cls(l_cls),minor_str(l_minor_str)
+			,combat_time(l_combat_time),attend_time(l_attend_time),kill_count(l_kill_count)
+			,death_count(l_death_count),contribute_val(l_contribute_val),damage(l_damage)
+			,hurt(l_hurt),damage_minor_str(l_damage_minor_str),kill_minor_str(l_kill_minor_str)
+		{
+		}
+
+		GCountryBattlePersonalScore(const GCountryBattlePersonalScore &rhs)
+			: roleid(rhs.roleid),cls(rhs.cls),minor_str(rhs.minor_str),
+			combat_time(rhs.combat_time),attend_time(rhs.attend_time),kill_count(rhs.kill_count),
+			death_count(rhs.death_count),contribute_val(rhs.contribute_val),damage(rhs.damage),
+			hurt(rhs.hurt),damage_minor_str(rhs.damage_minor_str),kill_minor_str(rhs.kill_minor_str) { }
+
+		Rpc::Data *Clone() const { return new GCountryBattlePersonalScore(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GCountryBattlePersonalScore *r = dynamic_cast<const GCountryBattlePersonalScore *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				cls = r->cls;
+				minor_str = r->minor_str;
+				combat_time = r->combat_time;
+				attend_time = r->attend_time;
+				kill_count = r->kill_count;
+				death_count = r->death_count;
+				contribute_val = r->contribute_val;
+				damage = r->damage;
+				hurt = r->hurt;
+				damage_minor_str = r->damage_minor_str;
+				kill_minor_str = r->kill_minor_str;
+			}
+			return *this;
+		}
+
+		GCountryBattlePersonalScore& operator = (const GCountryBattlePersonalScore &rhs)
+		{
+			const GCountryBattlePersonalScore *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				cls = r->cls;
+				minor_str = r->minor_str;
+				combat_time = r->combat_time;
+				attend_time = r->attend_time;
+				kill_count = r->kill_count;
+				death_count = r->death_count;
+				contribute_val = r->contribute_val;
+				damage = r->damage;
+				hurt = r->hurt;
+				damage_minor_str = r->damage_minor_str;
+				kill_minor_str = r->kill_minor_str;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << cls;
+			os << minor_str;
+			os << combat_time;
+			os << attend_time;
+			os << kill_count;
+			os << death_count;
+			os << contribute_val;
+			os << damage;
+			os << hurt;
+			os << damage_minor_str;
+			os << kill_minor_str;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> cls;
+			os >> minor_str;
+			os >> combat_time;
+			os >> attend_time;
+			os >> kill_count;
+			os >> death_count;
+			os >> contribute_val;
+			os >> damage;
+			os >> hurt;
+			os >> damage_minor_str;
+			os >> kill_minor_str;
+			return os;
+		}
+
+	};
+};
+#endif

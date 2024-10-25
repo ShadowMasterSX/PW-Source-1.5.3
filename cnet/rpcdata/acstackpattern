@@ -1,0 +1,83 @@
+#ifndef __GNET_ACSTACKPATTERN_RPCDATA
+#define __GNET_ACSTACKPATTERN_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class ACStackPattern : public GNET::Rpc::Data
+	{
+	public:
+		int caller;
+		int size;
+		int pattern;
+		int count;
+		int count_hd;
+
+	public:
+		ACStackPattern (int l_caller = 0,int l_size = 0,int l_pattern = 0
+			,int l_count = 0,int l_count_hd = 0)
+			: caller(l_caller),size(l_size),pattern(l_pattern)
+			,count(l_count),count_hd(l_count_hd)
+		{
+		}
+
+		ACStackPattern(const ACStackPattern &rhs)
+			: caller(rhs.caller),size(rhs.size),pattern(rhs.pattern),
+			count(rhs.count),count_hd(rhs.count_hd) { }
+
+		Rpc::Data *Clone() const { return new ACStackPattern(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const ACStackPattern *r = dynamic_cast<const ACStackPattern *>(&rhs);
+			if (r && r != this)
+			{
+				caller = r->caller;
+				size = r->size;
+				pattern = r->pattern;
+				count = r->count;
+				count_hd = r->count_hd;
+			}
+			return *this;
+		}
+
+		ACStackPattern& operator = (const ACStackPattern &rhs)
+		{
+			const ACStackPattern *r = &rhs;
+			if (r && r != this)
+			{
+				caller = r->caller;
+				size = r->size;
+				pattern = r->pattern;
+				count = r->count;
+				count_hd = r->count_hd;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << caller;
+			os << size;
+			os << pattern;
+			os << count;
+			os << count_hd;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> caller;
+			os >> size;
+			os >> pattern;
+			os >> count;
+			os >> count_hd;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<ACStackPattern>	ACStackPatternVector;
+};
+#endif

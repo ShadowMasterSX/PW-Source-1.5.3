@@ -1,0 +1,59 @@
+#ifndef __GNET_PUTFACTIONFORTRESSRES_RPCDATA
+#define __GNET_PUTFACTIONFORTRESSRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class PutFactionFortressRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+
+	public:
+		PutFactionFortressRes (int l_retcode = 0)
+			: retcode(l_retcode)
+		{
+		}
+
+		PutFactionFortressRes(const PutFactionFortressRes &rhs)
+			: retcode(rhs.retcode) { }
+
+		Rpc::Data *Clone() const { return new PutFactionFortressRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const PutFactionFortressRes *r = dynamic_cast<const PutFactionFortressRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		PutFactionFortressRes& operator = (const PutFactionFortressRes &rhs)
+		{
+			const PutFactionFortressRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			return os;
+		}
+
+	};
+};
+#endif

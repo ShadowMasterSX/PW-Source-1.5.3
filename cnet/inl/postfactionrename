@@ -1,0 +1,47 @@
+	public:
+		int zid;
+		unsigned int fid;
+		int retcode;
+		Octets newname;
+		Octets oldname;
+		enum { PROTOCOL_TYPE = PROTOCOL_POSTFACTIONRENAME };
+	public:
+		PostFactionRename() { type = PROTOCOL_POSTFACTIONRENAME; }
+		PostFactionRename(void*) : Protocol(PROTOCOL_POSTFACTIONRENAME) { }
+		PostFactionRename (int l_zid = -1,unsigned int l_fid = 0,int l_retcode = -1,
+			const Octets& l_newname = Octets(),const Octets& l_oldname = Octets())
+			 : zid(l_zid),fid(l_fid),retcode(l_retcode)
+			,newname(l_newname),oldname(l_oldname)
+		{
+			type = PROTOCOL_POSTFACTIONRENAME;
+		}
+
+		PostFactionRename(const PostFactionRename &rhs)
+			: Protocol(rhs),zid(rhs.zid),fid(rhs.fid),retcode(rhs.retcode)
+			,newname(rhs.newname),oldname(rhs.oldname) { }
+
+		GNET::Protocol *Clone() const { return new PostFactionRename(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << zid;
+			os << fid;
+			os << retcode;
+			os << newname;
+			os << oldname;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> zid;
+			os >> fid;
+			os >> retcode;
+			os >> newname;
+			os >> oldname;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 128; }

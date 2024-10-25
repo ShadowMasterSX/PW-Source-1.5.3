@@ -1,0 +1,35 @@
+	public:
+		int roleid;
+		int faction_id;
+		enum { PROTOCOL_TYPE = PROTOCOL_FACTIONRESOURCEBATTLEPLAYERQUERY };
+	public:
+		FactionResourceBattlePlayerQuery() { type = PROTOCOL_FACTIONRESOURCEBATTLEPLAYERQUERY; }
+		FactionResourceBattlePlayerQuery(void*) : Protocol(PROTOCOL_FACTIONRESOURCEBATTLEPLAYERQUERY) { }
+		FactionResourceBattlePlayerQuery (int l_roleid,int l_faction_id)
+			 : roleid(l_roleid),faction_id(l_faction_id)
+		{
+			type = PROTOCOL_FACTIONRESOURCEBATTLEPLAYERQUERY;
+		}
+
+		FactionResourceBattlePlayerQuery(const FactionResourceBattlePlayerQuery &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),faction_id(rhs.faction_id) { }
+
+		GNET::Protocol *Clone() const { return new FactionResourceBattlePlayerQuery(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << faction_id;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> faction_id;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 128; }

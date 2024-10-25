@@ -1,0 +1,82 @@
+#ifndef __GNET_DBFACTIONREMOVERELATIONAPPLYARG_RPCDATA
+#define __GNET_DBFACTIONREMOVERELATIONAPPLYARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBFactionRemoveRelationApplyArg : public GNET::Rpc::Data
+	{
+	public:
+		int fid;
+		int dst_fid;
+		char force;
+		int end_time;
+		int op_time;
+
+	public:
+		DBFactionRemoveRelationApplyArg (int l_fid = 0,int l_dst_fid = 0,char l_force = 0
+			,int l_end_time = 0,int l_op_time = 0)
+			: fid(l_fid),dst_fid(l_dst_fid),force(l_force)
+			,end_time(l_end_time),op_time(l_op_time)
+		{
+		}
+
+		DBFactionRemoveRelationApplyArg(const DBFactionRemoveRelationApplyArg &rhs)
+			: fid(rhs.fid),dst_fid(rhs.dst_fid),force(rhs.force),
+			end_time(rhs.end_time),op_time(rhs.op_time) { }
+
+		Rpc::Data *Clone() const { return new DBFactionRemoveRelationApplyArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBFactionRemoveRelationApplyArg *r = dynamic_cast<const DBFactionRemoveRelationApplyArg *>(&rhs);
+			if (r && r != this)
+			{
+				fid = r->fid;
+				dst_fid = r->dst_fid;
+				force = r->force;
+				end_time = r->end_time;
+				op_time = r->op_time;
+			}
+			return *this;
+		}
+
+		DBFactionRemoveRelationApplyArg& operator = (const DBFactionRemoveRelationApplyArg &rhs)
+		{
+			const DBFactionRemoveRelationApplyArg *r = &rhs;
+			if (r && r != this)
+			{
+				fid = r->fid;
+				dst_fid = r->dst_fid;
+				force = r->force;
+				end_time = r->end_time;
+				op_time = r->op_time;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << fid;
+			os << dst_fid;
+			os << force;
+			os << end_time;
+			os << op_time;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> fid;
+			os >> dst_fid;
+			os >> force;
+			os >> end_time;
+			os >> op_time;
+			return os;
+		}
+
+	};
+};
+#endif

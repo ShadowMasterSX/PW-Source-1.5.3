@@ -1,0 +1,93 @@
+#!/usr/bin/perl
+
+use strict;
+
+#
+
+# modules
+my @modules = ('Digest-MD5-2.33.tar.gz', 'HTML-Tagset-3.03.tar.gz', 'MIME-Base64-3.01.tar.gz', 'URI-1.31.tar.gz', 'HTML-Parser-3.36.tar.gz', 'XML-RegExp-0.03.tar.gz', 'libxml-perl-0.07.tar.gz', 'XML-Parser-2.34.tar.gz', 'libnet-1.18.tar.gz', 'libwww-perl-5.79.tar.gz', 'XML-Grove-0.46alpha.tar.gz', 'XML-DOM-1.43.tar.gz');
+
+# directories
+my @dirs = ('Digest-MD5-2.33', 'HTML-Tagset-3.03', 'MIME-Base64-3.01', 'URI-1.31', 'HTML-Parser-3.36', 'XML-RegExp-0.03', 'libxml-perl-0.07', 'XML-Parser-2.34', 'libnet-1.18', 'libwww-perl-5.79', 'XML-Grove-0.46alpha', 'XML-DOM-1.43');
+
+	my $option;
+	$option = $ARGV[0] if( @ARGV > 0 );
+
+	if( $option )
+	{
+		makeall() if( $option eq 'all' );
+		makeinstall() if( $option eq 'install' );
+		maketest() if( $option eq 'test' );
+		makeclean() if( $option eq 'clean' );
+		makedistclean() if( $option eq 'distclean' );
+	}
+	else
+	{
+		extract();
+		makeall();
+		makeinstall();
+		makeinstall();
+		makeinstall();
+	}
+
+sub extract
+{
+	foreach( @modules )
+	{
+		my @args = ('tar', '-xvzf', $_);
+		system( @args );
+	}
+	foreach( @dirs )
+	{
+		chdir( $_ );
+		my @args = ('perl','Makefile.PL');
+		system( @args );
+		chdir( '..' );
+	}
+}
+
+sub makeall
+{
+	foreach( @dirs )
+	{
+		my @args = ('make','-C', $_, 'all');
+		system( @args );
+	}
+}
+
+sub makeinstall
+{
+	foreach( @dirs )
+	{
+		my @args = ('make','-C', $_, 'install');
+		system( @args );
+	}
+}
+
+sub maketest
+{
+	foreach( @dirs )
+	{
+		my @args = ('make','-C', $_, 'test');
+		system( @args );
+	}
+}
+
+sub makeclean
+{
+	foreach( @dirs )
+	{
+		my @args = ('make','-C', $_, 'clean');
+		system( @args );
+	}
+}
+
+sub makedistclean
+{
+	foreach( @dirs )
+	{
+		my @args = ('rm','-rf', $_);
+		system( @args );
+	}
+}
+

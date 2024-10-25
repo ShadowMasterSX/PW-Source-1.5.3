@@ -1,0 +1,58 @@
+
+#ifndef __GNET_DBGAMETALKROLESTATUS_HPP
+#define __GNET_DBGAMETALKROLESTATUS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbgametalkrolestatusarg"
+#include "dbgametalkrolestatusres"
+#include "log.h"
+#include "gametalkdefs.h"
+
+namespace GNET
+{
+
+class DBGameTalkRoleStatus : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbgametalkrolestatus"
+#undef	RPC_BASECLASS
+
+	char operation;
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBGameTalkRoleStatusArg *arg = (DBGameTalkRoleStatusArg *)argument;
+		// DBGameTalkRoleStatusRes *res = (DBGameTalkRoleStatusRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBGameTalkRoleStatusArg *arg = (DBGameTalkRoleStatusArg *)argument;
+		DBGameTalkRoleStatusRes *res = (DBGameTalkRoleStatusRes *)result;
+		switch(res->status) {
+		case GT_ROLE_NORMAL: {
+			GameTalkManager::GetInstance()->SendActiveRole(arg->roleid, operation);
+			break;
+		}
+		case GT_ROLE_READYDEL: {
+			GameTalkManager::GetInstance()->NotifyPreRemoveRole(arg->roleid);
+			break;
+		}
+		case GT_ROLE_NON_EXIST: {
+			GameTalkManager::GetInstance()->NotifyRemoveRole(res->userid, arg->roleid);
+			break;
+		}
+		};
+	}
+
+	void OnTimeout()
+	{
+		Log::log(LOG_ERR, "DBGameTalkRoleStatus timeout.");
+	}
+};
+
+};
+#endif

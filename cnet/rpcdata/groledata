@@ -1,0 +1,90 @@
+#ifndef __GNET_GROLEDATA_RPCDATA
+#define __GNET_GROLEDATA_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "grolebase"
+#include "grolestatus"
+#include "grolepocket"
+#include "groleequipment"
+#include "grolestorehouse"
+#include "groletask"
+
+namespace GNET
+{
+	class GRoleData : public GNET::Rpc::Data
+	{
+	public:
+		GRoleBase base;
+		GRoleStatus status;
+		GRolePocket pocket;
+		GRoleEquipment equipment;
+		GRoleStorehouse storehouse;
+		GRoleTask task;
+
+	public:
+		GRoleData ()
+		{
+		}
+
+		GRoleData(const GRoleData &rhs)
+			: base(rhs.base),status(rhs.status),pocket(rhs.pocket),
+			equipment(rhs.equipment),storehouse(rhs.storehouse),task(rhs.task) { }
+
+		Rpc::Data *Clone() const { return new GRoleData(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GRoleData *r = dynamic_cast<const GRoleData *>(&rhs);
+			if (r && r != this)
+			{
+				base = r->base;
+				status = r->status;
+				pocket = r->pocket;
+				equipment = r->equipment;
+				storehouse = r->storehouse;
+				task = r->task;
+			}
+			return *this;
+		}
+
+		GRoleData& operator = (const GRoleData &rhs)
+		{
+			const GRoleData *r = &rhs;
+			if (r && r != this)
+			{
+				base = r->base;
+				status = r->status;
+				pocket = r->pocket;
+				equipment = r->equipment;
+				storehouse = r->storehouse;
+				task = r->task;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << base;
+			os << status;
+			os << pocket;
+			os << equipment;
+			os << storehouse;
+			os << task;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> base;
+			os >> status;
+			os >> pocket;
+			os >> equipment;
+			os >> storehouse;
+			os >> task;
+			return os;
+		}
+
+	};
+};
+#endif

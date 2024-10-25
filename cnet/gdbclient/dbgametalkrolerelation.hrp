@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBGAMETALKROLERELATION_HPP
+#define __GNET_DBGAMETALKROLERELATION_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbgametalkrolerelationarg"
+#include "dbgametalkrolerelationres"
+
+namespace GNET
+{
+
+class DBGameTalkRoleRelation : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbgametalkrolerelation"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBGameTalkRoleRelationArg *arg = (DBGameTalkRoleRelationArg *)argument;
+		// DBGameTalkRoleRelationRes *res = (DBGameTalkRoleRelationRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBGameTalkRoleRelationArg *arg = (DBGameTalkRoleRelationArg *)argument;
+		// DBGameTalkRoleRelationRes *res = (DBGameTalkRoleRelationRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

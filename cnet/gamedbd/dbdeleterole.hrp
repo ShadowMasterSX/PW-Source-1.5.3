@@ -1,0 +1,239 @@
+
+#ifndef __GNET_DBDELETEROLE_HPP
+#define __GNET_DBDELETEROLE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "gamedbmanager.h" /* include class RoleList */
+#include "dbdeleterolearg"
+#include "dbdeleteroleres"
+#include "guserfaction"
+#include "gfactioninfo"
+#include "localmacro.h"
+
+#include "dbbuffer.h"
+
+#include "user"
+#include "userid"
+#include "roleid"
+#include "grolebase"
+namespace GNET
+{
+
+class DBDeleteRole : public Rpc
+{
+
+#define	RPC_BASECLASS	Rpc
+	#include "dbdeleterole"
+#undef	RPC_BASECLASS
+
+	int CheckRoleFaction(unsigned int rid)
+	{
+		Marshal::OctetsStream key,value;
+		GUserFaction user;
+		GFactionInfo info;
+		unsigned int fid = 0;
+
+		try
+		{
+			StorageEnv::Storage * puserfaction = StorageEnv::GetStorage("userfaction");
+			StorageEnv::Storage * pfactioninfo = StorageEnv::GetStorage("factioninfo");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				key << rid;
+
+				if(!puserfaction->find(key, value, txn))
+					return 0;
+				value >> user;
+				puserfaction->del( key, txn );
+
+				if(user.fid==0) return 0;
+
+				Log::formatlog("faction","type=deleterole:roleid=%d:factionid=%d:role=%d", 
+					user.rid, user.fid, user.role);
+				fid = user.fid;
+
+				key.clear();
+				key << fid;
+
+				Marshal::OctetsStream(pfactioninfo->find( key, txn )) >> info;
+
+				for(GMemberVector::iterator it=info.member.begin();it!=info.member.end();++it)
+				{
+					if(it->rid==rid)
+					{
+						info.member.erase(it);
+						break;
+					}
+				}
+				if(user.role==_R_MASTER)
+				{
+					GMemberVector::iterator itm = info.member.begin();
+					int minrole = _R_MEMBER;
+					for(GMemberVector::iterator it=info.member.begin();it!=info.member.end();++it)
+					{
+						if(it->role<minrole)
+						{
+							minrole = it->role;
+							itm = it;
+						}
+					}
+
+					if(info.member.size())
+					{
+						info.master.rid = itm->rid;
+						itm->role = _R_MASTER;
+
+						value.clear();
+						key.clear();
+						key << itm->rid;
+						if(puserfaction->find(key, value, txn))
+						{
+							value >> user;
+							user.role = _R_MASTER;
+							user.delayexpel.clear(); // 清除延时删除标记
+							puserfaction->insert( key, Marshal::OctetsStream() << user, txn );
+						}
+						else
+							Log::log( LOG_ERR, "CheckRoleFaction %d, userfaction %d not found\n",
+								fid, itm->rid);
+					}
+					else
+						info.master.rid = 0;
+				}
+				pfactioninfo->insert( Marshal::OctetsStream() << fid, Marshal::OctetsStream() << info, txn );
+				return fid;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "CheckRoleFaction, roleid=%d, what=%s\n", rid, e.what() );
+		}
+		return 0;
+	}
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBDeleteRoleArg *arg = (DBDeleteRoleArg *)argument;
+		DBDeleteRoleRes *res = (DBDeleteRoleRes *)result;
+
+		Marshal::OctetsStream key_userid, key_roleid,value_base;
+		GRoleBase rolebase;
+
+		User user;
+
+		LOG_TRACE( "DBDeleteRole, roleid=%d\n", arg->roleid );
+
+		try
+		{
+			StorageEnv::Storage * prolename = StorageEnv::GetStorage("rolename");
+			StorageEnv::Storage * puser = StorageEnv::GetStorage("user");
+			StorageEnv::Storage * pwaitdel = StorageEnv::GetStorage("waitdel");
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::Storage * pstatus = StorageEnv::GetStorage("status");
+			StorageEnv::Storage * pinventory = StorageEnv::GetStorage("inventory");
+			StorageEnv::Storage * pequipment = StorageEnv::GetStorage("equipment");
+			StorageEnv::Storage * pstorehouse = StorageEnv::GetStorage("storehouse");
+			StorageEnv::Storage * ptask = StorageEnv::GetStorage("task");
+			StorageEnv::Storage * pfriends = StorageEnv::GetStorage("friends");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				res->userid = 0;
+				key_roleid<<RoleId(arg->roleid);
+				if( pbase->find( key_roleid, value_base, txn ) )
+				{
+					try {
+						value_base >> rolebase;
+						res->userid = rolebase.userid;
+						if( arg->create_rollback && rolebase.create_time > 0
+							&& Timer::GetTime() - rolebase.create_time > 300 )
+						{
+							res->retcode = ERR_DELETEROLE;
+							return;
+						}
+					}
+					catch ( Marshal::Exception & )
+					{
+						Log::log( LOG_ERR, "DBDeleteRole, base unmarshal error, roleid=%d.", 
+							arg->roleid );
+					}
+				}
+				if(res->userid==0)
+					res->userid = LOGICUID(arg->roleid);
+
+				//update user rolelist
+				key_userid<<UserID(res->userid);
+				Marshal::OctetsStream(puser->find( key_userid, txn )) >> user; //backup old value; 
+
+				RoleList rolelist(user.rolelist); //create rolelist object
+				rolelist.DelRole(arg->roleid % MAX_ROLE_COUNT);
+				user.rolelist = rolelist.GetRoleList();	
+
+				Log::formatlog("deleterole","roleid=%d:occupation=%d:create_time=%d", rolebase.id, 
+						rolebase.cls, rolebase.create_time);
+		
+				puser->insert(key_userid, Marshal::OctetsStream() << user, txn);
+
+				//delete role
+				pbase->del( key_roleid, txn );
+
+				pstatus->del( key_roleid, txn );
+				pinventory->del( key_roleid, txn );
+				pequipment->del( key_roleid, txn );
+				pstorehouse->del( key_roleid, txn );
+				ptask->del( key_roleid, txn );
+				pfriends->del( key_roleid, txn );
+				prolename->del( rolebase.name, txn );
+				//delete roleid from "waitdel" table
+				pwaitdel->del( Marshal::OctetsStream() << arg->roleid, txn ); 
+
+				res->rolelist = rolelist.GetRoleList();
+				res->rolename = rolebase.name;
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBDeleteRole, roleid=%d, what=%s\n", arg->roleid, e.what() );
+			res->retcode = ERR_DELETEROLE;
+		}
+
+		if( ERR_SUCCESS == res->retcode )
+		{
+			res->faction = CheckRoleFaction(arg->roleid);
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBDeleteRoleArg *arg = (DBDeleteRoleArg *)argument;
+		// DBDeleteRoleRes *res = (DBDeleteRoleRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

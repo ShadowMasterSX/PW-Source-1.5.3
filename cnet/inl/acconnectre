@@ -1,0 +1,32 @@
+	public:
+		int aid;
+		enum { PROTOCOL_TYPE = PROTOCOL_ACCONNECTRE };
+	public:
+		ACConnectRe() { type = PROTOCOL_ACCONNECTRE; }
+		ACConnectRe(void*) : Protocol(PROTOCOL_ACCONNECTRE) { }
+		ACConnectRe (int l_aid)
+			 : aid(l_aid)
+		{
+			type = PROTOCOL_ACCONNECTRE;
+		}
+
+		ACConnectRe(const ACConnectRe &rhs)
+			: Protocol(rhs),aid(rhs.aid) { }
+
+		GNET::Protocol *Clone() const { return new ACConnectRe(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << aid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> aid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

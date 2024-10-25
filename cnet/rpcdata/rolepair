@@ -1,0 +1,77 @@
+#ifndef __GNET_ROLEPAIR_RPCDATA
+#define __GNET_ROLEPAIR_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "roleid"
+#include "groledetail"
+
+namespace GNET
+{
+	class RolePair : public GNET::Rpc::Data
+	{
+	public:
+		RoleId key;
+		int data_mask;
+		char priority;
+		GRoleDetail value;
+
+	public:
+		RolePair (int l_data_mask = 0,char l_priority = 0)
+			: data_mask(l_data_mask),priority(l_priority)
+		{
+		}
+
+		RolePair(const RolePair &rhs)
+			: key(rhs.key),data_mask(rhs.data_mask),priority(rhs.priority),
+			value(rhs.value) { }
+
+		Rpc::Data *Clone() const { return new RolePair(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const RolePair *r = dynamic_cast<const RolePair *>(&rhs);
+			if (r && r != this)
+			{
+				key = r->key;
+				data_mask = r->data_mask;
+				priority = r->priority;
+				value = r->value;
+			}
+			return *this;
+		}
+
+		RolePair& operator = (const RolePair &rhs)
+		{
+			const RolePair *r = &rhs;
+			if (r && r != this)
+			{
+				key = r->key;
+				data_mask = r->data_mask;
+				priority = r->priority;
+				value = r->value;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << key;
+			os << data_mask;
+			os << priority;
+			os << value;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> key;
+			os >> data_mask;
+			os >> priority;
+			os >> value;
+			return os;
+		}
+
+	};
+};
+#endif

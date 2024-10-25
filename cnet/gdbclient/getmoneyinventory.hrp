@@ -1,0 +1,62 @@
+
+#ifndef __GNET_GETMONEYINVENTORY_HPP
+#define __GNET_GETMONEYINVENTORY_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#ifdef USE_BDB
+#include "dbbuffer.h"
+#endif
+#include "getmoneyinventoryarg"
+#include "getmoneyinventoryres"
+#include "db_if.h"
+
+namespace GDB
+{
+	void InventoryToItemList(const GNET::GRoleInventoryVector & backpack, itemlist & list);
+	void ReleaseItemList(itemlist & list);
+};
+
+namespace GNET
+{
+
+class GetMoneyInventory : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getmoneyinventory"
+#undef	RPC_BASECLASS
+	
+	GDB::Result *_callback;
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+#ifdef USE_BDB
+#endif
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		GetMoneyInventoryRes *res = (GetMoneyInventoryRes *)result;
+		if( 0 == res->retcode )
+		{
+			GDB::itemlist list = {0,0};
+			InventoryToItemList(res->goods,list);
+			_callback->OnGetMoneyInventory(res->money, list, res->timestamp, res->data_mask);
+			ReleaseItemList(list);
+		}
+		else
+		{
+			_callback->OnFailed();
+		}
+	}
+
+	void OnTimeout()
+	{
+		_callback->OnTimeOut();
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

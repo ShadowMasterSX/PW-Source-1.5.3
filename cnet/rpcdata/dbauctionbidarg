@@ -1,0 +1,83 @@
+#ifndef __GNET_DBAUCTIONBIDARG_RPCDATA
+#define __GNET_DBAUCTIONBIDARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailsyncdata"
+
+namespace GNET
+{
+	class DBAuctionBidArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		unsigned int auctionid;
+		unsigned int bidprice;
+		char bin;
+		GMailSyncData syncdata;
+
+	public:
+		DBAuctionBidArg (int l_roleid = 0,unsigned int l_auctionid = 0,unsigned int l_bidprice = 0
+			,char l_bin = 0,const GMailSyncData& l_syncdata = GMailSyncData())
+			: roleid(l_roleid),auctionid(l_auctionid),bidprice(l_bidprice)
+			,bin(l_bin),syncdata(l_syncdata)
+		{
+		}
+
+		DBAuctionBidArg(const DBAuctionBidArg &rhs)
+			: roleid(rhs.roleid),auctionid(rhs.auctionid),bidprice(rhs.bidprice),
+			bin(rhs.bin),syncdata(rhs.syncdata) { }
+
+		Rpc::Data *Clone() const { return new DBAuctionBidArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBAuctionBidArg *r = dynamic_cast<const DBAuctionBidArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				auctionid = r->auctionid;
+				bidprice = r->bidprice;
+				bin = r->bin;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		DBAuctionBidArg& operator = (const DBAuctionBidArg &rhs)
+		{
+			const DBAuctionBidArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				auctionid = r->auctionid;
+				bidprice = r->bidprice;
+				bin = r->bin;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << auctionid;
+			os << bidprice;
+			os << bin;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> auctionid;
+			os >> bidprice;
+			os >> bin;
+			os >> syncdata;
+			return os;
+		}
+
+	};
+};
+#endif

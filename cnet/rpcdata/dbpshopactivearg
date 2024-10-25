@@ -1,0 +1,88 @@
+#ifndef __GNET_DBPSHOPACTIVEARG_RPCDATA
+#define __GNET_DBPSHOPACTIVEARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailsyncdata"
+
+namespace GNET
+{
+	class DBPShopActiveArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		int item_id;
+		int item_pos;
+		int item_num;
+		int timestamp;
+		GMailSyncData syncdata;
+
+	public:
+		DBPShopActiveArg (int l_roleid = 0,int l_item_id = 0,int l_item_pos = 0
+			,int l_item_num = 0,int l_timestamp = 0,const GMailSyncData& l_syncdata = GMailSyncData())
+			: roleid(l_roleid),item_id(l_item_id),item_pos(l_item_pos)
+			,item_num(l_item_num),timestamp(l_timestamp),syncdata(l_syncdata)
+		{
+		}
+
+		DBPShopActiveArg(const DBPShopActiveArg &rhs)
+			: roleid(rhs.roleid),item_id(rhs.item_id),item_pos(rhs.item_pos),
+			item_num(rhs.item_num),timestamp(rhs.timestamp),syncdata(rhs.syncdata) { }
+
+		Rpc::Data *Clone() const { return new DBPShopActiveArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPShopActiveArg *r = dynamic_cast<const DBPShopActiveArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				item_id = r->item_id;
+				item_pos = r->item_pos;
+				item_num = r->item_num;
+				timestamp = r->timestamp;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		DBPShopActiveArg& operator = (const DBPShopActiveArg &rhs)
+		{
+			const DBPShopActiveArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				item_id = r->item_id;
+				item_pos = r->item_pos;
+				item_num = r->item_num;
+				timestamp = r->timestamp;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << item_id;
+			os << item_pos;
+			os << item_num;
+			os << timestamp;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> item_id;
+			os >> item_pos;
+			os >> item_num;
+			os >> timestamp;
+			os >> syncdata;
+			return os;
+		}
+
+	};
+};
+#endif

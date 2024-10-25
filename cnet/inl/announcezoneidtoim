@@ -1,0 +1,38 @@
+	public:
+		int aid;
+		int zoneid;
+		int64_t boottime;
+		enum { PROTOCOL_TYPE = PROTOCOL_ANNOUNCEZONEIDTOIM };
+	public:
+		AnnounceZoneidToIM() { type = PROTOCOL_ANNOUNCEZONEIDTOIM; }
+		AnnounceZoneidToIM(void*) : Protocol(PROTOCOL_ANNOUNCEZONEIDTOIM) { }
+		AnnounceZoneidToIM (int l_aid,int l_zoneid,int64_t l_boottime)
+			 : aid(l_aid),zoneid(l_zoneid),boottime(l_boottime)
+		{
+			type = PROTOCOL_ANNOUNCEZONEIDTOIM;
+		}
+
+		AnnounceZoneidToIM(const AnnounceZoneidToIM &rhs)
+			: Protocol(rhs),aid(rhs.aid),zoneid(rhs.zoneid),boottime(rhs.boottime) { }
+
+		GNET::Protocol *Clone() const { return new AnnounceZoneidToIM(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << aid;
+			os << zoneid;
+			os << boottime;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> aid;
+			os >> zoneid;
+			os >> boottime;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

@@ -1,0 +1,58 @@
+#ifndef __GNET_GROLETABLEWAITDEL_RPCDATA
+#define __GNET_GROLETABLEWAITDEL_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GRoleTableWaitdel : public GNET::Rpc::Data
+	{
+	public:
+		int delete_time;
+
+	public:
+		GRoleTableWaitdel ()
+		{
+		}
+
+		GRoleTableWaitdel(const GRoleTableWaitdel &rhs)
+			: delete_time(rhs.delete_time) { }
+
+		Rpc::Data *Clone() const { return new GRoleTableWaitdel(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GRoleTableWaitdel *r = dynamic_cast<const GRoleTableWaitdel *>(&rhs);
+			if (r && r != this)
+			{
+				delete_time = r->delete_time;
+			}
+			return *this;
+		}
+
+		GRoleTableWaitdel& operator = (const GRoleTableWaitdel &rhs)
+		{
+			const GRoleTableWaitdel *r = &rhs;
+			if (r && r != this)
+			{
+				delete_time = r->delete_time;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << delete_time;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> delete_time;
+			return os;
+		}
+
+	};
+};
+#endif

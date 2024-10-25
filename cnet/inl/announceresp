@@ -1,0 +1,35 @@
+	public:
+		int code;
+		int64_t boottime;
+		enum { PROTOCOL_TYPE = PROTOCOL_ANNOUNCERESP };
+	public:
+		AnnounceResp() { type = PROTOCOL_ANNOUNCERESP; }
+		AnnounceResp(void*) : Protocol(PROTOCOL_ANNOUNCERESP) { }
+		AnnounceResp (int l_code,int64_t l_boottime = 0)
+			 : code(l_code),boottime(l_boottime)
+		{
+			type = PROTOCOL_ANNOUNCERESP;
+		}
+
+		AnnounceResp(const AnnounceResp &rhs)
+			: Protocol(rhs),code(rhs.code),boottime(rhs.boottime) { }
+
+		GNET::Protocol *Clone() const { return new AnnounceResp(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << code;
+			os << boottime;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> code;
+			os >> boottime;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 32; }

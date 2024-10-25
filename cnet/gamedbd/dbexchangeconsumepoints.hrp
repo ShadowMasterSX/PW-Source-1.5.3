@@ -1,0 +1,112 @@
+
+#ifndef __GNET_DBEXCHANGECONSUMEPOINTS_HPP
+#define __GNET_DBEXCHANGECONSUMEPOINTS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbexchangeconsumepointsarg"
+#include "dbexchangeconsumepointsres"
+
+namespace GNET
+{
+
+class DBExchangeConsumePoints : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbexchangeconsumepoints"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBExchangeConsumePointsArg *arg = (DBExchangeConsumePointsArg *)argument;
+		DBExchangeConsumePointsRes *res = (DBExchangeConsumePointsRes *)result;
+		try
+		{
+			StorageEnv::Storage * puser = StorageEnv::GetStorage("user");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				Marshal::OctetsStream key_user;
+				key_user << arg->userid;
+				User u;
+				Marshal::OctetsStream(puser->find(key_user,txn))>>u;
+				GRewardStore store;
+				if (u.consume_reward.size())
+				{
+					Marshal::OctetsStream   os_reward(u.consume_reward);
+					os_reward >> store;
+				}
+/*
+				store.consume_points = arg->consume_points;
+				store.consume_points -= arg->points_dec;
+				GRewardItemVector itemadd;
+				if (arg->interval == 0)
+				{
+					itemadd.push_back(GRewardItem(Timer::GetTime(), arg->bonus_add));
+				}
+				else
+				{
+					for (int i = 0; i < arg->times; i++)
+					{
+						if (i==arg->times-1)
+							itemadd.push_back(GRewardItem(arg->end_time+i*arg->interval, arg->bonus_add-(arg->bonus_add/arg->times)*(arg->times-1)));
+						else
+							itemadd.push_back(GRewardItem(arg->end_time+i*arg->interval, arg->bonus_add/arg->times));
+					}
+				}
+				GRewardItemVector::const_iterator it, ite;
+				GRewardItemVector::iterator it2, ite2;
+				for (it=itemadd.begin(),ite=itemadd.end(); it!=ite; ++it)
+				{
+					for (it2=store.rewardlist.begin(),ite2=store.rewardlist.end(); it2!=ite2; ++it2)
+					{
+						if (it->reward_time < it2->reward_time)
+						{
+							break;
+						}
+					}
+					store.rewardlist.insert(it2, *it);
+				}
+*/
+				store.consume_points = arg->consume_points;
+				store.rewardlist = arg->rewardlist;
+				u.consume_reward = Marshal::OctetsStream() << store;
+				puser->insert(key_user, Marshal::OctetsStream() << u, txn);
+				res->retcode = ERR_SUCCESS;
+				//res->reward = store;
+				Log::formatlog("dbexchangeconsumepoints","userid=%d:roleid=%d:points=%d", arg->userid, arg->roleid, arg->consume_points);
+			}
+			catch (DbException &e) { throw e; }
+			catch ( ... )
+			{
+				DbException ee(DB_OLD_VERSION);
+				txn.abort(ee);
+				throw ee;
+			}
+		}
+		catch (DbException &e)
+		{
+			Log::log(LOG_ERR, "gamedbd: DBExchangeConsumePoints failed, what=%s\n", e.what());
+			res->retcode = ERR_FAILED;
+		}
+
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBExchangeConsumePointsArg *arg = (DBExchangeConsumePointsArg *)argument;
+		// DBExchangeConsumePointsRes *res = (DBExchangeConsumePointsRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

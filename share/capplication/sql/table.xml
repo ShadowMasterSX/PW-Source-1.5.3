@@ -1,0 +1,793 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="table.xsl"?>
+
+<application debug="false" >
+
+<!-- SYBASE -->
+<!--
+<driver name="com.sybase.jdbc2.jdbc.SybDriver" />
+<connection name="auth0" poolsize="8" url="jdbc:sybase:Tds:172.16.2.5:4100/passport" username="username" password="password"/>
+-->
+
+<!-- MYSQL -->
+<!--
+<driver name="com.mysql.jdbc.Driver" />
+<connection name="auth0" poolsize="3" url="jdbc:mysql://localhost/passport?useUnicode=true&amp;characterEncoding=utf8" username="root" password=""/>
+-->
+
+<!-- MSSQL -->
+<driver name="com.microsoft.jdbc.sqlserver.SQLServerDriver" />
+<connection name="auth0" poolsize="8" url="jdbc:microsoft:sqlserver://172.16.2.5:1433;databasename=passport" username="username" password="password"/>
+
+<!-- ÕÊºÅ±í
+     id:          ID
+     name:        ÕÊºÅÃû£¬Ó¢ÎÄ×ÖÄ¸ºÍÊý×Ö×é³É
+     passwd:      ÃÜÂë£¬MD5
+     prompt:      ÌáÊ¾ÎÊÌâ
+     answer:      ÌáÊ¾ÎÊÌâ´ð°¸
+     truename:    ÕæÊµÐÕÃû
+     idnumber:    Ö¤¼þºÅÂë
+     email:       µç×ÓÓÊ¼þ
+     mobilenumber:ÒÆ¶¯µç»°
+     province:    Ê¡·Ý
+     city:        ³ÇÊÐ
+     phonenumber: µç»°
+     address:     µØÖ·
+     postalcode:  ÓÊ±à
+     gender:      ÐÔ±ð
+     birthday:    ³öÉúÈÕÆÚ
+     creatime:    ´´½¨Ê±¼ä
+     qq:          QQºÅÂë
+     passwd2:     ¶þ¼¶ÃÜÂë
+-->
+<table name="users" connection="auth0" operate="replaceA"> 
+	<column name="id"           sql-type="integer"     java-type="java.lang.Integer" not-null="true" />
+	<column name="name"         sql-type="varchar(32)" java-type="java.lang.String"  not-null="true" />
+	<column name="passwd"       sql-type="binary(16)"  java-type="java.lang.reflect.Array"  not-null="true" />
+	<column name="prompt"       sql-type="varchar(32)" java-type="java.lang.String"  not-null="true" />
+	<column name="answer"       sql-type="varchar(32)" java-type="java.lang.String"  not-null="true" />
+	<column name="truename"     sql-type="varchar(32)" java-type="java.lang.String"  not-null="true" />
+	<column name="idnumber"     sql-type="varchar(32)" java-type="java.lang.String"  not-null="true" />
+	<column name="email"        sql-type="varchar(64)" java-type="java.lang.String"  not-null="true" />
+	<column name="mobilenumber" sql-type="varchar(32)" java-type="java.lang.String"  not-null="false" />
+	<column name="province"     sql-type="varchar(32)" java-type="java.lang.String"  not-null="false" />
+	<column name="city"         sql-type="varchar(32)" java-type="java.lang.String"  not-null="false" />
+	<column name="phonenumber"  sql-type="varchar(32)" java-type="java.lang.String"  not-null="false" />
+	<column name="address"      sql-type="varchar(64)" java-type="java.lang.String"  not-null="false" />
+	<column name="postalcode"   sql-type="varchar(8)"  java-type="java.lang.String"  not-null="false" />
+	<column name="gender"       sql-type="integer"     java-type="java.lang.Integer" not-null="false" />
+	<column name="birthday"     sql-type="datetime"    java-type="java.util.Date"    not-null="false" />
+	<column name="creatime"     sql-type="datetime"    java-type="java.util.Date"    not-null="true" />
+	<column name="qq"           sql-type="varchar(32)" java-type="java.lang.String"  not-null="false" />
+	<column name="passwd2"      sql-type="binary(16)"  java-type="java.lang.reflect.Array"  not-null="false" />
+
+	<primarykey name="pk_id" column="id" />
+	<index name="ind_name" unique="true" column="name" />
+	<index name="ind_creatime" column="creatime" />
+</table>
+
+<!-- IPÏÞÖÆ±í
+    uid:          ÓÃ»§ID
+    ipaddr1:      IPµØÖ·1
+    ipmask1:      ÑÚÂë1
+    ipaddr2:      IPµØÖ·2
+    ipmask2:      ÑÚÂë2
+    ipaddr3:      IPµØÖ·3
+    ipmask3:      ÑÚÂë3
+	enablue:      ÊÇ·ñÆôÓÃIPÏÞÖÆ('t' or 'f')
+	lockstatus:   ÊÇ·ñËø¶¨ÕÊºÅ,½ûÖ¹µÇÂ½('t' or 'f')
+-->
+<table name="iplimit" connection="auth0" operate="replaceA">
+	<column name="uid"          sql-type="integer"     java-type="java.lang.Integer" not-null="true" />
+	<column name="ipaddr1"      sql-type="integer"     java-type="java.lang.Integer" not-null="false" />
+	<column name="ipmask1"      sql-type="varchar(2)"  java-type="java.lang.String" not-null="false" />
+	<column name="ipaddr2"      sql-type="integer"     java-type="java.lang.Integer" not-null="false" />
+	<column name="ipmask2"      sql-type="varchar(2)"  java-type="java.lang.String" not-null="false" />
+	<column name="ipaddr3"      sql-type="integer"     java-type="java.lang.Integer" not-null="false" />
+	<column name="ipmask3"      sql-type="varchar(2)"  java-type="java.lang.String" not-null="false" />
+	<column name="enable"       sql-type="char(1)"     java-type="java.lang.String" not-null="false" />
+	<column name="lockstatus"   sql-type="char(1)"     java-type="java.lang.String" not-null="false" />
+
+	<primarykey name="pk_iplimit" column="uid" />
+</table>
+
+<!-- È¨ÏÞ±í Ã¿Ìõ¼ÇÂ¼±íÊ¾useridÔÚÇøºÅÎªzoneidµÄ·þÎñÆ÷ÓµÓÐrid¶ÔÓ¦µÄÈ¨ÏÞ¡£
+    userid:       ÓÃ»§ID
+    zoneid:       ·þÎñÆ÷ºÅ
+    rid:          È¨ÏÞºÅ
+-->
+<table name="auth" connection="auth0" operate="replaceA">
+	<column name="userid"       sql-type="integer"     java-type="java.lang.Integer" not-null="true" />
+	<column name="zoneid"      	sql-type="integer"     java-type="java.lang.Integer" not-null="true" />
+	<column name="rid"          sql-type="integer"     java-type="java.lang.Integer" not-null="true" />
+	<primarykey name="pk_id" column="userid, zoneid, rid" />
+</table>
+
+<!-- ·â½û¼ÇÂ¼±í
+     userid:      ±»·â½ûÓÃ»§ID
+     type:        ·â½ûÀàÐÍ
+     ctime:       ·â½û´´½¨Ê±¼ä
+     forbid_time: ·â½ûÊ±¼ä£¨Ãë£©
+     reason:      ·â½ûÔ­Òò
+     gmroleid:    ·â½ûÕß
+-->
+<table name="forbid" connection="auth0" operate="replaceA">
+	<column name="userid"       sql-type="integer"      java-type="java.lang.Integer" not-null="true" />
+	<column name="type"	        sql-type="integer"      java-type="java.lang.Integer" not-null="true" />
+	<column name="ctime"        sql-type="datetime"     java-type="java.util.Date" 	 not-null="true" />
+	<column name="forbid_time"  sql-type="integer"      java-type="java.lang.Integer" not-null="true" />
+	<column name="reason"     sql-type="varbinary(255)" java-type="java.lang.reflect.Array" not-null="true" />
+	<column name="gmroleid"     sql-type="integer"      java-type="java.lang.Integer" not-null="false"/>
+
+	<primarykey name="pk_id" column="userid,type" />
+</table>
+
+<!-- ÕÊºÅ¼Æ·ÑÇøÐÅÏ¢±í
+     uid:         user ID
+     aid:         ¼Æ·ÑÇøID
+     time:        ÕÊºÅÔÚ¸Ã¼Æ·ÑÇøÄÚÓµÓÐµÄ¿ÉÍæÊ±¼ä,µ¥Î»:Ãë
+     zoneid:      ÕÊºÅµ±Ç°ÔÚÏßµÄ·þÎñÆ÷ID
+     zonelocalid: ÕÊºÅµ±Ç°ÔÚÏßµÄ·þÎñÆ÷session
+     accountstart:¼Æ·Ñ¿ªÊ¼Ê±¼ä,±£ÁôÎ´ÓÃ
+     lastlogin:   ÕÊºÅ×îºóÒ»´ÎµÇÂ½Ê±¼ä
+     enddate:     °üÔÂ½ØÖ¹Ê±¼ä,±£ÁôÎ´ÓÃ
+-->
+<table name="point" connection="auth0" operate="replaceA">
+	<column name="uid"          sql-type="integer"     java-type="java.lang.Integer" not-null="true" />
+	<column name="aid"          sql-type="integer"     java-type="java.lang.Integer" not-null="true" />
+	<column name="time"         sql-type="integer"     java-type="java.lang.Integer" not-null="true" />
+	<column name="zoneid"       sql-type="integer"     java-type="java.lang.Integer" not-null="false" />
+	<column name="zonelocalid"  sql-type="integer"     java-type="java.lang.Integer" not-null="false" />
+	<column name="accountstart" sql-type="datetime"    java-type="java.util.Date"    not-null="false" />
+	<column name="lastlogin"    sql-type="datetime"    java-type="java.util.Date"    not-null="false" />
+	<column name="enddate"      sql-type="datetime"    java-type="java.util.Date"    not-null="false" />
+
+	<primarykey name="pk_id" column="uid, aid" />
+	<index name="ind_aid" column="aid,zoneid" />
+</table>
+
+<!-- ½ðÔª±¦»®²¦¶ÓÁÐ±í
+     userid:      user ID
+     zoneid:      ·þÎñÆ÷ID
+     sn:          ÐòÁÐºÅ
+     aid:         ¼Æ·ÑÇøID
+     point:       »®²¦µÄÓÎÏ·Ê±¼ä,µ¥Î»:Ãë
+     cash:        »®²¦µÄ½ðÔª±¦¸öÊý,µ¥Î»:Ãë
+     status:      µ±Ç°×´Ì¬
+     creatime:    ´´½¨Ê±¼ä
+-->
+<table name="usecashnow" connection="auth0" operate="replaceA">
+	<column name="userid" sql-type="integer" java-type="java.lang.Integer" not-null="true"/>
+	<column name="zoneid" sql-type="integer" java-type="java.lang.Integer" not-null="true"/>
+	<column name="sn"     sql-type="integer" java-type="java.lang.Integer" not-null="true"/>
+	<column name="aid"    sql-type="integer" java-type="java.lang.Integer" not-null="true"/>
+	<column name="point"  sql-type="integer" java-type="java.lang.Integer" not-null="true"/>
+	<column name="cash"   sql-type="integer" java-type="java.lang.Integer" not-null="true"/>
+	<!--status 1.create; 2.get sn; 3.send addcash; 4.finish; -->
+	<column name="status" sql-type="integer"  java-type="java.lang.Integer" not-null="true"/>
+	<column name="creatime" sql-type="datetime" java-type="java.util.Date"  not-null="true"/>
+
+	<primarykey name="pk_usecashnow" column="userid, zoneid, sn" />
+	<index name="ind_usecashnow_status" column="status" />
+	<index name="ind_usecashnow_creatime" column="creatime" />
+</table>
+
+<!-- ½ðÔª±¦»®²¦ÈÕÖ¾±í
+     userid:      user ID
+     zoneid:      ·þÎñÆ÷ID
+     sn:          ÐòÁÐºÅ
+     aid:         ¼Æ·ÑÇøID
+     point:       »®²¦µÄÓÎÏ·Ê±¼ä,µ¥Î»:Ãë
+     cash:        »®²¦µÄ½ðÔª±¦¸öÊý,µ¥Î»:Ãë
+     status:      µ±Ç°×´Ì¬
+     creatime:    ´´½¨Ê±¼ä
+     fintime:     ½áÊøÊ±¼ä
+-->
+<table name="usecashlog" connection="auth0" operate="replaceA">
+	<column name="userid" sql-type="integer" java-type="java.lang.Integer" not-null="true"/>
+	<column name="zoneid" sql-type="integer" java-type="java.lang.Integer" not-null="true"/>
+	<column name="sn"     sql-type="integer" java-type="java.lang.Integer" not-null="true"/>
+	<column name="aid"    sql-type="integer" java-type="java.lang.Integer" not-null="true"/>
+	<column name="point"  sql-type="integer" java-type="java.lang.Integer" not-null="true"/>
+	<column name="cash"   sql-type="integer" java-type="java.lang.Integer" not-null="true"/>
+	<column name="status" sql-type="integer"  java-type="java.lang.Integer" not-null="true"/>
+	<column name="creatime" sql-type="datetime" java-type="java.util.Date"  not-null="true"/>
+	<column name="fintime" sql-type="datetime" java-type="java.util.Date"  not-null="true"/>
+
+	<index name="ind_usecashlog_uzs" column="userid, zoneid, sn" />
+	<index name="ind_usecashlog_creatime" column="creatime" />
+</table>
+
+<!-- ²éÑ¯£º¸ù¾ÝÓÃ»§Ãû²éÑ¯ID. -->
+<query name="getUserid">
+	<table name="users" alias="u" />
+	<column name="id" column="u.id" />
+	<select name="byName" condition="WHERE u.name = ?" />
+</query>
+
+<!-- ²éÑ¯£º¸ù¾ÝÓÃ»§Ãû²éÑ¯. -->
+<query name="getUserInfo">
+	<table name="users" alias="u" />
+	<column name="id" column="u.id" />
+	<column name="prompt" column="u.prompt" />
+	<column name="answer" column="u.answer" />
+	<column name="truename" column="u.truename" />
+	<column name="idnumber" column="u.idnumber" />
+	<column name="email" column="u.email" />
+	<column name="mobilenumber" column="u.mobilenumber" />
+	<column name="province" column="u.province" />
+	<column name="city" column="u.city" />
+	<column name="phonenumber" column="u.phonenumber" />
+	<column name="address" column="u.address" />
+	<column name="postalcode" column="u.postalcode" />
+	<column name="gender" column="u.gender" />
+	<column name="birthday" column="u.birthday" />
+	<column name="creatime" column="u.creatime" />
+	<column name="qq" column="u.qq" />
+	<select name="byName" condition="WHERE u.name = ?" />
+</query>
+
+<!-- ²éÑ¯£º¸ù¾ÝÓÃ»§ID²éÑ¯ÓÃ»§Ãû. -->
+<query name="getUsername">
+	<table name="users" alias="u" />
+	<column name="name" column="u.name" />
+	<select name="byId" condition="WHERE u.id = ?"/>
+</query>
+
+<!-- ²éÑ¯£º¸ù¾ÝÓÃ»§Ãû²éÑ¯IDºÍÃÜÂë. -->
+<query name="acquireIdPasswd">
+	<table name="users" alias="u" />
+	<column name="id" column="u.id" />
+	<column name="passwd" column="u.passwd" />
+	<column name="creatime" column="u.creatime" />
+	<select name="byName" condition="WHERE u.name = ?"/>
+</query>
+
+<!-- ²éÑ¯£º¸ù¾ÝÓÃ»§Ãû²éÑ¯IDºÍ¶þ¼¶ÃÜÂë. -->
+<query name="acquireIdPasswd2">
+	<table name="users" alias="u" />
+	<column name="id" column="u.id" />
+	<column name="passwd2" column="u.passwd2" />
+	<select name="byName" condition="WHERE u.name = ?"/>
+</query>
+
+<!-- ²éÑ¯£º¸ù¾ÝÓÃ»§ID²éÑ¯ÓÃ»§´´½¨Ê±¼ä. -->
+<query name="acquireUserCreatime">
+	<table name="users" alias="u" />
+	<column name="creatime" column="u.creatime" />
+	<select name="byUid" condition="WHERE u.id = ?"/>
+</query>
+
+<!-- ²éÑ¯£º¸ù¾ÝÓÃ»§ID²éÑ¯IPÏÞÖÆÐÅÏ¢. -->
+<query name="getIPLimit">
+	<table name="iplimit" alias="i" />
+	<column name="uid" column="i.uid" />
+	<column name="ipaddr1" column="i.ipaddr1" />
+	<column name="ipmask1" column="i.ipmask1" />
+	<column name="ipaddr2" column="i.ipaddr2" />
+	<column name="ipmask2" column="i.ipmask2" />
+	<column name="ipaddr3" column="i.ipaddr3" />
+	<column name="ipmask3" column="i.ipmask3" />
+	<column name="enablue" column="i.enable" />
+	<column name="lockstatus" column="i.lockstatus" />
+	<select name="byUid" condition="WHERE i.uid = ?"/>
+</query>
+
+<!-- ²éÑ¯£º¸ù¾ÝÓÃ»§IDºÍ·þÎñÆ÷ºÅ²éÑ¯ÓÃ»§È¨ÏÞ. -->
+<query name="acquireUserPrivilege">
+	<table name="auth" alias="au" />
+	<column name="rid" column="au.rid" />
+	<select name="byUidZid" condition="WHERE au.userid = ? AND au.zoneid = ?"/>
+</query>
+
+<!-- ²éÑ¯£º²éÑ¯ÓÃ»§È¨ÏÞ. -->
+<query name="acquirePrivilege">
+	<table name="auth" alias="au" />
+	<table name="users" alias="users" />
+	<column name="userid" column="au.userid" />
+	<column name="zoneid" column="au.zoneid" />
+	<column name="rid" column="au.rid" />
+	<column name="name" column="users.name" />
+	<column name="creatime" column="users.creatime" />
+	<select name="byZid" condition="WHERE au.userid = users.id AND au.zoneid = ?"/>
+	<select name="byUid" condition="WHERE au.userid = users.id AND au.userid = ?"/>
+	<select name="byUidZid" condition="WHERE au.userid = users.id AND au.userid = ? AND au.zoneid = ?"/>
+	<select name="byRidZid" condition="WHERE au.userid = users.id AND au.rid = ? AND au.zoneid = ?"/>
+	<select name="byAll" condition="WHERE au.userid = users.id"/>
+</query>
+
+<!-- ²éÑ¯£º¸ù¾ÝÓÃ»§ID»òÓÃ»§Ãû²éÑ¯·â½ûÐÅÏ¢. -->
+<query name="acquireForbid">
+	<table name="forbid" alias="fb"/>
+	<column name="userid" column="fb.userid"/>
+	<column name="type" column="fb.type"/>
+	<column name="ctime" column="fb.ctime"/>
+	<column name="forbid_time" column="fb.forbid_time"/>
+	<column name="reason" column="fb.reason"/>
+	<column name="gmroleid" column="fb.gmroleid"/>
+	<select name="byUid" condition="WHERE fb.userid = ? and datediff(ss,fb.ctime,getdate())&lt;=fb.forbid_time"/>
+</query>
+
+<!-- ²éÑ¯£º¸ù¾ÝÓÃ»§ID²éÑ¯ÓÃ»§ÔÚÏß·þÎñÆ÷. -->
+<query name="getUserOnlineInfo">
+	<table name="point" alias="p"/>
+	<column name="zoneid" column="p.zoneid"/>
+	<column name="localsid" column="p.zonelocalid"/>
+	<column name="aid" column="p.aid"/>
+	<select name="byUid" condition="WHERE p.uid = ?"/>
+</query>
+
+<!-- ²éÑ¯£º²éÑ¯ÓÃ»§Ã¿¸ö¼Æ·ÑÇøµÄÊ±¼ä. -->
+<query name="getUserPoints">
+	<table name="point" alias="p" />
+	<column name="aid" column="p.aid" />
+	<column name="time" column="p.time" />
+	<column name="enddate" column="p.enddate" />
+	<select name="byuid" condition="where p.uid=? and NOT p.aid=0" />
+</query>
+
+<!-- ²éÑ¯£º²éÑ¯½ðÔª±¦»®²¦ÁÐ±í. -->
+<query name="getusecashnow">
+	<table name="usecashnow" alias="u"/>
+	<column name="userid" column="u.userid"/>
+	<column name="zoneid" column="u.zoneid"/>
+	<column name="sn" column="u.sn"/>
+	<column name="aid" column="u.aid"/>
+	<column name="point" column="u.point"/>
+	<column name="cash" column="u.cash"/>
+	<column name="status" column="u.status"/>
+	<column name="creatime" column="u.creatime"/>
+
+	<select name="bystatus" condition="WHERE status = ? AND creatime &lt; dateadd(second,-200,getdate())"/>
+	<select name="byuserzone" condition="WHERE u.userid = ? AND u.zoneid = ?"/>
+	<select name="byuserzonesn" condition="WHERE u.userid = ? AND u.zoneid = ? AND u.sn = ?"/>
+	<select name="byuser" condition="WHERE u.userid = ?"/>
+</query>
+
+<!-- ²éÑ¯£º²éÑ¯½ðÔª±¦»®²¦ÈÕÖ¾. -->
+<query name="getusecashlog">
+	<table name="usecashlog" alias="u"/>
+	<column name="userid" column="u.userid"/>
+	<column name="zoneid" column="u.zoneid"/>
+	<column name="sn" column="u.sn"/>
+	<column name="aid" column="u.aid"/>
+	<column name="point" column="u.point"/>
+	<column name="cash" column="u.cash"/>
+	<column name="status" column="u.status"/>
+	<column name="creatime" column="u.creatime"/>
+	<column name="fintime" column="u.fintime"/>
+
+	<select name="byuserzone" condition="WHERE u.userid = ? AND u.zoneid = ?"/>
+	<select name="byuserzonesn" condition="WHERE u.userid = ? AND u.zoneid = ? AND u.sn = ?"/>
+	<select name="byuser" condition="WHERE u.userid = ?"/>
+</query>
+
+<!-- ´æ´¢¹ý³Ì£º»ñÈ¡ÓÃ»§ÃûÃÜÂë -->
+<procedure name="acquireuserpasswd" connection="auth0" operate="replaceA">
+	<parameter name="name"     sql-type="varchar(64)"  java-type="java.lang.String"  in="true"  out="false" />
+	<parameter name="uid"      sql-type="integer"      java-type="java.lang.Integer" in="false" out="true" />
+	<parameter name="passwd"   sql-type="char(64)"     java-type="java.lang.String"  in="false" out="true" />
+	DECLARE @passwdtemp binary(16)
+	SELECT @uid = id, @passwdtemp = passwd FROM users WHERE name = @name
+	if @@rowcount = 0
+		return -1;
+	SELECT @passwd = master.dbo.fn_varbintohexsubstring(1,@passwdtemp,1,0)
+	return 0;
+</procedure>
+
+<!-- ´æ´¢¹ý³Ì £º¸ù¾ÝÓÃ»§Ãû²éÑ¯IDºÍ¶þ¼¶ÃÜÂë. -->
+<procedure name="acquireuserpasswd2" connection="auth0" operate="replaceA">
+	<parameter name="name"     sql-type="varchar(64)"  java-type="java.lang.String"  in="true"  out="false" />
+	<parameter name="uid"      sql-type="integer"      java-type="java.lang.Integer" in="false" out="true" />
+	<parameter name="passwd2"   sql-type="char(64)"     java-type="java.lang.String"  in="false" out="true" />
+	DECLARE @passwdtemp binary(16)
+	SELECT @uid = id, @passwdtemp = passwd2 FROM users WHERE name = @name
+	IF @@rowcount = 0
+		return -1
+	SELECT @passwd2 = master.dbo.fn_varbintohexsubstring(1,@passwdtemp,1,0)
+	return 0
+</procedure>
+
+<!-- ´æ´¢¹ý³Ì£º¸ù¾ÝÓÃ»§Ãû²éÑ¯ID. -->
+<procedure name="getuseridbyname" connection="auth0" operate="replaceA">
+	<parameter name="name"     sql-type="varchar(64)"  java-type="java.lang.String"  in="true"  out="false" />
+	<parameter name="uid"      sql-type="integer"      java-type="java.lang.Integer" in="false" out="true" />
+	SELECT @uid = id FROM users WHERE name = @name
+	IF @@rowcount = 0
+		return -1
+	return 0
+</procedure>
+
+<!-- ´æ´¢¹ý³Ì£º¸ù¾ÝÓÃ»§Ãû²éÑ¯. -->
+<procedure name="getuserinfobyname" connection="auth0" operate="replaceA">
+	<parameter name="name"          sql-type="varchar(32)" java-type="java.lang.String"        in="true"  out="false" />
+	<parameter name="id"            sql-type="integer"     java-type="java.lang.Integer"       in="false" out="true" />
+	<parameter name="prompt"        sql-type="varchar(32)"  java-type="java.lang.String"       in="false" out="true" />
+	<parameter name="answer"        sql-type="varchar(32)" java-type="java.lang.String"        in="false" out="true" />
+	<parameter name="truename"      sql-type="varchar(32)" java-type="java.lang.String"        in="false" out="true" />
+	<parameter name="idnumber"      sql-type="varchar(32)" java-type="java.lang.String"        in="false" out="true" />
+	<parameter name="email"         sql-type="varchar(64)" java-type="java.lang.String"        in="false" out="true" />
+	<parameter name="mobilenumber"  sql-type="varchar(32)" java-type="java.lang.String"        in="false" out="true" />
+	<parameter name="province"      sql-type="varchar(32)" java-type="java.lang.String"        in="false" out="true" />
+	<parameter name="city"          sql-type="varchar(32)" java-type="java.lang.String"        in="false" out="true" />
+	<parameter name="phonenumber"   sql-type="varchar(32)" java-type="java.lang.String"        in="false" out="true" />
+	<parameter name="address"       sql-type="varchar(64)" java-type="java.lang.String"        in="false" out="true" />
+	<parameter name="postalcode"    sql-type="varchar(8)"  java-type="java.lang.String"        in="false" out="true" />
+	<parameter name="gender"        sql-type="integer"     java-type="java.lang.Integer"       in="false" out="true" />
+	<parameter name="birthday"      sql-type="varchar(32)" java-type="java.lang.String"        in="false" out="true" />
+	<parameter name="creatime"      sql-type="varchar(32)" java-type="java.lang.String"        in="false" out="true" />
+	<parameter name="qq"            sql-type="varchar(32)" java-type="java.lang.String"        in="false" out="true" />
+	DECLARE @birthday_tmp datetime
+	DECLARE @creatime_tmp datetime
+	SELECT @id = id, @prompt = prompt, @answer = answer, @truename = truename, @idnumber = idnumber, @email = email, @mobilenumber = mobilenumber, @province = province, @city = city, @phonenumber = phonenumber, @address = address, @postalcode = postalcode, @gender = gender, @birthday_tmp = birthday, @creatime_tmp = creatime, @qq = qq FROM users WHERE name = @name
+	IF @@rowcount = 0
+		return -1
+	SELECT @birthday = convert(varchar(32), @birthday_tmp, 120)
+	SELECT @creatime = convert(varchar(32), @creatime_tmp, 121)
+	return 0
+</procedure>
+
+<!-- ´æ´¢¹ý³Ì£ºÌí¼ÓÓÃ»§ -->
+<procedure name="adduser" connection="auth0" operate="replaceA">
+	<parameter name="name"     sql-type="varchar(64)"  java-type="java.lang.String" in="true" out="false" />
+	<parameter name="passwd"   sql-type="binary(16)"   java-type="java.lang.reflect.Array" in="true" out="false" />
+	<parameter name="prompt"   sql-type="varchar(32)" java-type="java.lang.String" in="true" out="false" />
+	<parameter name="answer"   sql-type="varchar(32)" java-type="java.lang.String" in="true" out="false" />
+	<parameter name="truename" sql-type="varchar(32)" java-type="java.lang.String" in="true" out="false" />
+	<parameter name="idnumber" sql-type="varchar(32)" java-type="java.lang.String" in="true" out="false" />
+	<parameter name="email"    sql-type="varchar(64)" java-type="java.lang.String" in="true" out="false" />
+	<parameter name="mobilenumber" sql-type="varchar(32)" java-type="java.lang.String" in="true" out="false" />
+	<parameter name="province" sql-type="varchar(32)" java-type="java.lang.String" in="true" out="false" />
+	<parameter name="city"     sql-type="varchar(32)" java-type="java.lang.String" in="true" out="false" />
+	<parameter name="phonenumber"  sql-type="varchar(32)" java-type="java.lang.String" in="true" out="false" />
+	<parameter name="address"  sql-type="varchar(64)" java-type="java.lang.String" in="true" out="false" />
+	<parameter name="postalcode"   sql-type="varchar(8)"  java-type="java.lang.String" in="true" out="false" />
+	<parameter name="gender"   sql-type="integer"  java-type="java.lang.Integer" in="true" out="false" />
+	<parameter name="birthday" sql-type="varchar(32)" java-type="java.lang.String" in="true" out="false" />
+	<parameter name="qq"       sql-type="varchar(32)" java-type="java.lang.String" in="true" out="false" />
+	<parameter name="passwd2"  sql-type="binary(16)" java-type="java.lang.reflect.Array" in="true" out="false" />
+	BEGIN TRAN
+	DECLARE @id integer
+	SELECT @id = ISNULL(max(id), 16) + 16 FROM users HOLDLOCK
+	INSERT INTO users (id,name,passwd,prompt,answer,truename,idnumber,email,mobilenumber,province,city,phonenumber,address,postalcode,gender,birthday,creatime,qq,passwd2) VALUES( @id, @name, @passwd, @prompt, @answer, @truename, @idnumber, @email, @mobilenumber, @province, @city, @phonenumber, @address, @postalcode, @gender, @birthday, getdate(), @qq, @passwd2 )
+	COMMIT TRAN
+</procedure>
+
+<!-- ´æ´¢¹ý³Ì£ºÐÞ¸ÄÓÃ»§ÐÅÏ¢ -->
+<procedure name="updateUserInfo" connection="auth0" operate="replaceA">
+	<parameter name="name"     sql-type="varchar(32)" java-type="java.lang.String" in="true" out="false" />
+	<parameter name="prompt"   sql-type="varchar(32)" java-type="java.lang.String" in="true" out="false" />
+	<parameter name="answer"   sql-type="varchar(32)" java-type="java.lang.String" in="true" out="false" />
+	<parameter name="truename" sql-type="varchar(32)" java-type="java.lang.String" in="true" out="false" />
+	<parameter name="idnumber" sql-type="varchar(32)" java-type="java.lang.String" in="true" out="false" />
+	<parameter name="email"    sql-type="varchar(64)" java-type="java.lang.String" in="true" out="false" />
+	<parameter name="mobilenumber" sql-type="varchar(32)" java-type="java.lang.String" in="true" out="false" />
+	<parameter name="province" sql-type="varchar(32)" java-type="java.lang.String" in="true" out="false" />
+	<parameter name="city"     sql-type="varchar(32)" java-type="java.lang.String" in="true" out="false" />
+	<parameter name="phonenumber"  sql-type="varchar(32)" java-type="java.lang.String" in="true" out="false" />
+	<parameter name="address"  sql-type="varchar(64)" java-type="java.lang.String" in="true" out="false" />
+	<parameter name="postalcode"   sql-type="varchar(8)"  java-type="java.lang.String" in="true" out="false" />
+	<parameter name="gender"   sql-type="integer"    java-type="java.lang.Integer" in="true" out="false" />
+	<parameter name="birthday" sql-type="varchar(32)" java-type="java.lang.String" in="true" out="false" />
+	<parameter name="qq"       sql-type="varchar(32)" java-type="java.lang.String" in="true" out="false" />
+	BEGIN TRAN
+	update users set prompt=@prompt,answer=@answer,truename=@truename,idnumber=@idnumber,email=@email,mobilenumber=@mobilenumber,province=@province,city=@city,phonenumber=@phonenumber,address=@address,postalcode=@postalcode,gender=@gender,birthday=@birthday,qq=@qq where name=@name
+	COMMIT TRAN
+</procedure>
+
+<!-- ´æ´¢¹ý³Ì£ºÐÞ¸ÄÓÃ»§ÃÜÂë -->
+<procedure name="changePasswd" connection="auth0" operate="replaceA">
+	<parameter name="name"   sql-type="varchar(64)" java-type="java.lang.String" in="true" out="false" />
+	<parameter name="passwd" sql-type="binary(16)" java-type="java.lang.reflect.Array" in="true" out="false" />
+	BEGIN TRAN
+	UPDATE users SET passwd=@passwd WHERE name=@name
+	COMMIT TRAN
+</procedure>
+
+<!-- ´æ´¢¹ý³Ì£ºÐÞ¸ÄÓÃ»§¶þ¼¶ÃÜÂë -->
+<procedure name="changePasswd2" connection="auth0" operate="replaceA">
+	<parameter name="name" sql-type="varchar(64)" java-type="java.lang.String" in="true" out="false" />
+	<parameter name="passwd2" sql-type="binary(16)" java-type="java.lang.reflect.Array" in="true" out="false" />
+	BEGIN TRAN
+	UPDATE users SET passwd2=@passwd2 WHERE name=@name
+	COMMIT TRAN
+</procedure>
+
+<!-- ´æ´¢¹ý³Ì£ºÉèÖÃÓÃ»§IPÏÞÖÆ -->
+<procedure name="setiplimit" connection="auth0" operate="replaceA">
+	<parameter name="uid"      sql-type="integer"     java-type="java.lang.Integer" in="true" out="false"/>
+	<parameter name="ipaddr1"  sql-type="integer"     java-type="java.lang.Integer" in="true" out="false"/>
+	<parameter name="ipmask1"  sql-type="varchar(2)"  java-type="java.lang.String" in="true" out="false"/>
+	<parameter name="ipaddr2"  sql-type="integer"     java-type="java.lang.Integer" in="true" out="false"/>
+	<parameter name="ipmask2"  sql-type="varchar(2)"  java-type="java.lang.String" in="true" out="false"/>
+	<parameter name="ipaddr3"  sql-type="integer"     java-type="java.lang.Integer" in="true" out="false"/>
+	<parameter name="ipmask3"  sql-type="varchar(2)"  java-type="java.lang.String" in="true" out="false"/>
+	BEGIN TRAN
+	UPDATE iplimit SET ipaddr1=@ipaddr1,ipmask1=@ipmask1,ipaddr2=@ipaddr2,ipmask2=@ipmask2,ipaddr3=@ipaddr3,ipmask3=@ipmask3 WHERE uid=@uid
+	IF @@rowcount = 0	INSERT INTO iplimit (uid,ipaddr1,ipmask1,ipaddr2,ipmask2,ipaddr3,ipmask3,enable) VALUES (@uid,@ipaddr1,@ipmask1,@ipaddr2,@ipmask2,@ipaddr3,@ipmask3,'t')
+	COMMIT TRAN
+</procedure>
+
+<!-- ´æ´¢¹ý³Ì£ºÆôÓÃ/½ûÓÃIPÏÞÖÆ -->
+<procedure name="enableiplimit" connection="auth0" operate="replaceA">
+	<parameter name="uid"      sql-type="integer"     java-type="java.lang.Integer" in="true" out="false"/>
+	<parameter name="enable"   sql-type="char(1)"     java-type="java.lang.String" in="true" out="false"/>
+	BEGIN TRAN
+	UPDATE iplimit SET enable=@enable WHERE uid=@uid
+	IF @@rowcount = 0	INSERT INTO iplimit (uid,enable) VALUES (@uid,@enable)
+	COMMIT TRAN
+</procedure>
+
+<!-- ´æ´¢¹ý³Ì£ºËø¶¨ÓÃ»§,½ûÖ¹µÇÂ½ -->
+<procedure name="lockuser" connection="auth0" operate="replaceA">
+	<parameter name="uid"      sql-type="integer"     java-type="java.lang.Integer" in="true" out="false"/>
+	<parameter name="lockstatus"   sql-type="char(1)"     java-type="java.lang.String" in="true" out="false"/>
+	BEGIN TRAN
+	UPDATE iplimit SET lockstatus=@lockstatus WHERE uid=@uid
+	IF @@rowcount = 0	INSERT INTO iplimit (uid,lockstatus,enable) VALUES (@uid,@lockstatus,'t')
+	COMMIT TRAN
+</procedure>
+
+<!-- ´æ´¢¹ý³Ì£ºÌí¼ÓÓÃ»§È¨ÏÞ -->
+<procedure name="addUserPriv" connection="auth0" operate="replaceA">
+	<parameter name="userid"   sql-type="integer"  java-type="java.lang.Integer"   in="true" out="false" />
+	<parameter name="zoneid"   sql-type="integer"  java-type="java.lang.Integer"   in="true" out="false" />
+	<parameter name="rid"      sql-type="integer"  java-type="java.lang.Integer"   in="true" out="false" />
+	BEGIN TRAN
+	INSERT INTO auth VALUES( @userid, @zoneid, @rid )
+	COMMIT TRAN
+</procedure>
+
+<!-- ´æ´¢¹ý³Ì£ºÉ¾³ýÓÃ»§È¨ÏÞ -->
+<procedure name="delUserPriv" connection="auth0" operate="replaceA">
+	<parameter name="userid"   sql-type="integer"  java-type="java.lang.Integer"   in="true" out="false" />
+	<parameter name="zoneid"   sql-type="integer"  java-type="java.lang.Integer"   in="true" out="false" />
+	<parameter name="rid"      sql-type="integer"  java-type="java.lang.Integer"   in="true" out="false" />
+	<parameter name="deltype"  sql-type="integer"  java-type="java.lang.Integer"   in="true" out="false" />
+	BEGIN TRAN
+	IF @deltype = 0 DELETE FROM auth WHERE userid = @userid AND zoneid = @zoneid AND rid = @rid 
+	ELSE IF @deltype = 1 DELETE FROM auth WHERE userid = @userid AND zoneid = @zoneid
+	ELSE IF @deltype = 2 DELETE FROM auth WHERE userid = @userid 
+	COMMIT TRAN
+</procedure>
+
+<!-- ´æ´¢¹ý³Ì£ºÔö¼Ó·â½û¼ÇÂ¼ -->
+<procedure name="addForbid" connection="auth0" operate="replaceA">
+	<parameter name="userid"   sql-type="integer"     java-type="java.lang.Integer" in="true" out="false"/>
+	<parameter name="type"     sql-type="integer"     java-type="java.lang.Integer" in="true" out="false"/>
+	<!--parameter name="ctime" sql-type="datetime"    java-type="java.util.Date" 	in="true" out="false"/-->
+	<parameter name="forbid_time" sql-type="integer"  java-type="java.lang.Integer" in="true" out="false"/>
+	<parameter name="reason"   sql-type="varbinary(255)" java-type="java.lang.reflect.Array"  in="true" out="false"/>
+	<parameter name="gmroleid" sql-type="integer"     java-type="java.lang.Integer" in="true" out="false"/>
+	BEGIN TRAN
+	UPDATE forbid SET ctime=getdate(),forbid_time=@forbid_time,reason=@reason,gmroleid=@gmroleid WHERE userid=@userid AND type=@type
+	IF @@rowcount = 0	INSERT INTO forbid VALUES(@userid,@type,getdate(),@forbid_time,@reason,@gmroleid)
+	COMMIT TRAN
+</procedure>
+
+<!-- ´æ´¢¹ý³Ì£ºÉ¾³ý¹ýÆÚ·â½û¼ÇÂ¼ -->
+<procedure name="deleteTimeoutForbid" connection="auth0" operate="replaceA">
+	<parameter name="userid"	sql-type="integer" java-type="java.lang.Integer" in="true" out="false"/>
+	BEGIN TRAN
+	DELETE 	FROM forbid WHERE userid=@userid AND datediff(ss,ctime,getdate())>forbid_time
+	COMMIT TRAN
+</procedure>
+
+<!-- ´æ´¢¹ý³Ì£ºÇå³þÉÏÏß¼ÇÂ¼ -->
+<procedure name="clearonlinerecords" connection="auth0" operate="replaceA">
+	<parameter name="zoneid"   sql-type="integer"  java-type="java.lang.Integer"     in="true"  out="false" />
+	<parameter name="aid"      sql-type="integer"  java-type="java.lang.Integer"     in="true"  out="false" />
+	UPDATE point SET zoneid = NULL, zonelocalid = NULL WHERE aid = @aid AND zoneid = @zoneid
+</procedure>
+
+<!-- ´æ´¢¹ý³Ì£ºÉÏÏß¼ÇÂ¼ -->
+<procedure name="recordonline" connection="auth0" operate="replaceA">
+	<parameter name="uid"      sql-type="integer"  java-type="java.lang.Integer"     in="true"  out="false" />
+	<parameter name="aid"      sql-type="integer"  java-type="java.lang.Integer"     in="true"  out="false" />
+	<parameter name="zoneid"   sql-type="integer"  java-type="java.lang.Integer"     in="true"  out="true" />
+	<parameter name="zonelocalid" sql-type="integer"  java-type="java.lang.Integer"  in="true"  out="true" />
+	<parameter name="overwrite" sql-type="integer"  java-type="java.lang.Integer"    in="true"  out="true"  />
+	BEGIN TRAN
+	DECLARE @tmp_zoneid      integer
+	DECLARE @tmp_zonelocalid integer
+	SELECT @tmp_zoneid = zoneid, @tmp_zonelocalid = zonelocalid FROM point WHERE uid = @uid AND aid = @aid
+	IF @@rowcount = 0
+		INSERT INTO point (uid,aid,time,zoneid,zonelocalid,lastlogin) VALUES (@uid,@aid,0,@zoneid,@zonelocalid,getdate())
+	ELSE IF @tmp_zoneid = NULL OR @overwrite = 1
+		UPDATE point SET zoneid = @zoneid, zonelocalid = @zonelocalid, lastlogin = getdate() WHERE uid = @uid AND aid = @aid
+	IF @tmp_zoneid = NULL
+		SELECT @overwrite = 1
+	ELSE
+		SELECT @zoneid = @tmp_zoneid, @zonelocalid = @tmp_zonelocalid
+	COMMIT TRAN
+</procedure>
+
+<!-- ´æ´¢¹ý³Ì£ºÏÂÏß¼ÇÂ¼ -->
+<procedure name="recordoffline" connection="auth0" operate="replaceA">
+	<parameter name="uid"      sql-type="integer"  java-type="java.lang.Integer"     in="true"  out="false" />
+	<parameter name="aid"      sql-type="integer"  java-type="java.lang.Integer"     in="true"  out="false" />
+	<parameter name="zoneid"   sql-type="integer"  java-type="java.lang.Integer"     in="true"  out="true" />
+	<parameter name="zonelocalid" sql-type="integer"  java-type="java.lang.Integer"  in="true"  out="true" />
+	<parameter name="overwrite" sql-type="integer"  java-type="java.lang.Integer"    in="true"  out="true" />
+	BEGIN TRAN
+	UPDATE point SET zoneid = NULL, zonelocalid = NULL WHERE uid = @uid AND aid = @aid AND zoneid = @zoneid
+	SELECT @overwrite = @@rowcount
+	IF @overwrite = 0 SELECT @zoneid = zoneid, @zonelocalid = zonelocalid FROM point WHERE uid = @uid AND aid = @aid
+	COMMIT TRAN
+</procedure>
+
+<!-- ´æ´¢¹ý³Ì£ºÓÃ»§Ê£ÓàÊ±¼ä,±£ÁôÎ´ÓÃ -->
+<procedure name="remaintime" connection="auth0" operate="replaceA">
+	<parameter name="uid"      sql-type="integer"  java-type="java.lang.Integer"    in="true"  out="false" />
+	<parameter name="aid"      sql-type="integer"  java-type="java.lang.Integer"    in="true"  out="false" />
+	<parameter name="remain"   sql-type="integer"  java-type="java.lang.Integer"    in="false" out="true" />
+	<parameter name="freetimeleft" sql-type="integer" java-type="java.lang.Integer" in="false" out="true" />
+	BEGIN TRAN
+	DECLARE @enddate datetime
+	DECLARE @now     datetime
+	SELECT @now = getdate()
+	IF @aid = 0
+	BEGIN
+		SELECT @remain = 86313600
+		SELECT @enddate = dateadd(day,30,@now)
+	END
+	ELSE
+	BEGIN
+		SELECT @remain=time, @enddate=ISNULL(enddate,@now) FROM point WHERE @uid = uid AND @aid = aid
+		IF @@rowcount = 0
+		BEGIN
+			SELECT @remain = 0
+			INSERT INTO point (uid,aid,time) VALUES (@uid,@aid,@remain)
+		END
+	END
+	SELECT @freetimeleft = 0
+	IF @enddate > @now	SELECT @freetimeleft = datediff(second, @now, @enddate )
+	COMMIT TRAN
+</procedure>
+
+<!-- ´æ´¢¹ý³Ì£ºÔö¼ÓÓÃ»§Ê£ÓàÊ±¼ä -->
+<procedure name="adduserpoint" connection="auth0" operate="replaceA">
+	<parameter name="uid"      sql-type="integer"  java-type="java.lang.Integer"    in="true"  out="false" />
+	<parameter name="aid"      sql-type="integer"  java-type="java.lang.Integer"    in="true"  out="false" />
+	<parameter name="time"     sql-type="integer"  java-type="java.lang.Integer"    in="true"  out="false" />
+	BEGIN TRAN
+	UPDATE point SET time=ISNULL(time,0)+@time WHERE @uid=uid AND @aid=aid
+	IF @@rowcount = 0	INSERT INTO point (uid,aid,time) VALUES (@uid,@aid,@time)
+	COMMIT TRAN
+</procedure>
+
+<!--
+    ´æ´¢¹ý³Ì£º»®²¦½ðÔª±¦
+
+	status:
+		1.create ok;
+		2.get sn ok;
+		3.send addcash ok;
+		4.finish ok;
+	error:
+		0.³É¹¦;
+		-1:Î´Öª´íÎó;
+		-2.¸ÃÕÊºÅ²»´æÔÚ;
+		-3:Á¬½ÓÕÊºÅ·þÎñÆ÷Ê§°Ü;
+		-4:ÍùÕÊºÅ·þÎñÆ÷·¢ËÍÊý¾ÝÊ§°Ü;
+		-5:ÕÊºÅ·þÎñÆ÷Î´·µ»Ø;
+		-6:ÓÎÏ··þÎñÆ÷²»´æÔÚ»òÕßÎ´Æô¶¯;
+		-7:¸ÃÓÃ»§ÒÑÓÐ½ðÔª±¦ÕýÔÚ»®²¦£¬ÒÑ·ÅÈë¶ÓÁÐ;
+		-8.¼Æ·ÑÇøÓà¶î²»×ã»ò»®²¦½ð¶î´íÎó£¬ÒÑ·ÅÈë¶ÓÁÐ;
+		-9:µ÷ÓÃ´ÎÐò´íÎó£¬µ±Ç°×´Ì¬²»Îª1;
+		-10:µ÷ÓÃ´ÎÐò´íÎó£¬µ±Ç°×´Ì¬²»Îª2;
+		-11:µ÷ÓÃ´ÎÐò´íÎó£¬µ±Ç°×´Ì¬²»Îª3;
+		-12:µ÷ÓÃ´ÎÐò´íÎó£¬ÎÞ´Ë¼ÇÂ¼;
+		-13:ÏòÓÎÏ··þÎñÆ÷·¢ËÍ»ñÈ¡ÐòÁÐºÅÇëÇóÊ§°Ü;
+		-14:ÏòÓÎÏ··þÎñÆ÷·¢ËÍ»®²¦ÇëÇóÊ§°Ü;
+		-15:ÏòÓÎÏ··þÎñÆ÷»ñÈ¡ÐòÁÐºÅ³¬Ê±;
+		-16:ÓÎÏ··þÎñÆ÷»ñÈ¡ÐòÁÐºÅÊ§°Ü;
+		-17:ÓÎÏ··þÎñÆ÷»®²¦Ê§°Ü;
+		-18:ÓÎÏ··þÎñÆ÷½ðÔª±¦Óà¶î²»×ã;
+-->
+<procedure name="usecash" connection="auth0" operate="replaceA">
+	<parameter name="userid" sql-type="integer" java-type="java.lang.Integer" in="true" out="false"/>
+	<parameter name="zoneid" sql-type="integer" java-type="java.lang.Integer" in="true" out="false"/>
+	<parameter name="sn"     sql-type="integer" java-type="java.lang.Integer" in="true" out="false"/>
+	<parameter name="aid"    sql-type="integer" java-type="java.lang.Integer" in="true" out="false"/>
+	<parameter name="point"  sql-type="integer" java-type="java.lang.Integer" in="true" out="false"/>
+	<parameter name="cash"   sql-type="integer" java-type="java.lang.Integer" in="true" out="false"/>
+	<parameter name="status" sql-type="integer" java-type="java.lang.Integer" in="true" out="false"/>
+	<parameter name="error"  sql-type="integer" java-type="java.lang.Integer" in="false" out="true"/>
+	BEGIN TRAN
+	DECLARE @sn_old integer
+	DECLARE @aid_old integer
+	DECLARE @point_old integer
+	DECLARE @cash_old integer
+	DECLARE @status_old integer
+	DECLARE @creatime_old datetime
+	DECLARE @time_old integer
+	DECLARE @need_restore integer
+	DECLARE @exists integer
+
+	SELECT @error = 0
+	SELECT @need_restore = 0
+	SELECT @sn_old=sn,@aid_old=aid,@point_old=point,@cash_old=cash,@status_old=status,@creatime_old=creatime FROM usecashnow WHERE @userid=userid AND @zoneid=zoneid AND sn>=0
+
+	IF @@rowcount = 1	SELECT @exists = 1
+	ELSE				SELECT @exists = 0
+
+	IF @status = 0
+	BEGIN
+		IF @exists = 0
+		BEGIN
+			SELECT @aid=aid,@point=point FROM usecashnow WHERE @userid=userid AND @zoneid=zoneid AND @sn=sn
+			SELECT @point = ISNULL(@point,0)
+			UPDATE point SET time=time-@point WHERE @userid=uid AND @aid=aid AND time>=@point
+			IF @@rowcount = 1
+				UPDATE usecashnow SET sn=0, status=1 WHERE userid=@userid AND zoneid=@zoneid AND sn=@sn
+			ELSE
+				SELECT @error = -8
+		END
+		ELSE
+			SELECT @error = -7
+	END
+	ELSE IF @status = 1
+	BEGIN
+		IF @exists = 0
+		BEGIN
+			UPDATE point SET time=time-@point WHERE @userid=uid AND @aid=aid AND time>=@point
+			IF @@rowcount = 1
+				INSERT INTO usecashnow (userid, zoneid, sn, aid, point, cash, status, creatime) VALUES(@userid, @zoneid, @sn, @aid, @point, @cash, @status, getdate() )
+			ELSE
+			BEGIN
+				INSERT INTO usecashnow SELECT @userid, @zoneid, ISNULL(min(sn),0)-1, @aid, @point, @cash, 0, getdate() FROM usecashnow WHERE userid=@userid and zoneid=@zoneid and 0>=sn
+				SELECT @error = -8
+			END
+		END
+		ELSE
+		BEGIN
+			INSERT INTO usecashnow SELECT @userid, @zoneid, ISNULL(min(sn),0)-1, @aid, @point, @cash, 0, getdate() FROM usecashnow WHERE userid=@userid and zoneid=@zoneid and 0>=sn
+			SELECT @error = -7
+		END
+	END
+	ELSE IF @status = 2
+	BEGIN
+		IF @exists = 1 AND @status_old = 1 AND @sn_old = 0
+		BEGIN
+			UPDATE usecashnow set sn = @sn, status=@status WHERE @userid=userid AND @zoneid=zoneid AND @sn_old=sn
+		END
+		ELSE
+		BEGIN
+			SELECT @error = -9
+		END
+	END
+	ELSE IF @status = 3
+	BEGIN
+		IF @exists = 1 AND @status_old = 2
+			UPDATE usecashnow set status=@status WHERE @userid=userid AND @zoneid=zoneid AND @sn_old=sn
+		ELSE
+		BEGIN
+			SELECT @error = -10
+		END
+	END
+	ELSE IF @status = 4
+	BEGIN
+		IF @exists = 1
+		BEGIN
+			DELETE FROM usecashnow WHERE @userid=userid AND @zoneid=zoneid AND @sn_old=sn
+			INSERT INTO usecashlog (userid, zoneid, sn, aid, point, cash, status, creatime, fintime) VALUES(@userid, @zoneid, @sn_old, @aid_old, @point_old, @cash_old, @status, @creatime_old, getdate() )
+		END
+		IF NOT (@exists = 1 AND @status_old = 3)	SELECT @error = -11
+	END
+	ELSE
+	BEGIN
+		SELECT @error = -12
+	END
+
+	IF @need_restore = 1
+	BEGIN
+		UPDATE point SET time=time+@point_old WHERE @userid=uid AND @aid_old=aid
+		DELETE FROM usecashnow WHERE @userid=userid AND @zoneid=zoneid AND @sn_old=sn
+		INSERT INTO usecashlog (userid, zoneid, sn, aid, point, cash, status, creatime, fintime) VALUES(@userid, @zoneid, @sn_old, @aid_old, @point_old, @cash_old, @status, @creatime_old, getdate() )
+	END
+	COMMIT TRAN
+</procedure>
+
+</application>
+

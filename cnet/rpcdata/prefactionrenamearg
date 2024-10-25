@@ -1,0 +1,69 @@
+#ifndef __GNET_PREFACTIONRENAMEARG_RPCDATA
+#define __GNET_PREFACTIONRENAMEARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class PreFactionRenameArg : public GNET::Rpc::Data
+	{
+	public:
+		int zid;
+		unsigned int fid;
+		Octets newname;
+
+	public:
+		PreFactionRenameArg (int l_zid = -1,unsigned int l_fid = 0,const Octets& l_newname = Octets())
+			: zid(l_zid),fid(l_fid),newname(l_newname)
+		{
+		}
+
+		PreFactionRenameArg(const PreFactionRenameArg &rhs)
+			: zid(rhs.zid),fid(rhs.fid),newname(rhs.newname) { }
+
+		Rpc::Data *Clone() const { return new PreFactionRenameArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const PreFactionRenameArg *r = dynamic_cast<const PreFactionRenameArg *>(&rhs);
+			if (r && r != this)
+			{
+				zid = r->zid;
+				fid = r->fid;
+				newname = r->newname;
+			}
+			return *this;
+		}
+
+		PreFactionRenameArg& operator = (const PreFactionRenameArg &rhs)
+		{
+			const PreFactionRenameArg *r = &rhs;
+			if (r && r != this)
+			{
+				zid = r->zid;
+				fid = r->fid;
+				newname = r->newname;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << zid;
+			os << fid;
+			os << newname;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> zid;
+			os >> fid;
+			os >> newname;
+			return os;
+		}
+
+	};
+};
+#endif

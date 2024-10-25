@@ -1,0 +1,71 @@
+#ifndef __GNET_DBPSHOPCLEARGOODSRES_RPCDATA
+#define __GNET_DBPSHOPCLEARGOODSRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "pshopitem"
+#include "groleinventory"
+
+namespace GNET
+{
+	class DBPShopClearGoodsRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		PShopItemVector slist;
+		GRoleInventoryVector store;
+
+	public:
+		DBPShopClearGoodsRes (int l_retcode = 0,const PShopItemVector& l_slist = PShopItemVector(),const GRoleInventoryVector& l_store = GRoleInventoryVector())
+			: retcode(l_retcode),slist(l_slist),store(l_store)
+		{
+		}
+
+		DBPShopClearGoodsRes(const DBPShopClearGoodsRes &rhs)
+			: retcode(rhs.retcode),slist(rhs.slist),store(rhs.store) { }
+
+		Rpc::Data *Clone() const { return new DBPShopClearGoodsRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPShopClearGoodsRes *r = dynamic_cast<const DBPShopClearGoodsRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				slist = r->slist;
+				store = r->store;
+			}
+			return *this;
+		}
+
+		DBPShopClearGoodsRes& operator = (const DBPShopClearGoodsRes &rhs)
+		{
+			const DBPShopClearGoodsRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				slist = r->slist;
+				store = r->store;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << slist;
+			os << store;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> slist;
+			os >> store;
+			return os;
+		}
+
+	};
+};
+#endif

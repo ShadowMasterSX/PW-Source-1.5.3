@@ -1,0 +1,82 @@
+#ifndef __GNET_DBPSHOPCANCELGOODS_HPP
+#define __GNET_DBPSHOPCANCELGOODS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbpshopcancelgoodsarg"
+#include "dbpshopcancelgoodsres"
+#include "pshopcancelgoods_re.hpp"
+#include "dbpshopget.hrp"
+
+namespace GNET
+{
+
+class DBPShopCancelGoods : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbpshopcancelgoods"
+#undef	RPC_BASECLASS
+
+	enum PSHOP_CANCEL_TYPE
+	{
+		TYPE_CANCEL_SALE,
+		TYPE_CANCEL_BUY,
+	};
+
+	unsigned int save_linksid;
+	unsigned int save_localsid;
+
+	void SendResult(int retcode, int canceltype, int pos, const GRoleInventory &item/*更新仓库*/)
+	{
+		GDeliveryServer::GetInstance()->Send(save_linksid, PShopCancelGoods_Re(retcode, save_localsid, canceltype, pos, item));
+	}
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid){}
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBPShopCancelGoodsArg *arg = (DBPShopCancelGoodsArg *)argument;
+		DBPShopCancelGoodsRes *res = (DBPShopCancelGoodsRes *)result;
+		LOG_TRACE("DBPShopCancelGoods: RPC return, roleid=%d retcode=%d", arg->roleid, res->retcode);
+		PShopObj *obj = PShopMarket::GetInstance().GetShop(arg->roleid);
+		if(res->retcode == ERR_SUCCESS)
+		{
+			//注意:这里GDELIVERY可能未缓存店铺数据
+			//因为店铺过期状态也可以进行取消操作
+
+			if(arg->canceltype == TYPE_CANCEL_BUY)
+			{
+				PShopMarket::GetInstance().OnRemoveItemBuy(arg->roleid, arg->item_pos);
+				if(obj) obj->Trace();
+			}
+			else if(arg->canceltype == TYPE_CANCEL_SALE)
+			{
+				PShopMarket::GetInstance().OnRemoveItemSale(arg->roleid, arg->item_pos);
+				PShopObj *obj = PShopMarket::GetInstance().GetShop(arg->roleid);
+				if(obj)
+				{
+					obj->UpdateItemStore(res->itemstore);
+					obj->Trace();
+				}
+			}
+
+			PShopMarket::GetInstance().Trace();
+		}
+
+		if(obj) obj->SetBusy(false);//解除BUSY状态
+		SendResult(res->retcode, arg->canceltype, arg->item_pos, res->itemstore);
+	}
+
+	void OnTimeout()
+	{
+		DBPShopCancelGoodsArg *arg = (DBPShopCancelGoodsArg *)argument;
+		Log::log(LOG_ERR,"DBPShopCancel: Timeout. roleid=%d.", arg->roleid);
+		PShopObj *obj = PShopMarket::GetInstance().GetShop(arg->roleid);
+		if(obj) obj->SetBusy(false);
+		SendResult(ERR_TIMEOUT, arg->canceltype, arg->item_pos, GRoleInventory());
+		DBPShopGet::QueryShop(arg->roleid, save_linksid, save_localsid, 3/*retry*/, DBPShopGet::REASON_DB_TIMEOUT);
+	}
+};
+
+};
+#endif

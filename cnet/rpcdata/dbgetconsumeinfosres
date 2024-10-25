@@ -1,0 +1,65 @@
+#ifndef __GNET_DBGETCONSUMEINFOSRES_RPCDATA
+#define __GNET_DBGETCONSUMEINFOSRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "playerconsumeinfo"
+
+namespace GNET
+{
+	class DBGetConsumeInfosRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		PlayerConsumeInfoVector playerlist;
+
+	public:
+		DBGetConsumeInfosRes (int l_retcode = 0,const PlayerConsumeInfoVector& l_playerlist = PlayerConsumeInfoVector())
+			: retcode(l_retcode),playerlist(l_playerlist)
+		{
+		}
+
+		DBGetConsumeInfosRes(const DBGetConsumeInfosRes &rhs)
+			: retcode(rhs.retcode),playerlist(rhs.playerlist) { }
+
+		Rpc::Data *Clone() const { return new DBGetConsumeInfosRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBGetConsumeInfosRes *r = dynamic_cast<const DBGetConsumeInfosRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				playerlist = r->playerlist;
+			}
+			return *this;
+		}
+
+		DBGetConsumeInfosRes& operator = (const DBGetConsumeInfosRes &rhs)
+		{
+			const DBGetConsumeInfosRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				playerlist = r->playerlist;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << playerlist;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> playerlist;
+			return os;
+		}
+
+	};
+};
+#endif

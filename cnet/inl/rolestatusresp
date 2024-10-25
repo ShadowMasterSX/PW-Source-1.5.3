@@ -1,0 +1,35 @@
+	public:
+		int64_t localrid;
+		std::map<int64_t,RoleStatusBean> rolestatus;
+		enum { PROTOCOL_TYPE = PROTOCOL_ROLESTATUSRESP };
+	public:
+		RoleStatusResp() { type = PROTOCOL_ROLESTATUSRESP; }
+		RoleStatusResp(void*) : Protocol(PROTOCOL_ROLESTATUSRESP) { }
+		RoleStatusResp (int64_t l_localrid,const std::map<int64_t,RoleStatusBean>& l_rolestatus)
+			 : localrid(l_localrid),rolestatus(l_rolestatus)
+		{
+			type = PROTOCOL_ROLESTATUSRESP;
+		}
+
+		RoleStatusResp(const RoleStatusResp &rhs)
+			: Protocol(rhs),localrid(rhs.localrid),rolestatus(rhs.rolestatus) { }
+
+		GNET::Protocol *Clone() const { return new RoleStatusResp(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << localrid;
+			os << rolestatus;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> localrid;
+			os >> rolestatus;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1048576; }

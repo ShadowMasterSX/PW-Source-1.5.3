@@ -1,0 +1,78 @@
+#ifndef __GNET_DBWEBTRADELOADRES_RPCDATA
+#define __GNET_DBWEBTRADELOADRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gwebtradedetail"
+
+namespace GNET
+{
+	class DBWebTradeLoadRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		int64_t max_sn;
+		std::vector<GWebTradeDetail> items;
+		Octets handle;
+
+	public:
+		DBWebTradeLoadRes (int l_retcode = 0,int64_t l_max_sn = 0,const std::vector<GWebTradeDetail>& l_items = std::vector<GWebTradeDetail>()
+			,const Octets& l_handle = Octets())
+			: retcode(l_retcode),max_sn(l_max_sn),items(l_items)
+			,handle(l_handle)
+		{
+		}
+
+		DBWebTradeLoadRes(const DBWebTradeLoadRes &rhs)
+			: retcode(rhs.retcode),max_sn(rhs.max_sn),items(rhs.items),
+			handle(rhs.handle) { }
+
+		Rpc::Data *Clone() const { return new DBWebTradeLoadRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBWebTradeLoadRes *r = dynamic_cast<const DBWebTradeLoadRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				max_sn = r->max_sn;
+				items = r->items;
+				handle = r->handle;
+			}
+			return *this;
+		}
+
+		DBWebTradeLoadRes& operator = (const DBWebTradeLoadRes &rhs)
+		{
+			const DBWebTradeLoadRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				max_sn = r->max_sn;
+				items = r->items;
+				handle = r->handle;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << max_sn;
+			os << items;
+			os << handle;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> max_sn;
+			os >> items;
+			os >> handle;
+			return os;
+		}
+
+	};
+};
+#endif

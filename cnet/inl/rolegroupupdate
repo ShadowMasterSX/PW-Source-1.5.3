@@ -1,0 +1,47 @@
+	public:
+		int64_t roleid;
+		int gtype;
+		int64_t groupid;
+		Octets groupname;
+		char operation;
+		enum { PROTOCOL_TYPE = PROTOCOL_ROLEGROUPUPDATE };
+	public:
+		RoleGroupUpdate() { type = PROTOCOL_ROLEGROUPUPDATE; }
+		RoleGroupUpdate(void*) : Protocol(PROTOCOL_ROLEGROUPUPDATE) { }
+		RoleGroupUpdate (int64_t l_roleid,int l_gtype,int64_t l_groupid,
+			const Octets& l_groupname,char l_operation)
+			 : roleid(l_roleid),gtype(l_gtype),groupid(l_groupid)
+			,groupname(l_groupname),operation(l_operation)
+		{
+			type = PROTOCOL_ROLEGROUPUPDATE;
+		}
+
+		RoleGroupUpdate(const RoleGroupUpdate &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),gtype(rhs.gtype),groupid(rhs.groupid)
+			,groupname(rhs.groupname),operation(rhs.operation) { }
+
+		GNET::Protocol *Clone() const { return new RoleGroupUpdate(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << gtype;
+			os << groupid;
+			os << groupname;
+			os << operation;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> gtype;
+			os >> groupid;
+			os >> groupname;
+			os >> operation;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1024; }

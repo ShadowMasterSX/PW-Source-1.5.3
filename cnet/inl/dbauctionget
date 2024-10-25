@@ -1,0 +1,9 @@
+		GNET::Protocol *Clone() const {  return new DBAuctionGet(*this); }
+	public:
+		enum { PROTOCOL_TYPE = RPC_DBAUCTIONGET };
+		DBAuctionGet(Type type, Rpc::Data *argument, Rpc::Data *result)
+			: RPC_BASECLASS(type, argument, result ) { }
+		DBAuctionGet(const DBAuctionGet &rhs) : RPC_BASECLASS(rhs) { }
+		int  PriorPolicy( ) const { return 1; }
+		bool SizePolicy(size_t size) const { return size <= 2048; }
+		bool TimePolicy(int timeout) const { return timeout <= 30; }

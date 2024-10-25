@@ -1,0 +1,43 @@
+
+#ifndef __GNET_DBGETMAILLIST_HPP
+#define __GNET_DBGETMAILLIST_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "roleid"
+#include "gmailheader"
+#include "dbgetmaillistres"
+
+namespace GNET
+{
+
+class DBGetMailList : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbgetmaillist"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// RoleId *arg = (RoleId *)argument;
+		// GMailHeaderVector *res = (GMailHeaderVector *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// RoleId *arg = (RoleId *)argument;
+		// GMailHeaderVector *res = (GMailHeaderVector *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

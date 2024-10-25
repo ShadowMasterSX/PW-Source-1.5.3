@@ -1,0 +1,78 @@
+
+#ifndef __GNET_DBSTOCKCOMMISSION_HPP
+#define __GNET_DBSTOCKCOMMISSION_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbstockcommissionarg"
+#include "dbstockcommissionres"
+
+namespace GNET
+{
+
+class DBStockCommission : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbstockcommission"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBStockCommissionArg *arg = (DBStockCommissionArg *)argument;
+		DBStockCommissionRes *res = (DBStockCommissionRes *)result;
+
+		Marshal::OctetsStream key, value;
+		try
+		{
+			StorageEnv::Storage * porder = StorageEnv::GetStorage("order");
+			StorageEnv::CommonTransaction txn;
+			StockOrder order;
+
+			try{
+				if( !arg->order.tid || arg->order.tid==STOCK_BALANCE_ID )
+					throw DbException(DB_VERIFY_BAD);
+				key << arg->order.tid;
+				if(porder->find(key,value,txn))
+				{
+					value >> order;
+					if(order.tid!=arg->order.tid || order.userid!=arg->order.userid)
+						throw DbException(DB_VERIFY_BAD);
+				}
+				else
+					porder->insert(key,Marshal::OctetsStream()<<arg->order,txn);
+				res->retcode = ERR_SUCCESS;
+
+				Log::formatlog("stockcommission","userid=%d:tid=%d:price=%d:volume=%d",
+					arg->order.userid, arg->order.tid, arg->order.price, arg->order.volume);
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log(LOG_ERR,"DBStockCommission,userid=%d,tid=%d,what=%s",arg->order.userid,arg->order.tid,e.what());
+			res->retcode = ERR_EXCEPTION;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBStockCommissionArg *arg = (DBStockCommissionArg *)argument;
+		// DBStockCommissionRes *res = (DBStockCommissionRes *)result;
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

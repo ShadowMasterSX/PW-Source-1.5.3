@@ -1,0 +1,57 @@
+
+#ifndef __GNET_DBFACTIONRESOURCEBATTLEBONUS_HPP
+#define __GNET_DBFACTIONRESOURCEBATTLEBONUS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbfactionresourcebattlebonusarg"
+#include "dbfactionresourcebattlebonusres"
+#include "gamedbclient.hpp"
+#include "postoffice.h"
+
+namespace GNET
+{
+
+class DBFactionResourceBattleBonus : public Rpc
+{
+#define RPC_BASECLASS   Rpc
+    #include "dbfactionresourcebattlebonus"
+#undef  RPC_BASECLASS
+
+    void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+    {
+        // DBFactionResourceBattleBonusArg *arg = (DBFactionResourceBattleBonusArg *)argument;
+        // DBFactionResourceBattleBonusRes *res = (DBFactionResourceBattleBonusRes *)result;
+    }
+
+    void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+    {
+        DBFactionResourceBattleBonusArg *arg = (DBFactionResourceBattleBonusArg *)argument;
+        DBFactionResourceBattleBonusRes *res = (DBFactionResourceBattleBonusRes *)result;
+
+        if (res->retcode == ERR_AGAIN) {
+            GameDBClient::GetInstance()->SendProtocol(Rpc::Call(RPC_DBFACTIONRESOURCEBATTLEBONUS,arg));
+        } else  {
+            if (res->retcode != ERR_SUCCESS) {
+                Log::log(LOG_ERR, "DBFactionResourceBattleBonus, failed, ret=%d roleid=%d", res->retcode, arg->roleid);
+            }
+
+            if (res->inform_player.receiver != _ROLE_INVALID) {
+                PostOffice::GetInstance().AddNewMail( res->inform_player.receiver, res->inform_player);
+            }
+        }
+    }
+
+    void OnTimeout()
+    {
+        DBFactionResourceBattleBonusArg *arg = (DBFactionResourceBattleBonusArg *)argument;
+        Log::log(LOG_ERR, "DBFactionResourceBattleBonus, timeout, roleid=%d,money=%d", arg->roleid, arg->money);
+        GameDBClient::GetInstance()->SendProtocol(Rpc::Call(RPC_DBFACTIONRESOURCEBATTLEBONUS, arg));
+    }
+
+};
+
+};
+#endif

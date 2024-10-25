@@ -1,0 +1,65 @@
+#ifndef __GNET_GMEMBER_RPCDATA
+#define __GNET_GMEMBER_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GMember : public GNET::Rpc::Data
+	{
+	public:
+		unsigned int rid;
+		char role;
+
+	public:
+		GMember (unsigned int l_rid = 0,char l_role = 0)
+			: rid(l_rid),role(l_role)
+		{
+		}
+
+		GMember(const GMember &rhs)
+			: rid(rhs.rid),role(rhs.role) { }
+
+		Rpc::Data *Clone() const { return new GMember(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GMember *r = dynamic_cast<const GMember *>(&rhs);
+			if (r && r != this)
+			{
+				rid = r->rid;
+				role = r->role;
+			}
+			return *this;
+		}
+
+		GMember& operator = (const GMember &rhs)
+		{
+			const GMember *r = &rhs;
+			if (r && r != this)
+			{
+				rid = r->rid;
+				role = r->role;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << rid;
+			os << role;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> rid;
+			os >> role;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<GMember>	GMemberVector;
+};
+#endif

@@ -1,0 +1,84 @@
+
+#ifndef __GNET_DBGETPLAYERPROFILEDATA_HPP
+#define __GNET_DBGETPLAYERPROFILEDATA_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbgetplayerprofiledataarg"
+#include "dbgetplayerprofiledatares"
+
+namespace GNET
+{
+
+class DBGetPlayerProfileData : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbgetplayerprofiledata"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBGetPlayerProfileDataArg *arg = (DBGetPlayerProfileDataArg *)argument;
+		DBGetPlayerProfileDataRes *res = (DBGetPlayerProfileDataRes *)result;
+
+		LOG_TRACE( "DBGetPlayerProfileData, roleid=%d.\n", arg->roleid );
+		
+		try {
+			StorageEnv::Storage* pbase = StorageEnv::GetStorage("base");
+			StorageEnv::Storage* pprofile = StorageEnv::GetStorage("playerprofile");
+			
+			StorageEnv::AtomTransaction txn;
+			try {
+				Marshal::OctetsStream key, value_base, value_profile;
+				GRoleBase base;
+				PlayerProfileData profile;
+				
+				key << arg->roleid;
+				if(pbase->find(key, value_base, txn)) {
+					value_base >> base;
+				} else {
+					res->retcode = ERR_DATANOTFIND;
+					return;
+				}
+				res->gender = base.gender;
+				
+				if(pprofile->find(key, value_profile, txn)) {
+					value_profile >> profile;
+				} else {
+					res->retcode = ERR_DATANOTFIND;
+					return;
+				}
+				
+				res->data = profile;
+				res->retcode = ERR_SUCCESS;
+			} catch(DbException e) { 
+				throw; 
+			} catch(...) {
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		} catch ( DbException e ) {
+			Log::log( LOG_ERR, "DBGetPlayerProfileData, roleid=%d, what=%s\n", arg->roleid, e.what() );
+			res->retcode = ERR_EXCEPTION;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBGetPlayerProfileDataArg *arg = (DBGetPlayerProfileDataArg *)argument;
+		// DBGetPlayerProfileDataRes *res = (DBGetPlayerProfileDataRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

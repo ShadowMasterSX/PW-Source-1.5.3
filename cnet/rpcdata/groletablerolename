@@ -1,0 +1,59 @@
+#ifndef __GNET_GROLETABLEROLENAME_RPCDATA
+#define __GNET_GROLETABLEROLENAME_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "roleid"
+
+namespace GNET
+{
+	class GRoleTableRolename : public GNET::Rpc::Data
+	{
+	public:
+		RoleId id;
+
+	public:
+		GRoleTableRolename ()
+		{
+		}
+
+		GRoleTableRolename(const GRoleTableRolename &rhs)
+			: id(rhs.id) { }
+
+		Rpc::Data *Clone() const { return new GRoleTableRolename(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GRoleTableRolename *r = dynamic_cast<const GRoleTableRolename *>(&rhs);
+			if (r && r != this)
+			{
+				id = r->id;
+			}
+			return *this;
+		}
+
+		GRoleTableRolename& operator = (const GRoleTableRolename &rhs)
+		{
+			const GRoleTableRolename *r = &rhs;
+			if (r && r != this)
+			{
+				id = r->id;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << id;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> id;
+			return os;
+		}
+
+	};
+};
+#endif

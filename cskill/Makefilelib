@@ -1,0 +1,46 @@
+#
+# Makefile 
+#
+
+TOP_SRCDIR = ..
+
+INTEPRETED_EXPR = 0
+
+include ../mk/gcc.defs.mk
+
+HEADERS = callup.h  playerwrapper.h  range.h  skill.h  skillexpr.h  skillfilter.h  skilllevel.h  skillwrapper.h  targetwrapper.h
+CPPFILES = main.cpp  playerwrapper.cpp  skill.cpp  skillfilter.cpp  skillwrapper.cpp
+STUBOBJS = ../skills/skillstub.o
+OBJS = skill.o skillwrapper.o playerwrapper.o skillfilter.o 
+OUTEROBJS = ../common/conf.o ../common/thread.o ../common/timer.o ../common/itimer.o ../io/pollio.o 
+INCLUDES += -I../expr -I../header -I../header/include
+
+DEFINES  +=-D_SKILL_SERVER 
+
+ifeq ($(INTEPRETED_EXPR), 1)
+DEFINES  += -D_INTEPRETED_EXPR
+EXPROBJS = ../expr/stubs.o ../expr/objectgraph.o ../expr/scanner.o ../expr/exprparser.o ../expr/analyzer.o ../expr/executor.o
+else
+EXPROBJS = 
+endif
+
+CFLAGS += -fPIC
+
+EXES = skill
+
+all : lib
+
+lib : $(OBJS) $(EXPROBJS) $(STUBOBJS)
+	ar crs libskill.a $(OBJS) $(EXPROBJS) $(STUBOBJS)
+
+dlib : $(OBJS) $(OUTEROBJS) $(EXPROBJS)
+	rm libskill.so -f
+	$(LD) -shared -fPIC $(LDFLAGS) $(OBJS) $(OUTEROBJS) $(EXPROBJS) $(STUBOBJS) -o libskill.so
+
+$(STUBOBJS) : $(HEADERS) ../skills/*.h
+
+$(OBJS) : $(HEADERS)
+
+
+include ../mk/gcc.rules.mk
+

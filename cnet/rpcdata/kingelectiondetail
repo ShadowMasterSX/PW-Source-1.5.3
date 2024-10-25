@@ -1,0 +1,97 @@
+#ifndef __GNET_KINGELECTIONDETAIL_RPCDATA
+#define __GNET_KINGELECTIONDETAIL_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "keking"
+#include "kecandidate"
+
+namespace GNET
+{
+	class KingElectionDetail : public GNET::Rpc::Data
+	{
+	public:
+		KEKing king;
+		KECandidateVector candidate_list;
+		int reserved1;
+		int reserved2;
+		int reserved3;
+		int reserved4;
+		int reserved5;
+
+	public:
+		KingElectionDetail (const KEKing& l_king = KEKing(),const KECandidateVector& l_candidate_list = KECandidateVector(),int l_reserved1 = 0
+			,int l_reserved2 = 0,int l_reserved3 = 0,int l_reserved4 = 0
+			,int l_reserved5 = 0)
+			: king(l_king),candidate_list(l_candidate_list),reserved1(l_reserved1)
+			,reserved2(l_reserved2),reserved3(l_reserved3),reserved4(l_reserved4)
+			,reserved5(l_reserved5)
+		{
+		}
+
+		KingElectionDetail(const KingElectionDetail &rhs)
+			: king(rhs.king),candidate_list(rhs.candidate_list),reserved1(rhs.reserved1),
+			reserved2(rhs.reserved2),reserved3(rhs.reserved3),reserved4(rhs.reserved4),
+			reserved5(rhs.reserved5) { }
+
+		Rpc::Data *Clone() const { return new KingElectionDetail(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const KingElectionDetail *r = dynamic_cast<const KingElectionDetail *>(&rhs);
+			if (r && r != this)
+			{
+				king = r->king;
+				candidate_list = r->candidate_list;
+				reserved1 = r->reserved1;
+				reserved2 = r->reserved2;
+				reserved3 = r->reserved3;
+				reserved4 = r->reserved4;
+				reserved5 = r->reserved5;
+			}
+			return *this;
+		}
+
+		KingElectionDetail& operator = (const KingElectionDetail &rhs)
+		{
+			const KingElectionDetail *r = &rhs;
+			if (r && r != this)
+			{
+				king = r->king;
+				candidate_list = r->candidate_list;
+				reserved1 = r->reserved1;
+				reserved2 = r->reserved2;
+				reserved3 = r->reserved3;
+				reserved4 = r->reserved4;
+				reserved5 = r->reserved5;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << king;
+			os << candidate_list;
+			os << reserved1;
+			os << reserved2;
+			os << reserved3;
+			os << reserved4;
+			os << reserved5;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> king;
+			os >> candidate_list;
+			os >> reserved1;
+			os >> reserved2;
+			os >> reserved3;
+			os >> reserved4;
+			os >> reserved5;
+			return os;
+		}
+
+	};
+};
+#endif

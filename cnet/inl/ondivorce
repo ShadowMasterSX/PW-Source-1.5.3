@@ -1,0 +1,35 @@
+	public:
+		int rid1;
+		int rid2;
+		enum { PROTOCOL_TYPE = PROTOCOL_ONDIVORCE };
+	public:
+		OnDivorce() { type = PROTOCOL_ONDIVORCE; }
+		OnDivorce(void*) : Protocol(PROTOCOL_ONDIVORCE) { }
+		OnDivorce (int l_rid1,int l_rid2)
+			 : rid1(l_rid1),rid2(l_rid2)
+		{
+			type = PROTOCOL_ONDIVORCE;
+		}
+
+		OnDivorce(const OnDivorce &rhs)
+			: Protocol(rhs),rid1(rhs.rid1),rid2(rhs.rid2) { }
+
+		GNET::Protocol *Clone() const { return new OnDivorce(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << rid1;
+			os << rid2;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> rid1;
+			os >> rid2;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

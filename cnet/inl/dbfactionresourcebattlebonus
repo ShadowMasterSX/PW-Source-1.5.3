@@ -1,0 +1,9 @@
+		GNET::Protocol *Clone() const {  return new DBFactionResourceBattleBonus(*this); }
+	public:
+		enum { PROTOCOL_TYPE = RPC_DBFACTIONRESOURCEBATTLEBONUS };
+		DBFactionResourceBattleBonus(Type type, Rpc::Data *argument, Rpc::Data *result)
+			: RPC_BASECLASS(type, argument, result ) { }
+		DBFactionResourceBattleBonus(const DBFactionResourceBattleBonus &rhs) : RPC_BASECLASS(rhs) { }
+		int  PriorPolicy( ) const { return 1; }
+		bool SizePolicy(size_t size) const { return size <= 1024; }
+		bool TimePolicy(int timeout) const { return timeout <= 40; }

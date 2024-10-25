@@ -1,0 +1,35 @@
+	public:
+		int roleid;
+		Octets newname;
+		enum { PROTOCOL_TYPE = PROTOCOL_NOTIFYFACTIONPLAYERRENAME };
+	public:
+		NotifyFactionPlayerRename() { type = PROTOCOL_NOTIFYFACTIONPLAYERRENAME; }
+		NotifyFactionPlayerRename(void*) : Protocol(PROTOCOL_NOTIFYFACTIONPLAYERRENAME) { }
+		NotifyFactionPlayerRename (int l_roleid,const Octets& l_newname = Octets())
+			 : roleid(l_roleid),newname(l_newname)
+		{
+			type = PROTOCOL_NOTIFYFACTIONPLAYERRENAME;
+		}
+
+		NotifyFactionPlayerRename(const NotifyFactionPlayerRename &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),newname(rhs.newname) { }
+
+		GNET::Protocol *Clone() const { return new NotifyFactionPlayerRename(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << newname;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> newname;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 128; }

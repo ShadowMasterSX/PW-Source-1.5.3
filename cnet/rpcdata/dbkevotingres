@@ -1,0 +1,65 @@
+#ifndef __GNET_DBKEVOTINGRES_RPCDATA
+#define __GNET_DBKEVOTINGRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailsyncdata"
+
+namespace GNET
+{
+	class DBKEVotingRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		GMailSyncData syncdata;
+
+	public:
+		DBKEVotingRes (int l_retcode = -1,const GMailSyncData& l_syncdata = GMailSyncData())
+			: retcode(l_retcode),syncdata(l_syncdata)
+		{
+		}
+
+		DBKEVotingRes(const DBKEVotingRes &rhs)
+			: retcode(rhs.retcode),syncdata(rhs.syncdata) { }
+
+		Rpc::Data *Clone() const { return new DBKEVotingRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBKEVotingRes *r = dynamic_cast<const DBKEVotingRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		DBKEVotingRes& operator = (const DBKEVotingRes &rhs)
+		{
+			const DBKEVotingRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> syncdata;
+			return os;
+		}
+
+	};
+};
+#endif

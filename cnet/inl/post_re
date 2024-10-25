@@ -1,0 +1,62 @@
+	public:
+		int userid;
+		int64_t roleid;
+		int64_t sn;
+		TimeInfo time;
+		int retcode;
+		int64_t timestamp;
+		int buylevel;
+		int commodity_id;
+		int reserved2;
+		enum { PROTOCOL_TYPE = PROTOCOL_POST_RE };
+	public:
+		Post_Re() { type = PROTOCOL_POST_RE; }
+		Post_Re(void*) : Protocol(PROTOCOL_POST_RE) { }
+		Post_Re (int l_userid,int64_t l_roleid,int64_t l_sn,
+			TimeInfo l_time,int l_retcode,int64_t l_timestamp,
+			int l_buylevel,int l_commodity_id = 0,int l_reserved2 = 0)
+			 : userid(l_userid),roleid(l_roleid),sn(l_sn)
+			,time(l_time),retcode(l_retcode),timestamp(l_timestamp)
+			,buylevel(l_buylevel),commodity_id(l_commodity_id),reserved2(l_reserved2)
+		{
+			type = PROTOCOL_POST_RE;
+		}
+
+		Post_Re(const Post_Re &rhs)
+			: Protocol(rhs),userid(rhs.userid),roleid(rhs.roleid),sn(rhs.sn)
+			,time(rhs.time),retcode(rhs.retcode),timestamp(rhs.timestamp)
+			,buylevel(rhs.buylevel),commodity_id(rhs.commodity_id),reserved2(rhs.reserved2) { }
+
+		GNET::Protocol *Clone() const { return new Post_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			os << roleid;
+			os << sn;
+			os << time;
+			os << retcode;
+			os << timestamp;
+			os << buylevel;
+			os << commodity_id;
+			os << reserved2;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			os >> roleid;
+			os >> sn;
+			os >> time;
+			os >> retcode;
+			os >> timestamp;
+			os >> buylevel;
+			os >> commodity_id;
+			os >> reserved2;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 128; }

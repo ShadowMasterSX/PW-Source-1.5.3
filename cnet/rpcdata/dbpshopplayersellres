@@ -1,0 +1,91 @@
+#ifndef __GNET_DBPSHOPPLAYERSELLRES_RPCDATA
+#define __GNET_DBPSHOPPLAYERSELLRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailsyncdata"
+#include "groleinventory"
+#include "pshopitem"
+#include "groleinventory"
+
+namespace GNET
+{
+	class DBPShopPlayerSellRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		GMailSyncData syncdata;
+		unsigned int money;
+		GRoleInventoryVector yinpiao;
+		PShopItem itembuychange;
+		GRoleInventory itemstorechange;
+
+	public:
+		DBPShopPlayerSellRes (int l_retcode = 0,const GMailSyncData& l_syncdata = GMailSyncData(),unsigned int l_money = 0
+			,const GRoleInventoryVector& l_yinpiao = GRoleInventoryVector(),const PShopItem& l_itembuychange = PShopItem(),const GRoleInventory& l_itemstorechange = GRoleInventory())
+			: retcode(l_retcode),syncdata(l_syncdata),money(l_money)
+			,yinpiao(l_yinpiao),itembuychange(l_itembuychange),itemstorechange(l_itemstorechange)
+		{
+		}
+
+		DBPShopPlayerSellRes(const DBPShopPlayerSellRes &rhs)
+			: retcode(rhs.retcode),syncdata(rhs.syncdata),money(rhs.money),
+			yinpiao(rhs.yinpiao),itembuychange(rhs.itembuychange),itemstorechange(rhs.itemstorechange) { }
+
+		Rpc::Data *Clone() const { return new DBPShopPlayerSellRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPShopPlayerSellRes *r = dynamic_cast<const DBPShopPlayerSellRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				syncdata = r->syncdata;
+				money = r->money;
+				yinpiao = r->yinpiao;
+				itembuychange = r->itembuychange;
+				itemstorechange = r->itemstorechange;
+			}
+			return *this;
+		}
+
+		DBPShopPlayerSellRes& operator = (const DBPShopPlayerSellRes &rhs)
+		{
+			const DBPShopPlayerSellRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				syncdata = r->syncdata;
+				money = r->money;
+				yinpiao = r->yinpiao;
+				itembuychange = r->itembuychange;
+				itemstorechange = r->itemstorechange;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << syncdata;
+			os << money;
+			os << yinpiao;
+			os << itembuychange;
+			os << itemstorechange;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> syncdata;
+			os >> money;
+			os >> yinpiao;
+			os >> itembuychange;
+			os >> itemstorechange;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,62 @@
+	public:
+		int worldtag;
+		int key;
+		int vtype;
+		Octets value;
+		Octets oldvalue;
+		bool exclusive;
+		bool broadcast;
+		int version;
+		bool timeout;
+		enum { PROTOCOL_TYPE = PROTOCOL_UNIQUEDATAMODIFYREQUIRE };
+	public:
+		UniqueDataModifyRequire() { type = PROTOCOL_UNIQUEDATAMODIFYREQUIRE; }
+		UniqueDataModifyRequire(void*) : Protocol(PROTOCOL_UNIQUEDATAMODIFYREQUIRE) { }
+		UniqueDataModifyRequire (int l_worldtag,int l_key,int l_vtype,
+			const Octets& l_value,const Octets& l_oldvalue,bool l_exclusive,
+			bool l_broadcast,int l_version,bool l_timeout)
+			 : worldtag(l_worldtag),key(l_key),vtype(l_vtype)
+			,value(l_value),oldvalue(l_oldvalue),exclusive(l_exclusive)
+			,broadcast(l_broadcast),version(l_version),timeout(l_timeout)
+		{
+			type = PROTOCOL_UNIQUEDATAMODIFYREQUIRE;
+		}
+
+		UniqueDataModifyRequire(const UniqueDataModifyRequire &rhs)
+			: Protocol(rhs),worldtag(rhs.worldtag),key(rhs.key),vtype(rhs.vtype)
+			,value(rhs.value),oldvalue(rhs.oldvalue),exclusive(rhs.exclusive)
+			,broadcast(rhs.broadcast),version(rhs.version),timeout(rhs.timeout) { }
+
+		GNET::Protocol *Clone() const { return new UniqueDataModifyRequire(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << worldtag;
+			os << key;
+			os << vtype;
+			os << value;
+			os << oldvalue;
+			os << exclusive;
+			os << broadcast;
+			os << version;
+			os << timeout;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> worldtag;
+			os >> key;
+			os >> vtype;
+			os >> value;
+			os >> oldvalue;
+			os >> exclusive;
+			os >> broadcast;
+			os >> version;
+			os >> timeout;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1024; }

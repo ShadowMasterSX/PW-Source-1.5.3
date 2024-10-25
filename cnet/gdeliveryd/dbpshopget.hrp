@@ -1,0 +1,100 @@
+#ifndef __GNET_DBPSHOPGET_HPP
+#define __GNET_DBPSHOPGET_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbpshopgetarg"
+#include "dbpshopgetres"
+
+#include "gamedbclient.hpp"
+#include "gdeliveryserver.hpp"
+#include "pshopselfget_re.hpp"
+#include "pshopplayerget_re.hpp"
+#include "pshopmarket.h"
+
+namespace GNET
+{
+
+class DBPShopGet : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbpshopget"
+#undef	RPC_BASECLASS
+
+	/*
+	 * 本RPC发送时机:
+	 * 1) 玩家首次打开寄卖服务时;
+	 * 2) 店铺过期后店主请求店铺;
+	 * 3) DB超时;
+	 * 4) DB死锁;
+	 * 总之上面三种情况均是DB和gdelivery的店铺数据不同步,需要从DB请求最新数据
+	 */
+
+	enum REASON_QUERY_DB
+	{
+		REASON_SELF_GET,		//店主QUERY
+		REASON_DB_TIMEOUT,		//店主操作时超时
+		REASON_DB_TIMEOUT2,	//玩家操作时超时
+	};
+
+	unsigned int save_linksid;
+	unsigned int save_localsid;
+	unsigned int retry;
+
+	static void QueryShop(int roleid, int linksid=0, int localsid=0, int retry=3, int reason=0)
+	{
+		DBPShopGet * rpc = (DBPShopGet *)Rpc::Call(RPC_DBPSHOPGET, DBPShopGetArg(roleid, reason));
+		rpc->save_linksid = linksid;
+		rpc->save_localsid = localsid;
+		rpc->retry = retry;
+		GameDBClient::GetInstance()->SendProtocol(rpc);
+	}
+
+	void SendResult(int retcode, const PShopDetail & shop)
+	{
+		GDeliveryServer::GetInstance()->Send(save_linksid, PShopSelfGet_Re(retcode, save_localsid, shop));
+	}
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid) {}
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBPShopGetArg *arg = (DBPShopGetArg *)argument;
+		DBPShopGetRes *res = (DBPShopGetRes *)result;
+		LOG_TRACE("DBPShopGet: RPC return, roleid=%d retcode=%d", arg->roleid, res->retcode);
+		if(res->retcode == ERR_SUCCESS)
+		{
+			//本协议在多种情况下会被触发,这里不清楚店铺哪些数据更新了
+			//所以整体更新店铺
+			PShopMarket::GetInstance().AddShop(res->shop);
+		}
+		else if(res->retcode == ERR_AGAIN)//DB死锁
+		{
+			if((arg->reason == REASON_DB_TIMEOUT || arg->reason == REASON_DB_TIMEOUT2) && retry-- > 0)
+			{
+				//只有DB超时或死锁才多次请求DB
+				QueryShop(arg->roleid, save_linksid, save_localsid, retry, arg->reason);
+			}
+		}
+		SendResult(res->retcode, res->shop);
+	}
+
+	void OnTimeout()
+	{
+		DBPShopGetArg *arg = (DBPShopGetArg *)argument;
+		Log::log(LOG_ERR,"DBPShopGet: Timeout. roleid=%d retry=%d\n", arg->roleid, retry);
+		SendResult(ERR_TIMEOUT, PShopDetail());
+		if(retry-- > 0)
+		{
+			if(arg->reason == REASON_DB_TIMEOUT || arg->reason == REASON_DB_TIMEOUT2)
+			{
+				//只有DB超时才多次请求
+				QueryShop(arg->roleid, save_linksid, save_localsid, retry, arg->reason);
+			}
+		}
+	}
+
+};
+
+};
+#endif

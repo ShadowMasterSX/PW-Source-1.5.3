@@ -1,0 +1,64 @@
+#ifndef __GNET_GETADDCASHSNARG_RPCDATA
+#define __GNET_GETADDCASHSNARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GetAddCashSNArg : public GNET::Rpc::Data
+	{
+	public:
+		int userid;
+		int zoneid;
+
+	public:
+		GetAddCashSNArg (int l_userid = -1,int l_zoneid = -1)
+			: userid(l_userid),zoneid(l_zoneid)
+		{
+		}
+
+		GetAddCashSNArg(const GetAddCashSNArg &rhs)
+			: userid(rhs.userid),zoneid(rhs.zoneid) { }
+
+		Rpc::Data *Clone() const { return new GetAddCashSNArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GetAddCashSNArg *r = dynamic_cast<const GetAddCashSNArg *>(&rhs);
+			if (r && r != this)
+			{
+				userid = r->userid;
+				zoneid = r->zoneid;
+			}
+			return *this;
+		}
+
+		GetAddCashSNArg& operator = (const GetAddCashSNArg &rhs)
+		{
+			const GetAddCashSNArg *r = &rhs;
+			if (r && r != this)
+			{
+				userid = r->userid;
+				zoneid = r->zoneid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			os << zoneid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			os >> zoneid;
+			return os;
+		}
+
+	};
+};
+#endif

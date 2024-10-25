@@ -1,0 +1,50 @@
+	public:
+		int battle_id;
+		int battle_result;
+		int attacker;
+		int defender;
+		std::vector<GCountryBattlePersonalScore> attacker_score;
+		std::vector<GCountryBattlePersonalScore> defender_score;
+		enum { PROTOCOL_TYPE = PROTOCOL_COUNTRYBATTLEEND };
+	public:
+		CountryBattleEnd() { type = PROTOCOL_COUNTRYBATTLEEND; }
+		CountryBattleEnd(void*) : Protocol(PROTOCOL_COUNTRYBATTLEEND) { }
+		CountryBattleEnd (int l_battle_id,int l_battle_result,int l_attacker,
+			int l_defender,const std::vector<GCountryBattlePersonalScore>& l_attacker_score,const std::vector<GCountryBattlePersonalScore>& l_defender_score)
+			 : battle_id(l_battle_id),battle_result(l_battle_result),attacker(l_attacker)
+			,defender(l_defender),attacker_score(l_attacker_score),defender_score(l_defender_score)
+		{
+			type = PROTOCOL_COUNTRYBATTLEEND;
+		}
+
+		CountryBattleEnd(const CountryBattleEnd &rhs)
+			: Protocol(rhs),battle_id(rhs.battle_id),battle_result(rhs.battle_result),attacker(rhs.attacker)
+			,defender(rhs.defender),attacker_score(rhs.attacker_score),defender_score(rhs.defender_score) { }
+
+		GNET::Protocol *Clone() const { return new CountryBattleEnd(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << battle_id;
+			os << battle_result;
+			os << attacker;
+			os << defender;
+			os << attacker_score;
+			os << defender_score;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> battle_id;
+			os >> battle_result;
+			os >> attacker;
+			os >> defender;
+			os >> attacker_score;
+			os >> defender_score;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 16384; }

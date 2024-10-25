@@ -1,0 +1,43 @@
+
+#ifndef __GNET_DBCREATEROLE_HPP
+#define __GNET_DBCREATEROLE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "groleinventory"
+#include "dbcreaterolearg"
+#include "dbcreateroleres"
+
+namespace GNET
+{
+
+class DBCreateRole : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbcreaterole"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBCreateRoleArg *arg = (DBCreateRoleArg *)argument;
+		// DBCreateRoleRes *res = (DBCreateRoleRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBCreateRoleArg *arg = (DBCreateRoleArg *)argument;
+		// DBCreateRoleRes *res = (DBCreateRoleRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

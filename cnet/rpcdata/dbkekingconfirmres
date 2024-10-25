@@ -1,0 +1,59 @@
+#ifndef __GNET_DBKEKINGCONFIRMRES_RPCDATA
+#define __GNET_DBKEKINGCONFIRMRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBKEKingConfirmRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+
+	public:
+		DBKEKingConfirmRes (int l_retcode = -1)
+			: retcode(l_retcode)
+		{
+		}
+
+		DBKEKingConfirmRes(const DBKEKingConfirmRes &rhs)
+			: retcode(rhs.retcode) { }
+
+		Rpc::Data *Clone() const { return new DBKEKingConfirmRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBKEKingConfirmRes *r = dynamic_cast<const DBKEKingConfirmRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		DBKEKingConfirmRes& operator = (const DBKEKingConfirmRes &rhs)
+		{
+			const DBKEKingConfirmRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			return os;
+		}
+
+	};
+};
+#endif

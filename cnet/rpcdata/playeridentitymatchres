@@ -1,0 +1,100 @@
+#ifndef __GNET_PLAYERIDENTITYMATCHRES_RPCDATA
+#define __GNET_PLAYERIDENTITYMATCHRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "user"
+#include "groleinfo"
+
+namespace GNET
+{
+	class PlayerIdentityMatchRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		Octets iseckey;
+		Octets oseckey;
+		Octets account;
+		User user;
+		GRoleInfo roleinfo;
+		int zoneid;
+		int district_id;
+
+	public:
+		PlayerIdentityMatchRes (int l_retcode = 0,const Octets& l_iseckey = Octets(),const Octets& l_oseckey = Octets()
+			,const Octets& l_account = Octets(),int l_zoneid = 0,int l_district_id = 0)
+			: retcode(l_retcode),iseckey(l_iseckey),oseckey(l_oseckey)
+			,account(l_account),zoneid(l_zoneid),district_id(l_district_id)
+		{
+		}
+
+		PlayerIdentityMatchRes(const PlayerIdentityMatchRes &rhs)
+			: retcode(rhs.retcode),iseckey(rhs.iseckey),oseckey(rhs.oseckey),
+			account(rhs.account),user(rhs.user),roleinfo(rhs.roleinfo),
+			zoneid(rhs.zoneid),district_id(rhs.district_id) { }
+
+		Rpc::Data *Clone() const { return new PlayerIdentityMatchRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const PlayerIdentityMatchRes *r = dynamic_cast<const PlayerIdentityMatchRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				iseckey = r->iseckey;
+				oseckey = r->oseckey;
+				account = r->account;
+				user = r->user;
+				roleinfo = r->roleinfo;
+				zoneid = r->zoneid;
+				district_id = r->district_id;
+			}
+			return *this;
+		}
+
+		PlayerIdentityMatchRes& operator = (const PlayerIdentityMatchRes &rhs)
+		{
+			const PlayerIdentityMatchRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				iseckey = r->iseckey;
+				oseckey = r->oseckey;
+				account = r->account;
+				user = r->user;
+				roleinfo = r->roleinfo;
+				zoneid = r->zoneid;
+				district_id = r->district_id;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << iseckey;
+			os << oseckey;
+			os << account;
+			os << user;
+			os << roleinfo;
+			os << zoneid;
+			os << district_id;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> iseckey;
+			os >> oseckey;
+			os >> account;
+			os >> user;
+			os >> roleinfo;
+			os >> zoneid;
+			os >> district_id;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,65 @@
+#ifndef __GNET_DBFORCELOADRES_RPCDATA
+#define __GNET_DBFORCELOADRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gforceglobaldatalist"
+
+namespace GNET
+{
+	class DBForceLoadRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		GForceGlobalDataList list;
+
+	public:
+		DBForceLoadRes (int l_retcode = -1,const GForceGlobalDataList& l_list = GForceGlobalDataList())
+			: retcode(l_retcode),list(l_list)
+		{
+		}
+
+		DBForceLoadRes(const DBForceLoadRes &rhs)
+			: retcode(rhs.retcode),list(rhs.list) { }
+
+		Rpc::Data *Clone() const { return new DBForceLoadRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBForceLoadRes *r = dynamic_cast<const DBForceLoadRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				list = r->list;
+			}
+			return *this;
+		}
+
+		DBForceLoadRes& operator = (const DBForceLoadRes &rhs)
+		{
+			const DBForceLoadRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				list = r->list;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << list;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> list;
+			return os;
+		}
+
+	};
+};
+#endif

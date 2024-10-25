@@ -1,0 +1,32 @@
+	public:
+		char challenge_algo;
+		enum { PROTOCOL_TYPE = PROTOCOL_ANNOUNCECHALLENGEALGO };
+	public:
+		AnnounceChallengeAlgo() { type = PROTOCOL_ANNOUNCECHALLENGEALGO; }
+		AnnounceChallengeAlgo(void*) : Protocol(PROTOCOL_ANNOUNCECHALLENGEALGO) { }
+		AnnounceChallengeAlgo (char l_challenge_algo)
+			 : challenge_algo(l_challenge_algo)
+		{
+			type = PROTOCOL_ANNOUNCECHALLENGEALGO;
+		}
+
+		AnnounceChallengeAlgo(const AnnounceChallengeAlgo &rhs)
+			: Protocol(rhs),challenge_algo(rhs.challenge_algo) { }
+
+		GNET::Protocol *Clone() const { return new AnnounceChallengeAlgo(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << challenge_algo;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> challenge_algo;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 16; }

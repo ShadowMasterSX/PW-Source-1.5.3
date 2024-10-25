@@ -1,0 +1,51 @@
+
+#ifndef __GNET_DBSTOCKLOAD_HPP
+#define __GNET_DBSTOCKLOAD_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "stockorder"
+#include "dbstockloadarg"
+#include "dbstockloadres"
+#include "stockexchange.h"
+
+namespace GNET
+{
+
+class DBStockLoad : public Rpc
+{
+#define RPC_BASECLASS   Rpc
+#include "dbstockload"
+#undef  RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBStockLoadArg *arg = (DBStockLoadArg *)argument;
+		// DBStockLoadRes *res = (DBStockLoadRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBStockLoadRes *res = (DBStockLoadRes *)result;
+		DEBUG_PRINT("DBStockLoad: retcode=%d, size=%d, handle=%d", res->retcode,res->orders.size(),res->handle.size());
+		if(res->retcode==ERR_SUCCESS)
+			StockExchange::Instance()->OnLoad(res->orders);
+		if(res->retcode==ERR_AGAIN || res->handle.size()!=0 )
+			manager->Send(sid,Rpc::Call(RPC_DBSTOCKLOAD,DBStockLoadArg(res->handle)));
+		if(res->handle.size()==0)
+			StockExchange::Instance()->Open();
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		DBStockLoadArg *arg = (DBStockLoadArg *)argument;
+		Log::log(LOG_ERR,"dbstockload: rpc timeout. Resend request.");
+		GameDBClient::GetInstance()->SendProtocol( Rpc::Call(RPC_DBSTOCKLOAD,arg) );
+	}
+
+};
+
+};
+#endif

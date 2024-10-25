@@ -1,0 +1,379 @@
+
+#ifndef __GNET_DBWEBTRADESOLD_HPP
+#define __GNET_DBWEBTRADESOLD_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbwebtradesoldarg"
+#include "dbwebtradesoldres"
+#include "gamedbmanager.h"
+#include "grolestatusextraprop"
+#include "greincarnationdata"
+
+namespace GNET
+{
+
+class DBWebTradeSold : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbwebtradesold"
+#undef	RPC_BASECLASS
+	
+	int GetRoleReincarnationTimes(const Octets & odata)
+	{
+		if(!odata.size()) return 0;
+		GReincarnationData data;
+		try{
+			Marshal::OctetsStream(odata) >> data;
+			return data.records.size();
+		}
+		catch(Marshal::Exception)
+		{
+			return 0;
+		}
+	}
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBWebTradeSoldArg *arg = (DBWebTradeSoldArg *)argument;
+		DBWebTradeSoldRes *res = (DBWebTradeSoldRes *)result;
+		
+		Marshal::OctetsStream key, title;
+		Marshal::OctetsStream key_buyer, value_buyer_base;
+		
+		try
+		{
+			StorageEnv::Storage * pwebtrade = StorageEnv::GetStorage("webtrade");
+			StorageEnv::Storage * pmailbox = StorageEnv::GetStorage("mailbox");
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::Storage * puser = StorageEnv::GetStorage("user");
+			StorageEnv::Storage * pwebtradesold = StorageEnv::GetStorage("webtradesold");
+			StorageEnv::Storage * pstatus = StorageEnv::GetStorage("status");
+			StorageEnv::Storage * pinventory = StorageEnv::GetStorage("inventory");
+			StorageEnv::Storage * pequipment = StorageEnv::GetStorage("equipment");
+			StorageEnv::Storage * pstorehouse = StorageEnv::GetStorage("storehouse");
+			StorageEnv::Storage * ptask = StorageEnv::GetStorage("task");
+			StorageEnv::Storage * puserfaction = StorageEnv::GetStorage("userfaction");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				if(arg->sn == 0) 
+					throw DbException(DB_VERIFY_BAD); 
+
+				GWebTradeDetail detail;
+				key << arg->sn;
+				Marshal::OctetsStream(pwebtrade->find(key,txn)) >> detail;
+				if(detail.info.seller_roleid != arg->roleid)
+					throw DbException(DB_VERIFY_BAD);
+
+				int db_userid = 0;
+				GRoleBase buyer_base;
+				key_buyer << arg->buyer_roleid;
+				if(pbase->find(key_buyer,value_buyer_base,txn))
+				{
+					value_buyer_base >> buyer_base;
+					if(buyer_base.userid) 
+						db_userid = buyer_base.userid;
+					else
+						db_userid = LOGICUID(arg->buyer_roleid);
+				}
+				if(db_userid == 0 || db_userid != arg->buyer_userid)	//买家roleid或与买家userid不匹配，以userid为准
+				{
+					if(detail.info.posttype == 4)
+					{
+						//如果是购买角色，则不自动查找有效新买家
+						res->retcode = ERR_WT_BUYER_NOT_EXIST_2;
+						return;
+					}
+					Marshal::OctetsStream value_buyer_user;
+					if(!puser->find(Marshal::OctetsStream()<<arg->buyer_userid,value_buyer_user,txn))				
+						throw DbException(DB_VERIFY_BAD);
+					User buyer_user;
+					value_buyer_user >> buyer_user;
+					if(buyer_user.logicuid == 0)
+						throw DbException(DB_VERIFY_BAD);
+					RoleList rolelist(buyer_user.rolelist);
+					int r = rolelist.GetNextRole();
+					if(r < 0)
+						throw DbException(DB_VERIFY_BAD);
+					key_buyer.clear();
+					value_buyer_base.clear();
+					arg->buyer_roleid = buyer_user.logicuid + r;	
+					key_buyer << arg->buyer_roleid;
+					if(!pbase->find(key_buyer,value_buyer_base,txn))
+						throw DbException(DB_VERIFY_BAD);
+					value_buyer_base >> buyer_base;
+				}
+				if(arg->buyer_roleid == arg->roleid || buyer_base.status != _ROLE_STATUS_NORMAL)
+					throw DbException(DB_VERIFY_BAD);
+				int seller_level = 0;
+				//邮寄物品	
+				title << detail.info.sn << detail.info.posttype << detail.info.money << detail.info.item_id << detail.info.item_count << detail.info.commodity_id;
+				res->inform_seller.receiver = detail.info.seller_roleid;
+				res->inform_seller.sndr_type = _MST_WEBTRADE;
+				res->inform_seller.sender = WEBTRADE_SOLD;
+				res->inform_seller.title = title;
+				res->inform_buyer.receiver = arg->buyer_roleid;
+				res->inform_buyer.sndr_type = _MST_WEBTRADE;
+				res->inform_buyer.sender = WEBTRADE_BUY;
+				res->inform_buyer.title = title;
+				if(detail.info.posttype == 1)
+				{
+					MailSender::Send(pmailbox,res->inform_seller, detail.deposit, txn);
+					MailSender::Send(pmailbox,res->inform_buyer, detail.info.money, txn);
+				}
+				else if(detail.info.posttype == 2)
+				{
+					MailSender::Send(pmailbox,res->inform_seller, detail.deposit, txn);
+					MailSender::Send(pmailbox,res->inform_buyer, detail.item, 0, txn);//买家收物品  
+				}
+				else if(detail.info.posttype == 4)
+				{
+					//导出卖家数据
+					if(arg->roleid == 0)
+					{
+						//很大可能是合服时把角色弄丢了
+						res->retcode = ERR_WT_SELLER_NOT_EXIST;
+						return;
+					}
+					Marshal::OctetsStream key_seller;
+					GRoleData seller_data;
+					key_seller << arg->roleid;
+					Marshal::OctetsStream(pbase->find(key_seller,txn)) >> seller_data.base;
+					Marshal::OctetsStream(pstatus->find(key_seller,txn)) >> seller_data.status;
+					Marshal::OctetsStream(pinventory->find(key_seller,txn)) >> seller_data.pocket;
+					Marshal::OctetsStream(pequipment->find(key_seller,txn)) >> seller_data.equipment;
+					Marshal::OctetsStream(pstorehouse->find(key_seller,txn)) >> seller_data.storehouse;
+					Marshal::OctetsStream(ptask->find(key_seller,txn)) >> seller_data.task;
+					seller_level = seller_data.status.level;
+
+					//买家条件检查,买家和卖家必须同性别,买家等级不能超过10
+					GRoleStatus buyer_status;
+					Marshal::OctetsStream(pstatus->find(key_buyer,txn)) >> buyer_status;
+					if(buyer_base.gender != seller_data.base.gender || buyer_status.level > 10 || GetRoleReincarnationTimes(buyer_status.reincarnation_data) > 0)
+					{
+						Log::log(LOG_ERR,"DBWebTradeSold, buyer seller condition not match, roleid=%d, sn=%lld.",arg->roleid,arg->sn);
+						res->retcode = ERR_WT_BUYER_CONDITION_NOT_MATCH;
+						return;
+					}
+					//检查买家账号中任何一个角色等级均不可以超过10
+					{
+						Marshal::OctetsStream value_buyer_user;
+						if(!puser->find(Marshal::OctetsStream()<<arg->buyer_userid,value_buyer_user,txn))				
+						{
+							res->retcode = ERR_WT_BUYER_CONDITION_NOT_MATCH;
+							return;
+						}
+						User buyer_user;
+						value_buyer_user >> buyer_user;
+						if(buyer_user.logicuid == 0)
+						{
+							res->retcode = ERR_WT_BUYER_CONDITION_NOT_MATCH;
+							return;
+						}
+						RoleList rolelist(buyer_user.rolelist);
+						int r;
+						while((r = rolelist.GetNextRole()) >= 0)
+						{
+							int tmp_roleid = buyer_user.logicuid + r;
+							Marshal::OctetsStream tmp_value_status;
+							if(!pstatus->find(Marshal::OctetsStream()<<tmp_roleid, tmp_value_status, txn))
+								continue;
+							GRoleStatus tmp_status;
+							tmp_value_status >> tmp_status;
+							if(tmp_status.level > 10 || GetRoleReincarnationTimes(tmp_status.reincarnation_data) > 0)
+							{
+								res->retcode = ERR_WT_BUYER_CONDITION_NOT_MATCH;
+								return;
+							}
+						}
+					}
+					//生成新卖家数据
+					GRoleData new_seller_data;
+					if( !GameDBManager::GetInstance()->GetClsDetail( seller_data.base.cls, seller_data.base.gender,
+							new_seller_data.base, new_seller_data.status, new_seller_data.pocket, new_seller_data.equipment.inv, new_seller_data.storehouse,
+							pbase,pstatus,pinventory,pequipment,pstorehouse,txn) )
+					{
+						Log::log(LOG_ERR,"DBWebTradeSold, GetClsDetail failed, roleid=%d, sn=%lld.",arg->roleid,arg->sn);
+						res->retcode = -1;
+						return;
+					}
+					new_seller_data.base.id 			= seller_data.base.id;
+					new_seller_data.base.name 			= seller_data.base.name;
+					new_seller_data.base.gender			= seller_data.base.gender;
+					new_seller_data.base.custom_data	= seller_data.base.custom_data;
+					new_seller_data.base.status			= _ROLE_STATUS_NORMAL;
+					new_seller_data.base.create_time	= Timer::GetTime();
+					new_seller_data.base.lastlogin_time	= Timer::GetTime();
+					new_seller_data.base.spouse			= seller_data.base.spouse;
+					new_seller_data.base.userid			= seller_data.base.userid;
+					new_seller_data.base.cross_data		= seller_data.base.cross_data;
+					(void)new_seller_data.base.reserved2;
+					(void)new_seller_data.base.reserved3;
+					(void)new_seller_data.base.reserved4;
+					//修改卖家数据，买家直接使用
+					seller_data.base.id		= buyer_base.id;
+					seller_data.base.name	= buyer_base.name;
+					seller_data.base.config_data.clear();
+					seller_data.base.status = _ROLE_STATUS_NORMAL;
+					seller_data.base.forbid.clear();
+					seller_data.base.help_states.clear();
+					seller_data.base.spouse = buyer_base.spouse;
+					seller_data.base.userid = buyer_base.userid;
+					seller_data.base.cross_data.clear();
+					(void)seller_data.base.reserved2;
+					(void)seller_data.base.reserved3;
+					(void)seller_data.base.reserved4;
+					
+					seller_data.status.invader_state= 0;
+					seller_data.status.invader_time	= 0;	
+					seller_data.status.pariah_time	= 0;
+					seller_data.status.instancekeylist.clear();
+					#pragma pack(1)
+					struct player_var_data	//这个结构由gs定义
+					{
+						int version;
+						int pk_count; 
+						int pvp_cooldown;
+						bool pvp_flag;
+					};
+					#pragma pack()
+					if(seller_data.status.var_data.size() >= sizeof(struct player_var_data))
+					{
+						struct player_var_data* p = (struct player_var_data*)seller_data.status.var_data.begin();
+						p->pk_count = 0;
+						p->pvp_cooldown = 0;
+						p->pvp_flag = false;
+					}
+					seller_data.status.storehousepasswd.clear();
+					seller_data.status.faction_contrib.clear();
+					seller_data.status.country_data.clear();
+					seller_data.status.king_data.clear();
+					enum		//原始定义在../gdbclient/db_if.h 请保持一致
+					{
+						GROLE_STATUS_EXTRAPROP_TOUCH_HALF_TRADE = 0, // Touch
+						GROLE_STATUS_EXTRAPROP_DAILY_SIGN_IN,
+						GROLE_STATUS_EXTRAPROP_GIFTCARD_HALF_REDEEM, // 礼品码兑换
+						GROLE_STATUS_EXTRAPROP_LEADERSHIP,
+						GROLE_STATUS_EXTRAPROP_GENERALCARD_COLLECTION,
+						GROLE_STATUS_EXTRAPROP_FATERING,
+						GROLE_STATUS_EXTRAPROP_CLOCK_DATA,
+						GROLE_STATUS_EXTRAPROP_RAND_MALL_DATA,
+						GROLE_STATUS_EXTRAPROP_WORLD_CONTRIBUTION,
+												
+						GROLE_STATUS_EXTRAPROP_COUNT, // 总数，请放最后
+					};
+					if(seller_data.status.extraprop.size())
+					{
+						try{ 
+							GRoleStatusExtraProp extraprop;
+							Marshal::OctetsStream(seller_data.status.extraprop) >> extraprop; 
+
+							//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+							// 要删除的信息
+							extraprop.data.erase(GROLE_STATUS_EXTRAPROP_TOUCH_HALF_TRADE);
+							extraprop.data.erase(GROLE_STATUS_EXTRAPROP_GIFTCARD_HALF_REDEEM);
+							extraprop.data.erase(GROLE_STATUS_EXTRAPROP_RAND_MALL_DATA);
+							extraprop.data.erase(GROLE_STATUS_EXTRAPROP_WORLD_CONTRIBUTION);
+							//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+							seller_data.status.extraprop = Marshal::OctetsStream() << extraprop; 
+						}
+						catch(Marshal::Exception)
+						{
+							seller_data.status.extraprop.clear();
+						}
+					}
+					//seller_data.status.title_data.clear();  title带走
+					(void)seller_data.status.reserved2;
+					(void)seller_data.status.reserved3;
+					GRolePocket buyer_pocket;
+					Marshal::OctetsStream(pinventory->find(key_buyer,txn)) >> buyer_pocket;
+					if(seller_data.pocket.timestamp < buyer_pocket.timestamp + 100) seller_data.pocket.timestamp = buyer_pocket.timestamp + 100;
+					//卖家数据写盘
+					pbase->insert(key_seller, Marshal::OctetsStream()<<new_seller_data.base, txn);
+					pstatus->insert(key_seller, Marshal::OctetsStream()<<new_seller_data.status, txn);
+					pinventory->insert(key_seller, Marshal::OctetsStream()<<new_seller_data.pocket, txn);
+					pequipment->insert(key_seller, Marshal::OctetsStream()<<new_seller_data.equipment, txn);
+					pstorehouse->insert(key_seller, Marshal::OctetsStream()<<new_seller_data.storehouse, txn);
+					ptask->insert(key_seller, Marshal::OctetsStream()<<new_seller_data.task, txn);
+					//买家数据写盘
+					pbase->insert(key_buyer, Marshal::OctetsStream()<<seller_data.base, txn);
+					pstatus->insert(key_buyer, Marshal::OctetsStream()<<seller_data.status, txn);
+					pinventory->insert(key_buyer, Marshal::OctetsStream()<<seller_data.pocket, txn);
+					pequipment->insert(key_buyer, Marshal::OctetsStream()<<seller_data.equipment, txn);
+					pstorehouse->insert(key_buyer, Marshal::OctetsStream()<<seller_data.storehouse, txn);
+					ptask->insert(key_buyer, Marshal::OctetsStream()<<seller_data.task, txn);
+					//处理买家其他数据
+					bool cls_changed = (buyer_base.cls != seller_data.base.cls);	
+					if(cls_changed)
+					{
+						Marshal::OctetsStream value_buyer_userfaction;
+						if(puserfaction->find(key_buyer, value_buyer_userfaction, txn))
+						{
+							GUserFaction buyer_userfaction;
+							value_buyer_userfaction >> buyer_userfaction;
+							buyer_userfaction.cls = seller_data.base.cls;
+							puserfaction->insert(key_buyer, Marshal::OctetsStream()<<buyer_userfaction, txn);
+						}
+					}
+
+					MailSender::Send(pmailbox,res->inform_seller, detail.deposit, txn);
+					MailSender::Send(pmailbox,res->inform_buyer, 0, txn);
+				}
+				Log::formatlog("webtradesold","role=%d:sn=%lld:buyer_roleid=%d:type=%d:itemid=%d:item_count=%d:money=%d:role=%d:petid=%d:pet_count=%d:level=%d", 
+						arg->roleid,arg->sn,arg->buyer_roleid,detail.info.posttype,detail.info.item_id,detail.info.item_count,detail.info.money,arg->roleid,0,0,seller_level);
+				//修改detail
+				detail.info.seller_name.clear();
+				detail.info.state = 0;
+				detail.info.post_endtime = 0;
+				detail.info.show_endtime = 0;
+				detail.info.sell_endtime = 0;
+				detail.info.buyer_roleid = arg->buyer_roleid;
+				detail.info.buyer_userid = arg->buyer_userid;
+				detail.info.buyer_name.clear();
+				detail.item = GRoleInventory();
+				detail.rolebrief.clear();
+				//存盘
+				pwebtrade->del(key, txn);
+				pwebtradesold->insert(key, Marshal::OctetsStream()<<detail, txn);
+				res->buyer_roleid = arg->buyer_roleid;
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBWebTradeSold, role=%d sn=%lld, what=%s.\n",
+				arg->roleid, arg->sn, e.what());
+			if(e.get_errno() == DB_VERIFY_BAD)
+				res->retcode = ERR_WT_BUYER_NOT_EXIST;
+			else
+				res->retcode = ERR_EXCEPTION;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBWebTradeSoldArg *arg = (DBWebTradeSoldArg *)argument;
+		// DBWebTradeSoldRes *res = (DBWebTradeSoldRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,58 @@
+#ifndef __GNET_QUERYUSERIDARG_RPCDATA
+#define __GNET_QUERYUSERIDARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class QueryUseridArg : public GNET::Rpc::Data
+	{
+	public:
+		Octets rolename;
+
+	public:
+		QueryUseridArg ()
+		{
+		}
+
+		QueryUseridArg(const QueryUseridArg &rhs)
+			: rolename(rhs.rolename) { }
+
+		Rpc::Data *Clone() const { return new QueryUseridArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const QueryUseridArg *r = dynamic_cast<const QueryUseridArg *>(&rhs);
+			if (r && r != this)
+			{
+				rolename = r->rolename;
+			}
+			return *this;
+		}
+
+		QueryUseridArg& operator = (const QueryUseridArg &rhs)
+		{
+			const QueryUseridArg *r = &rhs;
+			if (r && r != this)
+			{
+				rolename = r->rolename;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << rolename;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> rolename;
+			return os;
+		}
+
+	};
+};
+#endif

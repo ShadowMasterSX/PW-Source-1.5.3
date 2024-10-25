@@ -1,0 +1,86 @@
+
+#ifndef __GNET_DBWEBTRADEGETROLESIMPLEINFO_HPP
+#define __GNET_DBWEBTRADEGETROLESIMPLEINFO_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbwebtradegetrolesimpleinfoarg"
+#include "dbwebtradegetrolesimpleinfores"
+
+#include "webgetrolelist_re.hpp"
+
+namespace GNET
+{
+
+class DBWebTradeGetRoleSimpleInfo : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbwebtradegetrolesimpleinfo"
+#undef	RPC_BASECLASS
+	int aid;
+	int64_t messageid;
+	int64_t timestamp;
+/*
+WebGetRoleList_Re
+0.成功； 
+1.该userid在该服务器没有角色；
+2.重复索取角色列表（平台认为成功，不再重发）； 
+3.其他错误（重发）； 
+4.向游戏服务器发送数据失败（重发）； 
+-1. 游戏服务器处理失败（重发）；
+*/	
+	void SendResult(int retcode,int userid, const std::vector<WebRole>& rolelist)
+	{
+		GWebTradeClient::GetInstance()->SendProtocol(WebGetRoleList_Re(aid,userid,retcode,rolelist,messageid));	
+	}
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBWebTradeGetRoleSimpleInfoArg *arg = (DBWebTradeGetRoleSimpleInfoArg *)argument;
+		// DBWebTradeGetRoleSimpleInfoRes *res = (DBWebTradeGetRoleSimpleInfoRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		DBWebTradeGetRoleSimpleInfoArg *arg = (DBWebTradeGetRoleSimpleInfoArg *)argument;
+		DBWebTradeGetRoleSimpleInfoRes *res = (DBWebTradeGetRoleSimpleInfoRes *)result;
+		DEBUG_PRINT("dbwebtradegetrolesimpleinfo: rpc return. retcode=%d,userid=%d,res->roles.size=%d", res->retcode, arg->userid, res->roles.size());
+		
+		int ret = 0;
+		std::vector<WebRole> rolelist;
+		if(res->retcode == ERR_SUCCESS)
+		{
+			if(res->roles.size() == 0)
+				ret = 1;
+			else
+			{ 
+				for(size_t i=0; i<res->roles.size(); i++)
+				{
+					Marshal::OctetsStream os;
+					os << res->roles[i];
+					Octets o = os;
+					rolelist.push_back(o);
+				}
+				ret = 0;
+			}
+		}
+		else
+			ret = 1;
+		SendResult(ret,arg->userid,rolelist);
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+		DBWebTradeGetRoleSimpleInfoArg *arg = (DBWebTradeGetRoleSimpleInfoArg *)argument;
+		Log::log(LOG_ERR,"dbwebtradegetrolesimpleinfo: timeout. userid=%d", arg->userid);
+		SendResult(-1,arg->userid,std::vector<WebRole>());
+	}
+
+};
+
+};
+#endif

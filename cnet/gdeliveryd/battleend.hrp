@@ -1,0 +1,39 @@
+
+#ifndef __GNET_BATTLEEND_HPP
+#define __GNET_BATTLEEND_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "battleendarg"
+#include "battleendres"
+#include "battlemanager.h"
+
+namespace GNET
+{
+
+class BattleEnd : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "battleend"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		BattleEndArg *arg = (BattleEndArg *)argument;
+		BattleManager::GetInstance()->OnBattleEnd(arg->battle_id, arg->result, arg->defender, arg->attacker);
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

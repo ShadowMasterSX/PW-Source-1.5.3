@@ -1,0 +1,81 @@
+
+#ifndef __GNET_DBKECANDIDATEAPPLY_HPP
+#define __GNET_DBKECANDIDATEAPPLY_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbkecandidateapplyarg"
+#include "dbkecandidateapplyres"
+
+#include "gmailendsync.hpp"
+#include "kecandidateapply_re.hpp"
+#include "gproviderserver.hpp"
+#include "gdeliveryserver.hpp"
+#include "kingelection.h"
+
+namespace GNET
+{
+
+class DBKECandidateApply : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbkecandidateapply"
+#undef	RPC_BASECLASS
+
+	unsigned int save_linksid;
+	unsigned int save_localsid;
+	int          save_gsid;
+	void SyncGameServer( int roleid,GMailSyncData& syncdata, int retcode )
+	{
+		GProviderServer::GetInstance()->DispatchProtocol( save_gsid, GMailEndSync(0,retcode,roleid,syncdata));
+	}
+	void SendResult( int retcode)
+	{
+		GDeliveryServer::GetInstance()->Send(
+				save_linksid,
+				KECandidateApply_Re(retcode,save_localsid)
+			);
+	}
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBKECandidateApplyArg *arg = (DBKECandidateApplyArg *)argument;
+		// DBKECandidateApplyRes *res = (DBKECandidateApplyRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		DBKECandidateApplyArg *arg = (DBKECandidateApplyArg *)argument;
+		DBKECandidateApplyRes *res = (DBKECandidateApplyRes *)result;
+		DEBUG_PRINT("dbkecandidateapply: rpc return. retcode=%d roleid=%d serial_num=%d item_count=%d", 
+				res->retcode, arg->roleid, arg->serial_num, arg->item_num);
+
+		if(res->retcode == ERR_SUCCESS)
+		{
+			if(!KingElection::GetInstance().AddCandidate(arg->roleid, arg->serial_num, arg->item_num))
+			{
+				Log::log(LOG_WARNING,"dbkecandidateapply: rpc success, but add candidate failed, roleid=%d, serial_num=%d", arg->roleid, arg->serial_num);
+			}
+		}
+		KingElection::GetInstance().DecCandidateApplyHalf();
+		SendResult( res->retcode );
+		SyncGameServer(arg->roleid,res->syncdata,res->retcode);
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+		DBKECandidateApplyArg *arg = (DBKECandidateApplyArg *)argument;
+		Log::log(LOG_ERR,"dbkecandidateapply: timeout. roleid=%d, serial_num=%d", arg->roleid, arg->serial_num);
+		KingElection::GetInstance().DecCandidateApplyHalf();
+		SendResult(ERR_TIMEOUT);
+		//do not sync gameserver, because gameserver will timeout and disconnect this player
+	}
+
+};
+
+};
+#endif

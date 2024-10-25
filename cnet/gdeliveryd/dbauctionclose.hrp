@@ -1,0 +1,70 @@
+
+#ifndef __GNET_DBAUCTIONCLOSE_HPP
+#define __GNET_DBAUCTIONCLOSE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbauctionclosearg"
+#include "dbauctioncloseres"
+#include "auctionclose_re.hpp"
+#include "auctionmarket.h"
+#include "postoffice.h"
+#include "gdeliveryserver.hpp"
+namespace GNET
+{
+
+class DBAuctionClose : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbauctionclose"
+#undef	RPC_BASECLASS
+	unsigned int save_linksid;
+	unsigned int save_localsid;
+	void SendResult( int retcode,DBAuctionCloseArg& arg )
+	{
+		GDeliveryServer::GetInstance()->Send(
+				save_linksid,
+				AuctionClose_Re(retcode,arg.auctionid,save_localsid)
+			);	
+	}
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBAuctionCloseArg *arg = (DBAuctionCloseArg *)argument;
+		// DBAuctionCloseRes *res = (DBAuctionCloseRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		DBAuctionCloseArg *arg = (DBAuctionCloseArg *)argument;
+		DBAuctionCloseRes *res = (DBAuctionCloseRes *)result;
+		DEBUG_PRINT("dbauctionclose. rpc return. retcode=%d,auctionid=%d,reason=%d,roleid=%d,localsid=%d\n",
+				res->retcode,arg->auctionid,arg->reason,arg->roleid,save_localsid);
+		if ( res->retcode==ERR_SUCCESS )
+		{
+			if ( !AuctionMarket::GetInstance().RmvAuction( arg->auctionid ) )
+			{
+				Log::log(LOG_WARNING,"dbauctionclose. db remove auction success. but delivery failed. auctionid=%d,reason=%d,roleid=%d,localsid=%d\n",arg->auctionid,arg->reason,arg->roleid,save_localsid);
+			}
+			//Send mail
+			PostOffice::GetInstance().AddNewMail( res->inform_seller.receiver,res->inform_seller );
+			PostOffice::GetInstance().AddNewMail( res->inform_bidder.receiver,res->inform_bidder );
+		}
+		SendResult( res->retcode,*arg );
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		// TODO Client Only
+		DBAuctionCloseArg *arg = (DBAuctionCloseArg *)argument;
+		Log::log(LOG_WARNING,"dbauctionclose. timeout. auctionid=%d,reason=%d,roleid=%d,localsid=%d\n",
+			arg->auctionid,arg->reason,arg->roleid,save_localsid);
+		SendResult( ERR_TIMEOUT,*arg );
+	}
+
+};
+
+};
+#endif

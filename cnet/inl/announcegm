@@ -1,0 +1,35 @@
+	public:
+		int roleid;
+		ByteVector auth;
+		enum { PROTOCOL_TYPE = PROTOCOL_ANNOUNCEGM };
+	public:
+		AnnounceGM() { type = PROTOCOL_ANNOUNCEGM; }
+		AnnounceGM(void*) : Protocol(PROTOCOL_ANNOUNCEGM) { }
+		AnnounceGM (int l_roleid,const ByteVector& l_auth)
+			 : roleid(l_roleid),auth(l_auth)
+		{
+			type = PROTOCOL_ANNOUNCEGM;
+		}
+
+		AnnounceGM(const AnnounceGM &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),auth(rhs.auth) { }
+
+		GNET::Protocol *Clone() const { return new AnnounceGM(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << auth;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> auth;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 512; }

@@ -1,0 +1,60 @@
+#ifndef __GNET_INTDATA_RPCDATA
+#define __GNET_INTDATA_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class IntData : public GNET::Rpc::Data
+	{
+	public:
+		int int_value;
+
+	public:
+		IntData (int l_int_value = 0)
+			: int_value(l_int_value)
+		{
+		}
+
+		IntData(const IntData &rhs)
+			: int_value(rhs.int_value) { }
+
+		Rpc::Data *Clone() const { return new IntData(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const IntData *r = dynamic_cast<const IntData *>(&rhs);
+			if (r && r != this)
+			{
+				int_value = r->int_value;
+			}
+			return *this;
+		}
+
+		IntData& operator = (const IntData &rhs)
+		{
+			const IntData *r = &rhs;
+			if (r && r != this)
+			{
+				int_value = r->int_value;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << int_value;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> int_value;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<IntData>	IntDataVector;
+};
+#endif

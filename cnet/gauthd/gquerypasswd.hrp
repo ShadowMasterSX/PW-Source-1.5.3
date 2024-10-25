@@ -1,0 +1,70 @@
+
+#ifndef __GNET_GQUERYPASSWD_HPP
+#define __GNET_GQUERYPASSWD_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "security.h"
+
+#include "gquerypasswdarg"
+#include "gquerypasswdres"
+#include <string>
+namespace GNET
+{
+
+class GQueryPasswd : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "gquerypasswd"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		GQueryPasswdArg *arg = (GQueryPasswdArg *)argument;
+		GQueryPasswdRes *res = (GQueryPasswdRes *)result;
+		
+		Octets password;
+		//DEBUG_PRINT("gauthd::receive gquerypasswd from delivery. account=%.*s\n",arg->account.size(),(char*)arg->account.begin());
+		res->userid=std::atoi(std::string((char*)arg->account.begin(),arg->account.size()).c_str());
+		if (res->userid % 16 || 0==res->userid)
+		{
+			res->retcode=ERR_INVALID_ACCOUNT;
+			return;
+		}	
+		password=arg->account;
+		
+		HMAC_MD5Hash hash;
+		MD5Hash md5;
+		Octets digest;
+		
+		md5.Update(arg->account);
+		md5.Update(password);
+		md5.Final(digest);
+		
+		res->response.swap(digest);
+		/*
+		hash.SetParameter(digest);
+		hash.Update(arg->challenge);
+		hash.Final(res->response);
+		*/
+		res->retcode=ERR_SUCCESS;
+		return;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// GQueryPasswdArg *arg = (GQueryPasswdArg *)argument;
+		// GQueryPasswdRes *res = (GQueryPasswdRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

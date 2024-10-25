@@ -1,0 +1,38 @@
+	public:
+		int roleid;
+		int dst_factionid;
+		int dst_world_tag;
+		enum { PROTOCOL_TYPE = PROTOCOL_FACTIONFORTRESSENTERNOTICE };
+	public:
+		FactionFortressEnterNotice() { type = PROTOCOL_FACTIONFORTRESSENTERNOTICE; }
+		FactionFortressEnterNotice(void*) : Protocol(PROTOCOL_FACTIONFORTRESSENTERNOTICE) { }
+		FactionFortressEnterNotice (int l_roleid,int l_dst_factionid,int l_dst_world_tag)
+			 : roleid(l_roleid),dst_factionid(l_dst_factionid),dst_world_tag(l_dst_world_tag)
+		{
+			type = PROTOCOL_FACTIONFORTRESSENTERNOTICE;
+		}
+
+		FactionFortressEnterNotice(const FactionFortressEnterNotice &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),dst_factionid(rhs.dst_factionid),dst_world_tag(rhs.dst_world_tag) { }
+
+		GNET::Protocol *Clone() const { return new FactionFortressEnterNotice(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << dst_factionid;
+			os << dst_world_tag;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> dst_factionid;
+			os >> dst_world_tag;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

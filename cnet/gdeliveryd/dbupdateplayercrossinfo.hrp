@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBUPDATEPLAYERCROSSINFO_HPP
+#define __GNET_DBUPDATEPLAYERCROSSINFO_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbupdateplayercrossinfoarg"
+#include "dbupdateplayercrossinfores"
+
+namespace GNET
+{
+
+class DBUpdatePlayerCrossInfo : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbupdateplayercrossinfo"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBUpdatePlayerCrossInfoArg *arg = (DBUpdatePlayerCrossInfoArg *)argument;
+		// DBUpdatePlayerCrossInfoRes *res = (DBUpdatePlayerCrossInfoRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBUpdatePlayerCrossInfoArg *arg = (DBUpdatePlayerCrossInfoArg *)argument;
+		// DBUpdatePlayerCrossInfoRes *res = (DBUpdatePlayerCrossInfoRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

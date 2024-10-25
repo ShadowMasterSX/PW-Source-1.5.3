@@ -1,0 +1,38 @@
+	public:
+		int map_type;
+		int server_id;
+		int world_tag;
+		enum { PROTOCOL_TYPE = PROTOCOL_BATTLESERVERREGISTER };
+	public:
+		BattleServerRegister() { type = PROTOCOL_BATTLESERVERREGISTER; }
+		BattleServerRegister(void*) : Protocol(PROTOCOL_BATTLESERVERREGISTER) { }
+		BattleServerRegister (int l_map_type,int l_server_id,int l_world_tag)
+			 : map_type(l_map_type),server_id(l_server_id),world_tag(l_world_tag)
+		{
+			type = PROTOCOL_BATTLESERVERREGISTER;
+		}
+
+		BattleServerRegister(const BattleServerRegister &rhs)
+			: Protocol(rhs),map_type(rhs.map_type),server_id(rhs.server_id),world_tag(rhs.world_tag) { }
+
+		GNET::Protocol *Clone() const { return new BattleServerRegister(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << map_type;
+			os << server_id;
+			os << world_tag;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> map_type;
+			os >> server_id;
+			os >> world_tag;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

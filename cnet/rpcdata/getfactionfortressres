@@ -1,0 +1,65 @@
+#ifndef __GNET_GETFACTIONFORTRESSRES_RPCDATA
+#define __GNET_GETFACTIONFORTRESSRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gfactionfortressdetail"
+
+namespace GNET
+{
+	class GetFactionFortressRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		GFactionFortressDetail detail;
+
+	public:
+		GetFactionFortressRes (int l_retcode = 0,const GFactionFortressDetail& l_detail = GFactionFortressDetail())
+			: retcode(l_retcode),detail(l_detail)
+		{
+		}
+
+		GetFactionFortressRes(const GetFactionFortressRes &rhs)
+			: retcode(rhs.retcode),detail(rhs.detail) { }
+
+		Rpc::Data *Clone() const { return new GetFactionFortressRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GetFactionFortressRes *r = dynamic_cast<const GetFactionFortressRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				detail = r->detail;
+			}
+			return *this;
+		}
+
+		GetFactionFortressRes& operator = (const GetFactionFortressRes &rhs)
+		{
+			const GetFactionFortressRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				detail = r->detail;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << detail;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> detail;
+			return os;
+		}
+
+	};
+};
+#endif

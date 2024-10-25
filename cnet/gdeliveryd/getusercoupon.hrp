@@ -1,0 +1,66 @@
+
+#ifndef __GNET_GETUSERCOUPON_HPP
+#define __GNET_GETUSERCOUPON_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "getusercouponarg"
+#include "getusercouponres"
+#include "usercoupon_re.hpp"
+#include "gdeliveryserver.hpp"
+
+namespace GNET
+{
+
+class GetUserCoupon : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getusercoupon"
+#undef	RPC_BASECLASS
+	unsigned int save_linksid;
+	unsigned int save_localsid;
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// GetUserCouponArg *arg = (GetUserCouponArg *)argument;
+		// GetUserCouponRes *res = (GetUserCouponRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		GetUserCouponArg *arg = (GetUserCouponArg *)argument;
+		GetUserCouponRes *res = (GetUserCouponRes *)result;
+		DEBUG_PRINT("getusercoupon: rpc return. retcode=%d,userid=%d,remain_coupon=%d,today_exchange_coupon=%d,today_remain_coupon=%d", 
+				res->retcode, arg->userid, res->remain_coupon, res->today_exchange_coupon, res->today_remain_coupon);
+/*0.成功取得点券值；
+ 1.userid不存在；
+ 2.帐号已被封禁；
+ 3.网络通信错误；
+ 4.超时错误；
+ 5.服务器非法
+ */
+		//retcode转换
+		int retcode = res->retcode;
+		if(retcode != 0)
+		{
+			if(retcode == 2) retcode = ERR_ACCOUNTFORBID;
+			else retcode = -1;
+		}
+		GDeliveryServer::GetInstance()->Send(save_linksid,UserCoupon_Re(retcode,res->remain_coupon,res->today_exchange_coupon,res->today_remain_coupon,save_localsid));
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+		GetUserCouponArg *arg = (GetUserCouponArg *)argument;
+		DEBUG_PRINT("getusercoupon: rpc timeout. userid=%d", arg->userid);
+		GDeliveryServer::GetInstance()->Send(save_linksid,UserCoupon_Re(ERR_TIMEOUT,0,0,0,save_localsid));
+	}
+
+};
+
+};
+#endif

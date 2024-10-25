@@ -1,0 +1,64 @@
+#ifndef __GNET_DBAUCTIONGETARG_RPCDATA
+#define __GNET_DBAUCTIONGETARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBAuctionGetArg : public GNET::Rpc::Data
+	{
+	public:
+		unsigned int auctionid;
+		char reason;
+
+	public:
+		DBAuctionGetArg (unsigned int l_auctionid = 0,char l_reason = 0)
+			: auctionid(l_auctionid),reason(l_reason)
+		{
+		}
+
+		DBAuctionGetArg(const DBAuctionGetArg &rhs)
+			: auctionid(rhs.auctionid),reason(rhs.reason) { }
+
+		Rpc::Data *Clone() const { return new DBAuctionGetArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBAuctionGetArg *r = dynamic_cast<const DBAuctionGetArg *>(&rhs);
+			if (r && r != this)
+			{
+				auctionid = r->auctionid;
+				reason = r->reason;
+			}
+			return *this;
+		}
+
+		DBAuctionGetArg& operator = (const DBAuctionGetArg &rhs)
+		{
+			const DBAuctionGetArg *r = &rhs;
+			if (r && r != this)
+			{
+				auctionid = r->auctionid;
+				reason = r->reason;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << auctionid;
+			os << reason;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> auctionid;
+			os >> reason;
+			return os;
+		}
+
+	};
+};
+#endif

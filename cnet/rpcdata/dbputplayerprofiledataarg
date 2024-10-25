@@ -1,0 +1,65 @@
+#ifndef __GNET_DBPUTPLAYERPROFILEDATAARG_RPCDATA
+#define __GNET_DBPUTPLAYERPROFILEDATAARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "playerprofiledata"
+
+namespace GNET
+{
+	class DBPutPlayerProfileDataArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		PlayerProfileData data;
+
+	public:
+		DBPutPlayerProfileDataArg (int l_roleid = 0)
+			: roleid(l_roleid)
+		{
+		}
+
+		DBPutPlayerProfileDataArg(const DBPutPlayerProfileDataArg &rhs)
+			: roleid(rhs.roleid),data(rhs.data) { }
+
+		Rpc::Data *Clone() const { return new DBPutPlayerProfileDataArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPutPlayerProfileDataArg *r = dynamic_cast<const DBPutPlayerProfileDataArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				data = r->data;
+			}
+			return *this;
+		}
+
+		DBPutPlayerProfileDataArg& operator = (const DBPutPlayerProfileDataArg &rhs)
+		{
+			const DBPutPlayerProfileDataArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				data = r->data;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << data;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> data;
+			return os;
+		}
+
+	};
+};
+#endif

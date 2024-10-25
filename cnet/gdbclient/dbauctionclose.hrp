@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBAUCTIONCLOSE_HPP
+#define __GNET_DBAUCTIONCLOSE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbauctionclosearg"
+#include "dbauctioncloseres"
+
+namespace GNET
+{
+
+class DBAuctionClose : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbauctionclose"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBAuctionCloseArg *arg = (DBAuctionCloseArg *)argument;
+		// DBAuctionCloseRes *res = (DBAuctionCloseRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBAuctionCloseArg *arg = (DBAuctionCloseArg *)argument;
+		// DBAuctionCloseRes *res = (DBAuctionCloseRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

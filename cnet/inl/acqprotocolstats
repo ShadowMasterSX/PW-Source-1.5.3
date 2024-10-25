@@ -1,0 +1,35 @@
+	public:
+		ACQ acq;
+		ACProtocolStatVector proto_stats;
+		enum { PROTOCOL_TYPE = PROTOCOL_ACQPROTOCOLSTATS };
+	public:
+		ACQProtocolStats() { type = PROTOCOL_ACQPROTOCOLSTATS; }
+		ACQProtocolStats(void*) : Protocol(PROTOCOL_ACQPROTOCOLSTATS) { }
+		ACQProtocolStats (ACQ l_acq,ACProtocolStatVector l_proto_stats)
+			 : acq(l_acq),proto_stats(l_proto_stats)
+		{
+			type = PROTOCOL_ACQPROTOCOLSTATS;
+		}
+
+		ACQProtocolStats(const ACQProtocolStats &rhs)
+			: Protocol(rhs),acq(rhs.acq),proto_stats(rhs.proto_stats) { }
+
+		GNET::Protocol *Clone() const { return new ACQProtocolStats(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << acq;
+			os << proto_stats;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> acq;
+			os >> proto_stats;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1048576; }

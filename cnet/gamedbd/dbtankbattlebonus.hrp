@@ -1,0 +1,90 @@
+
+#ifndef __GNET_DBTANKBATTLEBONUS_HPP
+#define __GNET_DBTANKBATTLEBONUS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbtankbattlebonusarg"
+#include "dbtankbattlebonusres"
+
+namespace GNET
+{
+
+class DBTankBattleBonus : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbtankbattlebonus"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBTankBattleBonusArg *arg = (DBTankBattleBonusArg *)argument;
+		DBTankBattleBonusRes *res = (DBTankBattleBonusRes *)result;
+		
+		Marshal::OctetsStream key, value;
+		
+		try {
+			StorageEnv::Storage * pmailbox = StorageEnv::GetStorage("mailbox");
+			StorageEnv::CommonTransaction txn;
+			
+			try {
+				Log::formatlog("tankbattlebonus","roleid=%d:money=%d:itemid=%d:count=%d", arg->roleid, arg->money, arg->item.id, arg->item.count);
+				
+				Marshal::OctetsStream title;
+				title << arg->rank;
+
+				res->inform_player.receiver  = arg->roleid;
+				res->inform_player.sndr_type = _MST_TANKBATTLE;
+				res->inform_player.title = title;
+
+				if(arg->item.count > 0) {
+					res->inform_player.sender = TANKBATTLE_BONUS;
+				} else {
+					res->inform_player.sender = TANKBATTLE_NO_BONUS;
+				}
+				
+				if (MailSender::Send(pmailbox, res->inform_player, arg->item, arg->money, txn) == 0)
+					res->retcode = ERR_SUCCESS;
+				else
+				{
+					res->inform_player.receiver  = _ROLE_INVALID;
+					res->retcode = ERR_EXCEPTION;
+				}
+			} catch ( DbException e ) { 
+				throw; 
+			} catch ( ... ) {
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		} catch ( DbException e ) {
+			Log::log( LOG_ERR, "DBTankBattleBonus, roleid=%d, money=%d, what=%s\n", arg->roleid, arg->money, e.what() );
+			
+			res->inform_player.receiver  = _ROLE_INVALID;
+			
+			if(e.get_errno() == DB_LOCK_DEADLOCK) {
+				res->retcode = ERR_AGAIN;
+			} else {
+				res->retcode = ERR_EXCEPTION;
+			}
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBTankBattleBonusArg *arg = (DBTankBattleBonusArg *)argument;
+		// DBTankBattleBonusRes *res = (DBTankBattleBonusRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

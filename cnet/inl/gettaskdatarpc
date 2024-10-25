@@ -1,0 +1,9 @@
+		GNET::Protocol *Clone() const {  return new GetTaskDataRpc(*this); }
+	public:
+		enum { PROTOCOL_TYPE = RPC_GETTASKDATARPC };
+		GetTaskDataRpc(Type type, Rpc::Data *argument, Rpc::Data *result)
+			: RPC_BASECLASS(type, argument, result ) { }
+		GetTaskDataRpc(const GetTaskDataRpc &rhs) : RPC_BASECLASS(rhs) { }
+		int  PriorPolicy( ) const { return 1; }
+		bool SizePolicy(size_t size) const { return size <= 512; }
+		bool TimePolicy(int timeout) const { return timeout <= 30; }

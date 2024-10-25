@@ -1,0 +1,32 @@
+	public:
+		Octets data;
+		enum { PROTOCOL_TYPE = PROTOCOL_S2CBROADCAST };
+	public:
+		S2CBroadcast() { type = PROTOCOL_S2CBROADCAST; }
+		S2CBroadcast(void*) : Protocol(PROTOCOL_S2CBROADCAST) { }
+		S2CBroadcast (const Octets& l_data)
+			 : data(l_data)
+		{
+			type = PROTOCOL_S2CBROADCAST;
+		}
+
+		S2CBroadcast(const S2CBroadcast &rhs)
+			: Protocol(rhs),data(rhs.data) { }
+
+		GNET::Protocol *Clone() const { return new S2CBroadcast(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << data;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> data;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 102400; }

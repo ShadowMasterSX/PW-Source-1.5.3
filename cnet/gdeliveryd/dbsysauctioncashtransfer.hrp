@@ -1,0 +1,79 @@
+
+#ifndef __GNET_DBSYSAUCTIONCASHTRANSFER_HPP
+#define __GNET_DBSYSAUCTIONCASHTRANSFER_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbsysauctioncashtransferarg"
+#include "dbsysauctioncashtransferres"
+
+#include "gmailendsync.hpp"
+#include "sysauctionmanager.h"
+#include "sysauctioncashtransfer_re.hpp"
+#include "gproviderserver.hpp"
+#include "gdeliveryserver.hpp"
+
+namespace GNET
+{
+
+class DBSysAuctionCashTransfer : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbsysauctioncashtransfer"
+#undef	RPC_BASECLASS
+	unsigned int save_linksid;
+	unsigned int save_localsid;
+	int          save_gsid;
+	void SyncGameServer( int roleid,GMailSyncData& syncdata, int retcode )
+	{
+		GProviderServer::GetInstance()->DispatchProtocol( save_gsid, GMailEndSync(0,retcode,roleid,syncdata));
+	}
+	void SendResult( int retcode,unsigned int cash)
+	{
+		GDeliveryServer::GetInstance()->Send(
+				save_linksid,
+				SysAuctionCashTransfer_Re(retcode,cash,save_localsid)
+			);
+	}
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBSysAuctionCashTransferArg *arg = (DBSysAuctionCashTransferArg *)argument;
+		// DBSysAuctionCashTransferRes *res = (DBSysAuctionCashTransferRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		DBSysAuctionCashTransferArg *arg = (DBSysAuctionCashTransferArg *)argument;
+		DBSysAuctionCashTransferRes *res = (DBSysAuctionCashTransferRes *)result;
+		DEBUG_PRINT("dbsysauctioncashtransfer: rpc return. retcode=%d roleid=%d withdraw=%d cash_transfer=%u", res->retcode, arg->roleid, arg->withdraw, arg->cash_transfer);
+
+		if(res->retcode == ERR_SUCCESS)
+		{
+			if(!SysAuctionManager::GetInstance().OnDBCashTranfer(arg->userid, res->cash))
+			{
+				Log::log(LOG_WARNING,"OnDBCashTranfer failed. roleid=%d,withdraw=%d,cash_transfer=%u", arg->roleid,arg->withdraw,arg->cash_transfer);
+			}
+		}
+		SendResult( res->retcode,res->cash);
+		SyncGameServer(arg->roleid,res->syncdata,res->retcode);
+		SysAuctionManager::GetInstance().ClearUserBusy(arg->userid);	
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+		DBSysAuctionCashTransferArg *arg = (DBSysAuctionCashTransferArg*)argument;
+		Log::log(LOG_ERR,"dbsysauctioncashtransfer: timeout. roleid=%d,withdraw=%d,cash_transfer=%u", arg->roleid,arg->withdraw,arg->cash_transfer);
+		SendResult(ERR_TIMEOUT,0);
+		SysAuctionManager::GetInstance().ClearUserBusy(arg->userid);	
+		//do not sync gameserver, because gameserver will timeout and disconnect this player
+	}
+
+};
+
+};
+#endif

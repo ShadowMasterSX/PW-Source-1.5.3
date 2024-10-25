@@ -1,0 +1,9 @@
+		GNET::Protocol *Clone() const {  return new DBFactionUpgrade(*this); }
+	public:
+		enum { PROTOCOL_TYPE = RPC_DBFACTIONUPGRADE };
+		DBFactionUpgrade(Type type, Rpc::Data *argument, Rpc::Data *result)
+			: RPC_BASECLASS(type, argument, result ) { }
+		DBFactionUpgrade(const DBFactionUpgrade &rhs) : RPC_BASECLASS(rhs) { }
+		int  PriorPolicy( ) const { return 1; }
+		bool SizePolicy(size_t size) const { return size <= 128; }
+		bool TimePolicy(int timeout) const { return timeout <= 30; }

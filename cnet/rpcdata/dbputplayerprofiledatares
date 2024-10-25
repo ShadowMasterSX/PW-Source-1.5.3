@@ -1,0 +1,59 @@
+#ifndef __GNET_DBPUTPLAYERPROFILEDATARES_RPCDATA
+#define __GNET_DBPUTPLAYERPROFILEDATARES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBPutPlayerProfileDataRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+
+	public:
+		DBPutPlayerProfileDataRes (int l_retcode = 0)
+			: retcode(l_retcode)
+		{
+		}
+
+		DBPutPlayerProfileDataRes(const DBPutPlayerProfileDataRes &rhs)
+			: retcode(rhs.retcode) { }
+
+		Rpc::Data *Clone() const { return new DBPutPlayerProfileDataRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPutPlayerProfileDataRes *r = dynamic_cast<const DBPutPlayerProfileDataRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		DBPutPlayerProfileDataRes& operator = (const DBPutPlayerProfileDataRes &rhs)
+		{
+			const DBPutPlayerProfileDataRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			return os;
+		}
+
+	};
+};
+#endif

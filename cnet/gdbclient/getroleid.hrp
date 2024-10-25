@@ -1,0 +1,42 @@
+
+#ifndef __GNET_GETROLEID_HPP
+#define __GNET_GETROLEID_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#ifdef USE_BDB
+#include "dbbuffer.h"
+#endif
+#include "getroleidarg"
+#include "getroleidres"
+
+namespace GNET
+{
+
+class GetRoleId : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getroleid"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// GetRoleIdArg *arg = (GetRoleIdArg *)argument;
+		// GetRoleIdRes *res = (GetRoleIdRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,42 @@
+
+#ifndef __GNET_PLAYERIDENTITYMATCH_HPP
+#define __GNET_PLAYERIDENTITYMATCH_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "playeridentitymatcharg"
+#include "playeridentitymatchres"
+
+namespace GNET
+{
+
+class PlayerIdentityMatch : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "playeridentitymatch"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// PlayerIdentityMatchArg *arg = (PlayerIdentityMatchArg *)argument;
+		// PlayerIdentityMatchRes *res = (PlayerIdentityMatchRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// PlayerIdentityMatchArg *arg = (PlayerIdentityMatchArg *)argument;
+		// PlayerIdentityMatchRes *res = (PlayerIdentityMatchRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

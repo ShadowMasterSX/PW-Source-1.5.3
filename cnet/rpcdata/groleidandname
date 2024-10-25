@@ -1,0 +1,64 @@
+#ifndef __GNET_GROLEIDANDNAME_RPCDATA
+#define __GNET_GROLEIDANDNAME_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GRoleIDandName : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		Octets rolename;
+
+	public:
+		GRoleIDandName (int l_roleid = -1,const Octets& l_rolename = Octets())
+			: roleid(l_roleid),rolename(l_rolename)
+		{
+		}
+
+		GRoleIDandName(const GRoleIDandName &rhs)
+			: roleid(rhs.roleid),rolename(rhs.rolename) { }
+
+		Rpc::Data *Clone() const { return new GRoleIDandName(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GRoleIDandName *r = dynamic_cast<const GRoleIDandName *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				rolename = r->rolename;
+			}
+			return *this;
+		}
+
+		GRoleIDandName& operator = (const GRoleIDandName &rhs)
+		{
+			const GRoleIDandName *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				rolename = r->rolename;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << rolename;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> rolename;
+			return os;
+		}
+
+	};
+};
+#endif

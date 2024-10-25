@@ -1,0 +1,35 @@
+	public:
+		int roleid;
+		int bonus_add;
+		enum { PROTOCOL_TYPE = PROTOCOL_SENDTASKREWARD };
+	public:
+		SendTaskReward() { type = PROTOCOL_SENDTASKREWARD; }
+		SendTaskReward(void*) : Protocol(PROTOCOL_SENDTASKREWARD) { }
+		SendTaskReward (int l_roleid,int l_bonus_add = 0)
+			 : roleid(l_roleid),bonus_add(l_bonus_add)
+		{
+			type = PROTOCOL_SENDTASKREWARD;
+		}
+
+		SendTaskReward(const SendTaskReward &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),bonus_add(rhs.bonus_add) { }
+
+		GNET::Protocol *Clone() const { return new SendTaskReward(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << bonus_add;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> bonus_add;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 32; }

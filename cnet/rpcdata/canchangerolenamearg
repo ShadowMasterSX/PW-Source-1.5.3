@@ -1,0 +1,64 @@
+#ifndef __GNET_CANCHANGEROLENAMEARG_RPCDATA
+#define __GNET_CANCHANGEROLENAMEARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class CanChangeRolenameArg : public GNET::Rpc::Data
+	{
+	public:
+		Octets rolename;
+		int setcanchange;
+
+	public:
+		CanChangeRolenameArg (const Octets& l_rolename = Octets(0),int l_setcanchange = 0)
+			: rolename(l_rolename),setcanchange(l_setcanchange)
+		{
+		}
+
+		CanChangeRolenameArg(const CanChangeRolenameArg &rhs)
+			: rolename(rhs.rolename),setcanchange(rhs.setcanchange) { }
+
+		Rpc::Data *Clone() const { return new CanChangeRolenameArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const CanChangeRolenameArg *r = dynamic_cast<const CanChangeRolenameArg *>(&rhs);
+			if (r && r != this)
+			{
+				rolename = r->rolename;
+				setcanchange = r->setcanchange;
+			}
+			return *this;
+		}
+
+		CanChangeRolenameArg& operator = (const CanChangeRolenameArg &rhs)
+		{
+			const CanChangeRolenameArg *r = &rhs;
+			if (r && r != this)
+			{
+				rolename = r->rolename;
+				setcanchange = r->setcanchange;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << rolename;
+			os << setcanchange;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> rolename;
+			os >> setcanchange;
+			return os;
+		}
+
+	};
+};
+#endif

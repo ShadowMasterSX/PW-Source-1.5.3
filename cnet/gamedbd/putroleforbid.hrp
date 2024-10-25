@@ -1,0 +1,91 @@
+
+#ifndef __GNET_PUTROLEFORBID_HPP
+#define __GNET_PUTROLEFORBID_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "dbbuffer.h"
+#include "groleforbid"
+#include "roleforbidpair"
+
+
+namespace GNET
+{
+
+class PutRoleForbid : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "putroleforbid"
+#undef	RPC_BASECLASS
+
+	void Merge( GRoleForbidVector & forbid, GRoleForbidVector & newforbid )
+	{
+		size_t i, j;
+		for( i=0; i<newforbid.size(); i++ )
+		{
+			for( j=0; j<forbid.size(); j++ )
+			{
+				if( newforbid[i].type == forbid[j].type )
+				{
+					forbid[j] = newforbid[i];
+					break;
+				}
+			}
+			if( j == forbid.size() )
+				forbid.add( newforbid[i] );
+		}
+	}
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		RoleForbidPair *arg = (RoleForbidPair *)argument;
+		RpcRetcode *res = (RpcRetcode *)result;
+		Marshal::OctetsStream key;
+
+		LOG_TRACE( "PutRoleForbid, roleid=%d, forbid size=%d.\n", arg->key.id, arg->value.size() );
+
+		try
+		{
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				key << arg->key;
+				GRoleBase	base;
+				Marshal::OctetsStream( pbase->find( key, txn ) ) >> base;
+				Merge( base.forbid, arg->value );
+				pbase->insert( key, Marshal::OctetsStream() << base, txn );
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "PutRoleForbid, roleid=%d, what=%s\n", arg->key.id, e.what() );
+			res->retcode = -1;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// RoleForbidPair *arg = (RoleForbidPair *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

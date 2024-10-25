@@ -1,0 +1,77 @@
+
+#ifndef __GNET_DBPLAYERPOSITIONRESET_HPP
+#define __GNET_DBPLAYERPOSITIONRESET_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "dbbuffer.h"
+#include "dbplayerpositionresetarg"
+#include "dbplayerpositionresetres"
+
+namespace GNET
+{
+
+class DBPlayerPositionReset : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbplayerpositionreset"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBPlayerPositionResetArg *arg = (DBPlayerPositionResetArg *)argument;
+		DBPlayerPositionResetRes *res = (DBPlayerPositionResetRes *)result;
+
+		Marshal::OctetsStream key;
+		
+		LOG_TRACE( "PositionReset, roleid=%d.\n", arg->roleid );
+		try
+		{
+		       	StorageEnv::Storage * pstatus = StorageEnv::GetStorage("status");
+			StorageEnv::CommonTransaction txn;
+		        try
+		        {
+		                GRoleStatus     status;
+		                key << arg->roleid;
+		   	        Marshal::OctetsStream(pstatus->find( key, txn )) >> status;
+		                
+				status.worldtag = arg->worldtag;
+				status.posx     = arg->pos_x;
+				status.posy     = arg->pos_y;
+				status.posz     = arg->pos_z;
+
+		                pstatus->insert( key, Marshal::OctetsStream() << status, txn );
+			        res->retcode = ERR_SUCCESS;
+		        }
+		        catch ( DbException e ) { throw; }
+		        catch ( ... )
+			{
+		                DbException ee( DB_OLD_VERSION );
+		                txn.abort( ee );
+		      		throw ee;
+		        }
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "PositionReset Fail, roleid=%d, what=%s\n", arg->roleid, e.what() );
+			res->retcode = ERR_EXCEPTION;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBPlayerPositionResetArg *arg = (DBPlayerPositionResetArg *)argument;
+		// DBPlayerPositionResetRes *res = (DBPlayerPositionResetRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

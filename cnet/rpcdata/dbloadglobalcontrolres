@@ -1,0 +1,65 @@
+#ifndef __GNET_DBLOADGLOBALCONTROLRES_RPCDATA
+#define __GNET_DBLOADGLOBALCONTROLRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gglobalcontroldata"
+
+namespace GNET
+{
+	class DBLoadGlobalControlRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		GGlobalControlData data;
+
+	public:
+		DBLoadGlobalControlRes (int l_retcode = -1,const GGlobalControlData& l_data = GGlobalControlData())
+			: retcode(l_retcode),data(l_data)
+		{
+		}
+
+		DBLoadGlobalControlRes(const DBLoadGlobalControlRes &rhs)
+			: retcode(rhs.retcode),data(rhs.data) { }
+
+		Rpc::Data *Clone() const { return new DBLoadGlobalControlRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBLoadGlobalControlRes *r = dynamic_cast<const DBLoadGlobalControlRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				data = r->data;
+			}
+			return *this;
+		}
+
+		DBLoadGlobalControlRes& operator = (const DBLoadGlobalControlRes &rhs)
+		{
+			const DBLoadGlobalControlRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				data = r->data;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << data;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> data;
+			return os;
+		}
+
+	};
+};
+#endif

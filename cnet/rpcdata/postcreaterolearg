@@ -1,0 +1,82 @@
+#ifndef __GNET_POSTCREATEROLEARG_RPCDATA
+#define __GNET_POSTCREATEROLEARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class PostCreateRoleArg : public GNET::Rpc::Data
+	{
+	public:
+		char success;
+		int userid;
+		int zoneid;
+		int roleid;
+		Octets rolename;
+
+	public:
+		PostCreateRoleArg (char l_success = 1,int l_userid = -1,int l_zoneid = -1
+			,int l_roleid = -1,const Octets& l_rolename = Octets(0))
+			: success(l_success),userid(l_userid),zoneid(l_zoneid)
+			,roleid(l_roleid),rolename(l_rolename)
+		{
+		}
+
+		PostCreateRoleArg(const PostCreateRoleArg &rhs)
+			: success(rhs.success),userid(rhs.userid),zoneid(rhs.zoneid),
+			roleid(rhs.roleid),rolename(rhs.rolename) { }
+
+		Rpc::Data *Clone() const { return new PostCreateRoleArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const PostCreateRoleArg *r = dynamic_cast<const PostCreateRoleArg *>(&rhs);
+			if (r && r != this)
+			{
+				success = r->success;
+				userid = r->userid;
+				zoneid = r->zoneid;
+				roleid = r->roleid;
+				rolename = r->rolename;
+			}
+			return *this;
+		}
+
+		PostCreateRoleArg& operator = (const PostCreateRoleArg &rhs)
+		{
+			const PostCreateRoleArg *r = &rhs;
+			if (r && r != this)
+			{
+				success = r->success;
+				userid = r->userid;
+				zoneid = r->zoneid;
+				roleid = r->roleid;
+				rolename = r->rolename;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << success;
+			os << userid;
+			os << zoneid;
+			os << roleid;
+			os << rolename;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> success;
+			os >> userid;
+			os >> zoneid;
+			os >> roleid;
+			os >> rolename;
+			return os;
+		}
+
+	};
+};
+#endif

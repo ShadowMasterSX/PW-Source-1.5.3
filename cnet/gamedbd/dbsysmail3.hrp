@@ -1,0 +1,174 @@
+
+#ifndef __GNET_DBSYSMAIL3_HPP
+#define __GNET_DBSYSMAIL3_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbsysmail3arg"
+#include "dbsysmail3res"
+#include "weborderitemdetail"
+#include "utilfunction.h"
+
+namespace GNET
+{
+
+class DBSysMail3 : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbsysmail3"
+#undef	RPC_BASECLASS
+
+	enum {
+		ERR_SYS_MAIL3_ORDER_ALREADY_SUCCESS = 1,
+		ERR_SYS_MAIL3_ROLE_NOT_EXSIT = 6,
+		ERR_SYS_MAIL3_BOX_FULL = 8,
+		ERR_SYS_MAIL3_INVALID_ORDER = 9,
+	};
+	
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBSysMail3Arg *arg = (DBSysMail3Arg *)argument;
+		DBSysMail3Res *res = (DBSysMail3Res *)result;
+
+		try {
+			StorageEnv::Storage* pbase = StorageEnv::GetStorage("base");
+			StorageEnv::Storage* pmailbox = StorageEnv::GetStorage("mailbox");
+			StorageEnv::Storage* prolename = StorageEnv::GetStorage("rolename");
+			StorageEnv::Storage* porder = StorageEnv::GetStorage("weborderitem");
+			StorageEnv::Storage* psyslog = StorageEnv::GetStorage("syslog");
+
+			StorageEnv::CommonTransaction txn;
+			
+			try {
+				int src = arg->mail.header.sender;
+				int dst = (int)arg->roleid;
+				
+				if(dst == 0) {
+					Marshal::OctetsStream rolename_value;
+					if(prolename->find(arg->rolename, rolename_value, txn)) {
+						rolename_value >> dst;
+					} else {
+						res->retcode = ERR_SYS_MAIL3_ROLE_NOT_EXSIT;
+						res->roleid = arg->roleid;
+						return;
+					}
+				}
+				
+				Marshal::OctetsStream role_key, role_val;
+				role_key << dst;
+				if(!pbase->find(role_key, role_val, txn)) {
+					res->retcode = ERR_SYS_MAIL3_ROLE_NOT_EXSIT;
+					res->roleid = arg->roleid;
+					return;
+				}
+				
+				Marshal::OctetsStream order_key, order_val;
+				order_key << arg->orderid;
+				
+				if(porder->find(order_key, order_val, txn)) {
+					WebOrderItemDetail order_detail;
+					order_val >> order_detail;
+
+					if(order_detail.roleid == dst) {
+						res->retcode = ERR_SYS_MAIL3_ORDER_ALREADY_SUCCESS;
+						res->roleid = arg->roleid;
+					} else {
+						res->retcode = ERR_SYS_MAIL3_INVALID_ORDER;
+						res->roleid = arg->roleid;
+					}
+				} else {
+					Marshal::OctetsStream mailbox_key, mailbox_val;
+					mailbox_key << dst;
+
+					time_t now = Timer::GetTime();
+					GMailBox box;
+
+					if(pmailbox->find(mailbox_key, mailbox_val, txn)) {
+						mailbox_val >> box;
+					} else {
+						box.timestamp = now;
+						box.mails.clear();
+					}
+
+					int size = box.mails.size();
+					if(size >= SYS_MAIL_LIMIT) {
+						res->retcode = ERR_SYS_MAIL3_BOX_FULL;
+						res->roleid = arg->roleid;
+					} else {
+						STAT_MIN5("SysMail",1);
+						unsigned char id = MailSender::NextId(box);
+						
+						arg->mail.header.id = id;
+						arg->mail.header.receiver = arg->mail.header.send_time;
+						box.mails.push_back(arg->mail);
+						
+						pmailbox->insert(mailbox_key, Marshal::OctetsStream() << box, txn);
+
+						WebOrderItemDetail order_detail;
+						order_detail.userid = arg->userid;
+						order_detail.roleid = dst;
+						order_detail.goods_id = arg->mail.attach_obj.id;
+						order_detail.count = arg->mail.attach_obj.count;
+						order_detail.proctype = arg->mail.attach_obj.proctype;
+						order_detail.goods_flag = arg->goods_flag;
+						order_detail.goods_price = arg->goods_price;
+						order_detail.goods_price_before_discount = arg->goods_price_before_discount;
+						order_detail.goods_paytype = arg->goods_paytype;
+						order_detail.attach_money = arg->mail.attach_money;
+						order_detail.time_stamp = Timer::GetTime();
+
+						porder->insert(order_key, Marshal::OctetsStream() << order_detail, txn);
+						
+						::PutSyslog(psyslog, txn, dst, GameDBServer::GetInstance()->GetSessionIP(sid), arg->mail.attach_obj);
+						
+						res->retcode = ERR_SUCCESS;
+						res->mail_id = id;
+						res->roleid = dst;
+						
+						Log::formatlog("dbsysmail3", "src=%d:dst=%d:mid=%d:size=%d:money=%d:item=%d:count=%d:pos=%d:orderid=%lld",
+								src, dst, id, arg->mail.context.size(), arg->mail.attach_money, 
+								arg->mail.attach_obj.id, arg->mail.attach_obj.count, 
+								arg->mail.attach_obj.pos, arg->orderid);
+
+						//记个购买商城物品log,与gs所记的相同
+						Log::formatlog("gshop_trade","userid=%d:db_magic_number=%d:order_id=%d:item_id=%d:expire=%d:item_count=%d:cash_need=%d:cash_left=%d:guid1=%d:guid2=%d",
+								dst, arg->userid, -2/*特殊的id*/, arg->mail.attach_obj.id, arg->mail.attach_obj.expire_date, arg->mail.attach_obj.count, 
+								arg->goods_price, 0, arg->mail.attach_obj.guid1, arg->mail.attach_obj.guid2);
+					}
+				}
+			} catch ( DbException e ) { 
+				throw; 
+			} catch ( ... ) {
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		} catch ( DbException e ) {
+			Log::log( LOG_ERR, "DBSysMail3, orderid=%d, userid=%lld, roleid=%lld, what=%s\n", arg->orderid, arg->userid, arg->roleid, e.what() );
+			
+			if(e.get_errno() == DB_LOCK_DEADLOCK) {
+				res->retcode = ERR_AGAIN;
+			} else {
+				res->retcode = ERR_EXCEPTION;
+			}
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBSysMail3Arg *arg = (DBSysMail3Arg *)argument;
+		// DBSysMail3Res *res = (DBSysMail3Res *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

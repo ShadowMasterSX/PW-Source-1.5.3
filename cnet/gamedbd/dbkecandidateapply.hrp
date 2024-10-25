@@ -1,0 +1,145 @@
+
+#ifndef __GNET_DBKECANDIDATEAPPLY_HPP
+#define __GNET_DBKECANDIDATEAPPLY_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbkecandidateapplyarg"
+#include "dbkecandidateapplyres"
+
+#include "kingelectiondetail"
+
+namespace GNET
+{
+
+class DBKECandidateApply : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbkecandidateapply"
+#undef	RPC_BASECLASS
+
+	int Find(KECandidateVector & list, int roleid)
+	{
+		for(size_t i=0; i<list.size(); i++)
+		{
+			if(list[i].roleid == roleid)
+				return (int)i;
+		}
+		return -1;
+	}
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBKECandidateApplyArg *arg = (DBKECandidateApplyArg *)argument;
+		DBKECandidateApplyRes *res = (DBKECandidateApplyRes *)result;
+
+		try
+		{
+			StorageEnv::Storage * pking = StorageEnv::GetStorage("kingelection");
+			StorageEnv::Storage * pinventory = StorageEnv::GetStorage("inventory");
+			StorageEnv::Storage * pequipment = StorageEnv::GetStorage("equipment");
+			StorageEnv::Storage * pstorehouse = StorageEnv::GetStorage("storehouse");
+			StorageEnv::Storage * plog = arg->syncdata.logs.size()?StorageEnv::GetStorage("shoplog"):NULL;
+			StorageEnv::CommonTransaction txn;
+		
+			try
+			{
+				Marshal::OctetsStream value;
+				KingElectionDetail detail;
+				if(pking->find(Marshal::OctetsStream()<<(int)0,value,txn))
+					value >> detail;
+				//检查是否已经申请过
+				int rst = Find(detail.candidate_list, arg->roleid);
+				if(rst != -1)
+					throw DbException(DB_VERIFY_BAD);
+				//检查inventory时戳，计算金钱变化
+				Marshal::OctetsStream krole;
+				krole << arg->roleid;
+				GRolePocket pocket;
+				Marshal::OctetsStream(pinventory->find(krole, txn)) >> pocket;
+				if(arg->syncdata.inventory.timestamp <= pocket.timestamp)
+				{
+					Log::log(LOG_ERR,"DBKECandidateApply, timestamp mismatch. %d<%d",
+						arg->syncdata.inventory.timestamp, pocket.timestamp);
+					throw DbException(DB_VERIFY_BAD);
+				}
+				int delta = arg->syncdata.inventory.money - pocket.money;
+
+				Log::formatlog("kecandidateapply","roleid=%d:serial_num=%d:item_id=%d:item_num=%d",
+						arg->roleid,arg->serial_num,arg->item_id,arg->item_num);
+
+				//修改国王选举数据
+				detail.candidate_list.push_back(KECandidate(arg->roleid, arg->serial_num, arg->item_num, 0));
+				//消耗物品，生成syncdata
+				GRoleInventoryVector& v = arg->syncdata.inventory.items;
+				for(GRoleInventoryVector::iterator it=v.begin(),ie=v.end();it!=ie;)
+				{
+					if(it->id == arg->item_id)
+					{
+						if(it->count >= arg->item_num)
+						{
+							it->count -= arg->item_num;
+							arg->item_num = 0;
+							res->syncdata.inventory.items.push_back(*it);
+							if(it->count == 0) v.erase(it);
+							break;
+						}
+						else
+						{
+							arg->item_num -= it->count;
+							it->count = 0;
+							res->syncdata.inventory.items.push_back(*it);
+							it = v.erase(it);
+						}
+					}
+					else
+					{
+						++it;
+					}
+				}
+				if(arg->item_num != 0)
+					throw DbException(DB_VERIFY_BAD);
+
+				pking->insert(Marshal::OctetsStream()<<(int)0, Marshal::OctetsStream()<<detail, txn);
+				pinventory->insert(krole, Marshal::OctetsStream()<<arg->syncdata.inventory, txn);
+				pequipment->insert(krole, Marshal::OctetsStream()<<arg->syncdata.equipment, txn);
+				WriteRestSyncData(pstorehouse, plog, arg->roleid, arg->syncdata, delta, txn);
+				res->syncdata.inventory.money = arg->syncdata.inventory.money;
+				res->syncdata.data_mask = arg->syncdata.data_mask;
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log(LOG_ERR, "DBKECandidateApply, roleid=%d, what=%s.", arg->roleid, e.what());
+			res->retcode = ERR_EXCEPTION;
+			res->syncdata.inventory.money = arg->syncdata.inventory.money;
+			res->syncdata.inventory.items.clear();
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBKECandidateApplyArg *arg = (DBKECandidateApplyArg *)argument;
+		// DBKECandidateApplyRes *res = (DBKECandidateApplyRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

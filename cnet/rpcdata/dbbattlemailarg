@@ -1,0 +1,65 @@
+#ifndef __GNET_DBBATTLEMAILARG_RPCDATA
+#define __GNET_DBBATTLEMAILARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmail"
+
+namespace GNET
+{
+	class DBBattleMailArg : public GNET::Rpc::Data
+	{
+	public:
+		unsigned int factionid;
+		GMail mail;
+
+	public:
+		DBBattleMailArg (unsigned int l_factionid = 0,const GMail& l_mail = GMail())
+			: factionid(l_factionid),mail(l_mail)
+		{
+		}
+
+		DBBattleMailArg(const DBBattleMailArg &rhs)
+			: factionid(rhs.factionid),mail(rhs.mail) { }
+
+		Rpc::Data *Clone() const { return new DBBattleMailArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBBattleMailArg *r = dynamic_cast<const DBBattleMailArg *>(&rhs);
+			if (r && r != this)
+			{
+				factionid = r->factionid;
+				mail = r->mail;
+			}
+			return *this;
+		}
+
+		DBBattleMailArg& operator = (const DBBattleMailArg &rhs)
+		{
+			const DBBattleMailArg *r = &rhs;
+			if (r && r != this)
+			{
+				factionid = r->factionid;
+				mail = r->mail;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << factionid;
+			os << mail;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> factionid;
+			os >> mail;
+			return os;
+		}
+
+	};
+};
+#endif

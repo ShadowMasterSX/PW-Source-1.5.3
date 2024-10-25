@@ -1,0 +1,59 @@
+#ifndef __GNET_DBUNIQUEDATASAVERES_RPCDATA
+#define __GNET_DBUNIQUEDATASAVERES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBUniqueDataSaveRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+
+	public:
+		DBUniqueDataSaveRes (int l_retcode = -1)
+			: retcode(l_retcode)
+		{
+		}
+
+		DBUniqueDataSaveRes(const DBUniqueDataSaveRes &rhs)
+			: retcode(rhs.retcode) { }
+
+		Rpc::Data *Clone() const { return new DBUniqueDataSaveRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBUniqueDataSaveRes *r = dynamic_cast<const DBUniqueDataSaveRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		DBUniqueDataSaveRes& operator = (const DBUniqueDataSaveRes &rhs)
+		{
+			const DBUniqueDataSaveRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,71 @@
+
+#ifndef __GNET_DELMEMBERSCHEDULE_HPP
+#define __GNET_DELMEMBERSCHEDULE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "delmemberschedulearg"
+#include "deffactionres"
+#include "factiondb.h"
+
+namespace GNET
+{
+
+class DelMemberSchedule : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "delmemberschedule"
+#undef	RPC_BASECLASS
+	OperWrapper::wref_t oper;
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DelMemberScheduleArg *arg = (DelMemberScheduleArg *)argument;
+		// DefFactionRes *res = (DefFactionRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		DelMemberScheduleArg *arg = (DelMemberScheduleArg *)argument;
+		DefFactionRes *res = (DefFactionRes *)result;
+		OperWrapper::href_t ref(oper);
+		if(res->retcode==ERR_FC_DELAYEXPEL)
+		{ 
+			switch(arg->operation)
+			{
+			    case FC_DELAYEXPEL_EXECUTE:
+		    		Factiondb::GetInstance()->OnDelayExpel(arg->fid, arg->rid, arg->time, ref ? ref->GetOperator() : 0);
+				break;
+			    case FC_DELAYEXPEL_CANCEL:
+		    		Factiondb::GetInstance()->OnCancelExpel(arg->fid, arg->rid);
+				break;
+			    case FC_DELAYEXPEL_TIMEOUT:
+		    		Factiondb::GetInstance()->OnTimeoutExpel(arg->fid, arg->rid);
+				break;
+			}
+		}
+		else if (res->retcode == ERR_OUTOFSYNC)
+		{
+			GUserFaction fplayer;
+			Factiondb::GetInstance()->FindUserFaction(arg->rid,fplayer,REASON_EXPEL_SYNC);
+		}
+		
+		if(ref) // maybe 1 opexpelmember<->FC_DELAYEXPEL_EXECUTE  2 opcancelexpelschedule<->FC_DELAYEXPEL_CANCEL 3 null<->FC_DELAYEXPEL_TIMEOUT
+		{
+			ref->SetResult(result);
+			ref->Execute();
+		}		
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

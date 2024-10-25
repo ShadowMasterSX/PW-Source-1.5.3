@@ -1,0 +1,1141 @@
+#!/usr/bin/perl -w
+
+use strict;
+use IO::File;
+use XML::DOM;
+
+my $network_root = 'network';
+my $cricket_root = 'cricket';
+my $game_root = 'game';
+my $install_root = 'install';
+my $release_name = 'world2';
+
+if( @ARGV < 2 )
+{
+	print "usage: package xmlfile [network|cricket|game|gamerpm|all|clean|install|gameinstall]\n";
+	exit;
+}
+
+$release_name = $ARGV[0];
+$release_name =~ s/\.xml//g;
+$release_name =~ s/.*\///g;
+$release_name = 'world2' if not $release_name;
+$install_root = $release_name;
+
+parse( $ARGV[0], $ARGV[1] );
+
+sub parse
+{
+	my ($xmlfile, $action) = @_;
+	$action = "" if not defined $action;
+
+	my $parser = new XML::DOM::Parser;
+	my $doc = $parser->parsefile( $xmlfile );
+	my $configure = $doc->getElementsByTagName('configure')->item(0);
+
+	my $network = $configure->getElementsByTagName('network')->item(0);
+	my $cricket = $configure->getElementsByTagName('cricket')->item(0);
+	my $game = $configure->getElementsByTagName('game')->item(0);
+
+	if( $action eq 'network' )
+	{
+		config_network($network);
+	}
+	elsif( $action eq 'cricket' )
+	{
+		config_cricket($cricket, $network);
+	}
+	elsif( $action eq 'game' )
+	{
+		do_game($game, $network);
+	}
+	elsif( $action eq 'gamerpm' )
+	{
+		do_game($game, $network);
+		do_gamerpm($game);
+	}
+	elsif( $action eq 'all' )
+	{
+		config_network($network);
+		config_cricket($cricket, $network);
+		do_game($game, $network);
+		do_gamerpm($game);
+	}
+	elsif( $action eq 'clean' )
+	{
+		system( "rm -rf $network_root $cricket_root $game_root $install_root" );
+	}
+	elsif( $action eq 'install' )
+	{
+		system( "rm -rf $network_root $cricket_root $game_root $install_root" );
+		config_network($network);
+		config_cricket($cricket, $network);
+	}
+	elsif( $action eq 'gameinstall' )
+	{
+		system( "rm -rf $network_root $cricket_root $game_root $install_root" );
+		do_game($game, $network);
+	}
+	else
+	{
+		print "usage: package xmlfile [network|cricket|game|gamerpm|all|clean|install|gameinstall]\n";
+	}
+
+	if( $action ne 'clean' )
+	{
+		my $file_shutdown = new IO::File("./$install_root/shutdown.sh", O_TRUNC|O_WRONLY|O_CREAT);
+		my $file_clean = new IO::File("./$install_root/clean.sh", O_TRUNC|O_WRONLY|O_CREAT);
+		my $file_install = new IO::File("./$install_root/install.sh", O_TRUNC|O_WRONLY|O_CREAT);
+
+		my ($version, $release);
+		$version = $game->getAttribute('version') if $game;
+		$release = $game->getAttribute('release') if $game;
+
+		if( -f "./$install_root/$release_name-network.tar.gz" )
+		{
+			$file_install->print( "tar xvzf $release_name-network.tar.gz -C /\n" );	
+			$file_install->print( "service iptables restart\n" );
+			$file_install->print( "rsh link1 /sbin/service iptables restart\n" );
+			$file_install->print( "rsh link2 /sbin/service iptables restart\n" );
+			$file_install->print( "rsh delivery /sbin/service iptables restart\n" );
+			$file_install->print( "rsh backup /sbin/service iptables restart\n" );
+		}
+		if( -f "./$install_root/$release_name-cricket.tar.gz" )
+		{
+			$file_install->print( "tar xvzf $release_name-cricket.tar.gz -C /home/\n" );
+			$file_install->print( "su -l cricket -c /home/cricket/cricket/compile\n" );
+		}
+		if( $game and -f "./$install_root/$release_name-$version-$release.tar.gz" )
+		{
+			my $hosts = $network->getElementsByTagName("host");
+
+			$file_shutdown->print( "killall -USR1 servicerun\n" );
+			$file_shutdown->print( "sleep 1\n" );
+			$file_shutdown->print( "killall -9 servicerun\n" );
+			$file_shutdown->print( "servicerun --stop\n" );
+			$file_shutdown->print( "sleep 50\n" );
+			$file_shutdown->print( "killall -USR1 logservice\n" );
+			$file_shutdown->print( "sleep 1\n" );
+			$file_shutdown->print( "killall -9 logservice\n" );
+
+			if( -d "srcfiles/gamedbd" )
+			{
+				$file_shutdown->print( "rsh database /usr/bin/killall -USR1 gamedbd\n" );
+				$file_shutdown->print( "sleep 15\n" );
+				$file_shutdown->print( "rsh database /usr/bin/killall -w -9 gamedbd\n" );
+				$file_shutdown->print( "sleep 1\n" );
+			}
+
+			$file_shutdown->print( "killall -9 servicerun\n" );
+			$file_shutdown->print( "rshrun --loadall /usr/bin/killall -9 loader\n" );
+			$file_shutdown->print( "rshrun --loadall /usr/bin/killall -9 glinkd\n" );
+			$file_shutdown->print( "rshrun --loadall /usr/bin/killall -9 gdeliveryd\n" );
+			$file_shutdown->print( "rshrun --loadall /usr/bin/killall -9 gfactiond\n" );
+			$file_shutdown->print( "rshrun --loadall /usr/bin/killall -9 gs\n" );
+
+			for( my $i = 0; $i < $hosts->getLength; $i ++ )
+			{
+				my $hostname = $hosts->item($i)->getAttribute('HOSTNAME');
+				my $mount = $hosts->item($i)->getAttribute('mount');
+				my $group = $hosts->item($i)->getAttribute('group');
+				$file_clean->print( "rm -rf $mount/root/gamed\n" ) if $group eq 'game';
+			}
+
+			$file_install->print( "\nrm -rf /tmp/gamedfiles/\n" );
+			$file_install->print( "tar xvzf $release_name-$version-$release.tar.gz -C /\n" );
+			for( my $i = 0; $i < $hosts->getLength; $i ++ )
+			{
+				my $mount = $hosts->item($i)->getAttribute('mount');
+				next if $hosts->item($i)->getAttribute('group') ne 'game';
+				$file_install->print( "cp -rf /tmp/gamedfiles/* $mount/root/\n" );
+			}
+			$file_install->print( "rm -rf /tmp/gamedfiles/\n" );
+			$file_install->print( "\nkillall -9 servicerun\n" );
+			$file_install->print( "killall -9 logservice\n" );
+			if( -d "srcfiles/tomcat" )
+			{
+				$file_install->print( "/usr/local/jakarta-tomcat-5.5.9/bin/shutdown.sh\n" );
+				$file_install->print( "sleep 1\n" );
+				$file_install->print( "killall -9 java\n" );
+				$file_install->print( "sleep 1\n" );
+				$file_install->print( "/usr/local/jakarta-tomcat-5.5.9/bin/startup.sh\n" );
+			}
+			if( -f "srcfiles/syslog.conf" )
+			{	$file_install->print( "service syslog restart\n" );	}
+			if( -f "srcfiles/snmpd.conf" )
+			{	$file_install->print( "service snmpd restart\n" );	}
+			$file_install->print( "/usr/sbin/logservice /etc/logservice.conf >/dev/null 2>&1 &\n" );
+		}
+
+		system( "chmod +x ./$install_root/shutdown.sh" );
+		system( "chmod +x ./$install_root/clean.sh" );
+		system( "chmod +x ./$install_root/install.sh" );
+	}
+
+	if( $action eq 'install' )
+	{
+		chdir( "$install_root" );
+		system( "./install.sh" );
+		print "install finished!\n";
+		chdir( ".." );
+	}
+	elsif( $action eq 'gameinstall' )
+	{
+		chdir( "$install_root" );
+		system( "../ipdisable.sh" );
+		system( "./shutdown.sh" );
+		system( "./install.sh" );
+		print "install finished! starting game...\n";
+		chdir( ".." );
+
+		if( -d "srcfiles/gamedbd" )
+		{
+			if( 0 == fork() )
+			{   
+				exec( "/usr/bin/rsh database '/root/gamedbd/gamedbd /root/gamedbd/gamesys.conf' >/dev/null 2>&1 &" );
+				exit;
+			}
+		}
+		system( "servicerun --start" );
+		system( "sleep 30" );
+		system( "killall -9 servicerun" );
+		system( "../ipenable.sh" );
+	}
+
+	$doc->dispose;
+}
+
+sub determine_ipaddr
+{
+	my ($network, $host) = @_;
+	my $subnet = $network->getAttribute('subnet');
+	my $name = $host->getAttribute('HOSTNAME');
+	my $group = $host->getAttribute('group');
+
+	my $number = $name;
+	$number =~ s/$group//g;
+	$number = 1 if( not $number );
+
+	$subnet =~ s/\.0$/\./g;
+	return $subnet . $number	if( $group eq 'link' );
+	return $subnet . '1' . $number	if( $group eq 'game' );
+	return $subnet . '21' 	if( $group eq 'delivery' );
+	return $subnet . '31' 	if( $group eq 'database' );
+	return $subnet . '32'	if( $group eq 'backup' );
+	return $subnet . '254'	if( $name eq 'manager' );
+	return undef;
+}
+
+sub determine_bmcipaddr
+{
+	my ($ipaddr) = @_;
+	my @a = split( /\./, $ipaddr );
+	$ipaddr = $a[0] . "\." . $a[1] . "\." . $a[2];
+	if( length($a[3]) == 1 )
+	{	$ipaddr .= "\.10" . $a[3];	}
+	else
+	{	$ipaddr .= "\.1" . $a[3];	}
+	return $ipaddr;
+}
+
+sub print_ifcfg_element
+{
+	my ($file_ifcfg, $ifcfg, $DEVICE, $attr, $eth0default, $eth1default) = @_;
+	my $value = $ifcfg->getAttribute($attr);
+	$value = $eth0default->getAttribute($attr) if length($value) == 0 and $DEVICE eq 'eth0';
+	$value = $eth1default->getAttribute($attr) if length($value) == 0 and $DEVICE eq 'eth1';
+	if( 'HWADDR' eq $attr )
+	{
+		$file_ifcfg->print( "$attr=" . uc($value) . "\n" ) if length($value) > 0;
+	}
+	else
+	{
+		$file_ifcfg->print( "$attr=$value\n" ) if length($value) > 0;
+	}
+	return $value;
+}
+
+sub get_eth0_ip
+{
+	my ($network, $host, $eth0default) = @_;
+	my $ip;
+	my $ifcfgs = $host->getElementsByTagName("ifcfg");
+	for( my $j = 0; $j < $ifcfgs->getLength; $j ++ )
+	{
+		my $ifcfg = $ifcfgs->item($j);
+		if( $ifcfg->getAttribute('DEVICE') eq 'eth0' )
+		{
+			$ip = $ifcfg->getAttribute('IPADDR');
+			$ip = $eth0default->getAttribute('IPADDR') if not $ip;
+			$ip = determine_ipaddr($network, $host) if not $ip;
+			return $ip;
+		}
+	}
+	return undef;
+}
+
+sub get_host_mount
+{
+	my ($hosts, $hostname) = @_;
+	for( my $i = 0; $i < $hosts->getLength(); $i ++ )
+	{
+		return $hosts->item($i)->getAttribute('mount') if($hostname eq $hosts->item($i)->getAttribute('HOSTNAME'));
+	}
+	return undef;
+}
+
+sub config_dhcpd
+{
+	my $network = shift;
+
+	mkdir( "./$network_root" );
+	mkdir( "./$network_root/etc" );
+
+	my $dhcp = $network->getElementsByTagName("dhcp")->item(0);
+	my $dhcp_net = $network->getElementsByTagName("dhcp-net")->item(0);
+	my $dhcp_group = $network->getElementsByTagName("dhcp-group")->item(0);
+	my $hosts = $network->getElementsByTagName("host");
+
+	my $file_dhcpd = new IO::File("./$network_root/etc/dhcpd.conf", O_TRUNC|O_WRONLY|O_CREAT);
+	{
+		my ($attr, $ddns_update_style, $default_lease_time, $max_lease_time);
+		my ($net_subnet, $net_netmask, $net_routers, $net_subnet_mask, $net_domain_name_servers, $net_ntp_servers, $net_netbios_name_servers, $net_filename, $net_next_server);
+		my ($group_default_lease_time, $group_use_host_decl_names, $group_filename, $group_next_server);
+
+		$attr = $dhcp->getAttribute('attr') if $dhcp;
+		$attr = 'authoritative' if not $attr;
+
+		$ddns_update_style = $dhcp->getAttribute('ddns-update-style') if $dhcp;
+		$ddns_update_style = 'none' if not $ddns_update_style;
+
+		$default_lease_time = $dhcp->getAttribute('default-lease-time') if $dhcp;
+		$default_lease_time = '21600' if not $default_lease_time;
+
+		$max_lease_time = $dhcp->getAttribute('max-lease-time') if $dhcp;
+		$max_lease_time = '43200' if not $max_lease_time;
+
+		$net_subnet = $dhcp_net->getAttribute('subnet') if $dhcp_net;
+		$net_subnet = $network->getAttribute('subnet')	if not $net_subnet;
+
+		$net_netmask = $dhcp_net->getAttribute('netmask') if $dhcp_net;
+		$net_netmask = '255.255.255.0' if not $net_netmask;
+
+		$net_routers = $dhcp_net->getAttribute('routers') if $dhcp_net;
+		$net_routers = $network->getAttribute('manager') if not $net_routers;
+
+		$net_subnet_mask = $dhcp_net->getAttribute('subnet-mask') if $dhcp_net;
+		$net_subnet_mask = '255.255.255.0' if not $net_subnet_mask;
+
+		$net_domain_name_servers = $dhcp_net->getAttribute('domain-name-servers') if $dhcp_net;
+		$net_domain_name_servers = $network->getAttribute('manager') if not $net_domain_name_servers;
+
+		$net_ntp_servers = $dhcp_net->getAttribute('ntp-servers') if $dhcp_net;
+		$net_ntp_servers = $network->getAttribute('manager') if not $net_ntp_servers;
+
+		$net_netbios_name_servers = $dhcp_net->getAttribute('netbios-name-servers') if $dhcp_net;
+		$net_netbios_name_servers = $network->getAttribute('manager') if not $net_netbios_name_servers;
+
+		$net_filename = $dhcp_net->getAttribute('filename') if $dhcp_net;
+		$net_filename = "linux/pxelinux.0" if not $net_filename;
+
+		$net_next_server = $dhcp_net->getAttribute('next-server') if $dhcp_net;
+		$net_next_server = $network->getAttribute('manager') if not $net_next_server;
+
+		$group_default_lease_time = $dhcp_group->getAttribute('default-lease-time') if $dhcp_group;
+		$group_default_lease_time = '-1' if not $group_default_lease_time;
+
+		$group_use_host_decl_names = $dhcp_group->getAttribute('use-host-decl-names') if $dhcp_group;
+		$group_use_host_decl_names = 'on' if not $group_use_host_decl_names;
+
+		$group_filename = $dhcp_group->getAttribute('filename') if $dhcp_group;
+		$group_filename = "linux/pxelinux.0" if not $group_filename;
+
+		$group_next_server = $dhcp_group->getAttribute('next-server') if $dhcp_group;
+		$group_next_server = $network->getAttribute('manager') if not $group_next_server;
+
+		# /etc/dhcpd.conf
+		$file_dhcpd->print(<<EOF);
+$attr;
+ddns-update-style        $ddns_update_style;
+default-lease-time       $default_lease_time;
+max-lease-time           $max_lease_time;
+
+subnet $net_subnet netmask $net_netmask {
+        option routers                  $net_routers;
+        option subnet-mask              $net_subnet_mask;
+        option domain-name-servers      $net_domain_name_servers;
+        option ntp-servers              $net_ntp_servers;
+        option netbios-name-servers     $net_netbios_name_servers;
+
+        filename "$net_filename";
+        next-server $net_next_server;
+}
+
+group
+{
+        default-lease-time      $group_default_lease_time;
+        use-host-decl-names $group_use_host_decl_names;
+        filename "$group_filename";
+        next-server $group_next_server;
+EOF
+	}
+
+	for( my $i = 0; $i < $hosts->getLength; $i ++ )
+	{
+		my $host = $hosts->item($i);
+
+		my ($eth0_hwaddr, $eth0_ip, $BMC_hwaddr, $BMC_ip);
+		my $ifcfgs = $host->getElementsByTagName("ifcfg");
+		for( my $j = 0; $j < $ifcfgs->getLength; $j ++ )
+		{
+			my $ifcfg = $ifcfgs->item($j);
+			my $DEVICE = $ifcfg->getAttribute('DEVICE');
+
+			$BMC_hwaddr = lc($ifcfg->getAttribute('HWADDR')) if( $DEVICE eq 'BMC' );
+			$BMC_ip = $ifcfg->getAttribute('IPADDR') if( $DEVICE eq 'BMC' );
+
+			$eth0_hwaddr = lc($ifcfg->getAttribute('HWADDR')) if $DEVICE eq 'eth0';
+			$eth0_ip = $ifcfg->getAttribute('IPADDR') if $DEVICE eq 'eth0';
+		}
+		$eth0_ip = determine_ipaddr( $network, $host )	if( not $eth0_ip );
+		$BMC_ip = determine_bmcipaddr( $eth0_ip )	if( not $BMC_ip );
+
+		my $hostname = $host->getAttribute('HOSTNAME');
+		$file_dhcpd->print("		host $hostname			{ hardware ethernet $eth0_hwaddr; fixed-address $eth0_ip; }\n");
+		$file_dhcpd->print("		host $hostname".'BMC'."		{ hardware ethernet $BMC_hwaddr; fixed-address $BMC_ip; }\n") if( $BMC_hwaddr );
+	}
+
+	$file_dhcpd->print("}\n\n");
+}
+
+sub config_ppp
+{
+	my $network = shift;
+
+	mkdir( "./$network_root" );
+	mkdir( "./$network_root/etc" );
+	mkdir( "./$network_root/etc/ppp" );
+	mkdir( "./$network_root/etc/ppp/peers" );
+
+	my $ppp = $network->getElementsByTagName("ppp")->item(0);
+	my $client = $ppp->getAttribute('client');
+	my $secret = $ppp->getAttribute('secret');
+
+	my $file_chap_secrets = new IO::File("./$network_root/etc/ppp/chap-secrets", O_TRUNC|O_WRONLY|O_CREAT);
+	$file_chap_secrets->print(<<EOF);
+# Secrets for authentication using CHAP
+# client		server	secret					IP addresses
+$client		*		$secret		*
+EOF
+
+	my $file_ppp0 = new IO::File("./$network_root/etc/ppp/peers/ppp0", O_TRUNC|O_WRONLY|O_CREAT);
+	$file_ppp0->print(<<EOF);
+pty "pptp 211.100.255.4 --nolaunchpppd"
+name $client
+remotename route
+require-mschap-v2
+mppe required
+mppc
+defaultroute
+persist
+maxfail 0
+file /etc/ppp/options.pptp
+debug
+EOF
+	
+}
+
+sub config_iptables
+{
+	my $network = shift;
+
+	mkdir( "./$network_root" );
+	mkdir( "./$network_root/etc" );
+	mkdir( "./$network_root/export" );
+
+	my $hosts = $network->getElementsByTagName("host");
+	my $iptableses = $network->getElementsByTagName("iptables");
+
+	# /etc/sysconfig/iptables
+	for( my $l = 0; $l < $iptableses->getLength; $l ++ )
+	{
+		my $iptables = $iptableses->item($l);
+		my $hostmount = get_host_mount($hosts,$iptables->getAttribute('host'));
+		next if not $hostmount;
+
+		my $hostroot = "./$network_root/" . $hostmount; 
+
+		mkdir( "$hostroot" );
+		mkdir( "$hostroot/etc" );
+		mkdir( "$hostroot/etc/sysconfig" );
+		my $file_iptables = new IO::File("$hostroot/etc/sysconfig/iptables", O_TRUNC|O_WRONLY|O_CREAT);
+		$file_iptables->print( "# Generated by iptables-save v1.2.9 on Mon Jun  6 21:24:39 2005\n" );
+		my $content = $iptables->getAttribute('content');
+		$content =~ s/\\n/\n/g;
+		$content =~ s/\n\s+/\n/g;
+		$content =~ s/^\s+//g;
+		$file_iptables->print( $content );
+		$file_iptables->print( "\n# Completed on Mon Jun  6 21:24:39 2005\n" );
+	}
+}
+
+sub config_ifcfgs
+{
+	my $network = shift;
+
+	mkdir( "./$network_root" );
+	mkdir( "./root/etc" );
+	mkdir( "./root/export" );
+
+	my $eth0default = $network->getElementsByTagName("eth0default")->item(0);
+	my $eth1default = $network->getElementsByTagName("eth1default")->item(0);
+	my $hosts = $network->getElementsByTagName("host");
+
+	for( my $i = 0; $i < $hosts->getLength; $i ++ )
+	{
+		my $host = $hosts->item($i);
+		my $hostroot = "./$network_root/" . $host->getAttribute('mount');
+		mkdir( $hostroot );
+		mkdir( "$hostroot/etc" );
+		mkdir( "$hostroot/etc/sysconfig" );
+		mkdir( "$hostroot/etc/sysconfig/network-scripts" );
+
+		# /etc/sysconfig/network-scripts/ifcfg-XXXX 
+		my ($eth0_hwaddr, $eth0_ip);
+		my $ifcfgs = $host->getElementsByTagName("ifcfg");
+		for( my $j = 0; $j < $ifcfgs->getLength; $j ++ )
+		{
+			my $content = "";
+			my $ifcfg = $ifcfgs->item($j);
+			my $DEVICE = $ifcfg->getAttribute('DEVICE');
+
+			my $file_ifcfg = new IO::File("$hostroot/etc/sysconfig/network-scripts/ifcfg-".$ifcfg->getAttribute('DEVICE'), O_TRUNC|O_WRONLY|O_CREAT);
+
+			$file_ifcfg->print( "DEVICE=$DEVICE\n" ) if $DEVICE and not $DEVICE =~ m/range/;
+
+			print_ifcfg_element($file_ifcfg, $ifcfg, $DEVICE, 'ONBOOT', $eth0default, $eth1default);
+			print_ifcfg_element($file_ifcfg, $ifcfg, $DEVICE, 'BOOTPROTO', $eth0default, $eth1default);
+			print_ifcfg_element($file_ifcfg, $ifcfg, $DEVICE, 'DEFROUTE', $eth0default, $eth1default);
+			print_ifcfg_element($file_ifcfg, $ifcfg, $DEVICE, 'DEMAND', $eth0default, $eth1default);
+			print_ifcfg_element($file_ifcfg, $ifcfg, $DEVICE, 'HARDFLOWCTL', $eth0default, $eth1default);
+			print_ifcfg_element($file_ifcfg, $ifcfg, $DEVICE, 'ESCAPECHARS', $eth0default, $eth1default);
+			my $HWADDR=print_ifcfg_element($file_ifcfg, $ifcfg, $DEVICE, 'HWADDR', $eth0default, $eth1default);
+			$eth0_hwaddr = lc($HWADDR) if $DEVICE eq 'eth0';
+			if( $DEVICE eq 'eth0' )
+			{
+				$eth0_ip = $ifcfg->getAttribute('IPADDR');
+				$eth0_ip = determine_ipaddr( $network, $host )	if( not $eth0_ip );
+				$ifcfg->setAttribute('IPADDR', $eth0_ip);
+			}
+			print_ifcfg_element($file_ifcfg, $ifcfg, $DEVICE, 'IPADDR', $eth0default, $eth1default);
+
+			print_ifcfg_element( $file_ifcfg, $ifcfg, $DEVICE, 'NETMASK', $eth0default, $eth1default ); 
+			print_ifcfg_element( $file_ifcfg, $ifcfg, $DEVICE, 'TYPE', $eth0default, $eth1default ); 
+
+			my $attrs = $ifcfg->getAttributes();
+			for( my $m = 0; $m < $attrs->getLength; $m ++ )
+			{
+				my $attr = $attrs->item($m);
+				my $attrname = $attr->getName();
+				next if( $attrname eq 'DEVICE' or $attrname eq 'ONBOOT' or $attrname eq 'BOOTPROTO' or $attrname eq 'DEFROUTE' or $attrname eq 'DEMAND' or $attrname eq 'HARDFLOWCTL' or $attrname eq 'ESCAPECHARS' or $attrname eq 'HWADDR' or $attrname eq 'IPADDR' or $attrname eq 'NETMASK' or $attrname eq 'TYPE' );
+				print_ifcfg_element($file_ifcfg, $ifcfg, $DEVICE, $attrname, $eth0default, $eth1default);
+			}
+			if( $DEVICE eq 'eth1' )
+			{
+				my $file_route = new IO::File("$hostroot/etc/sysconfig/network-scripts/route-eth1", O_TRUNC|O_WRONLY|O_CREAT);
+				$file_route->print( "172.16.0.0/24 via ".$network->getAttribute('manager')."\n" );
+				$file_route->print( "172.16.2.0/24 via ".$network->getAttribute('manager')."\n" );
+			}
+		}
+
+		# /etc/hosts
+		my $hostname = $host->getAttribute('HOSTNAME');
+		my $alias = $host->getAttribute('ALIAS');
+		my $file_hosts = new IO::File("$hostroot/etc/hosts", O_TRUNC|O_WRONLY|O_CREAT);
+		$file_hosts->print("# Do not remove the following line, or various programs\n");
+		$file_hosts->print("# that require network functionality will fail.\n");
+		$file_hosts->print("127.0.0.1\t\t\t$hostname $alias localhost.localdomain localhost\n\n");
+		for( my $k = 0; $k < $hosts->getLength; $k ++ )
+		{
+			$file_hosts->print( get_eth0_ip( $network, $hosts->item($k), $eth0default ) . "\t\t\t" . $hosts->item($k)->getAttribute('HOSTNAME') . "\n" );
+		}
+
+		# /etc/sysconfig/network
+		my $file_network = new IO::File("$hostroot/etc/sysconfig/network", O_TRUNC|O_WRONLY|O_CREAT);
+		$file_network->print("NETWORKING=yes\n");
+		$file_network->print('NOZEROCONF='.$host->getAttribute('NOZEROCONF')."\n") if($host->getAttribute('NOZEROCONF'));
+		$file_network->print("HOSTNAME=$hostname\n") if($host->getAttribute('NOZEROCONF'));
+		$file_network->print('GATEWAY='.$host->getAttribute('GATEWAY')."\n") if($host->getAttribute('GATEWAY'));
+
+		# /tftpboot/linux/pxelinux.cfg
+		if( $host->getAttribute('kernel') )
+		{
+			my $filename_pxelinux = '01:' . $eth0_hwaddr;
+			$filename_pxelinux =~ s/:/-/g;
+			mkdir( "./$network_root/tftpboot" );
+			mkdir( "./$network_root/tftpboot/linux" );
+			mkdir( "./$network_root/tftpboot/linux/pxelinux.cfg" );
+			my $file_pxelinux = new IO::File("./$network_root/tftpboot/linux/pxelinux.cfg/$filename_pxelinux", O_TRUNC|O_WRONLY|O_CREAT);
+			my $kernel = $host->getAttribute('kernel');
+			my $nfsroot = $network->getAttribute('manager');
+			my $mount = $host->getAttribute('mount');
+			$file_pxelinux->print(<<EOF);
+default linux
+timeout 5
+prompt 1
+label linux
+        kernel $kernel
+        append root=/dev/nfs nfsroot=$nfsroot:$mount ip=dhcp
+EOF
+		}
+	}
+}
+
+sub config_exports
+{
+	my $network = shift;
+
+	mkdir( "./$network_root" );
+	mkdir( "./$network_root/etc" );
+
+	my $hosts = $network->getElementsByTagName("host");
+	my $subnet = $network->getAttribute('subnet');
+
+	my $file_exports = new IO::File("./$network_root/etc/exports", O_TRUNC|O_WRONLY|O_CREAT);
+	for( my $i = 0; $i < $hosts->getLength; $i ++ )
+	{
+		my $host = $hosts->item($i);
+		my $mount = $host->getAttribute('mount');
+		my $mountmode = $host->getAttribute('mountmode');
+		$file_exports->print("$mount  $subnet/24(insecure,$mountmode,async,no_root_squash,no_all_squash)\n") if( length($mountmode) > 0 );
+	}
+}
+
+sub config_rshrun
+{
+	my $network = shift;
+
+	mkdir( "./$network_root" );
+	mkdir( "./$network_root/etc" );
+
+	my $hosts = $network->getElementsByTagName("host");
+	my $subnet = $network->getAttribute('subnet');
+
+	my $file_rshrun = new IO::File("./$network_root/etc/rshrun.conf", O_TRUNC|O_WRONLY|O_CREAT);
+	for( my $i = 0; $i < $hosts->getLength; $i ++ )
+	{
+		my $host = $hosts->item($i);
+		my $hostname = $host->getAttribute('HOSTNAME');
+		my $group = $host->getAttribute('group');
+		$file_rshrun->print("$hostname\t\t$group\n") if( length($group) > 0 );
+	}
+}
+
+sub config_network
+{
+	my $network = shift;
+
+	system( "rm -rf ./$network_root" );
+	mkdir( "./$network_root" );
+
+	config_dhcpd( $network );
+	config_ppp( $network );
+	config_iptables( $network );
+	config_ifcfgs( $network );
+	config_exports( $network );
+	config_rshrun( $network );
+
+	my $mkdirs = $network->getElementsByTagName('mkdir');
+	do_mkdirs($mkdirs, $network_root) if $mkdirs;
+
+	my $files = $network->getElementsByTagName('file');
+	do_copyfile( $files, $network, $network_root ) if $files;
+
+	my $replaces = $network->getElementsByTagName('replace');
+	do_replacefile( $replaces, $network_root ) if $replaces;
+
+	mkdir( "./$install_root" );
+	system( "chown root.root -R ./$network_root" );
+	chdir( "./$network_root" );
+	system( "tar cvzf ../$install_root/$release_name-network.tar.gz ." );
+	chdir( ".." );
+}
+
+sub config_cricket
+{
+	my ($cricket, $network) = @_;
+
+	system( "rm -rf ./$cricket_root" );
+	mkdir( "./$cricket_root" );
+
+	my $srcfile = $cricket->getAttribute('src');
+	system( "tar xzf $srcfile -C ./$cricket_root" );
+
+	my $i;
+	my $hosts = $network->getElementsByTagName("host");
+
+	my $cricket_network = $cricket->getElementsByTagName("cricket-network")->item(0);
+	my $cricket_protocol = $cricket->getElementsByTagName("cricket-protocol")->item(0);
+	my $cricket_system_if = $cricket->getElementsByTagName("cricket-system-if")->item(0);
+	my $cricket_system_storage = $cricket->getElementsByTagName("cricket-system-storage")->item(0);
+	my $cricket_system_perf = $cricket->getElementsByTagName("cricket-system-perf")->item(0);
+
+	# network/targets
+	my $pingloss = $cricket_network->getAttribute('pingloss');
+	my $pingtime = $cricket_network->getAttribute('pingloss');
+	my $file_network_targets = new IO::File("./$cricket_root/cricket/cricket-config/network/targets", O_TRUNC|O_WRONLY|O_CREAT);
+	$file_network_targets->print(<<EOF);
+target --default--
+    target-type     =   stat-pinginfo
+    monitor-thresholds =
+       "ds-Loss : value :$pingloss: MAIL : %mail-pgm% : %mail-receiver%,
+        ds-TimeAvg : value :$pingtime: MAIL : %mail-pgm% : %mail-receiver%"
+
+target 211.100.255.4
+target Beijing
+    server = 211.144.9.65
+    ping-from = link1
+    monitor-thresholds = ""
+target Shanghai
+    server = 61.129.85.1
+    ping-from = link1
+    monitor-thresholds = ""
+
+target delivery-database
+    server = database
+    ping-from = delivery
+target delivery-link1
+    server = link1
+    ping-from = delivery
+target delivery-link2
+    server = link2
+    ping-from = delivery
+target delivery-game1
+    server = game1
+    ping-from = delivery
+target database-game1
+    server = game1
+    ping-from = database
+target game1-link1
+    server = link1
+    ping-from = game1
+target game1-link2
+    server = link2
+    ping-from = game1
+
+EOF
+	for( $i = 0; $i < $hosts->getLength; $i ++ )
+	{
+		my $host = $hosts->item($i);
+		my $hostname = $host->getAttribute('HOSTNAME');
+		$file_network_targets->print("target $hostname\n") if $hostname ne 'manager';
+	}
+
+	# stat-5min/targets
+	my $file_stat_5min_targets = new IO::File("./$cricket_root/cricket/cricket-config/stat-5min/targets", O_TRUNC|O_WRONLY|O_CREAT);
+	for( $i = 0; $i < $hosts->getLength; $i ++ )
+	{
+		my $host = $hosts->item($i);
+		my $hostname = $host->getAttribute('HOSTNAME');
+		next if( $host->getAttribute('group') ne 'link' );
+		$file_stat_5min_targets->print(<<EOF);
+target $hostname-poll
+    server          =   $hostname
+    servicename     =   glinkd
+    short-desc      =   "Poll Times per second."
+    object          =   Poll
+    order-sel       =   %order-sum%
+    unit            =   "polls/sec"
+    target-type     =   stat-general
+EOF
+	}
+
+	# stat-5min/protocol/targets
+	my $max_onlineusers = $cricket_protocol->getAttribute('max-onlineusers');
+	my $link_max_onlineusers = $cricket_protocol->getAttribute('link-max-onlineusers');
+	my $file_stat_5min_protocol_targets = new IO::File("./$cricket_root/cricket/cricket-config/stat-5min/protocol/targets", O_TRUNC|O_WRONLY|O_CREAT);
+	$file_stat_5min_protocol_targets->print(<<EOF);
+target --default--
+    short-desc      =   "Syslog Stat-information."
+    target-type     =   stat-protocols
+    min-onlineusers =   n
+    max-onlineusers =   $max_onlineusers
+    monitor-thresholds =
+       "ds-OnlineUsers : value :%min-onlineusers%:%max-onlineusers%: MAIL : %mail-pgm% : %mail-receiver%,
+        ds-TaskQueueSize : value :n:1000: MAIL : %mail-pgm% : %mail-receiver%"
+
+target delivery
+    servicename     =   gdeliveryd
+
+target database
+    servicename     =   gamedbd
+EOF
+	for( $i = 0; $i < $hosts->getLength; $i ++ )
+	{
+		my $host = $hosts->item($i);
+		my $hostname = $host->getAttribute('HOSTNAME');
+		next if $host->getAttribute('group') ne 'link';
+		$file_stat_5min_protocol_targets->print(<<EOF);
+target $hostname
+    max-onlineusers =   $link_max_onlineusers
+    servicename     =   glinkd
+EOF
+	}
+
+	# system/if/targets
+	my $ifInOctets_warn = $cricket_system_if->getAttribute('ifInOctets-warn') . '::';
+	my $ifOutOctets_warn = $cricket_system_if->getAttribute('ifOutOctets-warn') . '::';
+	my $ifInErrors_warn = $cricket_system_if->getAttribute('ifInErrors-warn') . '::ifInUcastPkts:';
+	my $ifOutErrors_warn = $cricket_system_if->getAttribute('ifOutErrors-warn') . '::ifOutUcastPkts:';
+	my $file_system_if_targets = new IO::File("./$cricket_root/cricket/cricket-config/system/if/targets", O_TRUNC|O_WRONLY|O_CREAT);
+	$file_system_if_targets->print(<<EOF);
+target --default--
+    inst           =   map(interface-name)
+    interface-name =   eth0
+    target-type    =   system-if
+    monitor-thresholds =
+       "ifInOctets : quotient :>$ifInOctets_warn%sysif-max-octets%: MAIL : %mail-pgm% : %mail-receiver%,
+        ifOutOctets : quotient :>$ifOutOctets_warn%sysif-max-octets%: MAIL : %mail-pgm% : %mail-receiver%,
+        ifInErrors : quotient :>$ifInErrors_warn MAIL : %mail-pgm% : %mail-receiver%,
+        ifOutErrors : quotient :>$ifOutErrors_warn MAIL : %mail-pgm% : %mail-receiver%"
+EOF
+	for( $i = 0; $i < $hosts->getLength; $i ++ )
+	{
+		my $host = $hosts->item($i);
+		my $hostname = $host->getAttribute('HOSTNAME');
+		$file_system_if_targets->print("target $hostname\n");
+		next if $host->getAttribute('group') ne 'link';
+		$file_system_if_targets->print(<<EOF);
+target $hostname-eth1
+    server         =   $hostname
+    interface-name =   eth1
+target $hostname-eth1-2
+    server         =   $hostname
+    interface-name =   eth1
+    target-type    =   system-if2
+    monitor-thresholds = ""
+EOF
+	}
+
+	# system/iostat/targets
+	my $file_system_iostat_targets = new IO::File("./$cricket_root/cricket/cricket-config/system/iostat/targets", O_TRUNC|O_WRONLY|O_CREAT);
+	$file_system_iostat_targets->print(<<EOF);
+target --default--
+    inst           =   %instsda%
+    target-type    =   system-iostat-linux
+EOF
+	for ($cricket_system_storage->getChildNodes)
+	{
+		next unless $_->getNodeType == ELEMENT_NODE;
+		my $storage_name = $_->getAttribute('name');
+		my $storage_dev = $_->getAttribute('dev');
+		my $storage_mount = $_->getAttribute('mount');
+		my $storage_server = $_->getAttribute('server');
+		$storage_server = $storage_name if not $storage_server;
+		$file_system_iostat_targets->print(<<EOF);
+target $storage_name
+    server    =   $storage_server
+    inst      =   \%inst$storage_dev%
+EOF
+	}
+
+	# system/link/targets
+	my $file_system_link_targets = new IO::File("./$cricket_root/cricket/cricket-config/system/link/targets", O_TRUNC|O_WRONLY|O_CREAT);
+	$file_system_link_targets->print(<<EOF);
+target --default--
+    inst           =   map(interface-name)
+    interface-name =   eth0
+    target-type    =   system-link
+    monitor-thresholds = ""
+EOF
+	for( $i = 0; $i < $hosts->getLength; $i ++ )
+	{
+		my $host = $hosts->item($i);
+		my $hostname = $host->getAttribute('HOSTNAME');
+		next if $host->getAttribute('group') ne 'link';
+		$file_system_link_targets->print(<<EOF);
+target $hostname
+    interface-name =   eth1
+EOF
+	}
+
+	# system/perf/targets
+	my $ssCpuRawIdle = $cricket_system_perf->getAttribute('ssCpuRawIdle');
+	my $laLoad5min = $cricket_system_perf->getAttribute('laLoad5min');
+	my $file_system_perf_targets = new IO::File("./$cricket_root/cricket/cricket-config/system/perf/targets", O_TRUNC|O_WRONLY|O_CREAT);
+	$file_system_perf_targets->print(<<EOF);
+target --default--
+    target-type    =   system-perf
+    monitor-thresholds =
+       "ssCpuRawIdle : value :$ssCpuRawIdle: MAIL : %mail-pgm% : %mail-receiver%,
+        laLoad5min : value :$laLoad5min: MAIL : %mail-pgm% : %mail-receiver%"
+#        memAvailReal : quotient :<5pct::memTotalReal: MAIL : %mail-pgm% : %mail-receiver%,
+EOF
+	for( $i = 0; $i < $hosts->getLength; $i ++ )
+	{
+		my $host = $hosts->item($i);
+		my $hostname = $host->getAttribute('HOSTNAME');
+		$file_system_perf_targets->print("target $hostname\n");
+	}
+
+	# system/proc/targets
+	my $file_system_proc_targets = new IO::File("./$cricket_root/cricket/cricket-config/system/proc/targets", O_TRUNC|O_WRONLY|O_CREAT);
+	$file_system_proc_targets->print(<<EOF);
+target --default--
+    target-type =   system-proc
+EOF
+	for( $i = 0; $i < $hosts->getLength; $i ++ )
+	{
+		my $host = $hosts->item($i);
+		my $hostname = $host->getAttribute('HOSTNAME');
+		my $group = $host->getAttribute('group');
+		my $proc;
+		$proc = 'gamedbd' if $group eq 'database';
+		$proc = 'gfaction' if $group eq 'faction';
+		$proc = 'gdeliveryd' if $group eq 'delivery';
+		$proc = 'glinkd' if $group eq 'link';
+		$proc = 'gs' if $group eq 'game';
+		next if not $proc;
+		$file_system_proc_targets->print(<<EOF);
+target $hostname
+    inst        =   \%inst$proc%
+EOF
+	}
+
+	# system/storage/targets
+	my $file_system_storage_targets = new IO::File("./$cricket_root/cricket/cricket-config/system/storage/targets", O_TRUNC|O_WRONLY|O_CREAT);
+	$file_system_storage_targets->print(<<EOF);
+target --default--
+    inst        =   map(hr-storage-descr)
+    hr-storage-descr = /
+    target-type =   system-storage
+EOF
+	for ($cricket_system_storage->getChildNodes)
+	{
+		next unless $_->getNodeType == ELEMENT_NODE;
+		my $storage_name = $_->getAttribute('name');
+		my $storage_dev = $_->getAttribute('dev');
+		my $storage_mount = $_->getAttribute('mount');
+		my $storage_server = $_->getAttribute('server');
+		$storage_server = $storage_name if not $storage_server;
+		$file_system_storage_targets->print(<<EOF);
+target $storage_name
+    server    =   $storage_server
+    hr-storage-descr = $storage_mount
+EOF
+	}
+
+	# system/uptime/targets
+	my $file_system_uptime_targets = new IO::File("./$cricket_root/cricket/cricket-config/system/uptime/targets", O_TRUNC|O_WRONLY|O_CREAT);
+	$file_system_uptime_targets->print(<<EOF);
+target --default--
+    target-type    =   system-uptime
+EOF
+	for( $i = 0; $i < $hosts->getLength; $i ++ )
+	{
+		my $host = $hosts->item($i);
+		my $hostname = $host->getAttribute('HOSTNAME');
+		$file_system_uptime_targets->print("target $hostname\n");
+	}
+
+	mkdir( "./$install_root" );
+	system( "chown cricket.cricket -R ./$cricket_root" );
+	chdir( "./$cricket_root" );
+	system( "tar cvzf ../$install_root/$release_name-cricket.tar.gz cricket" );
+	chdir( ".." );
+}
+
+sub mkfulldir
+{
+	my ($root, $dir) = @_;
+
+	my $subdir;
+	foreach (split(/\//, $dir))
+	{
+		$subdir .= "/$_";
+		mkdir( $root . $subdir );
+	}
+}
+
+sub copyfile_replacestr
+{
+	my ($filenamesrc, $filenamedest, $src, $dest) = @_;
+	if( not -f $filenamesrc )
+	{
+		print "warning copyfile_replacestr: $filenamesrc not exists!\n";
+		return undef;
+	}
+
+	my $filesrc = new FileHandle;
+	my $filedest = new FileHandle;
+	my $success;
+	my $count = 0;
+	if( $filedest->open( ">$filenamedest" ) )
+	{
+		if( $filesrc->open( "<$filenamesrc" ) )
+		{
+			my $line;
+			while( $line = $filesrc->getline() )
+			{
+				$count += ($line =~ s/$src/$dest/g);
+				$filedest->print( $line );
+			}
+			$filesrc->close();
+			$success = 1;
+		}
+		$filedest->close();
+	}
+
+	return $success ? $count : undef;
+}
+
+sub do_mkdirs
+{
+	my ($mkdirs, $root) = @_;
+	for( my $i = 0; $i < $mkdirs->getLength; $i ++ )
+	{
+		mkfulldir( $root, $mkdirs->item($i)->getAttribute('dir') );
+	}
+}
+
+sub do_copyfile
+{
+	my ($files, $network, $root) = @_;
+
+	for( my $j = 0; $j < $files->getLength; $j ++ )
+	{
+		my $file = $files->item($j);
+		my $src = $file->getAttribute('src');
+		my $dest = $file->getAttribute('dest');
+		my $allhost = $file->getAttribute('allhost');
+		my $cricketcron = $file->getAttribute('cricketcron');
+		my $destdir = $dest;
+		$destdir =~ s/\/[^\/]+$/\//g;
+
+		if( not -f $src and not -d $src )
+		{
+			print "warning copy file: $src not exists!\n";
+			next;
+		}
+
+		mkfulldir( $root, $destdir );
+		system( "cp -rf $src ./$root/$dest" );
+
+		if( $allhost eq 'true' )
+		{
+			my $hosts = $network->getElementsByTagName("host");
+			for( my $l = 0; $l < $hosts->getLength; $l ++ )
+			{
+				my $mount = $hosts->item($l)->getAttribute('mount');
+
+				mkfulldir( $root, "$mount/$destdir" );
+				system( "cp -rf $src ./$root/$mount/$dest" );
+			}
+		}
+		if( $cricketcron eq 'true' )
+		{
+			my $hosts = $network->getElementsByTagName("host");
+			for( my $h = 0; $h < $hosts->getLength; $h ++ )
+			{
+				my $host = $hosts->item($h);
+				my $hostname = $host->getAttribute('HOSTNAME');
+				next if $hostname eq 'manager';
+				system( "echo \"*/5 * * * * \\\$HOME/bin/pingstat $hostname\" >> ./$root/$dest" );
+			}
+		}
+	}
+}
+
+sub do_replacefile
+{
+	my ($replaces, $root) = @_;
+	for( my $k = 0; $k < $replaces->getLength; $k ++ )
+	{
+		my $replace = $replaces->item($k);
+		my $file = $replace->getAttribute('file');
+		my $src = $replace->getAttribute('src');
+		my $dest = $replace->getAttribute('dest');
+		if( copyfile_replacestr( "./$root/$file", "./.package.tmp", $src, $dest ) )
+		{
+			system( "cp -rf ./.package.tmp ./$root/$file" );
+			unlink './.package.tmp';
+		}
+	}
+}
+
+sub do_game
+{
+	my ($game,$network) = @_;
+
+	system( "rm -rf ./$game_root" );
+	mkdir( "./$game_root" );
+
+	return if not $game;
+
+	my $mkdirs = $game->getElementsByTagName('mkdir');
+	do_mkdirs($mkdirs, $game_root) if $mkdirs;
+
+	my $files = $game->getElementsByTagName('file');
+	do_copyfile( $files, $network, $game_root ) if $files;
+
+	my $replaces = $game->getElementsByTagName('replace');
+	do_replacefile( $replaces, $game_root ) if $replaces;
+
+	my $version = $game->getAttribute('version');
+	my $release = $game->getAttribute('release');
+	mkdir( "./$install_root" );
+	chdir( "./$game_root" );
+	system( "tar cvzf ../$install_root/$release_name-$version-$release.tar.gz ." );
+	chdir( ".." );
+}
+
+sub do_gamerpm
+{
+	my ($game) = @_;
+
+	return if not $game;
+
+	my $version = $game->getAttribute('version');
+	my $release = $game->getAttribute('release');
+
+	mkdir( "./$install_root" );
+	my $file_spec = new IO::File("./$install_root/$release_name-$version-$release.spec", O_TRUNC|O_WRONLY|O_CREAT);
+	$file_spec->print(<<EOF);
+Name: $release_name
+Version:$version
+Release:$release
+Summary: world2 for Linux
+Group: Amusements/Games
+License: Commerical
+Vendor: world2.com.cn
+Packager: Zhenyu Sun
+Source0: %{name}-%{version}-%{release}.tar.gz
+BuildRoot: %{_builddir}/%{name}-%{version}-%{release}
+
+\%description 
+The Perfect World, 3D Game Server For Unix/Linux.
+
+\%prep
+rm -rf \$RPM_BUILD_ROOT
+mkdir -p \$RPM_BUILD_ROOT
+
+\%build 
+
+\%install 
+tar xzvf %{SOURCE0} -C \$RPM_BUILD_ROOT
+rm -rf \$RPM_BUILD_ROOT/%{name}-%{version}-%{release}.tar.gz
+
+\%clean 
+rm -rf \$RPM_BUILD_ROOT
+
+\%files 
+\%defattr(-,root,root)
+/
+EOF
+	$file_spec->close();
+
+	system( "cp -f ./$install_root/$release_name-$version-$release.tar.gz /usr/src/redhat/SOURCES/" );
+	system( "rpmbuild -bb ./$install_root/$release_name-$version-$release.spec" );
+	system( "cp /usr/src/redhat/RPMS/i386/$release_name-$version-$release.i386.rpm ./$install_root/" );
+}
+

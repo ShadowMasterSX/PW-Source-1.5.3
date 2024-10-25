@@ -1,0 +1,69 @@
+#ifndef __GNET_PRECREATEROLERES_RPCDATA
+#define __GNET_PRECREATEROLERES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class PreCreateRoleRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		int roleid;
+		unsigned int logicuid;
+
+	public:
+		PreCreateRoleRes (int l_retcode = -1,int l_roleid = -1,unsigned int l_logicuid = 0)
+			: retcode(l_retcode),roleid(l_roleid),logicuid(l_logicuid)
+		{
+		}
+
+		PreCreateRoleRes(const PreCreateRoleRes &rhs)
+			: retcode(rhs.retcode),roleid(rhs.roleid),logicuid(rhs.logicuid) { }
+
+		Rpc::Data *Clone() const { return new PreCreateRoleRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const PreCreateRoleRes *r = dynamic_cast<const PreCreateRoleRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				roleid = r->roleid;
+				logicuid = r->logicuid;
+			}
+			return *this;
+		}
+
+		PreCreateRoleRes& operator = (const PreCreateRoleRes &rhs)
+		{
+			const PreCreateRoleRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				roleid = r->roleid;
+				logicuid = r->logicuid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << roleid;
+			os << logicuid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> roleid;
+			os >> logicuid;
+			return os;
+		}
+
+	};
+};
+#endif

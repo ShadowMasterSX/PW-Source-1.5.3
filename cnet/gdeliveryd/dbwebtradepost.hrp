@@ -1,0 +1,79 @@
+
+#ifndef __GNET_DBWEBTRADEPOST_HPP
+#define __GNET_DBWEBTRADEPOST_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbwebtradepostarg"
+#include "dbwebtradepostres"
+
+#include "webtradeupdate_re.hpp"
+
+namespace GNET
+{
+
+class DBWebTradePost : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbwebtradepost"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBWebTradePostArg *arg = (DBWebTradePostArg *)argument;
+		// DBWebTradePostRes *res = (DBWebTradePostRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		DBWebTradePostArg *arg = (DBWebTradePostArg *)argument;
+		DBWebTradePostRes *res = (DBWebTradePostRes *)result;
+		DEBUG_PRINT("dbwebtradepost: rpc return. retcode=%d,sn=%lld,roleid=%d", res->retcode, arg->sn, arg->roleid);
+		if(res->retcode == ERR_SUCCESS)
+		{
+			if(!WebTradeMarket::GetInstance().OnDBPost(arg->roleid, arg->sn, arg->state, arg->post_endtime, arg->show_endtime, arg->sell_endtime, arg->commodity_id))
+			{
+				WebTradeMarket::GetInstance().ClearBusy(arg->sn);
+				Log::log(LOG_WARNING,"dbwebtradepost: OnDBPost failed. sn=%lld,roleid=%d", arg->sn,arg->roleid);
+			}
+			else	// 试图通知客户端
+			{
+				Thread::RWLock::RDScoped l(UserContainer::GetInstance().GetLocker());
+				PlayerInfo * pinfo = UserContainer::GetInstance().FindRoleOnline(arg->roleid );
+				if ( NULL!=pinfo)
+				{
+					GWebTradeDetail detail;
+					if ( WebTradeMarket::GetInstance().GetWebTrade(arg->sn,detail) )
+					{
+						WebTradeUpdate_Re re;
+						re.retcode = ERR_SUCCESS;
+						re.sn = arg->sn;
+						re.localsid = pinfo->localsid;
+						re.item = detail.info;
+						GDeliveryServer::GetInstance()->Send( pinfo->linksid,re );
+					}
+				}
+			}
+		}
+		else
+		{
+			WebTradeMarket::GetInstance().ClearBusy(arg->sn);
+			Log::log(LOG_WARNING,"dbwebtradepost: failed. sn=%lld,roleid=%d", arg->sn,arg->roleid);
+		}
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+		DBWebTradePostArg *arg = (DBWebTradePostArg *)argument;
+		Log::log(LOG_ERR,"dbwebtradepost: timeout. sn=%lld,roleid=%d", arg->sn,arg->roleid);
+		GameDBClient::GetInstance()->SendProtocol( Rpc::Call(RPC_DBWEBTRADEPOST,arg) );
+	}
+
+};
+
+};
+#endif

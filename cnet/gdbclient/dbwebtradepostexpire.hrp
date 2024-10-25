@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBWEBTRADEPOSTEXPIRE_HPP
+#define __GNET_DBWEBTRADEPOSTEXPIRE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbwebtradepostexpirearg"
+#include "dbwebtradepostexpireres"
+
+namespace GNET
+{
+
+class DBWebTradePostExpire : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbwebtradepostexpire"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBWebTradePostExpireArg *arg = (DBWebTradePostExpireArg *)argument;
+		// DBWebTradePostExpireRes *res = (DBWebTradePostExpireRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBWebTradePostExpireArg *arg = (DBWebTradePostExpireArg *)argument;
+		// DBWebTradePostExpireRes *res = (DBWebTradePostExpireRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

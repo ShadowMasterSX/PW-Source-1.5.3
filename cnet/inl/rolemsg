@@ -1,0 +1,35 @@
+	public:
+		int64_t receiver;
+		RoleMsgBean message;
+		enum { PROTOCOL_TYPE = PROTOCOL_ROLEMSG };
+	public:
+		RoleMsg() { type = PROTOCOL_ROLEMSG; }
+		RoleMsg(void*) : Protocol(PROTOCOL_ROLEMSG) { }
+		RoleMsg (int64_t l_receiver,const RoleMsgBean& l_message)
+			 : receiver(l_receiver),message(l_message)
+		{
+			type = PROTOCOL_ROLEMSG;
+		}
+
+		RoleMsg(const RoleMsg &rhs)
+			: Protocol(rhs),receiver(rhs.receiver),message(rhs.message) { }
+
+		GNET::Protocol *Clone() const { return new RoleMsg(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << receiver;
+			os << message;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> receiver;
+			os >> message;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 2048; }

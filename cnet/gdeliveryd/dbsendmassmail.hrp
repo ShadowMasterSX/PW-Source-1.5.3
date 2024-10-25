@@ -1,0 +1,120 @@
+
+#ifndef __GNET_DBSENDMASSMAIL_HPP
+#define __GNET_DBSENDMASSMAIL_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "gmailheader"
+#include "gmail"
+#include "gmailsyncdata"
+
+#include "dbsendmassmailarg"
+#include "dbsendmassmailres"
+#include "playersendmail_re.hpp"
+#include "gproviderserver.hpp"
+#include "postoffice.h"
+#include "mapuser.h"
+
+namespace GNET
+{
+
+class DBSendMassMail : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbsendmassmail"
+#undef	RPC_BASECLASS
+	unsigned int save_linksid;
+	unsigned int save_localsid;
+	unsigned int save_gsid;
+
+	bool SyncGameServer(DBSendMassMailArg& arg,GMailSyncData& syncdata, int retcode)
+	{
+		return GProviderServer::GetInstance()->DispatchProtocol(
+				save_gsid,
+				GMailEndSync(0/*must be zero*/,retcode,arg.mail.header.sender,syncdata)
+			);	
+	}
+	bool Send2Player( int retcode,DBSendMassMailArg& arg )
+	{
+		Thread::RWLock::RDScoped l(UserContainer::GetInstance().GetLocker());
+		PlayerInfo * pinfo = UserContainer::GetInstance().FindRoleOnline( arg.mail.header.sender );
+		if ( NULL!=pinfo )
+		{
+			return GDeliveryServer::GetInstance()->Send(
+				save_linksid,
+				PlayerSendMail_Re(
+					retcode,
+					arg.mail.header.sender,
+					save_localsid,
+					arg.mail.header.receiver,
+					arg.cost_obj_num,
+					arg.cost_obj_pos,
+					arg.cost_money
+				)
+			);	
+		}
+		else
+			return false;
+	}
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBSendMassMailArg *arg = (DBSendMassMailArg *)argument;
+		// DBSendMassMailRes *res = (DBSendMassMailRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		DBSendMassMailArg *arg = (DBSendMassMailArg *)argument;
+		DBSendMassMailRes *res = (DBSendMassMailRes *)result;
+		DEBUG_PRINT("dbsendmassmail. rpc return. retcode=%d,sender=%d(type=%d,mass_type=%d),localsid=%d\n",
+				res->retcode, arg->mail.header.sender,arg->mail.header.sndr_type,arg->mass_type,save_localsid);
+		
+		switch ( arg->mail.header.sndr_type )
+		{
+			case _MST_PLAYER:
+				{
+					if ( res->retcode==ERR_SUCCESS )
+					{
+						MassMailResVector::iterator it = res->result.begin();
+						MassMailResVector::iterator ie = res->result.end();
+
+						for(;it != ie; ++it)
+						{
+							MassMailRes& mailres = *it;
+							if(mailres.retcode == ERR_SUCCESS)
+							{
+								arg->mail.header.id= mailres.mail_id;
+								arg->mail.header.receiver = mailres.roleid;
+								PostOffice::GetInstance().AddNewMail(mailres.roleid ,arg->mail.header ); 
+							}
+						}
+					}
+
+					SyncGameServer( *arg,res->syncdata, res->retcode );
+					Send2Player(res->retcode,*arg);
+				}
+				break;
+		}
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+		DBSendMassMailArg *arg = (DBSendMassMailArg *)argument;
+		Log::log(LOG_ERR,"dbsendmassmail timeout. sender=%d(type=%d masstype=%d),localsid=%d\n",
+				arg->mail.header.sender,arg->mail.header.sndr_type,arg->mass_type,save_localsid);
+		switch ( arg->mail.header.sndr_type )
+		{
+			case _MST_PLAYER:
+				Send2Player(ERR_TIMEOUT,*arg);
+				break;
+		}
+	}
+
+};
+
+};
+#endif

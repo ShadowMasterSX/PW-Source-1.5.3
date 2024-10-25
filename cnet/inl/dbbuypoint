@@ -1,0 +1,9 @@
+		GNET::Protocol *Clone() const {  return new DBBuyPoint(*this); }
+	public:
+		enum { PROTOCOL_TYPE = RPC_DBBUYPOINT };
+		DBBuyPoint(Type type, Rpc::Data *argument, Rpc::Data *result)
+			: RPC_BASECLASS(type, argument, result ) { }
+		DBBuyPoint(const DBBuyPoint &rhs) : RPC_BASECLASS(rhs) { }
+		int  PriorPolicy( ) const { return 1; }
+		bool SizePolicy(size_t size) const { return size <= 128; }
+		bool TimePolicy(int timeout) const { return timeout <= 30; }

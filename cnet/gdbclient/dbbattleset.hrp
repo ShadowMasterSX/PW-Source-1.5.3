@@ -1,0 +1,43 @@
+
+#ifndef __GNET_DBBATTLESET_HPP
+#define __GNET_DBBATTLESET_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbbattlesetarg"
+#include "dbbattlesetres"
+#include "gterritorydetail"
+
+namespace GNET
+{
+
+class DBBattleSet : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbbattleset"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBBattleSetArg *arg = (DBBattleSetArg *)argument;
+		// DBBattleSetRes *res = (DBBattleSetRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBBattleSetArg *arg = (DBBattleSetArg *)argument;
+		// DBBattleSetRes *res = (DBBattleSetRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

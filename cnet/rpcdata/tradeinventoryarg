@@ -1,0 +1,64 @@
+#ifndef __GNET_TRADEINVENTORYARG_RPCDATA
+#define __GNET_TRADEINVENTORYARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class TradeInventoryArg : public GNET::Rpc::Data
+	{
+	public:
+		unsigned int roleid1;
+		unsigned int roleid2;
+
+	public:
+		TradeInventoryArg (unsigned int l_roleid1 = 0,unsigned int l_roleid2 = 0)
+			: roleid1(l_roleid1),roleid2(l_roleid2)
+		{
+		}
+
+		TradeInventoryArg(const TradeInventoryArg &rhs)
+			: roleid1(rhs.roleid1),roleid2(rhs.roleid2) { }
+
+		Rpc::Data *Clone() const { return new TradeInventoryArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const TradeInventoryArg *r = dynamic_cast<const TradeInventoryArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid1 = r->roleid1;
+				roleid2 = r->roleid2;
+			}
+			return *this;
+		}
+
+		TradeInventoryArg& operator = (const TradeInventoryArg &rhs)
+		{
+			const TradeInventoryArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid1 = r->roleid1;
+				roleid2 = r->roleid2;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid1;
+			os << roleid2;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid1;
+			os >> roleid2;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,74 @@
+
+#ifndef __GNET_TOUCHPLAYERDATA_HPP
+#define __GNET_TOUCHPLAYERDATA_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "touchplayerdataarg"
+#include "touchplayerdatares"
+#include "playerlogin_re.hpp"
+
+namespace GNET
+{
+
+class TouchPlayerData : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "touchplayerdata"
+#undef	RPC_BASECLASS
+
+	int flag;
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TouchPlayerDataArg *arg = (TouchPlayerDataArg *)argument;
+		// TouchPlayerDataRes *res = (TouchPlayerDataRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		TouchPlayerDataArg *arg = (TouchPlayerDataArg *)argument;
+		TouchPlayerDataRes *res = (TouchPlayerDataRes *)result;
+
+		LOG_TRACE("Recv TouchPlayerData roleid %d userid %d, retcode %d", arg->roleid, arg->userid, res->retcode);
+		UserInfo* pinfo = UserContainer::GetInstance().FindUser(arg->userid);
+		if(pinfo == NULL || pinfo->status != _STATUS_REMOTE_LOGINQUERY) {
+			Log::log(LOG_ERR, "TouchPlayerData userid %d status %d invalid", arg->userid, pinfo == NULL ? 0 :pinfo->status);
+			return;
+		}
+		
+		PlayerLogin_Re re;
+		re.result = res->retcode;
+		re.roleid = arg->roleid;
+		re.localsid = pinfo->localsid;
+		re.flag = flag;
+		
+		if(res->retcode == ERR_SUCCESS) {
+			PlayerLogin_Re::RealLogin(arg->roleid, pinfo);
+			pinfo->status = _STATUS_READYGAME;
+			pinfo->role_status[arg->roleid % MAX_ROLE_COUNT] = _ROLE_STATUS_NORMAL;
+		} else {
+			UserContainer::GetInstance().UserLogout(pinfo);
+		}
+		
+		re.src_provider_id = pinfo->gameid;
+		GDeliveryServer* dsm = GDeliveryServer::GetInstance();
+		dsm->Send(pinfo->linksid, re);
+		dsm->BroadcastStatus();
+		
+		LOG_TRACE("Send PlayerLogin_Re to glink, userid %d roleid %d ret %d",
+				arg->userid, arg->roleid, re.result);
+	}
+
+	void OnTimeout( Rpc::Data *argument )
+	{
+		TouchPlayerDataArg *arg = (TouchPlayerDataArg *)argument;
+		LOG_TRACE("TouchPlayerData timeout, userid %d roleid %d", arg->userid, arg->roleid);
+	}
+
+};
+
+};
+#endif

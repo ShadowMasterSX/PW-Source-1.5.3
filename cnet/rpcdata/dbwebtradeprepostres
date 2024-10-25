@@ -1,0 +1,88 @@
+#ifndef __GNET_DBWEBTRADEPREPOSTRES_RPCDATA
+#define __GNET_DBWEBTRADEPREPOSTRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailsyncdata"
+
+namespace GNET
+{
+	class DBWebTradePrePostRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		int buyer_userid;
+		Octets buyer_name;
+		Octets name;
+		Octets rolebrief;
+		GMailSyncData syncdata;
+
+	public:
+		DBWebTradePrePostRes (int l_retcode = 0,int l_buyer_userid = 0,const Octets& l_buyer_name = Octets()
+			,const Octets& l_name = Octets(),const Octets& l_rolebrief = Octets(),const GMailSyncData& l_syncdata = GMailSyncData())
+			: retcode(l_retcode),buyer_userid(l_buyer_userid),buyer_name(l_buyer_name)
+			,name(l_name),rolebrief(l_rolebrief),syncdata(l_syncdata)
+		{
+		}
+
+		DBWebTradePrePostRes(const DBWebTradePrePostRes &rhs)
+			: retcode(rhs.retcode),buyer_userid(rhs.buyer_userid),buyer_name(rhs.buyer_name),
+			name(rhs.name),rolebrief(rhs.rolebrief),syncdata(rhs.syncdata) { }
+
+		Rpc::Data *Clone() const { return new DBWebTradePrePostRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBWebTradePrePostRes *r = dynamic_cast<const DBWebTradePrePostRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				buyer_userid = r->buyer_userid;
+				buyer_name = r->buyer_name;
+				name = r->name;
+				rolebrief = r->rolebrief;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		DBWebTradePrePostRes& operator = (const DBWebTradePrePostRes &rhs)
+		{
+			const DBWebTradePrePostRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				buyer_userid = r->buyer_userid;
+				buyer_name = r->buyer_name;
+				name = r->name;
+				rolebrief = r->rolebrief;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << buyer_userid;
+			os << buyer_name;
+			os << name;
+			os << rolebrief;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> buyer_userid;
+			os >> buyer_name;
+			os >> name;
+			os >> rolebrief;
+			os >> syncdata;
+			return os;
+		}
+
+	};
+};
+#endif

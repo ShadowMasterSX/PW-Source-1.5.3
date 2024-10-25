@@ -1,0 +1,58 @@
+#ifndef __GNET_DBAUTOLOCKGETARG_RPCDATA
+#define __GNET_DBAUTOLOCKGETARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBAutolockGetArg : public GNET::Rpc::Data
+	{
+	public:
+		int userid;
+
+	public:
+		DBAutolockGetArg ()
+		{
+		}
+
+		DBAutolockGetArg(const DBAutolockGetArg &rhs)
+			: userid(rhs.userid) { }
+
+		Rpc::Data *Clone() const { return new DBAutolockGetArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBAutolockGetArg *r = dynamic_cast<const DBAutolockGetArg *>(&rhs);
+			if (r && r != this)
+			{
+				userid = r->userid;
+			}
+			return *this;
+		}
+
+		DBAutolockGetArg& operator = (const DBAutolockGetArg &rhs)
+		{
+			const DBAutolockGetArg *r = &rhs;
+			if (r && r != this)
+			{
+				userid = r->userid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			return os;
+		}
+
+	};
+};
+#endif

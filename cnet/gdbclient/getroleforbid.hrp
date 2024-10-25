@@ -1,0 +1,52 @@
+
+#ifndef __GNET_GETROLEFORBID_HPP
+#define __GNET_GETROLEFORBID_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#ifdef USE_BDB
+#include "dbbuffer.h"
+#endif
+#include "groleforbid"
+#include "getroleforbidarg"
+#include "getroleforbidres"
+
+namespace GNET
+{
+
+class GetRoleForbid : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getroleforbid"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+#ifdef USE_BDB
+		GetRoleForbidArg *arg = (GetRoleForbidArg *)argument;
+		GetRoleForbidRes *res = (GetRoleForbidRes *)result;
+		Marshal::OctetsStream key, value;
+		key << *arg;
+		res-> = DBBuffer::buf_find( "forbid", key, value );
+		if( 0 == res-> )
+			value >> res->value;
+#endif
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// GetRoleForbidArg *arg = (GetRoleForbidArg *)argument;
+		// GetRoleForbidRes *res = (GetRoleForbidRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

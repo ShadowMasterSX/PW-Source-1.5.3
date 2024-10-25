@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="rpcalls.xsl"?>
+
+<application namespace="GNET">
+
+	<protocol debug="1" name="Challenge" maxsize="32" prior="0" type="2002">
+		<variable name="nonce" type="Octets" />
+	</protocol>
+
+	<protocol debug="1" name="Response" maxsize="32" prior="0" type="2001">
+		<variable name="identity" type="Octets" />
+		<variable name="response" type="Octets" />
+	</protocol>
+
+	<protocol debug="1" name="KeyExchange" maxsize="32" prior="0" type="2003">
+		<variable name="nonce" type="Octets" />
+	</protocol>
+
+	<rpcdata name="Role">
+		<variable name="id" type="unsigned int"  default="0"/>
+		<variable name="name" type="char" size="32"/>
+		<variable name="race" type="int"  default="0"/>
+		<variable name="cls" type="int"  default="0"/>
+		<variable name="gender" type="bool"  default="false"/>
+		<variable name="level" type="int" default="0"/>
+		<variable name="exp" type="int" default="0"/>
+		<variable name="sp" type="int" default="0"/>
+		<variable name="posx" type="float" />
+		<variable name="posy" type="float" />
+		<variable name="posz" type="float" />
+		<variable name="custom_data" type = "Octets"/>
+		<variable name="property" type = "Octets"/>
+		<variable name="inventory" type="Octets" />
+		<variable name="task_data" type="Octets" />
+		<variable name="var_data" type="Octets" />
+	</rpcdata>
+	<rpcdata name="RoleId">
+		<variable name="id" type="unsigned int" default="0"/>
+	</rpcdata>
+	<rpcdata name="RolePair">
+		<variable name="key" type="RoleId"/>
+		<variable name="value" type="Role"/>
+	</rpcdata>
+	<rpcdata name="RoleRes">
+		<variable name="retcode" type="int" default="-1"/>
+		<variable name="value" type="Role"/>
+	</rpcdata>
+	<rpc debug="1" name="PutRole" type="4001" argument="RolePair" result="RpcRetcode" table="Role" attr="put" key="key" value="value" maxsize="512" prior="1" timeout="10"/>
+	<rpc debug="1" name="GetRole" type="4002" argument="RoleId" result="RoleRes" table="Role" attr="get" retcode="retcode" value="value" maxsize="512" prior="1" timeout="10"/>
+	<rpc debug="1" name="DelRole" type="4003" argument="RoleId" result="RpcRetcode" table="Role" attr="del" maxsize="512" prior="1" timeout="10"/>
+
+	<state name="Null" timeout="5" />
+
+	<state name="Gamedb" timeout="86400">
+		<rpc ref="GetRole" />
+		<rpc ref="PutRole" />
+		<rpc ref="DelRole" />
+	</state>
+
+	<service name="gamedbd">
+		<manager name="Gamedb" type="server" initstate="Gamedb" />
+
+		<state ref="Gamedb" />
+		<state ref="Null" />
+
+		<rpc ref="GetRole"/>
+		<rpc ref="PutRole" />
+		<rpc ref="DelRole" />
+	</service>
+
+	<service name="dbclient">
+		<manager name="Gamedb" type="client" initstate="Gamedb" />
+
+		<state ref="Gamedb" />
+
+		<rpc ref="GetRole"/>
+		<rpc ref="PutRole"/>
+		<rpc ref="DelRole"/>
+	</service>
+
+</application>
+

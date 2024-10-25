@@ -1,0 +1,35 @@
+	public:
+		int taskid;
+		Octets taskdata;
+		enum { PROTOCOL_TYPE = PROTOCOL_SETTASKDATA };
+	public:
+		SetTaskData() { type = PROTOCOL_SETTASKDATA; }
+		SetTaskData(void*) : Protocol(PROTOCOL_SETTASKDATA) { }
+		SetTaskData (int l_taskid,const Octets& l_taskdata)
+			 : taskid(l_taskid),taskdata(l_taskdata)
+		{
+			type = PROTOCOL_SETTASKDATA;
+		}
+
+		SetTaskData(const SetTaskData &rhs)
+			: Protocol(rhs),taskid(rhs.taskid),taskdata(rhs.taskdata) { }
+
+		GNET::Protocol *Clone() const { return new SetTaskData(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << taskid;
+			os << taskdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> taskid;
+			os >> taskdata;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 288; }

@@ -1,0 +1,258 @@
+/* deprecated */
+#ifndef __GNET_GETROLEBASE_HPP
+#define __GNET_GETROLEBASE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#ifdef USE_BDB
+#include "dbbuffer.h"
+#endif
+#include "roleid"
+#include "rolebaseres"
+#include "playerbriefinfo"
+
+#include "playerbaseinfo_re.hpp"
+#include "playerbaseinfocrc_re.hpp"
+#include "setcustomdata_re.hpp"
+#include "setuiconfig_re.hpp"
+#include "getuiconfig_re.hpp"
+#include "getplayerbriefinfo_re.hpp"
+#include "getcustomdata_re.hpp"
+#include "gdeliveryserver.hpp"
+#include "sethelpstates_re.hpp"
+#include "gethelpstates_re.hpp"
+
+#include "gamedbclient.hpp"
+#include "putrolebase.hrp"
+
+#include "facemodify_re.hpp"
+#include "gproviderserver.hpp"
+
+#include "mapticket.h"
+#include "mapuser.h"
+
+//define response type
+#define _RESPONSE_BASEINFO	0
+#define _RESPONSE_BASE_CRC	1
+#define _RESPONSE_SET_CUSM	2
+#define _RESPONSE_SET_GUI	3
+#define _RESPONSE_GET_GUI	4
+#define _RESPONSE_GET_PBI	5	//GET playerbrief info
+#define _RESPONSE_GET_CD	6	//GET custom data
+#define _RESPONSE_GET_HS    7   //GET help states
+#define _RESPONSE_SET_HS    8   //SET help states
+
+namespace GNET
+{
+
+class GetRoleBase : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getrolebase"
+#undef	RPC_BASECLASS
+	Octets data;
+	int response_type;
+	bool need_send2client;
+	int save_roleid;
+	unsigned int save_localsid;
+	unsigned int save_link_sid;
+	unsigned char save_reason;
+	void SendFaceModifyResult(GDeliveryServer* dsm, int gs_id, int retcode,unsigned int new_crc=0)
+	{
+		FaceTicketSet::face_ticket_t ticket;
+		if ( FaceTicketSet::GetInstance().FindTicket(save_roleid,ticket) )
+		{
+			GProviderServer::GetInstance()->DispatchProtocol( gs_id, FaceModify_Re(retcode,save_roleid,ticket.id,ticket.pos,new_crc));
+		}
+	}
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+#ifdef USE_BDB
+		RoleId *arg = (RoleId *)argument;
+		RoleBaseRes *res = (RoleBaseRes *)result;
+		Marshal::OctetsStream key, value;
+		key << *arg;
+		res->retcode = DBBuffer::buf_find( "base", key, value );
+		if( 0 == res->retcode )
+			value >> res->value;
+#endif
+	}
+	void ResendRequest(RoleId* arg)
+	{
+		GetRoleBase* rpc = (GetRoleBase*) Rpc::Call(RPC_GETROLEBASE,arg);
+		rpc->data = data;
+		rpc->response_type=response_type;
+		rpc->need_send2client = need_send2client;
+		rpc->save_roleid=save_roleid;
+		rpc->save_localsid=save_localsid;
+		rpc->save_link_sid=save_link_sid;
+		rpc->save_reason=save_reason;
+		GameDBClient::GetInstance()->SendProtocol(rpc);
+	}
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		RoleId *arg = (RoleId *)argument;
+		RoleBaseRes *res = (RoleBaseRes *)result;
+		
+		GDeliveryServer* dsm=GDeliveryServer::GetInstance();
+		
+		if (res->retcode==ERR_SUCCESS)
+			dsm->rbcache.put(std::make_pair(arg->id,res->value));
+
+		if (!need_send2client) //request come from gdelivery(playerlogin_re)
+		{
+			Thread::RWLock::WRScoped l(UserContainer::GetInstance().GetLocker());
+			PlayerInfo * pinfo = UserContainer::GetInstance().FindRole((arg->id));
+			if  ( pinfo!=NULL && res->retcode != ERR_SUCCESS )
+			{
+				if (res->retcode==ERR_AGAIN)
+					ResendRequest(arg);
+				return;
+			}
+			if 	(NULL!=pinfo && (unsigned int)pinfo->roleid == arg->id)
+			{
+				pinfo->name=res->value.name;
+				pinfo->cls=res->value.cls;
+				pinfo->spouse = res->value.spouse;
+				UserContainer::GetInstance().InsertName( res->value.name, res->value.id );
+			}
+		}
+		else  //request is come from client
+		{
+			if(response_type==_RESPONSE_SET_CUSM)
+			{
+				if(res->retcode != ERR_SUCCESS)
+					dsm->Send(save_link_sid,SetCustomData_Re(res->retcode,0,save_roleid,save_localsid));
+				else
+				{
+					res->value.custom_data.swap(data); 
+					res->value.custom_stamp++;
+					dsm->Send(save_link_sid,SetCustomData_Re(ERR_SUCCESS,res->value.custom_stamp,save_roleid,save_localsid));
+
+					dsm->rbcache.put(std::make_pair(arg->id,res->value));
+
+					RoleBasePair rbp;
+					rbp.key.id  = arg->id;
+					rbp.value   = res->value;
+					GameDBClient::GetInstance()->SendProtocol(Rpc::Call(RPC_PUTROLEBASE,&rbp));
+				}
+				PlayerInfo* ui = UserContainer::GetInstance().FindRoleOnline(save_roleid);
+				if(ui)
+					SendFaceModifyResult(dsm,ui->gameid,res->retcode,res->value.custom_stamp);
+				return;
+			}
+			if (res->retcode != ERR_SUCCESS)
+			{
+				//send error 
+				switch (response_type)
+				{
+				case _RESPONSE_BASEINFO:	
+					dsm->Send(save_link_sid,PlayerBaseInfo_Re(res->retcode,save_roleid,save_localsid,GRoleBase()));
+					break;
+				case _RESPONSE_BASE_CRC:
+					dsm->Send(save_link_sid,PlayerBaseInfoCRC_Re(res->retcode,save_roleid,save_localsid,IntVector(),IntVector()));
+					break;
+				case _RESPONSE_SET_GUI:
+					dsm->Send(save_link_sid,SetUIConfig_Re(res->retcode,save_roleid,save_localsid));
+					break;
+				case _RESPONSE_GET_GUI:
+					dsm->Send(save_link_sid,GetUIConfig_Re(res->retcode,save_roleid,save_localsid,Octets()));
+					break;	
+				case _RESPONSE_GET_PBI:
+					dsm->Send(save_link_sid,GetPlayerBriefInfo_Re(res->retcode,save_roleid,save_localsid,PlayerBriefInfoVector(),save_reason));
+					break;	
+				case _RESPONSE_GET_CD:
+					dsm->Send(save_link_sid,GetCustomData_Re(res->retcode,save_roleid,save_localsid,arg->id,Octets()));
+					break;	
+				case _RESPONSE_GET_HS:
+					dsm->Send(save_link_sid,GetHelpStates_Re(res->retcode,save_roleid,save_localsid,Octets()));
+					break;
+				case _RESPONSE_SET_HS:
+					dsm->Send(save_link_sid,SetHelpStates_Re(res->retcode,save_roleid,save_localsid));
+					break;	
+				}
+				return;
+			}
+			switch (response_type)
+			{
+			case _RESPONSE_BASEINFO:
+				if ((unsigned)save_roleid != res->value.id) 
+				{
+					res->value.config_data.clear();
+					res->value.forbid.clear();
+					res->value.help_states.clear();
+				}
+				dsm->Send(save_link_sid,PlayerBaseInfo_Re(ERR_SUCCESS,save_roleid,save_localsid,res->value));
+				break;
+			case _RESPONSE_BASE_CRC:
+				{
+				PlayerBaseInfoCRC_Re pbi_crc_re(ERR_SUCCESS,save_roleid,save_localsid,IntVector(),IntVector());
+				pbi_crc_re.playerlist.add(res->value.id);
+				pbi_crc_re.CRClist.add(res->value.custom_stamp);
+				dsm->Send(save_link_sid,pbi_crc_re);
+				}
+				break;
+			case _RESPONSE_SET_GUI:
+				{
+				res->value.config_data.swap(data);	
+				dsm->Send(save_link_sid,SetUIConfig_Re(ERR_SUCCESS,save_roleid,save_localsid));
+				dsm->rbcache.put(std::make_pair(arg->id,res->value)); //put new data into cache
+
+				RoleBasePair rbp;
+				rbp.key.id=arg->id;
+				rbp.value=res->value;
+				GameDBClient::GetInstance()->SendProtocol(Rpc::Call(RPC_PUTROLEBASE,&rbp));
+				}
+				break;
+			case _RESPONSE_GET_GUI:
+				{
+				dsm->Send(save_link_sid,GetUIConfig_Re(ERR_SUCCESS,save_roleid,save_localsid,res->value.config_data));
+				}
+				break;
+			case _RESPONSE_GET_PBI:
+				{
+				GetPlayerBriefInfo_Re getpbi_re(ERR_SUCCESS,save_roleid,save_localsid,PlayerBriefInfoVector(),save_reason);	
+				getpbi_re.playerlist.add(PlayerBriefInfo(res->value.id,res->value.cls,res->value.name,res->value.gender));
+				dsm->Send(save_link_sid,getpbi_re);
+				}	
+				break;	
+			case _RESPONSE_GET_CD:
+				{
+				dsm->Send(save_link_sid,GetCustomData_Re(ERR_SUCCESS,save_roleid,save_localsid,arg->id,res->value.custom_data));
+				}
+				break;
+			case _RESPONSE_GET_HS:
+				{
+				dsm->Send(save_link_sid,GetHelpStates_Re(ERR_SUCCESS,save_roleid,save_localsid,res->value.help_states));
+				}
+				break;
+			case _RESPONSE_SET_HS:
+				{
+				res->value.help_states.swap(data);
+				dsm->Send(save_link_sid,SetHelpStates_Re(ERR_SUCCESS,save_roleid,save_localsid));
+				dsm->rbcache.put(std::make_pair(arg->id,res->value)); //put new data into cache
+
+				RoleBasePair rbp;
+				rbp.key.id=arg->id;
+				rbp.value=res->value;
+				GameDBClient::GetInstance()->SendProtocol(Rpc::Call(RPC_PUTROLEBASE,&rbp));
+				}
+				break;	
+			}//send switch	
+		}//end if
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		RoleId *arg = (RoleId *)argument;
+		Thread::RWLock::RDScoped l(UserContainer::GetInstance().GetLocker());
+		PlayerInfo * pinfo = UserContainer::GetInstance().FindRole(arg->id);
+		if ( !pinfo )
+			ResendRequest(arg);
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,78 @@
+#ifndef __GNET_DBSYSAUCTIONCASHSPENDRES_RPCDATA
+#define __GNET_DBSYSAUCTIONCASHSPENDRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailheader"
+
+namespace GNET
+{
+	class DBSysAuctionCashSpendRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		unsigned int cash;
+		unsigned int cash_used;
+		GMailHeader inform_bidder;
+
+	public:
+		DBSysAuctionCashSpendRes (int l_retcode = 0,unsigned int l_cash = 0,unsigned int l_cash_used = 0
+			,const GMailHeader& l_inform_bidder = GMailHeader())
+			: retcode(l_retcode),cash(l_cash),cash_used(l_cash_used)
+			,inform_bidder(l_inform_bidder)
+		{
+		}
+
+		DBSysAuctionCashSpendRes(const DBSysAuctionCashSpendRes &rhs)
+			: retcode(rhs.retcode),cash(rhs.cash),cash_used(rhs.cash_used),
+			inform_bidder(rhs.inform_bidder) { }
+
+		Rpc::Data *Clone() const { return new DBSysAuctionCashSpendRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBSysAuctionCashSpendRes *r = dynamic_cast<const DBSysAuctionCashSpendRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				cash = r->cash;
+				cash_used = r->cash_used;
+				inform_bidder = r->inform_bidder;
+			}
+			return *this;
+		}
+
+		DBSysAuctionCashSpendRes& operator = (const DBSysAuctionCashSpendRes &rhs)
+		{
+			const DBSysAuctionCashSpendRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				cash = r->cash;
+				cash_used = r->cash_used;
+				inform_bidder = r->inform_bidder;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << cash;
+			os << cash_used;
+			os << inform_bidder;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> cash;
+			os >> cash_used;
+			os >> inform_bidder;
+			return os;
+		}
+
+	};
+};
+#endif

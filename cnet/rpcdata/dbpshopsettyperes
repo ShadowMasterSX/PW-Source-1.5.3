@@ -1,0 +1,59 @@
+#ifndef __GNET_DBPSHOPSETTYPERES_RPCDATA
+#define __GNET_DBPSHOPSETTYPERES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBPShopSetTypeRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+
+	public:
+		DBPShopSetTypeRes (int l_retcode = 0)
+			: retcode(l_retcode)
+		{
+		}
+
+		DBPShopSetTypeRes(const DBPShopSetTypeRes &rhs)
+			: retcode(rhs.retcode) { }
+
+		Rpc::Data *Clone() const { return new DBPShopSetTypeRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPShopSetTypeRes *r = dynamic_cast<const DBPShopSetTypeRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		DBPShopSetTypeRes& operator = (const DBPShopSetTypeRes &rhs)
+		{
+			const DBPShopSetTypeRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			return os;
+		}
+
+	};
+};
+#endif

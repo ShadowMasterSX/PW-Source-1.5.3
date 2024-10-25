@@ -1,0 +1,107 @@
+
+#ifndef __GNET_DBGETMAILLIST_HPP
+#define __GNET_DBGETMAILLIST_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "roleid"
+#include "gmailheader"
+#include "gmail"
+#include "gmailbox"
+#include "dbgetmaillistres"
+
+namespace GNET
+{
+
+class DBGetMailList : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbgetmaillist"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		RoleId *arg = (RoleId *)argument;
+		DBGetMailListRes *res = (DBGetMailListRes *)result;
+
+		Marshal::OctetsStream key, value;
+
+		LOG_TRACE( "DBGetMailList: roleid=%d.\n", arg->id);
+		try
+		{
+			StorageEnv::Storage * pmailbox = StorageEnv::GetStorage("mailbox");
+			StorageEnv::CommonTransaction txn;
+			try{
+				GMailBox box;
+				bool changed = false;
+				key << arg->id;
+				if(pmailbox->find(key,value,txn))
+				{
+					value >> box;
+					time_t now = Timer::GetTime();
+					if(now-box.timestamp> 259200)
+					{
+						box.timestamp = now;
+						changed = true;
+					}
+					for(GMailVector::iterator i=box.mails.begin();i!=box.mails.end();)
+					{
+						bool todelete = false;
+						if((i->header.attribute&MAIL_RESERVED)==0)
+						{
+							if(i->header.attribute&_MA_UNREAD)
+							{
+								if(now - i->header.receiver > 2592000)
+									todelete = true;
+							}else if(now - i->header.receiver > 259200)
+								todelete = true;
+						}
+						if(todelete)
+						{
+							changed = true;
+							i = box.mails.erase(i);
+						}
+						else
+						{
+							res->maillist.push_back(i->header);
+							i++;
+						}
+					}
+					if(changed)
+						pmailbox->insert( key, Marshal::OctetsStream()<<box, txn );
+				}
+				else
+				{
+					res->maillist.clear();
+				}
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBGetMailList, roleid=%d, what=%s\n", arg->id, e.what() );
+			res->retcode = ERR_MS_AGAIN;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

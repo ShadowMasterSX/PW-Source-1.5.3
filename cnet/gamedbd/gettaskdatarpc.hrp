@@ -1,0 +1,69 @@
+
+#ifndef __GNET_GETTASKDATARPC_HPP
+#define __GNET_GETTASKDATARPC_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "gettaskdataarg"
+#include "gettaskdatares"
+
+namespace GNET
+{
+
+class GetTaskDataRpc : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "gettaskdatarpc"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		GetTaskDataArg *arg = (GetTaskDataArg *)argument;
+		GetTaskDataRes *res = (GetTaskDataRes *)result;
+		Marshal::OctetsStream key;
+
+		LOG_TRACE( "GetTaskDataRpc, taskid=%d.\n", arg->taskid );
+
+		try
+		{
+			StorageEnv::Storage * pgtask = StorageEnv::GetStorage("gtask");
+			StorageEnv::AtomTransaction txn;
+			try
+			{
+				key << arg->taskid;
+				res->taskdata = pgtask->find( key, txn );
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "GetTaskDataRpc, roleid=%d, what=%s\n", arg->taskid, e.what() );
+			res->retcode = ERR_DATANOTFIND;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// GetTaskDataArg *arg = (GetTaskDataArg *)argument;
+		// GetTaskDataRes *res = (GetTaskDataRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

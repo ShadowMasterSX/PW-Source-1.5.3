@@ -1,0 +1,32 @@
+	public:
+		std::map<int, std::string> forbid_process;
+		enum { PROTOCOL_TYPE = PROTOCOL_ACFORBIDPROCESS };
+	public:
+		ACForbidProcess() { type = PROTOCOL_ACFORBIDPROCESS; }
+		ACForbidProcess(void*) : Protocol(PROTOCOL_ACFORBIDPROCESS) { }
+		ACForbidProcess (std::map<int, std::string> l_forbid_process)
+			 : forbid_process(l_forbid_process)
+		{
+			type = PROTOCOL_ACFORBIDPROCESS;
+		}
+
+		ACForbidProcess(const ACForbidProcess &rhs)
+			: Protocol(rhs),forbid_process(rhs.forbid_process) { }
+
+		GNET::Protocol *Clone() const { return new ACForbidProcess(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << forbid_process;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> forbid_process;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 8192; }

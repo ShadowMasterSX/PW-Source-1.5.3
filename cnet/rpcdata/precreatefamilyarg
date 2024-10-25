@@ -1,0 +1,64 @@
+#ifndef __GNET_PRECREATEFAMILYARG_RPCDATA
+#define __GNET_PRECREATEFAMILYARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class PreCreateFamilyArg : public GNET::Rpc::Data
+	{
+	public:
+		int zoneid;
+		Octets familyname;
+
+	public:
+		PreCreateFamilyArg (int l_zoneid = -1,const Octets& l_familyname = Octets(0))
+			: zoneid(l_zoneid),familyname(l_familyname)
+		{
+		}
+
+		PreCreateFamilyArg(const PreCreateFamilyArg &rhs)
+			: zoneid(rhs.zoneid),familyname(rhs.familyname) { }
+
+		Rpc::Data *Clone() const { return new PreCreateFamilyArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const PreCreateFamilyArg *r = dynamic_cast<const PreCreateFamilyArg *>(&rhs);
+			if (r && r != this)
+			{
+				zoneid = r->zoneid;
+				familyname = r->familyname;
+			}
+			return *this;
+		}
+
+		PreCreateFamilyArg& operator = (const PreCreateFamilyArg &rhs)
+		{
+			const PreCreateFamilyArg *r = &rhs;
+			if (r && r != this)
+			{
+				zoneid = r->zoneid;
+				familyname = r->familyname;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << zoneid;
+			os << familyname;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> zoneid;
+			os >> familyname;
+			return os;
+		}
+
+	};
+};
+#endif

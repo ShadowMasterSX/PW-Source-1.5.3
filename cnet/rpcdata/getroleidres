@@ -1,0 +1,64 @@
+#ifndef __GNET_GETROLEIDRES_RPCDATA
+#define __GNET_GETROLEIDRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GetRoleIdRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		int roleid;
+
+	public:
+		GetRoleIdRes (int l_retcode = -1,int l_roleid = -1)
+			: retcode(l_retcode),roleid(l_roleid)
+		{
+		}
+
+		GetRoleIdRes(const GetRoleIdRes &rhs)
+			: retcode(rhs.retcode),roleid(rhs.roleid) { }
+
+		Rpc::Data *Clone() const { return new GetRoleIdRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GetRoleIdRes *r = dynamic_cast<const GetRoleIdRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				roleid = r->roleid;
+			}
+			return *this;
+		}
+
+		GetRoleIdRes& operator = (const GetRoleIdRes &rhs)
+		{
+			const GetRoleIdRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				roleid = r->roleid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << roleid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> roleid;
+			return os;
+		}
+
+	};
+};
+#endif

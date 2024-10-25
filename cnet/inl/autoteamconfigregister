@@ -1,0 +1,32 @@
+	public:
+		std::vector< AutoTeamConfigData > config_data;
+		enum { PROTOCOL_TYPE = PROTOCOL_AUTOTEAMCONFIGREGISTER };
+	public:
+		AutoTeamConfigRegister() { type = PROTOCOL_AUTOTEAMCONFIGREGISTER; }
+		AutoTeamConfigRegister(void*) : Protocol(PROTOCOL_AUTOTEAMCONFIGREGISTER) { }
+		AutoTeamConfigRegister (const std::vector< AutoTeamConfigData >& l_config_data)
+			 : config_data(l_config_data)
+		{
+			type = PROTOCOL_AUTOTEAMCONFIGREGISTER;
+		}
+
+		AutoTeamConfigRegister(const AutoTeamConfigRegister &rhs)
+			: Protocol(rhs),config_data(rhs.config_data) { }
+
+		GNET::Protocol *Clone() const { return new AutoTeamConfigRegister(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << config_data;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> config_data;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1048576; }

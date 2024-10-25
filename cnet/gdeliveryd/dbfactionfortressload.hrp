@@ -1,0 +1,60 @@
+
+#ifndef __GNET_DBFACTIONFORTRESSLOAD_HPP
+#define __GNET_DBFACTIONFORTRESSLOAD_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbfactionfortressloadarg"
+#include "dbfactionfortressloadres"
+
+#include "gamedbclient.hpp"
+#include "factionfortressmanager.h"
+
+namespace GNET
+{
+
+class DBFactionFortressLoad : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbfactionfortressload"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBFactionFortressLoadArg *arg = (DBFactionFortressLoadArg *)argument;
+		// DBFactionFortressLoadRes *res = (DBFactionFortressLoadRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		DBFactionFortressLoadArg *arg = (DBFactionFortressLoadArg *)argument;
+		DBFactionFortressLoadRes *res = (DBFactionFortressLoadRes *)result;
+		DEBUG_PRINT("dbfactionfortressload: received. res->list.size()=%d,res->handle.size()=%d retcode=%d\n",
+				res->list.size(),res->handle.size(), res->retcode);
+		if(res->retcode == ERR_SUCCESS)
+		{
+			FactionFortressMan::GetInstance().OnDBLoad(res->list,res->list.size()==0||res->handle.size()==0);	
+			if(res->handle.size()!=0)
+				GameDBClient::GetInstance()->SendProtocol( Rpc::Call(RPC_DBFACTIONFORTRESSLOAD,DBFactionFortressLoadArg(res->handle)) );		
+		}
+		else if(res->retcode==ERR_AGAIN)
+		{
+			GameDBClient::GetInstance()->SendProtocol( Rpc::Call(RPC_DBFACTIONFORTRESSLOAD,arg) );		
+		}
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+		DBFactionFortressLoadArg *arg = (DBFactionFortressLoadArg *)argument;
+		Log::log(LOG_ERR,"dbfactionfortressload: rpc timeout. Resend request.\n");
+		GameDBClient::GetInstance()->SendProtocol( Rpc::Call(RPC_DBFACTIONFORTRESSLOAD,arg) ); 
+	}
+
+};
+
+};
+#endif

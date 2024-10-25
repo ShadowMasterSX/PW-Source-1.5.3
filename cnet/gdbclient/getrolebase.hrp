@@ -1,0 +1,51 @@
+
+#ifndef __GNET_GETROLEBASE_HPP
+#define __GNET_GETROLEBASE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#ifdef USE_BDB
+#include "dbbuffer.h"
+#endif
+#include "roleid"
+#include "rolebaseres"
+
+namespace GNET
+{
+
+class GetRoleBase : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getrolebase"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+#ifdef USE_BDB
+		RoleId *arg = (RoleId *)argument;
+		RoleBaseRes *res = (RoleBaseRes *)result;
+		Marshal::OctetsStream key, value;
+		key << *arg;
+		res->retcode = DBBuffer::buf_find( "base", key, value );
+		if( 0 == res->retcode )
+			value >> res->value;
+#endif
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// RoleId *arg = (RoleId *)argument;
+		// RoleBaseRes *res = (RoleBaseRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

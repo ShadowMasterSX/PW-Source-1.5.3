@@ -1,0 +1,47 @@
+
+#ifndef __GNET_GETMAXONLINENUM_HPP
+#define __GNET_GETMAXONLINENUM_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "getmaxonlinenumarg"
+#include "getmaxonlinenumres"
+
+#include "mapuser.h"
+namespace GNET
+{
+
+class GetMaxOnlineNum : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getmaxonlinenum"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// GetMaxOnlineNumArg *arg = (GetMaxOnlineNumArg *)argument;
+		GetMaxOnlineNumRes *res = (GetMaxOnlineNumRes *)result;
+		res->retcode=ERR_SUCCESS;
+		res->curnum=UserContainer::GetInstance().Size();
+		res->maxnum=UserContainer::GetInstance().GetPlayerLimit();
+		res->fake_maxnum=UserContainer::GetInstance().GetFakePlayerLimit();
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// GetMaxOnlineNumArg *arg = (GetMaxOnlineNumArg *)argument;
+		// GetMaxOnlineNumRes *res = (GetMaxOnlineNumRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

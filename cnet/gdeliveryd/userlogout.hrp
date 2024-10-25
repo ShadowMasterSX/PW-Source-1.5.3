@@ -1,0 +1,45 @@
+
+#ifndef __GNET_USERLOGOUT_HPP
+#define __GNET_USERLOGOUT_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "userlogoutarg"
+#include "userlogoutres"
+#include "gdeliveryserver.hpp"
+namespace GNET
+{
+
+class UserLogout : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "userlogout"
+#undef	RPC_BASECLASS
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// UserLogoutArg *arg = (UserLogoutArg *)argument;
+		// UserLogoutRes *res = (UserLogoutRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		UserLogoutArg *arg = (UserLogoutArg *)argument;
+		UserLogoutRes *res = (UserLogoutRes *)result;
+
+		if (res->retcode != ERR_SUCCESS)
+		{
+			//add user into feeleak map. User will be in FORCE login state, when he login.
+			DEBUG_PRINT("gdelivery::userlogout: Logout failed. userid=%d\n",arg->userid);
+		}
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+	}
+
+};
+
+};
+#endif

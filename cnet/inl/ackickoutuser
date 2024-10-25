@@ -1,0 +1,47 @@
+	public:
+		int gmuserid;
+		int idtype;
+		int userid;
+		int forbid_time;
+		Octets reason;
+		enum { PROTOCOL_TYPE = PROTOCOL_ACKICKOUTUSER };
+	public:
+		ACKickoutUser() { type = PROTOCOL_ACKICKOUTUSER; }
+		ACKickoutUser(void*) : Protocol(PROTOCOL_ACKICKOUTUSER) { }
+		ACKickoutUser (int l_gmuserid,int l_idtype,int l_userid,
+			int l_forbid_time,const Octets& l_reason = Octets())
+			 : gmuserid(l_gmuserid),idtype(l_idtype),userid(l_userid)
+			,forbid_time(l_forbid_time),reason(l_reason)
+		{
+			type = PROTOCOL_ACKICKOUTUSER;
+		}
+
+		ACKickoutUser(const ACKickoutUser &rhs)
+			: Protocol(rhs),gmuserid(rhs.gmuserid),idtype(rhs.idtype),userid(rhs.userid)
+			,forbid_time(rhs.forbid_time),reason(rhs.reason) { }
+
+		GNET::Protocol *Clone() const { return new ACKickoutUser(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << gmuserid;
+			os << idtype;
+			os << userid;
+			os << forbid_time;
+			os << reason;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> gmuserid;
+			os >> idtype;
+			os >> userid;
+			os >> forbid_time;
+			os >> reason;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 256; }

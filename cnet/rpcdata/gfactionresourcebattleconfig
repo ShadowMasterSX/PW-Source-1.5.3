@@ -1,0 +1,87 @@
+#ifndef __GNET_GFACTIONRESOURCEBATTLECONFIG_RPCDATA
+#define __GNET_GFACTIONRESOURCEBATTLECONFIG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GFactionResourceBattleConfig : public GNET::Rpc::Data
+	{
+	public:
+		unsigned short domain_count;
+		unsigned short minebase_count;
+		unsigned int bonus_base;
+		unsigned int bonus_minecar;
+		unsigned short rob_minebase_limit;
+		unsigned short rob_minecar_limit;
+
+	public:
+		GFactionResourceBattleConfig (unsigned short l_domain_count = 0,unsigned short l_minebase_count = 0,unsigned int l_bonus_base = 0
+			,unsigned int l_bonus_minecar = 0,unsigned short l_rob_minebase_limit = 0,unsigned short l_rob_minecar_limit = 0)
+			: domain_count(l_domain_count),minebase_count(l_minebase_count),bonus_base(l_bonus_base)
+			,bonus_minecar(l_bonus_minecar),rob_minebase_limit(l_rob_minebase_limit),rob_minecar_limit(l_rob_minecar_limit)
+		{
+		}
+
+		GFactionResourceBattleConfig(const GFactionResourceBattleConfig &rhs)
+			: domain_count(rhs.domain_count),minebase_count(rhs.minebase_count),bonus_base(rhs.bonus_base),
+			bonus_minecar(rhs.bonus_minecar),rob_minebase_limit(rhs.rob_minebase_limit),rob_minecar_limit(rhs.rob_minecar_limit) { }
+
+		Rpc::Data *Clone() const { return new GFactionResourceBattleConfig(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GFactionResourceBattleConfig *r = dynamic_cast<const GFactionResourceBattleConfig *>(&rhs);
+			if (r && r != this)
+			{
+				domain_count = r->domain_count;
+				minebase_count = r->minebase_count;
+				bonus_base = r->bonus_base;
+				bonus_minecar = r->bonus_minecar;
+				rob_minebase_limit = r->rob_minebase_limit;
+				rob_minecar_limit = r->rob_minecar_limit;
+			}
+			return *this;
+		}
+
+		GFactionResourceBattleConfig& operator = (const GFactionResourceBattleConfig &rhs)
+		{
+			const GFactionResourceBattleConfig *r = &rhs;
+			if (r && r != this)
+			{
+				domain_count = r->domain_count;
+				minebase_count = r->minebase_count;
+				bonus_base = r->bonus_base;
+				bonus_minecar = r->bonus_minecar;
+				rob_minebase_limit = r->rob_minebase_limit;
+				rob_minecar_limit = r->rob_minecar_limit;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << domain_count;
+			os << minebase_count;
+			os << bonus_base;
+			os << bonus_minecar;
+			os << rob_minebase_limit;
+			os << rob_minecar_limit;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> domain_count;
+			os >> minebase_count;
+			os >> bonus_base;
+			os >> bonus_minecar;
+			os >> rob_minebase_limit;
+			os >> rob_minecar_limit;
+			return os;
+		}
+
+	};
+};
+#endif

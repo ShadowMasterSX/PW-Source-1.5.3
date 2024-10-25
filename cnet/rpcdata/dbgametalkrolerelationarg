@@ -1,0 +1,58 @@
+#ifndef __GNET_DBGAMETALKROLERELATIONARG_RPCDATA
+#define __GNET_DBGAMETALKROLERELATIONARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBGameTalkRoleRelationArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+
+	public:
+		DBGameTalkRoleRelationArg ()
+		{
+		}
+
+		DBGameTalkRoleRelationArg(const DBGameTalkRoleRelationArg &rhs)
+			: roleid(rhs.roleid) { }
+
+		Rpc::Data *Clone() const { return new DBGameTalkRoleRelationArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBGameTalkRoleRelationArg *r = dynamic_cast<const DBGameTalkRoleRelationArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+			}
+			return *this;
+		}
+
+		DBGameTalkRoleRelationArg& operator = (const DBGameTalkRoleRelationArg &rhs)
+		{
+			const DBGameTalkRoleRelationArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			return os;
+		}
+
+	};
+};
+#endif

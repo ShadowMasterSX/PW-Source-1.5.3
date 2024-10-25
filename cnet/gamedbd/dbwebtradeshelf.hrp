@@ -1,0 +1,101 @@
+
+#ifndef __GNET_DBWEBTRADESHELF_HPP
+#define __GNET_DBWEBTRADESHELF_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbwebtradeshelfarg"
+#include "dbwebtradeshelfres"
+
+namespace GNET
+{
+
+class DBWebTradeShelf : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbwebtradeshelf"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBWebTradeShelfArg *arg = (DBWebTradeShelfArg *)argument;
+		DBWebTradeShelfRes *res = (DBWebTradeShelfRes *)result;
+
+		Marshal::OctetsStream key;
+		try
+		{
+			StorageEnv::Storage * pwebtrade = StorageEnv::GetStorage("webtrade");
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				if(arg->sn == 0) 
+					throw DbException(DB_VERIFY_BAD); 
+
+				GWebTradeDetail detail;
+				key << arg->sn;
+				Marshal::OctetsStream(pwebtrade->find(key,txn)) >> detail;
+				if(detail.info.seller_roleid != arg->roleid)
+					throw DbException(DB_VERIFY_BAD);
+				Log::formatlog("webtradeshelf","role=%d:sn=%lld:type=%d:itemid=%d:item_count=%d:money=%d:role=%d:petid=%d:pet_count=%d", 
+						arg->roleid,arg->sn,detail.info.posttype,detail.info.item_id,detail.info.item_count,detail.info.money,arg->roleid,0,0);
+				//´æÅÌ	
+				detail.info.state = arg->state;
+				detail.info.show_endtime = arg->show_endtime;
+				detail.info.price = arg->price;
+				detail.info.sell_endtime = arg->sell_endtime;
+				detail.info.buyer_roleid = arg->buyer_roleid;
+				if(arg->buyer_roleid > 0)
+				{
+					Marshal::OctetsStream value_buyer_base;
+					if(pbase->find(Marshal::OctetsStream()<<arg->buyer_roleid, value_buyer_base, txn))
+					{
+						GRoleBase buyer_base;
+						value_buyer_base >> buyer_base;
+						if(buyer_base.userid)
+							detail.info.buyer_userid = buyer_base.userid;
+						else
+							detail.info.buyer_userid = LOGICUID(arg->buyer_roleid);
+						detail.info.buyer_name = buyer_base.name;
+						res->buyer_userid = detail.info.buyer_userid;
+						res->buyer_name = detail.info.buyer_name;
+					}
+				}
+				pwebtrade->insert(key, Marshal::OctetsStream()<<detail,txn);
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBWebTradeShelf, role=%d sn=%lld, what=%s.\n",
+				arg->roleid, arg->sn, e.what());
+			res->retcode = ERR_EXCEPTION;
+		}
+
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBWebTradeShelfArg *arg = (DBWebTradeShelfArg *)argument;
+		// DBWebTradeShelfRes *res = (DBWebTradeShelfRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

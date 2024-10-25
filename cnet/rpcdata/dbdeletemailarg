@@ -1,0 +1,69 @@
+#ifndef __GNET_DBDELETEMAILARG_RPCDATA
+#define __GNET_DBDELETEMAILARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBDeleteMailArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		std::vector<unsigned char> mailid;
+		unsigned char reason;
+
+	public:
+		DBDeleteMailArg (int l_roleid = -1,std::vector<unsigned char> l_mailid = std::vector<unsigned char>(),unsigned char l_reason = 0)
+			: roleid(l_roleid),mailid(l_mailid),reason(l_reason)
+		{
+		}
+
+		DBDeleteMailArg(const DBDeleteMailArg &rhs)
+			: roleid(rhs.roleid),mailid(rhs.mailid),reason(rhs.reason) { }
+
+		Rpc::Data *Clone() const { return new DBDeleteMailArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBDeleteMailArg *r = dynamic_cast<const DBDeleteMailArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				mailid = r->mailid;
+				reason = r->reason;
+			}
+			return *this;
+		}
+
+		DBDeleteMailArg& operator = (const DBDeleteMailArg &rhs)
+		{
+			const DBDeleteMailArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				mailid = r->mailid;
+				reason = r->reason;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << mailid;
+			os << reason;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> mailid;
+			os >> reason;
+			return os;
+		}
+
+	};
+};
+#endif

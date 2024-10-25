@@ -1,0 +1,59 @@
+#ifndef __GNET_DBKEDELETECANDIDATERES_RPCDATA
+#define __GNET_DBKEDELETECANDIDATERES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBKEDeleteCandidateRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+
+	public:
+		DBKEDeleteCandidateRes (int l_retcode = -1)
+			: retcode(l_retcode)
+		{
+		}
+
+		DBKEDeleteCandidateRes(const DBKEDeleteCandidateRes &rhs)
+			: retcode(rhs.retcode) { }
+
+		Rpc::Data *Clone() const { return new DBKEDeleteCandidateRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBKEDeleteCandidateRes *r = dynamic_cast<const DBKEDeleteCandidateRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		DBKEDeleteCandidateRes& operator = (const DBKEDeleteCandidateRes &rhs)
+		{
+			const DBKEDeleteCandidateRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			return os;
+		}
+
+	};
+};
+#endif

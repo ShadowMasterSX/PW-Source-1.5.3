@@ -1,0 +1,56 @@
+	public:
+		int userid;
+		int64_t roleid;
+		int64_t sn;
+		int retcode;
+		int64_t timestamp;
+		int reserved1;
+		int reserved2;
+		enum { PROTOCOL_TYPE = PROTOCOL_GAMEPOSTCANCEL_RE };
+	public:
+		GamePostCancel_Re() { type = PROTOCOL_GAMEPOSTCANCEL_RE; }
+		GamePostCancel_Re(void*) : Protocol(PROTOCOL_GAMEPOSTCANCEL_RE) { }
+		GamePostCancel_Re (int l_userid,int64_t l_roleid,int64_t l_sn,
+			int l_retcode,int64_t l_timestamp,int l_reserved1 = 0,
+			int l_reserved2 = 0)
+			 : userid(l_userid),roleid(l_roleid),sn(l_sn)
+			,retcode(l_retcode),timestamp(l_timestamp),reserved1(l_reserved1)
+			,reserved2(l_reserved2)
+		{
+			type = PROTOCOL_GAMEPOSTCANCEL_RE;
+		}
+
+		GamePostCancel_Re(const GamePostCancel_Re &rhs)
+			: Protocol(rhs),userid(rhs.userid),roleid(rhs.roleid),sn(rhs.sn)
+			,retcode(rhs.retcode),timestamp(rhs.timestamp),reserved1(rhs.reserved1)
+			,reserved2(rhs.reserved2) { }
+
+		GNET::Protocol *Clone() const { return new GamePostCancel_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			os << roleid;
+			os << sn;
+			os << retcode;
+			os << timestamp;
+			os << reserved1;
+			os << reserved2;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			os >> roleid;
+			os >> sn;
+			os >> retcode;
+			os >> timestamp;
+			os >> reserved1;
+			os >> reserved2;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 128; }

@@ -1,0 +1,60 @@
+
+#ifndef __GNET_GETROLEID_HPP
+#define __GNET_GETROLEID_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#ifdef USE_BDB
+#include "dbbuffer.h"
+#endif
+#include "getroleidarg"
+#include "getroleidres"
+#include "gdeliveryserver.hpp"
+#include "getplayeridbyname_re.hpp"
+
+namespace GNET
+{
+
+class GetRoleId : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getroleid"
+#undef	RPC_BASECLASS
+	unsigned int save_sid;
+	unsigned int save_localsid;
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		GetRoleIdArg *arg = (GetRoleIdArg *)argument;
+		GetRoleIdRes *res = (GetRoleIdRes *)result;
+		if ( res->retcode != ERR_SUCCESS && res->retcode != ERR_OBSOLETE_NAME)
+			res->retcode=ERR_CHAT_INVALID_ROLE;
+
+		if ( arg->reason != 127){ //return to link
+                        GDeliveryServer::GetInstance()->Send( save_sid, GetPlayerIDByName_Re(res->retcode,save_localsid,arg->rolename,res->roleid,arg->reason));
+                } else { //return to AU, save_reason = 127 means AU request
+                        GAuthClient::GetInstance()->SendProtocol(
+                                GetPlayerIDByName_Re(res->retcode,
+                                                        save_localsid,
+                                                        arg->rolename,
+                                                        res->roleid,
+                                                        arg->reason));
+                }
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		GetRoleIdArg *arg = (GetRoleIdArg *)argument;
+		if ( arg->reason != 127){
+                        GDeliveryServer::GetInstance()->Send( save_sid, GetPlayerIDByName_Re(ERR_TIMEOUT,save_localsid,arg->rolename,_ROLE_INVALID,arg->reason));
+                }
+	}
+
+};
+
+};
+#endif

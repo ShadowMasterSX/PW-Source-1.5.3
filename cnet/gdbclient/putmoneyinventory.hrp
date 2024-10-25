@@ -1,0 +1,54 @@
+
+#ifndef __GNET_PUTMONEYINVENTORY_HPP
+#define __GNET_PUTMONEYINVENTORY_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#ifdef USE_BDB
+#include "dbbuffer.h"
+#endif
+#include "putmoneyinventoryarg"
+#include "db_if.h"
+
+
+namespace GNET
+{
+
+class PutMoneyInventory : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "putmoneyinventory"
+#undef	RPC_BASECLASS
+
+	GDB::Result *_callback;
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+#ifdef USE_BDB
+		PutMoneyInventoryArg *arg = (PutMoneyInventoryArg *)argument;
+		RpcRetcode *res = (RpcRetcode *)result;
+		Marshal::OctetsStream key, value;
+		key << arg->roleid;
+		value << arg->goods;
+		res->retcode = DBBuffer::buf_insert( "inventory", key, value );
+#endif
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// PutMoneyInventoryArg *arg = (PutMoneyInventoryArg *)argument;
+		RpcRetcode *res = (RpcRetcode *)result;
+		_callback->OnPutMoneyInventory(res->retcode);
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+		_callback->OnTimeOut();
+	}
+
+};
+
+};
+#endif

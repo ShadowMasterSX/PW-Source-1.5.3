@@ -1,0 +1,84 @@
+
+#ifndef __GNET_USERROLECOUNT_HPP
+#define __GNET_USERROLECOUNT_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "storage.h"
+#include "userrolecountarg"
+#include "userrolecountres"
+
+namespace GNET
+{
+
+class UserRoleCount : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "userrolecount"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		UserRoleCountArg *arg = (UserRoleCountArg *)argument;
+		UserRoleCountRes *res = (UserRoleCountRes *)result;
+
+		LOG_TRACE( "UserRoleCount(userid=%d)",arg->userid );
+
+		try
+		{
+			StorageEnv::Storage * puidrole = StorageEnv::GetStorage("uidrole");
+			StorageEnv::AtomTransaction txn;
+			try
+			{
+				Marshal::OctetsStream key_userid, value_uidrole;
+
+				key_userid << arg->userid;
+				if( puidrole->find( key_userid, value_uidrole, txn ) )
+				{
+					unsigned int roles;
+					value_uidrole >> roles;
+
+					RoleList rolelist(roles);
+					res->rolelist = roles;
+					res->count = rolelist.GetRoleCount();
+					res->retcode = ERR_SUCCESS;
+
+					LOG_TRACE( "UserRoleCount(userid=%d), rolelist=%x, count=%d", arg->userid, roles, res->count );
+				}
+				else
+				{
+					res->retcode = ERR_DATANOTFIND;
+				}
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "UserRoleCount, userid=%d, what=%s\n", arg->userid, e.what() );
+			res->retcode = -1;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// UserRoleCountArg *arg = (UserRoleCountArg *)argument;
+		// UserRoleCountRes *res = (UserRoleCountRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

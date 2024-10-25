@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBSTOCKTRANSACTION_HPP
+#define __GNET_DBSTOCKTRANSACTION_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbstocktransactionarg"
+#include "dbstocktransactionres"
+
+namespace GNET
+{
+
+class DBStockTransaction : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbstocktransaction"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBStockTransactionArg *arg = (DBStockTransactionArg *)argument;
+		// DBStockTransactionRes *res = (DBStockTransactionRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBStockTransactionArg *arg = (DBStockTransactionArg *)argument;
+		// DBStockTransactionRes *res = (DBStockTransactionRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

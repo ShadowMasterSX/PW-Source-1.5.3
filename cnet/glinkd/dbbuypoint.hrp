@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBBUYPOINT_HPP
+#define __GNET_DBBUYPOINT_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbbuypointarg"
+#include "dbbuypointres"
+
+namespace GNET
+{
+
+class DBBuyPoint : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbbuypoint"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBBuyPointArg *arg = (DBBuyPointArg *)argument;
+		// DBBuyPointRes *res = (DBBuyPointRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBBuyPointArg *arg = (DBBuyPointArg *)argument;
+		// DBBuyPointRes *res = (DBBuyPointRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

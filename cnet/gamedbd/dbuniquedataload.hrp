@@ -1,0 +1,107 @@
+
+#ifndef __GNET_DBUNIQUEDATALOAD_HPP
+#define __GNET_DBUNIQUEDATALOAD_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbuniquedataloadarg"
+#include "dbuniquedataloadres"
+#include "guniquedataelemnode"
+
+namespace GNET
+{
+
+class QueryLoadUniqueData : public StorageEnv::IQuery
+{
+	GUniqueDataElemNodeVector * pdata;
+	int total;
+	int size;
+	Octets last;
+
+public:
+	QueryLoadUniqueData(GUniqueDataElemNodeVector *p): pdata(p), total(0), size(0) {}
+	bool Update(StorageEnv::Transaction& txn, Octets& key, Octets& value)
+	{
+		try
+		{
+			if(total>256 || size>65536)
+			{
+				last = key;
+				return false;
+			}
+
+			int ikey;
+			Marshal::OctetsStream(key) >> ikey;
+			GUniqueDataElem uniqueval;
+			Marshal::OctetsStream(value) >> uniqueval;
+			pdata->push_back(GUniqueDataElemNode(ikey, uniqueval));
+			size += sizeof(int) + value.size();
+			++total;
+		} catch (Marshal::Exception &) {
+			Log::log(LOG_ERR, "QueryLoadShop, error unmarshal.");
+		}
+		return true;
+	}
+	const Octets& GetHandle() { return last; }
+};
+
+class DBUniqueDataLoad : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbuniquedataload"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBUniqueDataLoadArg *arg = (DBUniqueDataLoadArg *)argument;
+		DBUniqueDataLoadRes *res = (DBUniqueDataLoadRes *)result;
+		
+		QueryLoadUniqueData q(&(res->values));
+		try
+		{
+			StorageEnv::Storage * puniquedata = StorageEnv::GetStorage("uniquedata");
+			StorageEnv::AtomTransaction txn;
+			try
+			{
+				StorageEnv::Storage::Cursor cursor = puniquedata->cursor(txn);
+				cursor.walk(arg->handle, q);
+				res->handle = q.GetHandle();
+				LOG_TRACE("DBUniqueDataLoad, size=%d, handle=%d\n", res->values.size(), res->handle.size());
+				res->retcode = ERR_SUCCESS;
+			}
+			catch (DbException e) { throw; }
+			catch (...)
+			{
+				DbException e(DB_OLD_VERSION);
+				txn.abort(e);
+				throw e;
+			}
+		}
+		catch(DbException e)
+		{
+			Log::log(LOG_ERR, "DBUniqueDataLoad, what=%s.\n", e.what());
+			if(e.get_errno() == DB_LOCK_DEADLOCK)
+				res->retcode = ERR_AGAIN;
+			else
+				res->retcode = ERR_EXCEPTION;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBUniqueLoadArg *arg = (DBUniqueLoadArg *)argument;
+		// DBUniqueLoadRes *res = (DBUniqueLoadRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

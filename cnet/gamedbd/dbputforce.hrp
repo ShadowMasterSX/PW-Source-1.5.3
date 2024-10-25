@@ -1,0 +1,66 @@
+
+#ifndef __GNET_DBPUTFORCE_HPP
+#define __GNET_DBPUTFORCE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbputforcearg"
+#include "dbputforceres"
+
+namespace GNET
+{
+
+class DBPutForce : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbputforce"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBPutForceArg *arg = (DBPutForceArg *)argument;
+		DBPutForceRes *res = (DBPutForceRes *)result;
+		LOG_TRACE("DBPutForce, count=%d update_time=%d.", arg->list.list.size(), arg->list.update_time);
+		try
+		{
+			StorageEnv::Storage * pforce = StorageEnv::GetStorage("force");
+			StorageEnv::AtomTransaction txn;
+			Marshal::OctetsStream value;
+			try
+			{
+				pforce->insert(Marshal::OctetsStream()<<(int)0,Marshal::OctetsStream()<<arg->list,txn);
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBPutForce, what=%s\n", e.what() );
+			res->retcode = ERR_EXCEPTION;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBPutForceArg *arg = (DBPutForceArg *)argument;
+		// DBPutForceRes *res = (DBPutForceRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,110 @@
+
+#ifndef __GNET_DBFACTIONALLIANCEREPLY_HPP
+#define __GNET_DBFACTIONALLIANCEREPLY_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbfactionalliancereplyarg"
+#include "dbfactionrelationretcode"
+
+
+namespace GNET
+{
+
+class DBFactionAllianceReply : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbfactionalliancereply"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBFactionAllianceReplyArg *arg = (DBFactionAllianceReplyArg *)argument;
+		DBFactionRelationRetcode *res = (DBFactionRelationRetcode *)result;
+		
+		try
+		{
+			StorageEnv::Storage * pinfo = StorageEnv::GetStorage("factioninfo");
+			StorageEnv::Storage * prelation = StorageEnv::GetStorage("factionrelation");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				Marshal::OctetsStream key1, key2;
+				key1 << arg->fid;
+				key2 << arg->dst_fid;
+				GFactionInfo info1, info2;
+				Marshal::OctetsStream(pinfo->find(key1, txn)) >> info1;
+				Marshal::OctetsStream(pinfo->find(key2, txn)) >> info2;
+				
+				Marshal::OctetsStream value_relation1, value_relation2;
+				GFactionRelation relation1, relation2;
+				if(prelation->find(key1, value_relation1, txn))
+					value_relation1 >> relation1;
+				else
+					relation1.fid = arg->fid;
+				if(prelation->find(key2, value_relation2, txn))
+					value_relation2 >> relation2;
+				else
+					relation2.fid = arg->dst_fid;
+				if(FactionFunc::Find(relation1.alliance,arg->dst_fid)
+					|| FactionFunc::Find(relation1.hostile,arg->dst_fid)
+					|| FactionFunc::Find(relation2.alliance,arg->fid)
+					|| FactionFunc::Find(relation2.hostile,arg->fid)
+					|| !FactionFunc::Find(relation1.apply,ALLIANCE_FROM_OTHER,arg->dst_fid)
+					|| !FactionFunc::Find(relation2.apply,ALLIANCE_TO_OTHER,arg->fid))
+				{
+					res->retcode = ERR_OUTOFSYNC;
+					return;
+				}
+				Log::formatlog("factionrelation","alliancereply:fid=%d:dst_fid=%d:agree=%d:end_time=%d",arg->fid,arg->dst_fid,arg->agree,arg->end_time);
+
+				FactionFunc::Remove(relation1.apply,ALLIANCE_FROM_OTHER,arg->dst_fid);
+				FactionFunc::Remove(relation2.apply,ALLIANCE_TO_OTHER,arg->fid);
+				if(arg->agree)
+				{
+					FactionFunc::Add(relation1.alliance,arg->dst_fid,arg->end_time);
+					FactionFunc::Add(relation2.alliance,arg->fid,arg->end_time);
+				}
+
+				prelation->insert(key1, Marshal::OctetsStream()<<relation1, txn);
+				prelation->insert(key2, Marshal::OctetsStream()<<relation2, txn);
+				if(arg->agree)
+				{
+					res->fname1.swap(info1.name);
+					res->fname2.swap(info2.name);
+				}
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBFactionAllianceReply, fid=%d, dst_fid=%d, agree=%d, what=%s\n", arg->fid, arg->dst_fid, arg->agree, e.what());
+			res->retcode = ERR_EXCEPTION;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBFactionAllianceReplyArg *arg = (DBFactionAllianceReplyArg *)argument;
+		// DBFactionRelationRetcode *res = (DBFactionRelationRetcode *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

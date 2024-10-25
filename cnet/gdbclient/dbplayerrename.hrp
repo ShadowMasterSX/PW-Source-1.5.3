@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBPLAYERRENAME_HPP
+#define __GNET_DBPLAYERRENAME_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbplayerrenamearg"
+#include "dbplayerrenameres"
+
+namespace GNET
+{
+
+class DBPlayerRename : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbplayerrename"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBPlayerRenameArg *arg = (DBPlayerRenameArg *)argument;
+		// DBPlayerRenameRes *res = (DBPlayerRenameRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBPlayerRenameArg *arg = (DBPlayerRenameArg *)argument;
+		// DBPlayerRenameRes *res = (DBPlayerRenameRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

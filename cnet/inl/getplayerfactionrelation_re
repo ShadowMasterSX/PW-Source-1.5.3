@@ -1,0 +1,44 @@
+	public:
+		int factionid;
+		std::vector<int> roleid_list;
+		std::vector<int> alliance;
+		std::vector<int> hostile;
+		enum { PROTOCOL_TYPE = PROTOCOL_GETPLAYERFACTIONRELATION_RE };
+	public:
+		GetPlayerFactionRelation_Re() { type = PROTOCOL_GETPLAYERFACTIONRELATION_RE; }
+		GetPlayerFactionRelation_Re(void*) : Protocol(PROTOCOL_GETPLAYERFACTIONRELATION_RE) { }
+		GetPlayerFactionRelation_Re (int l_factionid,const std::vector<int>& l_roleid_list,const std::vector<int>& l_alliance,
+			const std::vector<int>& l_hostile)
+			 : factionid(l_factionid),roleid_list(l_roleid_list),alliance(l_alliance)
+			,hostile(l_hostile)
+		{
+			type = PROTOCOL_GETPLAYERFACTIONRELATION_RE;
+		}
+
+		GetPlayerFactionRelation_Re(const GetPlayerFactionRelation_Re &rhs)
+			: Protocol(rhs),factionid(rhs.factionid),roleid_list(rhs.roleid_list),alliance(rhs.alliance)
+			,hostile(rhs.hostile) { }
+
+		GNET::Protocol *Clone() const { return new GetPlayerFactionRelation_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << factionid;
+			os << roleid_list;
+			os << alliance;
+			os << hostile;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> factionid;
+			os >> roleid_list;
+			os >> alliance;
+			os >> hostile;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 4096; }

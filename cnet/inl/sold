@@ -1,0 +1,71 @@
+	public:
+		int zoneid;
+		int selleruserid;
+		int64_t sellerroleid;
+		int buyeruserid;
+		int64_t buyerroleid;
+		int64_t sn;
+		int64_t orderid;
+		int stype;
+		int64_t timestamp;
+		int reserved1;
+		int reserved2;
+		enum { PROTOCOL_TYPE = PROTOCOL_SOLD };
+	public:
+		Sold() { type = PROTOCOL_SOLD; }
+		Sold(void*) : Protocol(PROTOCOL_SOLD) { }
+		Sold (int l_zoneid,int l_selleruserid,int64_t l_sellerroleid,
+			int l_buyeruserid,int64_t l_buyerroleid,int64_t l_sn,
+			int64_t l_orderid,int l_stype,int64_t l_timestamp,
+			int l_reserved1 = 0,int l_reserved2 = 0)
+			 : zoneid(l_zoneid),selleruserid(l_selleruserid),sellerroleid(l_sellerroleid)
+			,buyeruserid(l_buyeruserid),buyerroleid(l_buyerroleid),sn(l_sn)
+			,orderid(l_orderid),stype(l_stype),timestamp(l_timestamp)
+			,reserved1(l_reserved1),reserved2(l_reserved2)
+		{
+			type = PROTOCOL_SOLD;
+		}
+
+		Sold(const Sold &rhs)
+			: Protocol(rhs),zoneid(rhs.zoneid),selleruserid(rhs.selleruserid),sellerroleid(rhs.sellerroleid)
+			,buyeruserid(rhs.buyeruserid),buyerroleid(rhs.buyerroleid),sn(rhs.sn)
+			,orderid(rhs.orderid),stype(rhs.stype),timestamp(rhs.timestamp)
+			,reserved1(rhs.reserved1),reserved2(rhs.reserved2) { }
+
+		GNET::Protocol *Clone() const { return new Sold(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << zoneid;
+			os << selleruserid;
+			os << sellerroleid;
+			os << buyeruserid;
+			os << buyerroleid;
+			os << sn;
+			os << orderid;
+			os << stype;
+			os << timestamp;
+			os << reserved1;
+			os << reserved2;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> zoneid;
+			os >> selleruserid;
+			os >> sellerroleid;
+			os >> buyeruserid;
+			os >> buyerroleid;
+			os >> sn;
+			os >> orderid;
+			os >> stype;
+			os >> timestamp;
+			os >> reserved1;
+			os >> reserved2;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 128; }

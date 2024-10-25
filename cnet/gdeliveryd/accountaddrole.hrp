@@ -1,0 +1,41 @@
+
+#ifndef __GNET_ACCOUNTADDROLE_HPP
+#define __GNET_ACCOUNTADDROLE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "accountaddrolearg"
+#include "accountaddroleres"
+
+//#include "gamedbclient.hpp"
+#include "gdeliveryserver.hpp"
+#include "roleinfo"
+namespace GNET
+{
+
+class AccountAddRole : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "accountaddrole"
+#undef	RPC_BASECLASS
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// AccountAddRoleArg *arg = (AccountAddRoleArg *)argument;
+		// AccountAddRoleRes *res = (AccountAddRoleRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		return;
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+	}
+
+};
+
+};
+#endif

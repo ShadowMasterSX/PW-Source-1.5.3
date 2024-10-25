@@ -1,0 +1,44 @@
+	public:
+		Octets faction_name;
+		int roleid;
+		unsigned int localsid;
+		Octets faction_proclaim;
+		enum { PROTOCOL_TYPE = PROTOCOL_FACTIONCREATE };
+	public:
+		FactionCreate() { type = PROTOCOL_FACTIONCREATE; }
+		FactionCreate(void*) : Protocol(PROTOCOL_FACTIONCREATE) { }
+		FactionCreate (const Octets& l_faction_name,int l_roleid,unsigned int l_localsid,
+			Octets l_faction_proclaim = Octets())
+			 : faction_name(l_faction_name),roleid(l_roleid),localsid(l_localsid)
+			,faction_proclaim(l_faction_proclaim)
+		{
+			type = PROTOCOL_FACTIONCREATE;
+		}
+
+		FactionCreate(const FactionCreate &rhs)
+			: Protocol(rhs),faction_name(rhs.faction_name),roleid(rhs.roleid),localsid(rhs.localsid)
+			,faction_proclaim(rhs.faction_proclaim) { }
+
+		GNET::Protocol *Clone() const { return new FactionCreate(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << faction_name;
+			os << roleid;
+			os << localsid;
+			os << faction_proclaim;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> faction_name;
+			os >> roleid;
+			os >> localsid;
+			os >> faction_proclaim;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 512; }

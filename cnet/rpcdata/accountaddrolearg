@@ -1,0 +1,77 @@
+#ifndef __GNET_ACCOUNTADDROLEARG_RPCDATA
+#define __GNET_ACCOUNTADDROLEARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class AccountAddRoleArg : public GNET::Rpc::Data
+	{
+	public:
+		int userid;
+		int roleid;
+		char zoneid;
+		Octets rolename;
+
+	public:
+		AccountAddRoleArg (int l_userid = -1,int l_roleid = -1,char l_zoneid = 0
+			,const Octets& l_rolename = Octets(0))
+			: userid(l_userid),roleid(l_roleid),zoneid(l_zoneid)
+			,rolename(l_rolename)
+		{
+		}
+
+		AccountAddRoleArg(const AccountAddRoleArg &rhs)
+			: userid(rhs.userid),roleid(rhs.roleid),zoneid(rhs.zoneid),
+			rolename(rhs.rolename) { }
+
+		Rpc::Data *Clone() const { return new AccountAddRoleArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const AccountAddRoleArg *r = dynamic_cast<const AccountAddRoleArg *>(&rhs);
+			if (r && r != this)
+			{
+				userid = r->userid;
+				roleid = r->roleid;
+				zoneid = r->zoneid;
+				rolename = r->rolename;
+			}
+			return *this;
+		}
+
+		AccountAddRoleArg& operator = (const AccountAddRoleArg &rhs)
+		{
+			const AccountAddRoleArg *r = &rhs;
+			if (r && r != this)
+			{
+				userid = r->userid;
+				roleid = r->roleid;
+				zoneid = r->zoneid;
+				rolename = r->rolename;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			os << roleid;
+			os << zoneid;
+			os << rolename;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			os >> roleid;
+			os >> zoneid;
+			os >> rolename;
+			return os;
+		}
+
+	};
+};
+#endif

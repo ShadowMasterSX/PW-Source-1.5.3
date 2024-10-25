@@ -1,0 +1,42 @@
+
+#ifndef __GNET_COUPONEXCHANGE_HPP
+#define __GNET_COUPONEXCHANGE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "couponexchangearg"
+#include "couponexchangeres"
+
+namespace GNET
+{
+
+class CouponExchange : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "couponexchange"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// CouponExchangeArg *arg = (CouponExchangeArg *)argument;
+		// CouponExchangeRes *res = (CouponExchangeRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// CouponExchangeArg *arg = (CouponExchangeArg *)argument;
+		// CouponExchangeRes *res = (CouponExchangeRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,52 @@
+
+#ifndef __GNET_DBCLEARCONSUMABLE_HPP
+#define __GNET_DBCLEARCONSUMABLE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbclearconsumablearg"
+
+
+namespace GNET
+{
+
+class DBClearConsumable : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbclearconsumable"
+#undef	RPC_BASECLASS
+	static void Check360User(UserInfo* user)
+	{
+		if(user->lastlogin&& Timer::GetTime()-user->lastlogin>365*24*3600)
+		{
+			// 超过一年不登陆的帐号，通知数据库进行必要的清理工作
+			DBClearConsumable* rpc = (DBClearConsumable*) Rpc::Call(RPC_DBCLEARCONSUMABLE,DBClearConsumableArg(user->userid, user->lastlogin, 1));
+			GameDBClient::GetInstance()->SendProtocol(rpc);
+		}
+	}
+
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBClearConsumableArg *arg = (DBClearConsumableArg *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBClearConsumableArg *arg = (DBClearConsumableArg *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

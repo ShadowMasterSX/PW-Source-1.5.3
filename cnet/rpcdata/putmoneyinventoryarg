@@ -1,0 +1,70 @@
+#ifndef __GNET_PUTMONEYINVENTORYARG_RPCDATA
+#define __GNET_PUTMONEYINVENTORYARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "groleinventory"
+
+namespace GNET
+{
+	class PutMoneyInventoryArg : public GNET::Rpc::Data
+	{
+	public:
+		unsigned int roleid;
+		unsigned int money;
+		GRoleInventoryVector goods;
+
+	public:
+		PutMoneyInventoryArg (unsigned int l_roleid = 0,unsigned int l_money = 0)
+			: roleid(l_roleid),money(l_money)
+		{
+		}
+
+		PutMoneyInventoryArg(const PutMoneyInventoryArg &rhs)
+			: roleid(rhs.roleid),money(rhs.money),goods(rhs.goods) { }
+
+		Rpc::Data *Clone() const { return new PutMoneyInventoryArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const PutMoneyInventoryArg *r = dynamic_cast<const PutMoneyInventoryArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				money = r->money;
+				goods = r->goods;
+			}
+			return *this;
+		}
+
+		PutMoneyInventoryArg& operator = (const PutMoneyInventoryArg &rhs)
+		{
+			const PutMoneyInventoryArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				money = r->money;
+				goods = r->goods;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << money;
+			os << goods;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> money;
+			os >> goods;
+			return os;
+		}
+
+	};
+};
+#endif

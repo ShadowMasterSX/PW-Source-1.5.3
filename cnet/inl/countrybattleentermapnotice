@@ -1,0 +1,35 @@
+	public:
+		int roleid;
+		int worldtag;
+		enum { PROTOCOL_TYPE = PROTOCOL_COUNTRYBATTLEENTERMAPNOTICE };
+	public:
+		CountryBattleEnterMapNotice() { type = PROTOCOL_COUNTRYBATTLEENTERMAPNOTICE; }
+		CountryBattleEnterMapNotice(void*) : Protocol(PROTOCOL_COUNTRYBATTLEENTERMAPNOTICE) { }
+		CountryBattleEnterMapNotice (int l_roleid,int l_worldtag)
+			 : roleid(l_roleid),worldtag(l_worldtag)
+		{
+			type = PROTOCOL_COUNTRYBATTLEENTERMAPNOTICE;
+		}
+
+		CountryBattleEnterMapNotice(const CountryBattleEnterMapNotice &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),worldtag(rhs.worldtag) { }
+
+		GNET::Protocol *Clone() const { return new CountryBattleEnterMapNotice(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << worldtag;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> worldtag;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 32; }

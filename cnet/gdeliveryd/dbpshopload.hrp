@@ -1,0 +1,57 @@
+
+#ifndef __GNET_DBPSHOPLOAD_HPP
+#define __GNET_DBPSHOPLOAD_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbpshoploadarg"
+#include "dbpshoploadres"
+#include "pshopmarket.h"
+#include "gamedbclient.hpp"
+
+namespace GNET
+{
+
+class DBPShopLoad : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbpshopload"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBPShopLoadArg *arg = (DBPShopLoadArg *)argument;
+		// DBPShopLoadRes *res = (DBPShopLoadRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBPShopLoadArg *arg = (DBPShopLoadArg *)argument;
+		DBPShopLoadRes *res = (DBPShopLoadRes *)result;
+		DEBUG_PRINT("DBPShopLoad: Rpc return. res->shops.size()=%d,res->handle.size()=%d, retcode=%d\n", res->shops.size(), res->handle.size(), res->retcode);
+		if(res->retcode == ERR_SUCCESS)
+		{
+			bool bfinish = res->shops.size() == 0 || res->handle.size() == 0;
+			PShopMarket::GetInstance().LoadFromDB(res->shops, bfinish);
+			
+			if(res->handle.size()!=0)
+				GameDBClient::GetInstance()->SendProtocol(Rpc::Call(RPC_DBPSHOPLOAD, DBPShopLoadArg(res->handle)));
+		}
+		else if(res->retcode == ERR_AGAIN)
+		{
+			GameDBClient::GetInstance()->SendProtocol(Rpc::Call(RPC_DBPSHOPLOAD, arg) );
+		}
+	}
+
+	void OnTimeout()
+	{
+		DBPShopLoadArg *arg = (DBPShopLoadArg *)argument;
+		Log::log(LOG_WARNING,"DBPShopLoad: RPC timeout. Resend request.\n");
+		GameDBClient::GetInstance()->SendProtocol(Rpc::Call(RPC_DBPSHOPLOAD, arg));
+	}
+};
+
+};
+#endif

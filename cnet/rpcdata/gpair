@@ -1,0 +1,64 @@
+#ifndef __GNET_GPAIR_RPCDATA
+#define __GNET_GPAIR_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GPair : public GNET::Rpc::Data
+	{
+	public:
+		int key;
+		int value;
+
+	public:
+		GPair (int l_key = 0,int l_value = 0)
+			: key(l_key),value(l_value)
+		{
+		}
+
+		GPair(const GPair &rhs)
+			: key(rhs.key),value(rhs.value) { }
+
+		Rpc::Data *Clone() const { return new GPair(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GPair *r = dynamic_cast<const GPair *>(&rhs);
+			if (r && r != this)
+			{
+				key = r->key;
+				value = r->value;
+			}
+			return *this;
+		}
+
+		GPair& operator = (const GPair &rhs)
+		{
+			const GPair *r = &rhs;
+			if (r && r != this)
+			{
+				key = r->key;
+				value = r->value;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << key;
+			os << value;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> key;
+			os >> value;
+			return os;
+		}
+
+	};
+};
+#endif

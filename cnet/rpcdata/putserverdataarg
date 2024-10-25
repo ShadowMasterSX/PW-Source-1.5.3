@@ -1,0 +1,78 @@
+#ifndef __GNET_PUTSERVERDATAARG_RPCDATA
+#define __GNET_PUTSERVERDATAARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gserverdata"
+
+namespace GNET
+{
+	class PutServerDataArg : public GNET::Rpc::Data
+	{
+	public:
+		int world_tag;
+		int data_mask;
+		int priority;
+		GServerData data;
+
+	public:
+		PutServerDataArg (int l_world_tag = 0,int l_data_mask = 0,int l_priority = 0
+			,const GServerData& l_data = GServerData())
+			: world_tag(l_world_tag),data_mask(l_data_mask),priority(l_priority)
+			,data(l_data)
+		{
+		}
+
+		PutServerDataArg(const PutServerDataArg &rhs)
+			: world_tag(rhs.world_tag),data_mask(rhs.data_mask),priority(rhs.priority),
+			data(rhs.data) { }
+
+		Rpc::Data *Clone() const { return new PutServerDataArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const PutServerDataArg *r = dynamic_cast<const PutServerDataArg *>(&rhs);
+			if (r && r != this)
+			{
+				world_tag = r->world_tag;
+				data_mask = r->data_mask;
+				priority = r->priority;
+				data = r->data;
+			}
+			return *this;
+		}
+
+		PutServerDataArg& operator = (const PutServerDataArg &rhs)
+		{
+			const PutServerDataArg *r = &rhs;
+			if (r && r != this)
+			{
+				world_tag = r->world_tag;
+				data_mask = r->data_mask;
+				priority = r->priority;
+				data = r->data;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << world_tag;
+			os << data_mask;
+			os << priority;
+			os << data;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> world_tag;
+			os >> data_mask;
+			os >> priority;
+			os >> data;
+			return os;
+		}
+
+	};
+};
+#endif

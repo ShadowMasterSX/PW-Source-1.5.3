@@ -1,0 +1,83 @@
+#ifndef __GNET_DBPSHOPMANAGEFUNDARG_RPCDATA
+#define __GNET_DBPSHOPMANAGEFUNDARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailsyncdata"
+
+namespace GNET
+{
+	class DBPShopManageFundArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		int optype;
+		unsigned int money;
+		unsigned int yinpiao;
+		GMailSyncData syncdata;
+
+	public:
+		DBPShopManageFundArg (int l_roleid = 0,int l_optype = 0,unsigned int l_money = 0
+			,unsigned int l_yinpiao = 0,const GMailSyncData& l_syncdata = GMailSyncData())
+			: roleid(l_roleid),optype(l_optype),money(l_money)
+			,yinpiao(l_yinpiao),syncdata(l_syncdata)
+		{
+		}
+
+		DBPShopManageFundArg(const DBPShopManageFundArg &rhs)
+			: roleid(rhs.roleid),optype(rhs.optype),money(rhs.money),
+			yinpiao(rhs.yinpiao),syncdata(rhs.syncdata) { }
+
+		Rpc::Data *Clone() const { return new DBPShopManageFundArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPShopManageFundArg *r = dynamic_cast<const DBPShopManageFundArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				optype = r->optype;
+				money = r->money;
+				yinpiao = r->yinpiao;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		DBPShopManageFundArg& operator = (const DBPShopManageFundArg &rhs)
+		{
+			const DBPShopManageFundArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				optype = r->optype;
+				money = r->money;
+				yinpiao = r->yinpiao;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << optype;
+			os << money;
+			os << yinpiao;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> optype;
+			os >> money;
+			os >> yinpiao;
+			os >> syncdata;
+			return os;
+		}
+
+	};
+};
+#endif

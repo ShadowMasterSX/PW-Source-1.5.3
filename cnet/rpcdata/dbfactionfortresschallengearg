@@ -1,0 +1,78 @@
+#ifndef __GNET_DBFACTIONFORTRESSCHALLENGEARG_RPCDATA
+#define __GNET_DBFACTIONFORTRESSCHALLENGEARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailsyncdata"
+
+namespace GNET
+{
+	class DBFactionFortressChallengeArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		int factionid;
+		int target_factionid;
+		GMailSyncData syncdata;
+
+	public:
+		DBFactionFortressChallengeArg (int l_roleid = 0,int l_factionid = 0,int l_target_factionid = 0
+			,const GMailSyncData& l_syncdata = GMailSyncData())
+			: roleid(l_roleid),factionid(l_factionid),target_factionid(l_target_factionid)
+			,syncdata(l_syncdata)
+		{
+		}
+
+		DBFactionFortressChallengeArg(const DBFactionFortressChallengeArg &rhs)
+			: roleid(rhs.roleid),factionid(rhs.factionid),target_factionid(rhs.target_factionid),
+			syncdata(rhs.syncdata) { }
+
+		Rpc::Data *Clone() const { return new DBFactionFortressChallengeArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBFactionFortressChallengeArg *r = dynamic_cast<const DBFactionFortressChallengeArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				factionid = r->factionid;
+				target_factionid = r->target_factionid;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		DBFactionFortressChallengeArg& operator = (const DBFactionFortressChallengeArg &rhs)
+		{
+			const DBFactionFortressChallengeArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				factionid = r->factionid;
+				target_factionid = r->target_factionid;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << factionid;
+			os << target_factionid;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> factionid;
+			os >> target_factionid;
+			os >> syncdata;
+			return os;
+		}
+
+	};
+};
+#endif

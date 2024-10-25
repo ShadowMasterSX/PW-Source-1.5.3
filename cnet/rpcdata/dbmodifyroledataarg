@@ -1,0 +1,111 @@
+#ifndef __GNET_DBMODIFYROLEDATAARG_RPCDATA
+#define __GNET_DBMODIFYROLEDATAARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBModifyRoleDataArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		unsigned int mask;
+		int level;
+		int64_t exp;
+		unsigned int pocket_money;
+		unsigned int store_money;
+		int pkvalue;
+		int reputation;
+		int potential;
+		int occupation;
+
+	public:
+		DBModifyRoleDataArg (unsigned int l_mask = 0,int l_level = 0,int64_t l_exp = 0
+			,unsigned int l_pocket_money = 0,unsigned int l_store_money = 0,int l_pkvalue = 0
+			,int l_reputation = 0,int l_potential = 0,int l_occupation = 0)
+			: mask(l_mask),level(l_level),exp(l_exp)
+			,pocket_money(l_pocket_money),store_money(l_store_money),pkvalue(l_pkvalue)
+			,reputation(l_reputation),potential(l_potential),occupation(l_occupation)
+		{
+		}
+
+		DBModifyRoleDataArg(const DBModifyRoleDataArg &rhs)
+			: roleid(rhs.roleid),mask(rhs.mask),level(rhs.level),
+			exp(rhs.exp),pocket_money(rhs.pocket_money),store_money(rhs.store_money),
+			pkvalue(rhs.pkvalue),reputation(rhs.reputation),potential(rhs.potential),
+			occupation(rhs.occupation) { }
+
+		Rpc::Data *Clone() const { return new DBModifyRoleDataArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBModifyRoleDataArg *r = dynamic_cast<const DBModifyRoleDataArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				mask = r->mask;
+				level = r->level;
+				exp = r->exp;
+				pocket_money = r->pocket_money;
+				store_money = r->store_money;
+				pkvalue = r->pkvalue;
+				reputation = r->reputation;
+				potential = r->potential;
+				occupation = r->occupation;
+			}
+			return *this;
+		}
+
+		DBModifyRoleDataArg& operator = (const DBModifyRoleDataArg &rhs)
+		{
+			const DBModifyRoleDataArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				mask = r->mask;
+				level = r->level;
+				exp = r->exp;
+				pocket_money = r->pocket_money;
+				store_money = r->store_money;
+				pkvalue = r->pkvalue;
+				reputation = r->reputation;
+				potential = r->potential;
+				occupation = r->occupation;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << mask;
+			os << level;
+			os << exp;
+			os << pocket_money;
+			os << store_money;
+			os << pkvalue;
+			os << reputation;
+			os << potential;
+			os << occupation;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> mask;
+			os >> level;
+			os >> exp;
+			os >> pocket_money;
+			os >> store_money;
+			os >> pkvalue;
+			os >> reputation;
+			os >> potential;
+			os >> occupation;
+			return os;
+		}
+
+	};
+};
+#endif

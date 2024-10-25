@@ -1,0 +1,79 @@
+
+#ifndef __GNET_DBFACTIONRENAME_HPP
+#define __GNET_DBFACTIONRENAME_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "dbfactionrenamearg"
+#include "dbfactionrenameres"
+#include "gamedbclient.hpp"
+#include "gproviderserver.hpp"
+#include "mapuser.h"
+#include "gmailendsync.hpp"
+
+namespace GNET
+{
+
+class DBFactionRename : public ProxyRpc
+{
+#define	RPC_BASECLASS	ProxyRpc
+	#include "dbfactionrename"
+#undef	RPC_BASECLASS
+	void SyncGameServer( int roleid, int gsid, GMailSyncData& syncdata, int retcode )
+	{
+		GProviderServer::GetInstance()->DispatchProtocol( gsid, GMailEndSync(0,retcode,roleid,syncdata));
+	}
+
+	bool Delivery(Manager::Session::ID proxy_sid, const OctetsStream& osArg)
+	{
+		// TODO
+		DBFactionRenameArg arg;
+		osArg >> arg;
+		if( GameDBClient::GetInstance()->SendProtocol( *this ) )
+		{
+			return true;
+		}
+		else
+		{
+			SetResult(DBFactionRenameRes(ERR_DELIVER_SEND));
+			SendToSponsor();
+			
+			PlayerInfo * pinfo = UserContainer::GetInstance().FindRoleOnline(arg.rid);
+			if(!pinfo)
+			{
+				Log::log(LOG_ERR,"dbfactionranme delivery fatal: can't find role%d",arg.rid);
+				return false;
+			}
+			SyncGameServer(arg.rid,pinfo->gameid,arg.syncdata,ERR_DELIVER_SEND);
+			
+			return false;
+		}
+	}
+
+	void PostProcess(Manager::Session::ID proxy_sid,const OctetsStream& osArg, const OctetsStream& osRes)
+	{
+		// TODO
+		DBFactionRenameArg arg;
+		osArg >> arg;
+		DBFactionRenameRes res;
+		osRes >> res;
+
+		PlayerInfo * pinfo = UserContainer::GetInstance().FindRoleOnline(arg.rid);
+		if(!pinfo)
+		{
+			Log::log(LOG_ERR,"dbfactionranme postprocess fatal: can't find role%d",arg.rid);
+			return;
+		}
+		SyncGameServer(arg.rid,pinfo->gameid,res.syncdata,res.retcode);
+	}
+
+	void OnTimeout( )
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

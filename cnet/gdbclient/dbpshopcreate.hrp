@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBPSHOPCREATE_HPP
+#define __GNET_DBPSHOPCREATE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbpshopcreatearg"
+#include "dbpshopcreateres"
+
+namespace GNET
+{
+
+class DBPShopCreate : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbpshopcreate"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBPShopCreateArg *arg = (DBPShopCreateArg *)argument;
+		// DBPShopCreateRes *res = (DBPShopCreateRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBPShopCreateArg *arg = (DBPShopCreateArg *)argument;
+		// DBPShopCreateRes *res = (DBPShopCreateRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

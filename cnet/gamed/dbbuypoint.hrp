@@ -1,0 +1,49 @@
+
+#ifndef __GNET_DBBUYPOINT_HPP
+#define __GNET_DBBUYPOINT_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbbuypointarg"
+#include "dbbuypointres"
+#include "../gdbclient/db_if.h"
+
+extern void player_end_sync(int role_id, unsigned int money, const GDB::itemlist & item_change_list, bool storesaved, bool cashsaved);
+namespace GNET
+{
+class DBBuyPoint : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbbuypoint"
+#undef	RPC_BASECLASS
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBBuyPointArg *arg = (DBBuyPointArg *)argument;
+		// DBBuyPointRes *res = (DBBuyPointRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		/*
+		DBBuyPointArg *arg = (DBBuyPointArg *)argument;
+		DBBuyPointRes *res = (DBBuyPointRes *)result;
+		GDB::itemlist emptylist={0,0};
+		if ( res->retcode==ERR_SUCCESS )
+			player_end_sync( arg->buyer,res->money,emptylist,false );
+		else
+			player_end_sync( arg->buyer,arg->money,emptylist,false );
+			*/
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

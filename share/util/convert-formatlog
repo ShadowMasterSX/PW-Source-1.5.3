@@ -1,0 +1,78 @@
+#!/usr/bin/perl
+
+# get-statinfo
+# SunZhenyu, 8/26/04
+# sunzhenyu@world2.cn
+
+use strict;
+use FileHandle;
+use Time::Local 'timelocal_nocheck';
+
+	my $filename;
+	$filename = $ARGV[0] if( @ARGV > 0 );
+	if( not -f $filename )
+	{
+		print "usage: convert-formatlog filename\n";
+		exit;
+	}
+
+
+	my $fh = new FileHandle;
+	if ($fh->open("< $filename"))
+	{
+		my $line;
+		while( $line = $fh->getline() )
+		{
+			my @infos = $line =~ /(.+-.+-.+\s.+:.+:.+)\s(\w+)\s(\w+):.+formatlog:(\w+):(.+)$/g;
+			my @values;
+			next if( @infos != 5 );
+			my $tablename = $infos[3];
+			if( $infos[3] eq 'accounting' )
+			{
+				@values = $infos[4] =~ /userid=(\d+):type=(\d+)/g;
+			}
+			elsif( $infos[3] eq 'login' )
+			{
+				@values = $infos[4] =~ /account=(\w+):userid=(\d+):sid=(\d+):peer=(\w+)/g;
+			}
+			elsif( $infos[3] eq 'logout' )
+			{
+				@values = $infos[4] =~ /account=(\w+):userid=(\d+):sid=(\d+):peer=(\w+)/g;
+			}
+			elsif( $infos[3] eq 'rolelogin' )
+			{
+				@values = $infos[4] =~ /roleid=(\d+)/g;
+			}
+			elsif( $infos[3] eq 'rolelogout' )
+			{
+				@values = $infos[4] =~ /roleid=(\d+)/g;
+			}
+			elsif( $infos[3] eq 'gmoperate' )
+			{
+				@values = $infos[4] =~ /userid=(\d+):type=(\d+):content=(\w+)/g;
+			}
+			elsif( $infos[3] eq 'trade' )
+			{
+				@values = $infos[4] =~ /roleidA=(\d+):roleidB=(\d+):moneyA=(\d+):moneyB=(\d+):objectsA=(\w+):objectsB=(\w+)/g;
+			}
+			elsif( $infos[3] eq 'upgrade' )
+			{
+				@values = $infos[4] =~ /roleid=(\d+):level=(\d+)/g;
+			}
+			elsif( $infos[3] eq 'die' )
+			{
+				@values = $infos[4] =~ /roleid=(\d+):type=(\d+):attacker=(\d+)/g;
+			}
+			elsif( $infos[3] eq 'keyobject' )
+			{
+				@values = $infos[4] =~ /id=(\d+):delta=(\d+)/g;
+			}
+
+			my $temp = join(',',@values);
+			print "insert into $tablename values($temp,'$infos[0]','$infos[1]','$infos[2]')\n";
+		}
+
+		$fh->close();
+	}
+
+

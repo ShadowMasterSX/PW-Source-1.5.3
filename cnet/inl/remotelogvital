@@ -1,0 +1,44 @@
+	public:
+		int priority;
+		std::string msg;
+		std::string hostname;
+		std::string servicename;
+		enum { PROTOCOL_TYPE = PROTOCOL_REMOTELOGVITAL };
+	public:
+		RemoteLogVital() { type = PROTOCOL_REMOTELOGVITAL; }
+		RemoteLogVital(void*) : Protocol(PROTOCOL_REMOTELOGVITAL) { }
+		RemoteLogVital (int l_priority,const std::string& l_msg = std::string(),const std::string& l_hostname = std::string(),
+			const std::string& l_servicename = std::string())
+			 : priority(l_priority),msg(l_msg),hostname(l_hostname)
+			,servicename(l_servicename)
+		{
+			type = PROTOCOL_REMOTELOGVITAL;
+		}
+
+		RemoteLogVital(const RemoteLogVital &rhs)
+			: Protocol(rhs),priority(rhs.priority),msg(rhs.msg),hostname(rhs.hostname)
+			,servicename(rhs.servicename) { }
+
+		GNET::Protocol *Clone() const { return new RemoteLogVital(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << priority;
+			os << msg;
+			os << hostname;
+			os << servicename;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> priority;
+			os >> msg;
+			os >> hostname;
+			os >> servicename;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1024; }

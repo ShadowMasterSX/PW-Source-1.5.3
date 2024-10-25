@@ -1,0 +1,38 @@
+	public:
+		int retcode;
+		int rid;
+		GFriendExtInfoVector friendext;
+		enum { PROTOCOL_TYPE = PROTOCOL_DBFRIENDEXTLIST_RE };
+	public:
+		DBFriendExtList_Re() { type = PROTOCOL_DBFRIENDEXTLIST_RE; }
+		DBFriendExtList_Re(void*) : Protocol(PROTOCOL_DBFRIENDEXTLIST_RE) { }
+		DBFriendExtList_Re (int l_retcode,int l_rid,GFriendExtInfoVector l_friendext)
+			 : retcode(l_retcode),rid(l_rid),friendext(l_friendext)
+		{
+			type = PROTOCOL_DBFRIENDEXTLIST_RE;
+		}
+
+		DBFriendExtList_Re(const DBFriendExtList_Re &rhs)
+			: Protocol(rhs),retcode(rhs.retcode),rid(rhs.rid),friendext(rhs.friendext) { }
+
+		GNET::Protocol *Clone() const { return new DBFriendExtList_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << rid;
+			os << friendext;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> rid;
+			os >> friendext;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 16384; }

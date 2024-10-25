@@ -1,0 +1,88 @@
+
+#ifndef __GNET_DBKEKINGCONFIRM_HPP
+#define __GNET_DBKEKINGCONFIRM_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbkekingconfirmarg"
+#include "dbkekingconfirmres"
+
+#include "kingelectiondetail"
+
+namespace GNET
+{
+
+class DBKEKingConfirm : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbkekingconfirm"
+#undef	RPC_BASECLASS
+
+	int Find(KECandidateVector & list, int roleid)
+	{
+		for(size_t i=0; i<list.size(); i++)
+		{
+			if(list[i].roleid == roleid)
+				return (int)i;
+		}
+		return -1;
+	}
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBKEKingConfirmArg *arg = (DBKEKingConfirmArg *)argument;
+		DBKEKingConfirmRes *res = (DBKEKingConfirmRes *)result;
+		LOG_TRACE("DBKEKingConfirm, king=%d.", arg->king.roleid);
+		try
+		{
+			StorageEnv::Storage * pking = StorageEnv::GetStorage("kingelection");
+			StorageEnv::AtomTransaction txn;
+			try
+			{
+				KingElectionDetail detail;
+				Marshal::OctetsStream( pking->find(Marshal::OctetsStream()<<(int)0,txn) ) >> detail;
+
+				int rst = Find(detail.candidate_list, arg->king.roleid);
+				if(rst == -1)
+				{
+					res->retcode = ERR_VERIFYFAILED;
+					return;
+				}
+				detail.king = arg->king;	
+				detail.candidate_list.clear();
+				pking->insert(Marshal::OctetsStream()<<(int)0, Marshal::OctetsStream()<<detail, txn);
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBKEKingConfirm, what=%s\n", e.what() );
+			res->retcode = ERR_EXCEPTION;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBKEKingConfirmArg *arg = (DBKEKingConfirmArg *)argument;
+		// DBKEKingConfirmRes *res = (DBKEKingConfirmRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

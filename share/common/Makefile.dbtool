@@ -1,0 +1,3 @@
+
+dbtool: dbtool.cpp
+	g++ -fno-builtin-memcpy -O3 -D_FILE_OFFSET_BITS=64 -static -o $@ dbtool.cpp

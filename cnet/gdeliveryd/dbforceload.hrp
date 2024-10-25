@@ -1,0 +1,54 @@
+
+#ifndef __GNET_DBFORCELOAD_HPP
+#define __GNET_DBFORCELOAD_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbforceloadarg"
+#include "dbforceloadres"
+
+#include "forcemanager.h"
+#include "gamedbclient.hpp"
+
+namespace GNET
+{
+
+class DBForceLoad : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbforceload"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBForceLoadArg *arg = (DBForceLoadArg *)argument;
+		// DBForceLoadRes *res = (DBForceLoadRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		DBForceLoadArg *arg = (DBForceLoadArg *)argument;
+		DBForceLoadRes *res = (DBForceLoadRes *)result;
+		DEBUG_PRINT("dbforceload: rpc return. retcode=%d", res->retcode);
+		
+		if(res->retcode == ERR_SUCCESS)
+			ForceManager::GetInstance()->OnDBLoad(res->list);
+		else if(res->retcode == ERR_AGAIN)
+			GameDBClient::GetInstance()->SendProtocol( Rpc::Call(RPC_DBFORCELOAD,arg) );
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+		DBForceLoadArg *arg = (DBForceLoadArg *)argument;
+		Log::log(LOG_ERR,"dbforceload: timeout.\n");
+		GameDBClient::GetInstance()->SendProtocol( Rpc::Call(RPC_DBFORCELOAD,arg) );
+	}
+
+};
+
+};
+#endif

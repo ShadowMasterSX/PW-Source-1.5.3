@@ -1,0 +1,65 @@
+#ifndef __GNET_GROLENAMEHIS_RPCDATA
+#define __GNET_GROLENAMEHIS_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GRoleNameHis : public GNET::Rpc::Data
+	{
+	public:
+		Octets oldname;
+		int rename_time;
+
+	public:
+		GRoleNameHis (const Octets& l_oldname = Octets(),int l_rename_time = -1)
+			: oldname(l_oldname),rename_time(l_rename_time)
+		{
+		}
+
+		GRoleNameHis(const GRoleNameHis &rhs)
+			: oldname(rhs.oldname),rename_time(rhs.rename_time) { }
+
+		Rpc::Data *Clone() const { return new GRoleNameHis(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GRoleNameHis *r = dynamic_cast<const GRoleNameHis *>(&rhs);
+			if (r && r != this)
+			{
+				oldname = r->oldname;
+				rename_time = r->rename_time;
+			}
+			return *this;
+		}
+
+		GRoleNameHis& operator = (const GRoleNameHis &rhs)
+		{
+			const GRoleNameHis *r = &rhs;
+			if (r && r != this)
+			{
+				oldname = r->oldname;
+				rename_time = r->rename_time;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << oldname;
+			os << rename_time;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> oldname;
+			os >> rename_time;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<GRoleNameHis>	GRoleNameHisVector;
+};
+#endif

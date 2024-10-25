@@ -1,0 +1,61 @@
+
+#ifndef __GNET_DBSYSAUCTIONCASHSPEND_HPP
+#define __GNET_DBSYSAUCTIONCASHSPEND_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbsysauctioncashspendarg"
+#include "dbsysauctioncashspendres"
+
+#include "postoffice.h"
+#include "sysauctionmanager.h"
+
+namespace GNET
+{
+
+class DBSysAuctionCashSpend : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbsysauctioncashspend"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBSysAuctionCashSpendArg *arg = (DBSysAuctionCashSpendArg *)argument;
+		// DBSysAuctionCashSpendRes *res = (DBSysAuctionCashSpendRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		DBSysAuctionCashSpendArg *arg = (DBSysAuctionCashSpendArg *)argument;
+		DBSysAuctionCashSpendRes *res = (DBSysAuctionCashSpendRes *)result;
+		DEBUG_PRINT("dbsysauctioncashspend: rpc return. retcode=%d roleid=%d cash_spend=%u sa_id=%u", res->retcode, arg->roleid, arg->cash_spend, arg->sa_id);
+		
+		if(res->retcode == ERR_SUCCESS)
+		{
+			if(!SysAuctionManager::GetInstance().OnDBCashSpend(arg->sa_id,arg->userid,res->cash,res->cash_used))
+			{
+				Log::log(LOG_WARNING,"dbsysauctioncashspend: OnDBCashSpend failed. roleid=%d,cash_spend=%u,sa_id=%u", arg->roleid,arg->cash_spend,arg->sa_id);
+			}
+			PostOffice::GetInstance().AddNewMail( res->inform_bidder.receiver,res->inform_bidder );
+		}
+		SysAuctionManager::GetInstance().ClearSysAuctionBusy(arg->sa_id);	
+		SysAuctionManager::GetInstance().ClearUserBusy(arg->userid);	
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+		DBSysAuctionCashSpendArg *arg = (DBSysAuctionCashSpendArg *)argument;
+		Log::log(LOG_ERR,"dbsysauctioncashspend: timeout. roleid=%d,cash_spend=%u,sa_id=%u", arg->roleid,arg->cash_spend,arg->sa_id);
+		SysAuctionManager::GetInstance().ClearSysAuctionBusy(arg->sa_id);	
+		SysAuctionManager::GetInstance().ClearUserBusy(arg->userid);	
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,98 @@
+
+#ifndef __GNET_DBSYSAUCTIONCASHSPEND_HPP
+#define __GNET_DBSYSAUCTIONCASHSPEND_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbsysauctioncashspendarg"
+#include "dbsysauctioncashspendres"
+
+namespace GNET
+{
+
+class DBSysAuctionCashSpend : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbsysauctioncashspend"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBSysAuctionCashSpendArg *arg = (DBSysAuctionCashSpendArg *)argument;
+		DBSysAuctionCashSpendRes *res = (DBSysAuctionCashSpendRes *)result;
+		LOG_TRACE( "DBSysAuctionCashSpend, roleid=%d,cash_spend=%u,sa_id=%u,item=%d", 
+			arg->roleid,arg->cash_spend,arg->sa_id,arg->item.id);
+		
+		Marshal::OctetsStream key, krole, title;
+		try
+		{
+			StorageEnv::Storage * puser = StorageEnv::GetStorage("user");
+			StorageEnv::Storage * pmailbox = StorageEnv::GetStorage("mailbox");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				key << arg->userid;
+				krole << arg->roleid;
+				
+				User u;
+				Marshal::OctetsStream(puser->find(key,txn))>>u;
+				GSysAuctionCash sa_cash;
+				if(u.cash_sysauction.size())
+					Marshal::OctetsStream(u.cash_sysauction)>>sa_cash;
+				if(arg->cash_spend > sa_cash.cash_2 || arg->cash_spend + sa_cash.cash_used_2 < sa_cash.cash_used_2)
+					throw DbException(DB_VERIFY_BAD);
+				sa_cash.cash_2 -= arg->cash_spend;
+				sa_cash.cash_used_2 += arg->cash_spend;
+				u.cash_sysauction = Marshal::OctetsStream()<<sa_cash; 
+
+				puser->insert(key, Marshal::OctetsStream()<<u, txn);
+
+				title << arg->sa_id << arg->item.id << arg->item.count << arg->cash_spend;
+				res->inform_bidder.receiver = arg->roleid;
+				res->inform_bidder.sndr_type = _MST_SYSAUCTION;
+				res->inform_bidder.sender = SYSAUCTION_BID_SUCCESS;
+				res->inform_bidder.title = title;
+				MailSender::Send(pmailbox, res->inform_bidder, arg->item, 0, txn); 
+				
+				res->retcode = ERR_SUCCESS;
+				res->cash = sa_cash.cash_2;
+				res->cash_used = sa_cash.cash_used_2;
+				Log::formatlog("dbsysauctioncashspend","roleid=%d:cash_spend=%u:cash_2=%u:cash_used_2=%u", arg->roleid, arg->cash_spend, 
+					sa_cash.cash_2, sa_cash.cash_used_2);
+				//记个购买商城物品log,与gs所记的相同
+				Log::formatlog("gshop_trade","userid=%d:db_magic_number=%d:order_id=%d:item_id=%d:expire=%d:item_count=%d:cash_need=%d:cash_left=%d:guid1=%d:guid2=%d",
+						arg->roleid, arg->userid, -1/*特殊的id*/, arg->item.id, arg->item.expire_date, arg->item.count, arg->cash_spend, 0, arg->item.guid1, arg->item.guid2);
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBSysAuctionCashSpend, roleid=%d, cash_spend=%u, sa_id=%u, item=%d, what=%s\n", arg->roleid, arg->cash_spend, arg->sa_id, arg->item.id, e.what() );
+			res->retcode = ERR_EXCEPTION;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBSysAuctionCashSpendArg *arg = (DBSysAuctionCashSpendArg *)argument;
+		// DBSysAuctionCashSpendRes *res = (DBSysAuctionCashSpendRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

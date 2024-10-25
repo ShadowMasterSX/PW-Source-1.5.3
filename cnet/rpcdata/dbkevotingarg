@@ -1,0 +1,88 @@
+#ifndef __GNET_DBKEVOTINGARG_RPCDATA
+#define __GNET_DBKEVOTINGARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailsyncdata"
+
+namespace GNET
+{
+	class DBKEVotingArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		unsigned int item_id;
+		int item_pos;
+		int item_num;
+		int candidate_roleid;
+		GMailSyncData syncdata;
+
+	public:
+		DBKEVotingArg (int l_roleid = 0,unsigned int l_item_id = 0,int l_item_pos = -1
+			,int l_item_num = 0,int l_candidate_roleid = 0,const GMailSyncData& l_syncdata = GMailSyncData())
+			: roleid(l_roleid),item_id(l_item_id),item_pos(l_item_pos)
+			,item_num(l_item_num),candidate_roleid(l_candidate_roleid),syncdata(l_syncdata)
+		{
+		}
+
+		DBKEVotingArg(const DBKEVotingArg &rhs)
+			: roleid(rhs.roleid),item_id(rhs.item_id),item_pos(rhs.item_pos),
+			item_num(rhs.item_num),candidate_roleid(rhs.candidate_roleid),syncdata(rhs.syncdata) { }
+
+		Rpc::Data *Clone() const { return new DBKEVotingArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBKEVotingArg *r = dynamic_cast<const DBKEVotingArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				item_id = r->item_id;
+				item_pos = r->item_pos;
+				item_num = r->item_num;
+				candidate_roleid = r->candidate_roleid;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		DBKEVotingArg& operator = (const DBKEVotingArg &rhs)
+		{
+			const DBKEVotingArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				item_id = r->item_id;
+				item_pos = r->item_pos;
+				item_num = r->item_num;
+				candidate_roleid = r->candidate_roleid;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << item_id;
+			os << item_pos;
+			os << item_num;
+			os << candidate_roleid;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> item_id;
+			os >> item_pos;
+			os >> item_num;
+			os >> candidate_roleid;
+			os >> syncdata;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,65 @@
+#ifndef __GNET_ROLETASKPAIR_RPCDATA
+#define __GNET_ROLETASKPAIR_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "roleid"
+#include "groletask"
+
+namespace GNET
+{
+	class RoleTaskPair : public GNET::Rpc::Data
+	{
+	public:
+		RoleId key;
+		GRoleTask value;
+
+	public:
+		RoleTaskPair ()
+		{
+		}
+
+		RoleTaskPair(const RoleTaskPair &rhs)
+			: key(rhs.key),value(rhs.value) { }
+
+		Rpc::Data *Clone() const { return new RoleTaskPair(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const RoleTaskPair *r = dynamic_cast<const RoleTaskPair *>(&rhs);
+			if (r && r != this)
+			{
+				key = r->key;
+				value = r->value;
+			}
+			return *this;
+		}
+
+		RoleTaskPair& operator = (const RoleTaskPair &rhs)
+		{
+			const RoleTaskPair *r = &rhs;
+			if (r && r != this)
+			{
+				key = r->key;
+				value = r->value;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << key;
+			os << value;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> key;
+			os >> value;
+			return os;
+		}
+
+	};
+};
+#endif

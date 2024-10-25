@@ -1,0 +1,52 @@
+
+#ifndef __GNET_PUTFRIENDLIST_HPP
+#define __GNET_PUTFRIENDLIST_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#ifdef USE_BDB
+#include "dbbuffer.h"
+#endif
+#include "ggroupinfo"
+#include "gfriendinfo"
+#include "friendlistpair"
+
+
+namespace GNET
+{
+
+class PutFriendList : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "putfriendlist"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+#ifdef USE_BDB
+		FriendListPair *arg = (FriendListPair *)argument;
+		RpcRetcode *res = (RpcRetcode *)result;
+		Marshal::OctetsStream key, value;
+		key << arg->key;
+		value << arg->value;
+		res->retcode = DBBuffer::buf_insert( "friends", key, value );
+#endif
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// FriendListPair *arg = (FriendListPair *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

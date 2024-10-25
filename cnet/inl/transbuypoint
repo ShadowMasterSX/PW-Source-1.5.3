@@ -1,0 +1,50 @@
+	public:
+		TransID tid;
+		SellID sellid;
+		int buyer;
+		int price;
+		int point;
+		int aid;
+		enum { PROTOCOL_TYPE = PROTOCOL_TRANSBUYPOINT };
+	public:
+		TransBuyPoint() { type = PROTOCOL_TRANSBUYPOINT; }
+		TransBuyPoint(void*) : Protocol(PROTOCOL_TRANSBUYPOINT) { }
+		TransBuyPoint (TransID l_tid,SellID l_sellid,int l_buyer,
+			int l_price,int l_point,int l_aid)
+			 : tid(l_tid),sellid(l_sellid),buyer(l_buyer)
+			,price(l_price),point(l_point),aid(l_aid)
+		{
+			type = PROTOCOL_TRANSBUYPOINT;
+		}
+
+		TransBuyPoint(const TransBuyPoint &rhs)
+			: Protocol(rhs),tid(rhs.tid),sellid(rhs.sellid),buyer(rhs.buyer)
+			,price(rhs.price),point(rhs.point),aid(rhs.aid) { }
+
+		GNET::Protocol *Clone() const { return new TransBuyPoint(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << tid;
+			os << sellid;
+			os << buyer;
+			os << price;
+			os << point;
+			os << aid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> tid;
+			os >> sellid;
+			os >> buyer;
+			os >> price;
+			os >> point;
+			os >> aid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 512; }

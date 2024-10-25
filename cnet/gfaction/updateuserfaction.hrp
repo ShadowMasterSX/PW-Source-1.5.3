@@ -1,0 +1,49 @@
+
+#ifndef __GNET_UPDATEUSERFACTION_HPP
+#define __GNET_UPDATEUSERFACTION_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "userfactionres"
+#include "updateuserfactionarg"
+
+namespace GNET
+{
+
+class UpdateUserFaction : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "updateuserfaction"
+#undef	RPC_BASECLASS
+	OperWrapper::wref_t oper;
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		UpdateUserFactionArg *arg = (UpdateUserFactionArg *)argument;
+		UserFactionRes *res = (UserFactionRes *)result;
+		OperWrapper::href_t ref(oper);
+		if(ref)
+		{
+			ref->SetResult(result);
+			ref->Execute();
+		}
+		if(res->retcode==ERR_SUCCESS)
+		{
+			Factiondb::GetInstance()->UpdateUser(arg->fid, res->value );
+		}
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

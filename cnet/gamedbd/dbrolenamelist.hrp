@@ -1,0 +1,105 @@
+
+#ifndef __GNET_DBROLENAMELIST_HPP
+#define __GNET_DBROLENAMELIST_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbrolenamelistarg"
+#include "dbrolenamelistres"
+#include "groleidandname"
+
+namespace GNET
+{
+
+class DBRoleNameList : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbrolenamelist"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBRoleNameListArg *arg = (DBRoleNameListArg *)argument;
+		DBRoleNameListRes *res = (DBRoleNameListRes *)result;
+
+		LOG_TRACE("DBRoleNameList, handle=%d\n", arg->handle);
+		try
+		{
+			StorageEnv::Storage * prolenamehis = StorageEnv::GetStorage("rolenamehis");
+			StorageEnv::AtomTransaction txn;
+			try
+			{
+				static std::map<int, Octets> name_map;
+				if (name_map.size() == 0)
+				{
+					Marshal::OctetsStream key_all, value_all;
+					key_all << (int)0;
+					if (prolenamehis->find(key_all, value_all, txn))
+						value_all >> name_map;
+				}
+				std::map<int, Octets>::iterator itb,ite=name_map.end();
+				if (arg->handle < 0)
+					itb = name_map.begin();
+				else
+				{
+					itb = name_map.find(arg->handle);
+				}
+				if (itb != ite)
+				{
+					for (int count=0 ; count < 256; count++)
+					{
+						GRoleIDandName grin;
+						grin.roleid = itb->first;
+						grin.rolename = itb->second;
+						res->rolenamelist.push_back(grin);
+						itb++;
+						if (itb == ite)
+							break;
+					}
+				}
+				if (itb != ite)
+					res->handle = itb->first;
+				else
+				{
+					res->finish = 1;
+					name_map.clear();
+				}
+				res->retcode = ERR_SUCCESS;
+				LOG_TRACE("DBRoleNameList, size=%d, handle=%d total=%d\n", res->rolenamelist.size(), res->handle, name_map.size());
+			}	
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBRoleNameList, what=%s.\n", e.what() );
+			if(e.get_errno()==DB_LOCK_DEADLOCK)
+				res->retcode = ERR_AGAIN;
+			else
+				res->retcode = ERR_DATAERROR;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBRoleNameListArg *arg = (DBRoleNameListArg *)argument;
+		// DBRoleNameListRes *res = (DBRoleNameListRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

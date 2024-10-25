@@ -1,0 +1,60 @@
+
+#ifndef __GNET_DBWEBTRADELOADSOLD_HPP
+#define __GNET_DBWEBTRADELOADSOLD_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbwebtradeloadsoldarg"
+#include "dbwebtradeloadsoldres"
+
+#include "gamedbclient.hpp"
+#include "webtrademarket.h"
+
+namespace GNET
+{
+
+class DBWebTradeLoadSold : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbwebtradeloadsold"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBWebTradeLoadSoldArg *arg = (DBWebTradeLoadSoldArg *)argument;
+		// DBWebTradeLoadSoldRes *res = (DBWebTradeLoadSoldRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		DBWebTradeLoadSoldArg *arg = (DBWebTradeLoadSoldArg *)argument;
+		DBWebTradeLoadSoldRes *res = (DBWebTradeLoadSoldRes *)result;
+		DEBUG_PRINT("dbwebtradeloadsold: received. res->snlist.size()=%d,res->handle.size()=%d retcode=%d\n",
+				res->snlist.size(),res->handle.size(), res->retcode);
+		if(res->retcode == ERR_SUCCESS)
+		{
+			WebTradeMarket::GetInstance().OnDBLoadSold(res->snlist,res->snlist.size()==0||res->handle.size()==0);	
+			if(res->handle.size()!=0)
+				GameDBClient::GetInstance()->SendProtocol( Rpc::Call(RPC_DBWEBTRADELOADSOLD,DBWebTradeLoadSoldArg(res->handle)) );		
+		}
+		else if(res->retcode==ERR_AGAIN)
+		{
+			GameDBClient::GetInstance()->SendProtocol( Rpc::Call(RPC_DBWEBTRADELOADSOLD,arg) );		
+		}
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+		DBWebTradeLoadSoldArg * arg = (DBWebTradeLoadSoldArg *)argument;
+		Log::log(LOG_WARNING,"dbwebtradeloadsold: rpc timeout. Resend request.\n");
+		GameDBClient::GetInstance()->SendProtocol( Rpc::Call(RPC_DBWEBTRADELOADSOLD,arg) ); 
+	}
+
+};
+
+};
+#endif

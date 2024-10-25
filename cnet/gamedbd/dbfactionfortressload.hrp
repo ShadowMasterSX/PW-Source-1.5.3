@@ -1,0 +1,103 @@
+
+#ifndef __GNET_DBFACTIONFORTRESSLOAD_HPP
+#define __GNET_DBFACTIONFORTRESSLOAD_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbfactionfortressloadarg"
+#include "dbfactionfortressloadres"
+
+namespace GNET
+{
+
+class DBFactionFortressLoad : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbfactionfortressload"
+#undef	RPC_BASECLASS
+
+class ListFactionFortressQuery : public StorageEnv::IQuery
+{
+	std::vector<GFactionFortressDetail>* plist;
+	int total;
+	GFactionFortressDetail detail;
+	Octets last;
+public:
+	ListFactionFortressQuery(std::vector<GFactionFortressDetail>* p) : plist(p),  total(0)
+	{ 
+	}
+
+	bool Update( StorageEnv::Transaction& txn, Octets& key, Octets& value)
+	{
+		try
+		{
+			if(total>=64)
+			{
+				last = key;
+				return false;
+			}
+			Marshal::OctetsStream(value) >> detail;
+			plist->push_back(detail);
+			total++;
+		} catch ( Marshal::Exception & ) {
+			Log::log( LOG_ERR, "ListFactionFortressQuery, error unmarshal.");
+		}
+		return true;
+	}
+	const Octets& GetHandle() { return last; }
+};
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBFactionFortressLoadArg *arg = (DBFactionFortressLoadArg *)argument;
+		DBFactionFortressLoadRes *res = (DBFactionFortressLoadRes *)result;
+		
+		ListFactionFortressQuery q(&res->list);
+		try
+		{
+			StorageEnv::Storage * pfortress= StorageEnv::GetStorage("factionfortress");
+			StorageEnv::AtomTransaction txn;
+			try
+			{
+				StorageEnv::Storage::Cursor cursor = pfortress->cursor( txn );
+				cursor.walk(arg->handle, q );
+				res->handle = q.GetHandle();
+				res->retcode = ERR_SUCCESS;
+				LOG_TRACE("DBFactionFortressLoad, size=%d, handle=%d\n", res->list.size(), res->handle.size());
+			}
+			catch(DbException e) { throw; }
+			catch(...)
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;				
+			}			
+		}
+		catch( DbException e )
+		{
+			Log::log(LOG_ERR,"DBFactionFortressLoad, what=%s.\n",e.what());	
+			if(e.get_errno()==DB_LOCK_DEADLOCK)
+				res->retcode = ERR_AGAIN;
+			else
+				res->retcode = ERR_EXCEPTION;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBFactionFortressLoadArg *arg = (DBFactionFortressLoadArg *)argument;
+		// DBFactionFortressLoadRes *res = (DBFactionFortressLoadRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

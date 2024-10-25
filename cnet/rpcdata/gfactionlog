@@ -1,0 +1,76 @@
+#ifndef __GNET_GFACTIONLOG_RPCDATA
+#define __GNET_GFACTIONLOG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gitem"
+
+namespace GNET
+{
+	class GFactionLog : public GNET::Rpc::Data
+	{
+	public:
+		unsigned int rid;
+		Octets name;
+		char action;
+		GItemVector items;
+
+	public:
+		GFactionLog ()
+		{
+		}
+
+		GFactionLog(const GFactionLog &rhs)
+			: rid(rhs.rid),name(rhs.name),action(rhs.action),
+			items(rhs.items) { }
+
+		Rpc::Data *Clone() const { return new GFactionLog(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GFactionLog *r = dynamic_cast<const GFactionLog *>(&rhs);
+			if (r && r != this)
+			{
+				rid = r->rid;
+				name = r->name;
+				action = r->action;
+				items = r->items;
+			}
+			return *this;
+		}
+
+		GFactionLog& operator = (const GFactionLog &rhs)
+		{
+			const GFactionLog *r = &rhs;
+			if (r && r != this)
+			{
+				rid = r->rid;
+				name = r->name;
+				action = r->action;
+				items = r->items;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << rid;
+			os << name;
+			os << action;
+			os << items;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> rid;
+			os >> name;
+			os >> action;
+			os >> items;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<GFactionLog>	GFactionLogVector;
+};
+#endif

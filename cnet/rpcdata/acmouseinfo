@@ -1,0 +1,89 @@
+#ifndef __GNET_ACMOUSEINFO_RPCDATA
+#define __GNET_ACMOUSEINFO_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "intdata"
+
+namespace GNET
+{
+	class ACMouseInfo : public GNET::Rpc::Data
+	{
+	public:
+		int lbuttonfreq;
+		int rbuttonfreq;
+		int mousemovefreq;
+		float mousemovevelo;
+		IntDataVector g_counts;
+		IntDataVector g_times;
+
+	public:
+		ACMouseInfo (int l_lbuttonfreq = 0,int l_rbuttonfreq = 0,int l_mousemovefreq = 0
+			,float l_mousemovevelo = 0)
+			: lbuttonfreq(l_lbuttonfreq),rbuttonfreq(l_rbuttonfreq),mousemovefreq(l_mousemovefreq)
+			,mousemovevelo(l_mousemovevelo)
+		{
+		}
+
+		ACMouseInfo(const ACMouseInfo &rhs)
+			: lbuttonfreq(rhs.lbuttonfreq),rbuttonfreq(rhs.rbuttonfreq),mousemovefreq(rhs.mousemovefreq),
+			mousemovevelo(rhs.mousemovevelo),g_counts(rhs.g_counts),g_times(rhs.g_times) { }
+
+		Rpc::Data *Clone() const { return new ACMouseInfo(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const ACMouseInfo *r = dynamic_cast<const ACMouseInfo *>(&rhs);
+			if (r && r != this)
+			{
+				lbuttonfreq = r->lbuttonfreq;
+				rbuttonfreq = r->rbuttonfreq;
+				mousemovefreq = r->mousemovefreq;
+				mousemovevelo = r->mousemovevelo;
+				g_counts = r->g_counts;
+				g_times = r->g_times;
+			}
+			return *this;
+		}
+
+		ACMouseInfo& operator = (const ACMouseInfo &rhs)
+		{
+			const ACMouseInfo *r = &rhs;
+			if (r && r != this)
+			{
+				lbuttonfreq = r->lbuttonfreq;
+				rbuttonfreq = r->rbuttonfreq;
+				mousemovefreq = r->mousemovefreq;
+				mousemovevelo = r->mousemovevelo;
+				g_counts = r->g_counts;
+				g_times = r->g_times;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << lbuttonfreq;
+			os << rbuttonfreq;
+			os << mousemovefreq;
+			os << mousemovevelo;
+			os << g_counts;
+			os << g_times;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> lbuttonfreq;
+			os >> rbuttonfreq;
+			os >> mousemovefreq;
+			os >> mousemovevelo;
+			os >> g_counts;
+			os >> g_times;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<ACMouseInfo>	ACMouseInfoVector;
+};
+#endif

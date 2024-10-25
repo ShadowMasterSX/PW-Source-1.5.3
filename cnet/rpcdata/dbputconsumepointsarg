@@ -1,0 +1,69 @@
+#ifndef __GNET_DBPUTCONSUMEPOINTSARG_RPCDATA
+#define __GNET_DBPUTCONSUMEPOINTSARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBPutConsumePointsArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		int userid;
+		int  consume_points;
+
+	public:
+		DBPutConsumePointsArg (int l_roleid = 0,int l_userid = 0,int  l_consume_points = 0)
+			: roleid(l_roleid),userid(l_userid),consume_points(l_consume_points)
+		{
+		}
+
+		DBPutConsumePointsArg(const DBPutConsumePointsArg &rhs)
+			: roleid(rhs.roleid),userid(rhs.userid),consume_points(rhs.consume_points) { }
+
+		Rpc::Data *Clone() const { return new DBPutConsumePointsArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPutConsumePointsArg *r = dynamic_cast<const DBPutConsumePointsArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				userid = r->userid;
+				consume_points = r->consume_points;
+			}
+			return *this;
+		}
+
+		DBPutConsumePointsArg& operator = (const DBPutConsumePointsArg &rhs)
+		{
+			const DBPutConsumePointsArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				userid = r->userid;
+				consume_points = r->consume_points;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << userid;
+			os << consume_points;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> userid;
+			os >> consume_points;
+			return os;
+		}
+
+	};
+};
+#endif

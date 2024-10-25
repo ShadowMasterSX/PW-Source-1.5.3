@@ -1,0 +1,60 @@
+#ifndef __GNET_DBPUTGLOBALCONTROLARG_RPCDATA
+#define __GNET_DBPUTGLOBALCONTROLARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gglobalcontroldata"
+
+namespace GNET
+{
+	class DBPutGlobalControlArg : public GNET::Rpc::Data
+	{
+	public:
+		GGlobalControlData data;
+
+	public:
+		DBPutGlobalControlArg (const GGlobalControlData& l_data = GGlobalControlData())
+			: data(l_data)
+		{
+		}
+
+		DBPutGlobalControlArg(const DBPutGlobalControlArg &rhs)
+			: data(rhs.data) { }
+
+		Rpc::Data *Clone() const { return new DBPutGlobalControlArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPutGlobalControlArg *r = dynamic_cast<const DBPutGlobalControlArg *>(&rhs);
+			if (r && r != this)
+			{
+				data = r->data;
+			}
+			return *this;
+		}
+
+		DBPutGlobalControlArg& operator = (const DBPutGlobalControlArg &rhs)
+		{
+			const DBPutGlobalControlArg *r = &rhs;
+			if (r && r != this)
+			{
+				data = r->data;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << data;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> data;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,129 @@
+#ifndef __GNET_PLAYERPOSITIONRESET_HPP
+#define __GNET_PLAYERPOSITIONRESET_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "playerpositionresetrqstarg"
+#include "playerpositionresetrqstres"
+#include "gdeliveryserver.hpp"
+#include "mapforbid.h"
+#include "mapuser.h"
+#include "dbplayerpositionreset.hrp"
+
+namespace GNET
+{
+
+class PlayerPositionResetRqst : public Rpc
+{
+#define RPC_BASECLASS   Rpc
+	GNET::Protocol *Clone() const {  return new PlayerPositionResetRqst(*this); }
+public:
+	enum { PROTOCOL_TYPE = RPC_PLAYERPOSITIONRESETRQST };
+	PlayerPositionResetRqst(Type type, Rpc::Data *argument, Rpc::Data *result)
+		: RPC_BASECLASS(type, argument, result ) { }
+	PlayerPositionResetRqst(const PlayerPositionResetRqst &rhs) : RPC_BASECLASS(rhs) { }
+	int  PriorPolicy( ) const { return 1; }
+	bool SizePolicy(size_t size) const { return size <= 64; }
+	bool TimePolicy(int timeout) const { return timeout <= 60; }
+#undef RPC_BASECLASS
+
+
+public:
+	int reason;
+	int src_provider_id;
+	int sid;
+	
+	static int TransRecode(int rec) { 
+		if(5 == rec) return 1; 
+		else return 2; 
+	} // 1 副本达上限 2 人数达上限
+
+	void PlayerPositionResetRqst::CreateResetPos()
+	{
+		PlayerPositionResetRqstArg *arg = (PlayerPositionResetRqstArg *)argument;
+
+		// 临时赋值
+		arg->worldtag = 1;
+		arg->pos_x = 272;
+		arg->pos_y = 221;
+		arg->pos_z = 972;
+	}
+
+	void PlayerPositionResetRqst::AgreeReset(int userid,int roleid,int localsid,int worldtag,float x,float y,float z)
+	{
+		DBPlayerPositionReset* rpc = (DBPlayerPositionReset*) Rpc::Call(RPC_DBPLAYERPOSITIONRESET,DBPlayerPositionResetArg(roleid,worldtag,x,y,z));
+
+		rpc->reason = reason;
+		rpc->src_provider_id = src_provider_id;
+		rpc->sid = sid;
+		rpc->localsid = localsid;
+		rpc->userid = userid;
+	
+		GameDBClient::GetInstance()->SendProtocol(rpc);
+	}	
+				
+	void PlayerPositionResetRqst::RefuseReset()        
+	{
+		GDeliveryServer* dsm=GDeliveryServer::GetInstance();
+		PlayerPositionResetRqstArg *arg = (PlayerPositionResetRqstArg *)argument;
+		PlayerLogin_Re re(reason,arg->roleid,src_provider_id,arg->localsid);
+		dsm->Send(sid,re);        
+	}
+
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// PlayerPositionResetRqstArg *arg = (PlayerPositionResetRqstArg *)argument;
+		// PlayerPositionResetRqstRes *res = (PlayerPositionResetRqstRes *)result;
+	}
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		PlayerPositionResetRqstArg *arg = (PlayerPositionResetRqstArg *)argument;
+		PlayerPositionResetRqstRes *res = (PlayerPositionResetRqstRes *)result;
+		
+		Thread::RWLock::RDScoped l(UserContainer::GetInstance().GetLocker());
+
+		UserInfo * pinfo = UserContainer::GetInstance().FindUser(arg->userid);
+				
+		if (!pinfo)
+		{
+			DEBUG_PRINT("gdelivery::playerpositionresetrqst cannt find userid=%d,roleid=%d\n",arg->userid,arg->roleid);
+			return;
+		}
+
+		if (res->retcode == 0)
+		{
+			DEBUG_PRINT("gdelivery::playerpositionresetrqst refuse reset pos userid=%d,roleid=%d\n",arg->userid,arg->roleid);
+			RefuseReset();
+		}
+		else
+		{
+			DEBUG_PRINT("gdelivery::playerpositionresetrqst agree reset pos  userid=%d,roleid=%d\n",arg->userid,arg->roleid);
+			AgreeReset(arg->userid,arg->roleid,arg->localsid,arg->worldtag,arg->pos_x,arg->pos_y,arg->pos_z);
+		}
+
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		// TODO Client Only
+		PlayerPositionResetRqstArg *arg = (PlayerPositionResetRqstArg *)argument;
+		Thread::RWLock::RDScoped l(UserContainer::GetInstance().GetLocker());
+		
+		UserInfo * pinfo = UserContainer::GetInstance().FindUser(arg->userid);
+				
+		if (!pinfo)
+		{
+			DEBUG_PRINT("gdelivery::playerpositionresetrqst cannt find userid=%d,roleid=%d\n",arg->userid,arg->roleid);
+			return;
+		}
+
+		DEBUG_PRINT("gdelivery::playerpositionresetrqst timeout userid=%d,roleid=%d\n",arg->userid,arg->roleid);
+
+		RefuseReset();
+	}
+};
+};
+#endif

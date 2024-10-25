@@ -1,0 +1,49 @@
+
+#ifndef __GNET_DELUSER_HPP
+#define __GNET_DELUSER_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#ifdef USE_BDB
+#include "dbbuffer.h"
+#endif
+#include "userid"
+
+
+namespace GNET
+{
+
+class DelUser : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "deluser"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+#ifdef USE_BDB
+		UserID *arg = (UserID *)argument;
+		RpcRetcode *res = (RpcRetcode *)result;
+		Marshal::OctetsStream key;
+		key << *arg;
+		res->retcode = DBBuffer::buf_del( "user", key );
+#endif
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// UserID *arg = (UserID *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

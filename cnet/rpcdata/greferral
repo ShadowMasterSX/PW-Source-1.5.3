@@ -1,0 +1,95 @@
+#ifndef __GNET_GREFERRAL_RPCDATA
+#define __GNET_GREFERRAL_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GReferral : public GNET::Rpc::Data
+	{
+	public:
+		int userid;
+		int bonus_total1;
+		int bonus_total2;
+		int bonus_withdraw;
+		int bonus_withdraw_today;
+		int max_role_level;
+		std::vector<Octets> rolenames;
+
+	public:
+		GReferral (int l_userid = 0,int l_bonus_total1 = 0,int l_bonus_total2 = 0
+			,int l_bonus_withdraw = 0,int l_bonus_withdraw_today = 0,int l_max_role_level = 0
+			,const std::vector<Octets>& l_rolenames = std::vector<Octets>())
+			: userid(l_userid),bonus_total1(l_bonus_total1),bonus_total2(l_bonus_total2)
+			,bonus_withdraw(l_bonus_withdraw),bonus_withdraw_today(l_bonus_withdraw_today),max_role_level(l_max_role_level)
+			,rolenames(l_rolenames)
+		{
+		}
+
+		GReferral(const GReferral &rhs)
+			: userid(rhs.userid),bonus_total1(rhs.bonus_total1),bonus_total2(rhs.bonus_total2),
+			bonus_withdraw(rhs.bonus_withdraw),bonus_withdraw_today(rhs.bonus_withdraw_today),max_role_level(rhs.max_role_level),
+			rolenames(rhs.rolenames) { }
+
+		Rpc::Data *Clone() const { return new GReferral(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GReferral *r = dynamic_cast<const GReferral *>(&rhs);
+			if (r && r != this)
+			{
+				userid = r->userid;
+				bonus_total1 = r->bonus_total1;
+				bonus_total2 = r->bonus_total2;
+				bonus_withdraw = r->bonus_withdraw;
+				bonus_withdraw_today = r->bonus_withdraw_today;
+				max_role_level = r->max_role_level;
+				rolenames = r->rolenames;
+			}
+			return *this;
+		}
+
+		GReferral& operator = (const GReferral &rhs)
+		{
+			const GReferral *r = &rhs;
+			if (r && r != this)
+			{
+				userid = r->userid;
+				bonus_total1 = r->bonus_total1;
+				bonus_total2 = r->bonus_total2;
+				bonus_withdraw = r->bonus_withdraw;
+				bonus_withdraw_today = r->bonus_withdraw_today;
+				max_role_level = r->max_role_level;
+				rolenames = r->rolenames;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			os << bonus_total1;
+			os << bonus_total2;
+			os << bonus_withdraw;
+			os << bonus_withdraw_today;
+			os << max_role_level;
+			os << rolenames;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			os >> bonus_total1;
+			os >> bonus_total2;
+			os >> bonus_withdraw;
+			os >> bonus_withdraw_today;
+			os >> max_role_level;
+			os >> rolenames;
+			return os;
+		}
+
+	};
+};
+#endif

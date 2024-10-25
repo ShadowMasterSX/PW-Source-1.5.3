@@ -1,0 +1,78 @@
+
+#ifndef __GNET_DBREFGETREFERRAL_HPP
+#define __GNET_DBREFGETREFERRAL_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "integer"
+#include "greferral"
+#include "dbrefgetreferralres"
+
+namespace GNET
+{
+
+class DBRefGetReferral : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbrefgetreferral"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		Integer *arg = (Integer *)argument;
+		DBRefGetReferralRes *res = (DBRefGetReferralRes *)result;
+		try
+		{
+			StorageEnv::Storage * puser = StorageEnv::GetStorage("user");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				Marshal::OctetsStream key_user;
+				key_user << arg->value;
+				User u;
+				Marshal::OctetsStream(puser->find(key_user,txn))>>u;
+				GRefStore ref_store;
+				if (u.reference.size())
+				{
+					Marshal::OctetsStream   os_ref(u.reference);
+					os_ref >> ref_store;
+					res->referral = GReferral(arg->value, ref_store.bonus_total1, ref_store.bonus_total2, ref_store.bonus_withdraw, ref_store.bonus_withdraw_today, ref_store.max_role_level, ref_store.rolenames);
+					res->retcode = ERR_SUCCESS;
+				}
+				else
+					res->retcode = ERR_NOTFOUND;
+			}
+			catch (DbException &e) { throw e; }
+			catch ( ... )
+			{
+				DbException ee(DB_OLD_VERSION);
+				txn.abort(ee);
+				throw ee;
+			}
+		}
+		catch (DbException &e)
+		{
+			Log::log(LOG_ERR, "gamedbd: DBRefGetReferral failed, what=%s\n", e.what());
+			res->retcode = ERR_FAILED;
+		}
+
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// Integer *arg = (Integer *)argument;
+		// DBRefGetReferralRes *res = (DBRefGetReferralRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

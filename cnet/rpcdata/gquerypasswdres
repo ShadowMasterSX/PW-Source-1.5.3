@@ -1,0 +1,69 @@
+#ifndef __GNET_GQUERYPASSWDRES_RPCDATA
+#define __GNET_GQUERYPASSWDRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GQueryPasswdRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		int userid;
+		Octets response;
+
+	public:
+		GQueryPasswdRes (int l_retcode = -1,int l_userid = -1,const Octets& l_response = Octets(0))
+			: retcode(l_retcode),userid(l_userid),response(l_response)
+		{
+		}
+
+		GQueryPasswdRes(const GQueryPasswdRes &rhs)
+			: retcode(rhs.retcode),userid(rhs.userid),response(rhs.response) { }
+
+		Rpc::Data *Clone() const { return new GQueryPasswdRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GQueryPasswdRes *r = dynamic_cast<const GQueryPasswdRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				userid = r->userid;
+				response = r->response;
+			}
+			return *this;
+		}
+
+		GQueryPasswdRes& operator = (const GQueryPasswdRes &rhs)
+		{
+			const GQueryPasswdRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				userid = r->userid;
+				response = r->response;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << userid;
+			os << response;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> userid;
+			os >> response;
+			return os;
+		}
+
+	};
+};
+#endif

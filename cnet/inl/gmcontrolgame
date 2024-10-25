@@ -1,0 +1,38 @@
+	public:
+		int xid;
+		int worldtag;
+		Octets command;
+		enum { PROTOCOL_TYPE = PROTOCOL_GMCONTROLGAME };
+	public:
+		GMControlGame() { type = PROTOCOL_GMCONTROLGAME; }
+		GMControlGame(void*) : Protocol(PROTOCOL_GMCONTROLGAME) { }
+		GMControlGame (int l_xid,int l_worldtag,Octets l_command)
+			 : xid(l_xid),worldtag(l_worldtag),command(l_command)
+		{
+			type = PROTOCOL_GMCONTROLGAME;
+		}
+
+		GMControlGame(const GMControlGame &rhs)
+			: Protocol(rhs),xid(rhs.xid),worldtag(rhs.worldtag),command(rhs.command) { }
+
+		GNET::Protocol *Clone() const { return new GMControlGame(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << xid;
+			os << worldtag;
+			os << command;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> xid;
+			os >> worldtag;
+			os >> command;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 256; }

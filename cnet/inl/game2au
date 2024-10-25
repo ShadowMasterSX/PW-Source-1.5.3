@@ -1,0 +1,44 @@
+	public:
+		int userid;
+		int qtype;
+		Octets info;
+		int reserved;
+		enum { PROTOCOL_TYPE = PROTOCOL_GAME2AU };
+	public:
+		Game2AU() { type = PROTOCOL_GAME2AU; }
+		Game2AU(void*) : Protocol(PROTOCOL_GAME2AU) { }
+		Game2AU (int l_userid,int l_qtype,Octets l_info,
+			int l_reserved)
+			 : userid(l_userid),qtype(l_qtype),info(l_info)
+			,reserved(l_reserved)
+		{
+			type = PROTOCOL_GAME2AU;
+		}
+
+		Game2AU(const Game2AU &rhs)
+			: Protocol(rhs),userid(rhs.userid),qtype(rhs.qtype),info(rhs.info)
+			,reserved(rhs.reserved) { }
+
+		GNET::Protocol *Clone() const { return new Game2AU(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			os << qtype;
+			os << info;
+			os << reserved;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			os >> qtype;
+			os >> info;
+			os >> reserved;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1048576; }

@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBSTOCKCANCEL_HPP
+#define __GNET_DBSTOCKCANCEL_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbstockcancelarg"
+#include "dbstockcancelres"
+
+namespace GNET
+{
+
+class DBStockCancel : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbstockcancel"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBStockCancelArg *arg = (DBStockCancelArg *)argument;
+		// DBStockCancelRes *res = (DBStockCancelRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBStockCancelArg *arg = (DBStockCancelArg *)argument;
+		// DBStockCancelRes *res = (DBStockCancelRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

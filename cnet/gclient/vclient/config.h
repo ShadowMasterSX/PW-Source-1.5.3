@@ -1,0 +1,9 @@
+#ifndef __VCLIENT_CONFIG_H__
+#define __VCLIENT_CONFIG_H__
+
+#define MICROSECOND_PER_TICK	100000
+#define MILLISECOND_PER_TICK	100
+
+
+
+#endif

@@ -1,0 +1,120 @@
+#ifndef __GNET_DBPLAYERGIVEPRESENTARG_RPCDATA
+#define __GNET_DBPLAYERGIVEPRESENTARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "groleinventory"
+#include "gmailsyncdata"
+
+namespace GNET
+{
+	class DBPlayerGivePresentArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		int userid;
+		int target_roleid;
+		int mail_id;
+		GRoleInventoryVector goods;
+		unsigned int cash_cost;
+		char has_gift;
+		int log_price1;
+		int log_price2;
+		Octets rolename;
+		GMailSyncData syncdata;
+
+	public:
+		DBPlayerGivePresentArg (int l_roleid = -1,int l_userid = -1,int l_target_roleid = -1
+			,int l_mail_id = -1,const GRoleInventoryVector& l_goods = GRoleInventoryVector(),unsigned int l_cash_cost = 0
+			,char l_has_gift = 0,int l_log_price1 = 0,int l_log_price2 = 0
+			,const Octets& l_rolename = Octets(),const GMailSyncData& l_syncdata = GMailSyncData())
+			: roleid(l_roleid),userid(l_userid),target_roleid(l_target_roleid)
+			,mail_id(l_mail_id),goods(l_goods),cash_cost(l_cash_cost)
+			,has_gift(l_has_gift),log_price1(l_log_price1),log_price2(l_log_price2)
+			,rolename(l_rolename),syncdata(l_syncdata)
+		{
+		}
+
+		DBPlayerGivePresentArg(const DBPlayerGivePresentArg &rhs)
+			: roleid(rhs.roleid),userid(rhs.userid),target_roleid(rhs.target_roleid),
+			mail_id(rhs.mail_id),goods(rhs.goods),cash_cost(rhs.cash_cost),
+			has_gift(rhs.has_gift),log_price1(rhs.log_price1),log_price2(rhs.log_price2),
+			rolename(rhs.rolename),syncdata(rhs.syncdata) { }
+
+		Rpc::Data *Clone() const { return new DBPlayerGivePresentArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPlayerGivePresentArg *r = dynamic_cast<const DBPlayerGivePresentArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				userid = r->userid;
+				target_roleid = r->target_roleid;
+				mail_id = r->mail_id;
+				goods = r->goods;
+				cash_cost = r->cash_cost;
+				has_gift = r->has_gift;
+				log_price1 = r->log_price1;
+				log_price2 = r->log_price2;
+				rolename = r->rolename;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		DBPlayerGivePresentArg& operator = (const DBPlayerGivePresentArg &rhs)
+		{
+			const DBPlayerGivePresentArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				userid = r->userid;
+				target_roleid = r->target_roleid;
+				mail_id = r->mail_id;
+				goods = r->goods;
+				cash_cost = r->cash_cost;
+				has_gift = r->has_gift;
+				log_price1 = r->log_price1;
+				log_price2 = r->log_price2;
+				rolename = r->rolename;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << userid;
+			os << target_roleid;
+			os << mail_id;
+			os << goods;
+			os << cash_cost;
+			os << has_gift;
+			os << log_price1;
+			os << log_price2;
+			os << rolename;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> userid;
+			os >> target_roleid;
+			os >> mail_id;
+			os >> goods;
+			os >> cash_cost;
+			os >> has_gift;
+			os >> log_price1;
+			os >> log_price2;
+			os >> rolename;
+			os >> syncdata;
+			return os;
+		}
+
+	};
+};
+#endif

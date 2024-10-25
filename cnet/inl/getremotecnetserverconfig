@@ -1,0 +1,38 @@
+	public:
+		IntVector keys;
+		unsigned int linksid;
+		unsigned int localsid;
+		enum { PROTOCOL_TYPE = PROTOCOL_GETREMOTECNETSERVERCONFIG };
+	public:
+		GetRemoteCNetServerConfig() { type = PROTOCOL_GETREMOTECNETSERVERCONFIG; }
+		GetRemoteCNetServerConfig(void*) : Protocol(PROTOCOL_GETREMOTECNETSERVERCONFIG) { }
+		GetRemoteCNetServerConfig (const IntVector& l_keys,unsigned int l_linksid,unsigned int l_localsid)
+			 : keys(l_keys),linksid(l_linksid),localsid(l_localsid)
+		{
+			type = PROTOCOL_GETREMOTECNETSERVERCONFIG;
+		}
+
+		GetRemoteCNetServerConfig(const GetRemoteCNetServerConfig &rhs)
+			: Protocol(rhs),keys(rhs.keys),linksid(rhs.linksid),localsid(rhs.localsid) { }
+
+		GNET::Protocol *Clone() const { return new GetRemoteCNetServerConfig(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << keys;
+			os << linksid;
+			os << localsid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> keys;
+			os >> linksid;
+			os >> localsid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 512; }

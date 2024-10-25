@@ -1,0 +1,65 @@
+#ifndef __GNET_DBGETREWARDRES_RPCDATA
+#define __GNET_DBGETREWARDRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "grewardstore"
+
+namespace GNET
+{
+	class DBGetRewardRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		GRewardStore reward;
+
+	public:
+		DBGetRewardRes (int l_retcode = 0)
+			: retcode(l_retcode)
+		{
+		}
+
+		DBGetRewardRes(const DBGetRewardRes &rhs)
+			: retcode(rhs.retcode),reward(rhs.reward) { }
+
+		Rpc::Data *Clone() const { return new DBGetRewardRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBGetRewardRes *r = dynamic_cast<const DBGetRewardRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				reward = r->reward;
+			}
+			return *this;
+		}
+
+		DBGetRewardRes& operator = (const DBGetRewardRes &rhs)
+		{
+			const DBGetRewardRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				reward = r->reward;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << reward;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> reward;
+			return os;
+		}
+
+	};
+};
+#endif

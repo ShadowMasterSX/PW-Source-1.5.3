@@ -1,0 +1,22 @@
+/*
+   	sample program 
+	in TINY language
+	compute factorial
+
+read x;
+write 3*x+1;
+
+y=1;
+x=3*(y-1);
+if (x==1) then
+	y=3;
+end
+*/
+/*
+player.level=player.level>=enemy.level ? 0.23*level : 0 ;
+hitback=player.level/(player.level+enemy.level)*(0.3+0.02*player.skill[1].level);
+*/
+player.skill[enemy.level].level = 5;
+/*
+skilllevel = skill[a1];
+*/

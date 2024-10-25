@@ -1,0 +1,212 @@
+#ifndef __GNET_GROLEINFO_RPCDATA
+#define __GNET_GROLEINFO_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "groleinventory"
+#include "groleforbid"
+#include "crossinfodata"
+
+namespace GNET
+{
+	class GRoleInfo : public GNET::Rpc::Data
+	{
+	public:
+		char version;
+		unsigned int id;
+		Octets name;
+		int race;
+		int cls;
+		unsigned char gender;
+		int level;
+		int level2;
+		float posx;
+		float posy;
+		float posz;
+		int worldtag;
+		Octets custom_data;
+		unsigned int custom_stamp;
+		Octets custom_status;
+		Octets charactermode;
+		GRoleInventoryVector equipment;
+		char status;
+		int delete_time;
+		int create_time;
+		int lastlogin_time;
+		GRoleForbidVector forbid;
+		int referrer_role;
+		int cash_add;
+		CrossInfoData cross_data;
+		Octets reincarnation_data;
+		Octets realm_data;
+
+	public:
+		GRoleInfo (char l_version = 1,unsigned int l_id = 0,const Octets& l_name = Octets(0)
+			,int l_race = 0,int l_cls = 0,unsigned char l_gender = 0
+			,int l_level = 0,int l_level2 = 0,float l_posx = 0
+			,float l_posy = 0,float l_posz = 0,int l_worldtag = 0
+			,unsigned int l_custom_stamp = 0,char l_status = 0,int l_delete_time = 0
+			,int l_create_time = 0,int l_lastlogin_time = 0,int l_referrer_role = 0
+			,int l_cash_add = 0,const Octets& l_reincarnation_data = Octets(0),const Octets& l_realm_data = Octets(0))
+			: version(l_version),id(l_id),name(l_name)
+			,race(l_race),cls(l_cls),gender(l_gender)
+			,level(l_level),level2(l_level2),posx(l_posx)
+			,posy(l_posy),posz(l_posz),worldtag(l_worldtag)
+			,custom_stamp(l_custom_stamp),status(l_status),delete_time(l_delete_time)
+			,create_time(l_create_time),lastlogin_time(l_lastlogin_time),referrer_role(l_referrer_role)
+			,cash_add(l_cash_add),reincarnation_data(l_reincarnation_data),realm_data(l_realm_data)
+		{
+		}
+
+		GRoleInfo(const GRoleInfo &rhs)
+			: version(rhs.version),id(rhs.id),name(rhs.name),
+			race(rhs.race),cls(rhs.cls),gender(rhs.gender),
+			level(rhs.level),level2(rhs.level2),posx(rhs.posx),
+			posy(rhs.posy),posz(rhs.posz),worldtag(rhs.worldtag),
+			custom_data(rhs.custom_data),custom_stamp(rhs.custom_stamp),custom_status(rhs.custom_status),
+			charactermode(rhs.charactermode),equipment(rhs.equipment),status(rhs.status),
+			delete_time(rhs.delete_time),create_time(rhs.create_time),lastlogin_time(rhs.lastlogin_time),
+			forbid(rhs.forbid),referrer_role(rhs.referrer_role),cash_add(rhs.cash_add),
+			cross_data(rhs.cross_data),reincarnation_data(rhs.reincarnation_data),realm_data(rhs.realm_data) { }
+
+		Rpc::Data *Clone() const { return new GRoleInfo(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GRoleInfo *r = dynamic_cast<const GRoleInfo *>(&rhs);
+			if (r && r != this)
+			{
+				version = r->version;
+				id = r->id;
+				name = r->name;
+				race = r->race;
+				cls = r->cls;
+				gender = r->gender;
+				level = r->level;
+				level2 = r->level2;
+				posx = r->posx;
+				posy = r->posy;
+				posz = r->posz;
+				worldtag = r->worldtag;
+				custom_data = r->custom_data;
+				custom_stamp = r->custom_stamp;
+				custom_status = r->custom_status;
+				charactermode = r->charactermode;
+				equipment = r->equipment;
+				status = r->status;
+				delete_time = r->delete_time;
+				create_time = r->create_time;
+				lastlogin_time = r->lastlogin_time;
+				forbid = r->forbid;
+				referrer_role = r->referrer_role;
+				cash_add = r->cash_add;
+				cross_data = r->cross_data;
+				reincarnation_data = r->reincarnation_data;
+				realm_data = r->realm_data;
+			}
+			return *this;
+		}
+
+		GRoleInfo& operator = (const GRoleInfo &rhs)
+		{
+			const GRoleInfo *r = &rhs;
+			if (r && r != this)
+			{
+				version = r->version;
+				id = r->id;
+				name = r->name;
+				race = r->race;
+				cls = r->cls;
+				gender = r->gender;
+				level = r->level;
+				level2 = r->level2;
+				posx = r->posx;
+				posy = r->posy;
+				posz = r->posz;
+				worldtag = r->worldtag;
+				custom_data = r->custom_data;
+				custom_stamp = r->custom_stamp;
+				custom_status = r->custom_status;
+				charactermode = r->charactermode;
+				equipment = r->equipment;
+				status = r->status;
+				delete_time = r->delete_time;
+				create_time = r->create_time;
+				lastlogin_time = r->lastlogin_time;
+				forbid = r->forbid;
+				referrer_role = r->referrer_role;
+				cash_add = r->cash_add;
+				cross_data = r->cross_data;
+				reincarnation_data = r->reincarnation_data;
+				realm_data = r->realm_data;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << (char)(1);
+			os << id;
+			os << name;
+			os << race;
+			os << cls;
+			os << gender;
+			os << level;
+			os << level2;
+			os << posx;
+			os << posy;
+			os << posz;
+			os << worldtag;
+			os << custom_data;
+			os << custom_stamp;
+			os << custom_status;
+			os << charactermode;
+			os << equipment;
+			os << status;
+			os << delete_time;
+			os << create_time;
+			os << lastlogin_time;
+			os << forbid;
+			os << referrer_role;
+			os << cash_add;
+			os << cross_data;
+			os << reincarnation_data;
+			os << realm_data;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> version;
+			os >> id;
+			os >> name;
+			os >> race;
+			os >> cls;
+			os >> gender;
+			os >> level;
+			os >> level2;
+			os >> posx;
+			os >> posy;
+			os >> posz;
+			os >> worldtag;
+			os >> custom_data;
+			os >> custom_stamp;
+			os >> custom_status;
+			os >> charactermode;
+			os >> equipment;
+			os >> status;
+			os >> delete_time;
+			os >> create_time;
+			os >> lastlogin_time;
+			os >> forbid;
+			os >> referrer_role;
+			os >> cash_add;
+			os >> cross_data;
+			os >> reincarnation_data;
+			os >> realm_data;
+			return os;
+		}
+
+	};
+};
+#endif

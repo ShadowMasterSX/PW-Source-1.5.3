@@ -1,0 +1,64 @@
+#ifndef __GNET_CANCHANGEROLENAMERES_RPCDATA
+#define __GNET_CANCHANGEROLENAMERES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class CanChangeRolenameRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		int roleid;
+
+	public:
+		CanChangeRolenameRes (int l_retcode = -1,int l_roleid = -1)
+			: retcode(l_retcode),roleid(l_roleid)
+		{
+		}
+
+		CanChangeRolenameRes(const CanChangeRolenameRes &rhs)
+			: retcode(rhs.retcode),roleid(rhs.roleid) { }
+
+		Rpc::Data *Clone() const { return new CanChangeRolenameRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const CanChangeRolenameRes *r = dynamic_cast<const CanChangeRolenameRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				roleid = r->roleid;
+			}
+			return *this;
+		}
+
+		CanChangeRolenameRes& operator = (const CanChangeRolenameRes &rhs)
+		{
+			const CanChangeRolenameRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				roleid = r->roleid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << roleid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> roleid;
+			return os;
+		}
+
+	};
+};
+#endif

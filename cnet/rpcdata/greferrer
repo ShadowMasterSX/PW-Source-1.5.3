@@ -1,0 +1,64 @@
+#ifndef __GNET_GREFERRER_RPCDATA
+#define __GNET_GREFERRER_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GReferrer : public GNET::Rpc::Data
+	{
+	public:
+		int userid;
+		int bonus_add;
+
+	public:
+		GReferrer (int l_userid = 0,int l_bonus_add = 0)
+			: userid(l_userid),bonus_add(l_bonus_add)
+		{
+		}
+
+		GReferrer(const GReferrer &rhs)
+			: userid(rhs.userid),bonus_add(rhs.bonus_add) { }
+
+		Rpc::Data *Clone() const { return new GReferrer(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GReferrer *r = dynamic_cast<const GReferrer *>(&rhs);
+			if (r && r != this)
+			{
+				userid = r->userid;
+				bonus_add = r->bonus_add;
+			}
+			return *this;
+		}
+
+		GReferrer& operator = (const GReferrer &rhs)
+		{
+			const GReferrer *r = &rhs;
+			if (r && r != this)
+			{
+				userid = r->userid;
+				bonus_add = r->bonus_add;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			os << bonus_add;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			os >> bonus_add;
+			return os;
+		}
+
+	};
+};
+#endif

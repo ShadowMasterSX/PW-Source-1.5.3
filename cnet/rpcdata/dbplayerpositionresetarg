@@ -1,0 +1,82 @@
+#ifndef __GNET_DBPLAYERPOSITIONRESETARG_RPCDATA
+#define __GNET_DBPLAYERPOSITIONRESETARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBPlayerPositionResetArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		int worldtag;
+		float pos_x;
+		float pos_y;
+		float pos_z;
+
+	public:
+		DBPlayerPositionResetArg (int l_roleid = 0,int l_worldtag = 0,float l_pos_x = 0
+			,float l_pos_y = 0,float l_pos_z = 0)
+			: roleid(l_roleid),worldtag(l_worldtag),pos_x(l_pos_x)
+			,pos_y(l_pos_y),pos_z(l_pos_z)
+		{
+		}
+
+		DBPlayerPositionResetArg(const DBPlayerPositionResetArg &rhs)
+			: roleid(rhs.roleid),worldtag(rhs.worldtag),pos_x(rhs.pos_x),
+			pos_y(rhs.pos_y),pos_z(rhs.pos_z) { }
+
+		Rpc::Data *Clone() const { return new DBPlayerPositionResetArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPlayerPositionResetArg *r = dynamic_cast<const DBPlayerPositionResetArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				worldtag = r->worldtag;
+				pos_x = r->pos_x;
+				pos_y = r->pos_y;
+				pos_z = r->pos_z;
+			}
+			return *this;
+		}
+
+		DBPlayerPositionResetArg& operator = (const DBPlayerPositionResetArg &rhs)
+		{
+			const DBPlayerPositionResetArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				worldtag = r->worldtag;
+				pos_x = r->pos_x;
+				pos_y = r->pos_y;
+				pos_z = r->pos_z;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << worldtag;
+			os << pos_x;
+			os << pos_y;
+			os << pos_z;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> worldtag;
+			os >> pos_x;
+			os >> pos_y;
+			os >> pos_z;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,89 @@
+
+#ifndef __GNET_DBAUCTIONCLOSE_HPP
+#define __GNET_DBAUCTIONCLOSE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbauctionclosearg"
+#include "dbauctioncloseres"
+
+namespace GNET
+{
+
+class DBAuctionClose : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbauctionclose"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBAuctionCloseArg *arg = (DBAuctionCloseArg *)argument;
+		DBAuctionCloseRes *res = (DBAuctionCloseRes *)result;
+
+		Marshal::OctetsStream key, value;
+		try
+		{
+			StorageEnv::Storage * pauction = StorageEnv::GetStorage("auction");
+			StorageEnv::Storage * pmailbox = StorageEnv::GetStorage("mailbox");
+			StorageEnv::CommonTransaction txn;
+			try{
+				GAuctionDetail detail;
+				UintVector list;
+
+				key << arg->auctionid;
+				Marshal::OctetsStream(pauction->find(key,txn)) >> detail;
+				if(detail.info.seller != (unsigned int)arg->roleid)
+					throw DbException(DB_VERIFY_BAD);
+				Log::formatlog("auction","type=close:roleid=%d:aid=%d:item=%d:count=%d:bidprice=%d:"
+					"seller=%d:bidder=%d", arg->roleid, arg->auctionid, detail.item.id, 
+					detail.item.count, detail.info.bidprice, detail.info.seller, detail.info.bidder);
+
+				value << (unsigned int)arg->auctionid << (unsigned int)detail.item.id 
+					<< (unsigned int)detail.item.count;
+				if(detail.info.bidder!=0)
+				{
+					res->inform_bidder.receiver = detail.info.bidder;
+					res->inform_bidder.sndr_type = _MST_AUCTION;
+					res->inform_bidder.sender = _AUCTION_BID_CANCEL;
+					res->inform_bidder.title = value;
+					MailSender::Send(pmailbox,res->inform_bidder, detail.info.bidprice, txn); 
+				}
+				res->inform_seller.receiver = detail.info.seller;
+				res->inform_seller.sndr_type = _MST_AUCTION;
+				res->inform_seller.sender = _AUCTION_BID_CANCEL;
+				res->inform_seller.title = value;
+				MailSender::Send(pmailbox,res->inform_seller, detail.item, 0, txn); 
+				pauction->del(key,txn);
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBAuctionClose, role=%d reason=%d auctionid=%d, what=%s.\n",
+				arg->roleid, arg->reason, arg->auctionid, e.what());
+			res->retcode = ERR_EXCEPTION;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

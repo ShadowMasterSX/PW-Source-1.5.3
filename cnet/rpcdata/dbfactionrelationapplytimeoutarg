@@ -1,0 +1,77 @@
+#ifndef __GNET_DBFACTIONRELATIONAPPLYTIMEOUTARG_RPCDATA
+#define __GNET_DBFACTIONRELATIONAPPLYTIMEOUTARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBFactionRelationApplyTimeoutArg : public GNET::Rpc::Data
+	{
+	public:
+		int type;
+		int fid1;
+		int fid2;
+		int end_time;
+
+	public:
+		DBFactionRelationApplyTimeoutArg (int l_type = 0,int l_fid1 = 0,int l_fid2 = 0
+			,int l_end_time = 0)
+			: type(l_type),fid1(l_fid1),fid2(l_fid2)
+			,end_time(l_end_time)
+		{
+		}
+
+		DBFactionRelationApplyTimeoutArg(const DBFactionRelationApplyTimeoutArg &rhs)
+			: type(rhs.type),fid1(rhs.fid1),fid2(rhs.fid2),
+			end_time(rhs.end_time) { }
+
+		Rpc::Data *Clone() const { return new DBFactionRelationApplyTimeoutArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBFactionRelationApplyTimeoutArg *r = dynamic_cast<const DBFactionRelationApplyTimeoutArg *>(&rhs);
+			if (r && r != this)
+			{
+				type = r->type;
+				fid1 = r->fid1;
+				fid2 = r->fid2;
+				end_time = r->end_time;
+			}
+			return *this;
+		}
+
+		DBFactionRelationApplyTimeoutArg& operator = (const DBFactionRelationApplyTimeoutArg &rhs)
+		{
+			const DBFactionRelationApplyTimeoutArg *r = &rhs;
+			if (r && r != this)
+			{
+				type = r->type;
+				fid1 = r->fid1;
+				fid2 = r->fid2;
+				end_time = r->end_time;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << type;
+			os << fid1;
+			os << fid2;
+			os << end_time;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> type;
+			os >> fid1;
+			os >> fid2;
+			os >> end_time;
+			return os;
+		}
+
+	};
+};
+#endif

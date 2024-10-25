@@ -1,0 +1,69 @@
+#ifndef __GNET_DBAUCTIONCLOSEARG_RPCDATA
+#define __GNET_DBAUCTIONCLOSEARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBAuctionCloseArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		unsigned char reason;
+		unsigned int auctionid;
+
+	public:
+		DBAuctionCloseArg (int l_roleid = 0,unsigned char l_reason = 0,unsigned int l_auctionid = 0)
+			: roleid(l_roleid),reason(l_reason),auctionid(l_auctionid)
+		{
+		}
+
+		DBAuctionCloseArg(const DBAuctionCloseArg &rhs)
+			: roleid(rhs.roleid),reason(rhs.reason),auctionid(rhs.auctionid) { }
+
+		Rpc::Data *Clone() const { return new DBAuctionCloseArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBAuctionCloseArg *r = dynamic_cast<const DBAuctionCloseArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				reason = r->reason;
+				auctionid = r->auctionid;
+			}
+			return *this;
+		}
+
+		DBAuctionCloseArg& operator = (const DBAuctionCloseArg &rhs)
+		{
+			const DBAuctionCloseArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				reason = r->reason;
+				auctionid = r->auctionid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << reason;
+			os << auctionid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> reason;
+			os >> auctionid;
+			return os;
+		}
+
+	};
+};
+#endif

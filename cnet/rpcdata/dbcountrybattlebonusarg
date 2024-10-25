@@ -1,0 +1,70 @@
+#ifndef __GNET_DBCOUNTRYBATTLEBONUSARG_RPCDATA
+#define __GNET_DBCOUNTRYBATTLEBONUSARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "groleinventory"
+
+namespace GNET
+{
+	class DBCountryBattleBonusArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		unsigned int money;
+		GRoleInventory item;
+
+	public:
+		DBCountryBattleBonusArg (int l_roleid = 0,unsigned int l_money = 0,const GRoleInventory& l_item = GRoleInventory())
+			: roleid(l_roleid),money(l_money),item(l_item)
+		{
+		}
+
+		DBCountryBattleBonusArg(const DBCountryBattleBonusArg &rhs)
+			: roleid(rhs.roleid),money(rhs.money),item(rhs.item) { }
+
+		Rpc::Data *Clone() const { return new DBCountryBattleBonusArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBCountryBattleBonusArg *r = dynamic_cast<const DBCountryBattleBonusArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				money = r->money;
+				item = r->item;
+			}
+			return *this;
+		}
+
+		DBCountryBattleBonusArg& operator = (const DBCountryBattleBonusArg &rhs)
+		{
+			const DBCountryBattleBonusArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				money = r->money;
+				item = r->item;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << money;
+			os << item;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> money;
+			os >> item;
+			return os;
+		}
+
+	};
+};
+#endif

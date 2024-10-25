@@ -1,0 +1,77 @@
+
+#ifndef __GNET_DBREFUPDATEREFERRER_HPP
+#define __GNET_DBREFUPDATEREFERRER_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbrefupdatereferrerarg"
+
+
+namespace GNET
+{
+
+class DBRefUpdateReferrer : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbrefupdatereferrer"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBRefUpdateReferrerArg *arg = (DBRefUpdateReferrerArg *)argument;
+		RpcRetcode *res = (RpcRetcode *)result;
+		try
+		{
+			StorageEnv::Storage * puser = StorageEnv::GetStorage("user");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				Marshal::OctetsStream key_user;
+				key_user << arg->referrer.userid;
+				User u;
+				Marshal::OctetsStream(puser->find(key_user,txn))>>u;
+				GRefStore ref_store;
+				if (u.reference.size())
+				{
+					Marshal::OctetsStream   os_ref(u.reference);
+					os_ref >> ref_store;
+				}
+				ref_store.bonus_add = arg->referrer.bonus_add;
+				u.reference = Marshal::OctetsStream() << ref_store;
+				puser->insert( key_user, Marshal::OctetsStream()<<u, txn );
+				res->retcode = ERR_SUCCESS;
+			}
+			catch (DbException &e) { throw e; }
+			catch ( ... )
+			{
+				DbException ee(DB_OLD_VERSION);
+				txn.abort(ee);
+				throw ee;
+			}
+		}
+		catch (DbException &e)
+		{
+			Log::log(LOG_ERR, "gamedbd: DBRefUpdateReferrer failed, what=%s\n", e.what());
+			res->retcode = ERR_FAILED;
+		}
+
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBRefUpdateReferrerArg *arg = (DBRefUpdateReferrerArg *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,70 @@
+
+#ifndef __GNET_FREEZEPLAYERDATA_HPP
+#define __GNET_FREEZEPLAYERDATA_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "freezeplayerdataarg"
+#include "freezeplayerdatares"
+#include "remoteloginquery_re.hpp"
+
+namespace GNET
+{
+
+class FreezePlayerData : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "freezeplayerdata"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// FreezePlayerDataArg *arg = (FreezePlayerDataArg *)argument;
+		// FreezePlayerDataRes *res = (FreezePlayerDataRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		FreezePlayerDataArg *arg = (FreezePlayerDataArg *)argument;
+		FreezePlayerDataRes *res = (FreezePlayerDataRes *)result;
+		
+		LOG_TRACE("CrossRelated Recv FreezePlayerData roleid %d remote_roleid %d userid %d, retcode %d", arg->roleid, arg->remote_roleid, arg->userid, res->retcode);
+		
+		RemoteLoginQuery_Re re(res->retcode, arg->roleid, arg->remote_roleid, arg->userid, DS_TO_CENTRALDS);
+		
+		UserInfo* pinfo = UserContainer::GetInstance().FindUser(arg->userid);
+		if (pinfo == NULL || pinfo->status != _STATUS_REMOTE_HALFLOGIN) {
+			Log::log(LOG_ERR, "CrossRelated RemoteLoginQuery timeout after freezeplayerdata userid %d userstatus %d", arg->userid, pinfo == NULL ? 0 :pinfo->status);
+
+			re.retcode = 103;
+			CentralDeliveryClient::GetInstance()->SendProtocol(re);
+			return;
+		}
+		
+		if (CentralDeliveryClient::GetInstance()->SendProtocol(re)) {
+			LOG_TRACE("CrossRelated Send RemoteLoginQuery_Re retcode %d roleid %d remote_roleid %d userid %d", res->retcode, arg->roleid, arg->remote_roleid, arg->userid);
+			
+			if (res->retcode == ERR_SUCCESS) {
+				pinfo->status = _STATUS_REMOTE_LOGIN;
+				UserContainer::GetInstance().InsertRemoteOnline(arg->userid);
+			} else {
+				UserContainer::GetInstance().UserLogout(pinfo);
+			}
+		} else {
+			UserContainer::GetInstance().UserLogout(pinfo);
+		}
+		
+		RemoteLoggingUsers::GetInstance().Pop(arg->userid);
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

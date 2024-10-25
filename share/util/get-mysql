@@ -1,0 +1,14 @@
+#!/bin/sh
+# get-mysql
+# Mike Lerley, 7/7/03
+# mike@rentageekme.com
+# v0.2
+
+
+# Uptime: 675799  Threads: 247  Questions: 3959938  Slow queries: 195  Opens: 547  Flush tables: 2  Open tables: 256  Queries per second avg: 5.860
+
+# get output from mysqladmin and transpose it to one number per line
+# first remove all non-digits
+# then replace all whitespace with newlines
+# then remove the first blank line
+/usr/bin/mysqladmin status | perl -ne 's/[^\d\s]//g; s/\s+/\n/g; s/^\n//; print'

@@ -1,0 +1,33 @@
+/var/log/messages /var/log/secure /var/log/maillog /var/log/spooler /var/log/boot.log /var/log/cron {
+    sharedscripts
+    postrotate
+	/bin/kill -HUP `cat /var/run/syslogd.pid 2> /dev/null` 2> /dev/null || true
+    endscript
+}
+
+/var/log/world2.java /var/log/world2.syslog /var/log/world2.err /var/log/world2.log /var/log/world2.formatlog /var/log/statinfom /var/log/statinfoh /var/log/statinfod {
+    daily
+    rotate 365
+    olddir /var/log/world2.old/
+    create 0644 root root
+    sharedscripts
+    postrotate
+	/bin/kill -HUP `cat /var/run/syslogd.pid 2> /dev/null` 2> /dev/null || true
+	/usr/bin/killall -HUP logservice 2> /dev/null || true
+	/bin/gzip -cfq /export/logs/old/world2.formatlog.1 > /var/log/world2.formatlog.1.gz 2> /dev/null || true
+	/bin/gzip -cfq /export/logs/old/statinfom.1 > /var/log/statinfom.1.gz 2> /dev/null || true
+    endscript
+}
+
+/var/log/world2.trace {
+    daily
+    rotate 4
+    olddir /var/log/world2.old/
+    create 0644 root root
+    sharedscripts
+    postrotate
+	/usr/bin/killall -HUP logservice 2> /dev/null || true
+    endscript
+}
+
+

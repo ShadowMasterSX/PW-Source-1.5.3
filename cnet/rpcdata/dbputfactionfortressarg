@@ -1,0 +1,60 @@
+#ifndef __GNET_DBPUTFACTIONFORTRESSARG_RPCDATA
+#define __GNET_DBPUTFACTIONFORTRESSARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gfactionfortressdetail"
+
+namespace GNET
+{
+	class DBPutFactionFortressArg : public GNET::Rpc::Data
+	{
+	public:
+		GFactionFortressDetail detail;
+
+	public:
+		DBPutFactionFortressArg (const GFactionFortressDetail& l_detail = GFactionFortressDetail())
+			: detail(l_detail)
+		{
+		}
+
+		DBPutFactionFortressArg(const DBPutFactionFortressArg &rhs)
+			: detail(rhs.detail) { }
+
+		Rpc::Data *Clone() const { return new DBPutFactionFortressArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPutFactionFortressArg *r = dynamic_cast<const DBPutFactionFortressArg *>(&rhs);
+			if (r && r != this)
+			{
+				detail = r->detail;
+			}
+			return *this;
+		}
+
+		DBPutFactionFortressArg& operator = (const DBPutFactionFortressArg &rhs)
+		{
+			const DBPutFactionFortressArg *r = &rhs;
+			if (r && r != this)
+			{
+				detail = r->detail;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << detail;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> detail;
+			return os;
+		}
+
+	};
+};
+#endif

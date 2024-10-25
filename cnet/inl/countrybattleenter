@@ -1,0 +1,38 @@
+	public:
+		int battle_id;
+		int world_tag;
+		int roleid;
+		enum { PROTOCOL_TYPE = PROTOCOL_COUNTRYBATTLEENTER };
+	public:
+		CountryBattleEnter() { type = PROTOCOL_COUNTRYBATTLEENTER; }
+		CountryBattleEnter(void*) : Protocol(PROTOCOL_COUNTRYBATTLEENTER) { }
+		CountryBattleEnter (int l_battle_id,int l_world_tag,int l_roleid)
+			 : battle_id(l_battle_id),world_tag(l_world_tag),roleid(l_roleid)
+		{
+			type = PROTOCOL_COUNTRYBATTLEENTER;
+		}
+
+		CountryBattleEnter(const CountryBattleEnter &rhs)
+			: Protocol(rhs),battle_id(rhs.battle_id),world_tag(rhs.world_tag),roleid(rhs.roleid) { }
+
+		GNET::Protocol *Clone() const { return new CountryBattleEnter(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << battle_id;
+			os << world_tag;
+			os << roleid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> battle_id;
+			os >> world_tag;
+			os >> roleid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 512; }

@@ -1,0 +1,56 @@
+	public:
+		int id;
+		float left;
+		float right;
+		float top;
+		float bottom;
+		int worldtag;
+		Octets edition;
+		enum { PROTOCOL_TYPE = PROTOCOL_ANNOUNCEPROVIDERID };
+	public:
+		AnnounceProviderID() { type = PROTOCOL_ANNOUNCEPROVIDERID; }
+		AnnounceProviderID(void*) : Protocol(PROTOCOL_ANNOUNCEPROVIDERID) { }
+		AnnounceProviderID (int l_id,float l_left = 0.0,float l_right = 0.0,
+			float l_top = 0.0,float l_bottom = 0.0,int l_worldtag = 0,
+			const Octets& l_edition = Octets())
+			 : id(l_id),left(l_left),right(l_right)
+			,top(l_top),bottom(l_bottom),worldtag(l_worldtag)
+			,edition(l_edition)
+		{
+			type = PROTOCOL_ANNOUNCEPROVIDERID;
+		}
+
+		AnnounceProviderID(const AnnounceProviderID &rhs)
+			: Protocol(rhs),id(rhs.id),left(rhs.left),right(rhs.right)
+			,top(rhs.top),bottom(rhs.bottom),worldtag(rhs.worldtag)
+			,edition(rhs.edition) { }
+
+		GNET::Protocol *Clone() const { return new AnnounceProviderID(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << id;
+			os << left;
+			os << right;
+			os << top;
+			os << bottom;
+			os << worldtag;
+			os << edition;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> id;
+			os >> left;
+			os >> right;
+			os >> top;
+			os >> bottom;
+			os >> worldtag;
+			os >> edition;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 101; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

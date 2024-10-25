@@ -1,0 +1,71 @@
+
+#ifndef __GNET_DBWEBTRADEPRECANCELPOST_HPP
+#define __GNET_DBWEBTRADEPRECANCELPOST_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbwebtradeprecancelpostarg"
+#include "dbwebtradeprecancelpostres"
+
+#include "webtradeprecancelpost_re.hpp"
+#include "webtrademarket.h"
+
+namespace GNET
+{
+
+class DBWebTradePreCancelPost : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbwebtradeprecancelpost"
+#undef	RPC_BASECLASS
+	unsigned int save_linksid;
+	unsigned int save_localsid;
+	
+	void SendResult(int retcode, int64_t sn)
+	{
+		GDeliveryServer::GetInstance()->Send(
+				save_linksid,
+		     	WebTradePreCancelPost_Re(retcode,sn,save_localsid)
+			);
+	}
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBWebTradePreCancelPostArg *arg = (DBWebTradePreCancelPostArg *)argument;
+		// DBWebTradePreCancelPostRes *res = (DBWebTradePreCancelPostRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		DBWebTradePreCancelPostArg *arg = (DBWebTradePreCancelPostArg *)argument;
+		DBWebTradePreCancelPostRes *res = (DBWebTradePreCancelPostRes *)result;
+		DEBUG_PRINT("dbwebtradeprecancelpost: rpc return. retcode=%d,sn=%lld,roleid=%d", res->retcode, arg->sn, arg->roleid);
+		if(res->retcode == ERR_SUCCESS)
+		{
+			if(!WebTradeMarket::GetInstance().OnDBPreCancelPost(arg->roleid, arg->sn))
+			{
+				Log::log(LOG_WARNING,"dbwebtradeprecancelpost: failed. sn=%lld,roleid=%d", arg->sn,arg->roleid);
+				WebTradeMarket::GetInstance().ClearBusy(arg->sn);
+			}
+		}
+		else
+			WebTradeMarket::GetInstance().ClearBusy(arg->sn);
+		SendResult(res->retcode,arg->sn);
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+		DBWebTradePreCancelPostArg *arg = (DBWebTradePreCancelPostArg *)argument;
+		Log::log(LOG_ERR,"dbwebtradeprecancelpost: timeout. sn=%lld,roleid=%d", arg->sn,arg->roleid);
+		SendResult(ERR_TIMEOUT,arg->sn);
+		WebTradeMarket::GetInstance().ClearBusy(arg->sn);
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,65 @@
+#ifndef __GNET_DBREFGETREFERRALRES_RPCDATA
+#define __GNET_DBREFGETREFERRALRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "greferral"
+
+namespace GNET
+{
+	class DBRefGetReferralRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		GReferral referral;
+
+	public:
+		DBRefGetReferralRes (const GReferral& l_referral = GReferral())
+			: referral(l_referral)
+		{
+		}
+
+		DBRefGetReferralRes(const DBRefGetReferralRes &rhs)
+			: retcode(rhs.retcode),referral(rhs.referral) { }
+
+		Rpc::Data *Clone() const { return new DBRefGetReferralRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBRefGetReferralRes *r = dynamic_cast<const DBRefGetReferralRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				referral = r->referral;
+			}
+			return *this;
+		}
+
+		DBRefGetReferralRes& operator = (const DBRefGetReferralRes &rhs)
+		{
+			const DBRefGetReferralRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				referral = r->referral;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << referral;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> referral;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,79 @@
+#ifndef __GNET_ROLEGROUPBEAN_RPCDATA
+#define __GNET_ROLEGROUPBEAN_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "rolebean"
+
+namespace GNET
+{
+	class RoleGroupBean : public GNET::Rpc::Data
+	{
+	public:
+		int gtype;
+		int64_t groupid;
+		Octets groupname;
+		RoleBeanVector friends;
+
+	public:
+		RoleGroupBean (int l_gtype = 0,int64_t l_groupid = 0,const Octets& l_groupname = Octets()
+			,const RoleBeanVector& l_friends = RoleBeanVector())
+			: gtype(l_gtype),groupid(l_groupid),groupname(l_groupname)
+			,friends(l_friends)
+		{
+		}
+
+		RoleGroupBean(const RoleGroupBean &rhs)
+			: gtype(rhs.gtype),groupid(rhs.groupid),groupname(rhs.groupname),
+			friends(rhs.friends) { }
+
+		Rpc::Data *Clone() const { return new RoleGroupBean(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const RoleGroupBean *r = dynamic_cast<const RoleGroupBean *>(&rhs);
+			if (r && r != this)
+			{
+				gtype = r->gtype;
+				groupid = r->groupid;
+				groupname = r->groupname;
+				friends = r->friends;
+			}
+			return *this;
+		}
+
+		RoleGroupBean& operator = (const RoleGroupBean &rhs)
+		{
+			const RoleGroupBean *r = &rhs;
+			if (r && r != this)
+			{
+				gtype = r->gtype;
+				groupid = r->groupid;
+				groupname = r->groupname;
+				friends = r->friends;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << gtype;
+			os << groupid;
+			os << groupname;
+			os << friends;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> gtype;
+			os >> groupid;
+			os >> groupname;
+			os >> friends;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<RoleGroupBean>	RoleGroupBeanVector;
+};
+#endif

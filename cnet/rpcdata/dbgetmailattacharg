@@ -1,0 +1,71 @@
+#ifndef __GNET_DBGETMAILATTACHARG_RPCDATA
+#define __GNET_DBGETMAILATTACHARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailid"
+#include "gmailsyncdata"
+
+namespace GNET
+{
+	class DBGetMailAttachArg : public GNET::Rpc::Data
+	{
+	public:
+		GMailID mail_id;
+		unsigned char attach_type;
+		GMailSyncData syncdata;
+
+	public:
+		DBGetMailAttachArg (const GMailID& l_mail_id = GMailID(),unsigned char l_attach_type = 0,const GMailSyncData& l_syncdata = GMailSyncData())
+			: mail_id(l_mail_id),attach_type(l_attach_type),syncdata(l_syncdata)
+		{
+		}
+
+		DBGetMailAttachArg(const DBGetMailAttachArg &rhs)
+			: mail_id(rhs.mail_id),attach_type(rhs.attach_type),syncdata(rhs.syncdata) { }
+
+		Rpc::Data *Clone() const { return new DBGetMailAttachArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBGetMailAttachArg *r = dynamic_cast<const DBGetMailAttachArg *>(&rhs);
+			if (r && r != this)
+			{
+				mail_id = r->mail_id;
+				attach_type = r->attach_type;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		DBGetMailAttachArg& operator = (const DBGetMailAttachArg &rhs)
+		{
+			const DBGetMailAttachArg *r = &rhs;
+			if (r && r != this)
+			{
+				mail_id = r->mail_id;
+				attach_type = r->attach_type;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << mail_id;
+			os << attach_type;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> mail_id;
+			os >> attach_type;
+			os >> syncdata;
+			return os;
+		}
+
+	};
+};
+#endif

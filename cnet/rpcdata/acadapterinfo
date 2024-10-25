@@ -1,0 +1,65 @@
+#ifndef __GNET_ACADAPTERINFO_RPCDATA
+#define __GNET_ACADAPTERINFO_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class ACAdapterInfo : public GNET::Rpc::Data
+	{
+	public:
+		Octets des;
+		int count;
+
+	public:
+		ACAdapterInfo (Octets l_des = Octets(),int l_count = 0)
+			: des(l_des),count(l_count)
+		{
+		}
+
+		ACAdapterInfo(const ACAdapterInfo &rhs)
+			: des(rhs.des),count(rhs.count) { }
+
+		Rpc::Data *Clone() const { return new ACAdapterInfo(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const ACAdapterInfo *r = dynamic_cast<const ACAdapterInfo *>(&rhs);
+			if (r && r != this)
+			{
+				des = r->des;
+				count = r->count;
+			}
+			return *this;
+		}
+
+		ACAdapterInfo& operator = (const ACAdapterInfo &rhs)
+		{
+			const ACAdapterInfo *r = &rhs;
+			if (r && r != this)
+			{
+				des = r->des;
+				count = r->count;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << des;
+			os << count;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> des;
+			os >> count;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<ACAdapterInfo>	ACAdapterInfoVector;
+};
+#endif

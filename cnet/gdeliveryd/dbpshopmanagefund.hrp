@@ -1,0 +1,73 @@
+#ifndef __GNET_DBPSHOPMANAGEFUND_HPP
+#define __GNET_DBPSHOPMANAGEFUND_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbpshopmanagefundarg"
+#include "dbpshopmanagefundres"
+#include "pshopmanagefund_re.hpp"
+#include "dbpshopget.hrp"
+#include "pshopmarket.h"
+
+namespace GNET
+{
+
+class DBPShopManageFund : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbpshopmanagefund"
+#undef	RPC_BASECLASS
+
+	unsigned int save_gsid;
+	unsigned int save_linksid;
+	unsigned int save_localsid;
+
+	void SyncGameServer(int roleid, int retcode, const GMailSyncData& data)
+    {
+		GProviderServer::GetInstance()->DispatchProtocol(save_gsid, GMailEndSync(0, retcode, roleid, data));
+	}
+	void SendResult(int retcode, int money, int yinpiao)
+	{
+		GDeliveryServer::GetInstance()->Send(save_linksid, PShopManageFund_Re(retcode, save_localsid, money, yinpiao));
+	}
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid) {}
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBPShopManageFundArg *arg = (DBPShopManageFundArg *)argument;
+		DBPShopManageFundRes *res = (DBPShopManageFundRes *)result;
+		LOG_TRACE("DBPShopManageFund: RPC return, roleid=%d retcode=%d", arg->roleid, res->retcode);
+		unsigned int yinpiao = 0;
+		if(res->retcode == ERR_SUCCESS)
+		{
+			//注意:这里有可能未缓存店铺数据
+			// 因为店铺过期时仍然可以取钱
+			PShopObj *obj = PShopMarket::GetInstance().GetShop(arg->roleid);
+			if(obj)
+			{
+				obj->SetMoney(res->money);
+				obj->SetYinPiao(res->yinpiao);
+				obj->Trace();
+			}
+
+			//当前店铺银票数
+			for(size_t i=0; i<res->yinpiao.size(); ++i)
+				yinpiao += res->yinpiao[i].count;
+		}
+
+		SendResult(res->retcode, res->money, yinpiao);
+		SyncGameServer(arg->roleid, res->retcode, res->syncdata);
+	}
+
+	void OnTimeout()
+	{
+		DBPShopActiveArg *arg = (DBPShopActiveArg *)argument;
+		Log::log(LOG_ERR,"DBPShopMangeFund: Timeout. roleid=%d.", arg->roleid);
+		SendResult(ERR_TIMEOUT, 0, 0);
+		DBPShopGet::QueryShop(arg->roleid, save_linksid, save_localsid, 3, DBPShopGet::REASON_DB_TIMEOUT);
+	}
+};
+
+};
+#endif

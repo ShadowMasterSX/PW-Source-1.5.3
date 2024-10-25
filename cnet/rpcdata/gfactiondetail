@@ -1,0 +1,120 @@
+#ifndef __GNET_GFACTIONDETAIL_RPCDATA
+#define __GNET_GFACTIONDETAIL_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "fmemberinfo"
+#include "gfactionalliance"
+#include "gfactionhostile"
+#include "gfactionrelationapply"
+
+namespace GNET
+{
+	class GFactionDetail : public GNET::Rpc::Data
+	{
+	public:
+		unsigned int fid;
+		Octets name;
+		char level;
+		unsigned int master;
+		Octets announce;
+		Octets sysinfo;
+		FMemberInfoVector member;
+		int last_op_time;
+		GFactionAllianceVector alliance;
+		GFactionHostileVector hostile;
+		GFactionRelationApplyVector apply;
+
+	public:
+		GFactionDetail (unsigned int l_fid = 0,const Octets& l_name = Octets(0),char l_level = 0
+			,unsigned int l_master = 0,int l_last_op_time = 0,const GFactionAllianceVector& l_alliance = GFactionAllianceVector()
+			,const GFactionHostileVector& l_hostile = GFactionHostileVector(),const GFactionRelationApplyVector& l_apply = GFactionRelationApplyVector())
+			: fid(l_fid),name(l_name),level(l_level)
+			,master(l_master),last_op_time(l_last_op_time),alliance(l_alliance)
+			,hostile(l_hostile),apply(l_apply)
+		{
+		}
+
+		GFactionDetail(const GFactionDetail &rhs)
+			: fid(rhs.fid),name(rhs.name),level(rhs.level),
+			master(rhs.master),announce(rhs.announce),sysinfo(rhs.sysinfo),
+			member(rhs.member),last_op_time(rhs.last_op_time),alliance(rhs.alliance),
+			hostile(rhs.hostile),apply(rhs.apply) { }
+
+		Rpc::Data *Clone() const { return new GFactionDetail(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GFactionDetail *r = dynamic_cast<const GFactionDetail *>(&rhs);
+			if (r && r != this)
+			{
+				fid = r->fid;
+				name = r->name;
+				level = r->level;
+				master = r->master;
+				announce = r->announce;
+				sysinfo = r->sysinfo;
+				member = r->member;
+				last_op_time = r->last_op_time;
+				alliance = r->alliance;
+				hostile = r->hostile;
+				apply = r->apply;
+			}
+			return *this;
+		}
+
+		GFactionDetail& operator = (const GFactionDetail &rhs)
+		{
+			const GFactionDetail *r = &rhs;
+			if (r && r != this)
+			{
+				fid = r->fid;
+				name = r->name;
+				level = r->level;
+				master = r->master;
+				announce = r->announce;
+				sysinfo = r->sysinfo;
+				member = r->member;
+				last_op_time = r->last_op_time;
+				alliance = r->alliance;
+				hostile = r->hostile;
+				apply = r->apply;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << fid;
+			os << name;
+			os << level;
+			os << master;
+			os << announce;
+			os << sysinfo;
+			os << member;
+			os << last_op_time;
+			os << alliance;
+			os << hostile;
+			os << apply;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> fid;
+			os >> name;
+			os >> level;
+			os >> master;
+			os >> announce;
+			os >> sysinfo;
+			os >> member;
+			os >> last_op_time;
+			os >> alliance;
+			os >> hostile;
+			os >> apply;
+			return os;
+		}
+
+	};
+};
+#endif

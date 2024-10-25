@@ -1,0 +1,1 @@
+../../cnet/gamed/gsp_if.h

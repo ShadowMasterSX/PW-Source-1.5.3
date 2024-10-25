@@ -1,0 +1,59 @@
+#ifndef __GNET_INSTANTADDCASHRES_RPCDATA
+#define __GNET_INSTANTADDCASHRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class InstantAddCashRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+
+	public:
+		InstantAddCashRes (int l_retcode = -1)
+			: retcode(l_retcode)
+		{
+		}
+
+		InstantAddCashRes(const InstantAddCashRes &rhs)
+			: retcode(rhs.retcode) { }
+
+		Rpc::Data *Clone() const { return new InstantAddCashRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const InstantAddCashRes *r = dynamic_cast<const InstantAddCashRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		InstantAddCashRes& operator = (const InstantAddCashRes &rhs)
+		{
+			const InstantAddCashRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			return os;
+		}
+
+	};
+};
+#endif

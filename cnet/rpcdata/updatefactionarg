@@ -1,0 +1,77 @@
+#ifndef __GNET_UPDATEFACTIONARG_RPCDATA
+#define __GNET_UPDATEFACTIONARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class UpdateFactionArg : public GNET::Rpc::Data
+	{
+	public:
+		unsigned int fid;
+		char type;
+		char level;
+		Octets announce;
+
+	public:
+		UpdateFactionArg (unsigned int l_fid = 0,char l_type = 0,char l_level = 0
+			,const Octets& l_announce = Octets(0))
+			: fid(l_fid),type(l_type),level(l_level)
+			,announce(l_announce)
+		{
+		}
+
+		UpdateFactionArg(const UpdateFactionArg &rhs)
+			: fid(rhs.fid),type(rhs.type),level(rhs.level),
+			announce(rhs.announce) { }
+
+		Rpc::Data *Clone() const { return new UpdateFactionArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const UpdateFactionArg *r = dynamic_cast<const UpdateFactionArg *>(&rhs);
+			if (r && r != this)
+			{
+				fid = r->fid;
+				type = r->type;
+				level = r->level;
+				announce = r->announce;
+			}
+			return *this;
+		}
+
+		UpdateFactionArg& operator = (const UpdateFactionArg &rhs)
+		{
+			const UpdateFactionArg *r = &rhs;
+			if (r && r != this)
+			{
+				fid = r->fid;
+				type = r->type;
+				level = r->level;
+				announce = r->announce;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << fid;
+			os << type;
+			os << level;
+			os << announce;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> fid;
+			os >> type;
+			os >> level;
+			os >> announce;
+			return os;
+		}
+
+	};
+};
+#endif

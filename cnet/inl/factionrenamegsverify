@@ -1,0 +1,50 @@
+	public:
+		int step;
+		int rid;
+		unsigned int fid;
+		int retcode;
+		Octets newname;
+		Octets oldname;
+		enum { PROTOCOL_TYPE = PROTOCOL_FACTIONRENAMEGSVERIFY };
+	public:
+		FactionRenameGsVerify() { type = PROTOCOL_FACTIONRENAMEGSVERIFY; }
+		FactionRenameGsVerify(void*) : Protocol(PROTOCOL_FACTIONRENAMEGSVERIFY) { }
+		FactionRenameGsVerify (int l_step = -1,int l_rid = -1,unsigned int l_fid = 0,
+			int l_retcode = -1,const Octets& l_newname = Octets(),const Octets& l_oldname = Octets())
+			 : step(l_step),rid(l_rid),fid(l_fid)
+			,retcode(l_retcode),newname(l_newname),oldname(l_oldname)
+		{
+			type = PROTOCOL_FACTIONRENAMEGSVERIFY;
+		}
+
+		FactionRenameGsVerify(const FactionRenameGsVerify &rhs)
+			: Protocol(rhs),step(rhs.step),rid(rhs.rid),fid(rhs.fid)
+			,retcode(rhs.retcode),newname(rhs.newname),oldname(rhs.oldname) { }
+
+		GNET::Protocol *Clone() const { return new FactionRenameGsVerify(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << step;
+			os << rid;
+			os << fid;
+			os << retcode;
+			os << newname;
+			os << oldname;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> step;
+			os >> rid;
+			os >> fid;
+			os >> retcode;
+			os >> newname;
+			os >> oldname;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 256; }

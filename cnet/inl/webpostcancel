@@ -1,0 +1,59 @@
+	public:
+		int userid;
+		int64_t roleid;
+		int64_t sn;
+		int ctype;
+		int64_t messageid;
+		int64_t timestamp;
+		int reserved1;
+		int reserved2;
+		enum { PROTOCOL_TYPE = PROTOCOL_WEBPOSTCANCEL };
+	public:
+		WebPostCancel() { type = PROTOCOL_WEBPOSTCANCEL; }
+		WebPostCancel(void*) : Protocol(PROTOCOL_WEBPOSTCANCEL) { }
+		WebPostCancel (int l_userid,int64_t l_roleid,int64_t l_sn,
+			int l_ctype,int64_t l_messageid,int64_t l_timestamp,
+			int l_reserved1 = 0,int l_reserved2 = 0)
+			 : userid(l_userid),roleid(l_roleid),sn(l_sn)
+			,ctype(l_ctype),messageid(l_messageid),timestamp(l_timestamp)
+			,reserved1(l_reserved1),reserved2(l_reserved2)
+		{
+			type = PROTOCOL_WEBPOSTCANCEL;
+		}
+
+		WebPostCancel(const WebPostCancel &rhs)
+			: Protocol(rhs),userid(rhs.userid),roleid(rhs.roleid),sn(rhs.sn)
+			,ctype(rhs.ctype),messageid(rhs.messageid),timestamp(rhs.timestamp)
+			,reserved1(rhs.reserved1),reserved2(rhs.reserved2) { }
+
+		GNET::Protocol *Clone() const { return new WebPostCancel(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			os << roleid;
+			os << sn;
+			os << ctype;
+			os << messageid;
+			os << timestamp;
+			os << reserved1;
+			os << reserved2;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			os >> roleid;
+			os >> sn;
+			os >> ctype;
+			os >> messageid;
+			os >> timestamp;
+			os >> reserved1;
+			os >> reserved2;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 128; }

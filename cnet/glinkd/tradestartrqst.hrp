@@ -1,0 +1,54 @@
+
+#ifndef __GNET_TRADESTARTRQST_HPP
+#define __GNET_TRADESTARTRQST_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "tradestartrqstarg"
+#include "tradestartrqstres"
+#include "glinkserver.hpp"
+
+namespace GNET
+{
+
+class TradeStartRqst : public ProxyRpc
+{
+#define	RPC_BASECLASS	ProxyRpc
+	#include "tradestartrqst"
+#undef	RPC_BASECLASS
+
+	bool Delivery(Manager::Session::ID proxy_sid, const OctetsStream& osArg)
+	{
+		TradeStartRqstArg arg;
+		osArg >> arg;
+		if( GLinkServer::GetInstance()->Send(arg.localsid, *this ) )
+		{
+			DEBUG_PRINT("glinkd::tradestartrqst:send rpc to client successfully\n");
+			return true;
+		}
+		else
+		{
+			SetResult(TradeStartRqstRes(ERR_DELIVER_SEND));
+			SendToSponsor();
+			return false;
+		}
+	}
+
+	void PostProcess(Manager::Session::ID proxy_sid,const OctetsStream& osArg, const OctetsStream& osRes)
+	{
+		// TradeStartRqstArg arg;
+		// osArg >> arg;
+		// TradeStartRqstRes res;
+		// osRes >> res;
+		// SetResult( &res ); // if you modified res, do not forget to call this. 
+	}
+
+	void OnTimeout( )
+	{
+	}
+
+};
+
+};
+#endif

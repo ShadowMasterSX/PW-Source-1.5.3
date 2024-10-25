@@ -1,0 +1,65 @@
+#ifndef __GNET_DBAUTOLOCKSETOFFLINEARG_RPCDATA
+#define __GNET_DBAUTOLOCKSETOFFLINEARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gpair"
+
+namespace GNET
+{
+	class DBAutolockSetOfflineArg : public GNET::Rpc::Data
+	{
+	public:
+		int userid;
+		std::vector<GPair> autolockdiff;
+
+	public:
+		DBAutolockSetOfflineArg (std::vector<GPair> l_autolockdiff = std::vector<GPair>())
+			: autolockdiff(l_autolockdiff)
+		{
+		}
+
+		DBAutolockSetOfflineArg(const DBAutolockSetOfflineArg &rhs)
+			: userid(rhs.userid),autolockdiff(rhs.autolockdiff) { }
+
+		Rpc::Data *Clone() const { return new DBAutolockSetOfflineArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBAutolockSetOfflineArg *r = dynamic_cast<const DBAutolockSetOfflineArg *>(&rhs);
+			if (r && r != this)
+			{
+				userid = r->userid;
+				autolockdiff = r->autolockdiff;
+			}
+			return *this;
+		}
+
+		DBAutolockSetOfflineArg& operator = (const DBAutolockSetOfflineArg &rhs)
+		{
+			const DBAutolockSetOfflineArg *r = &rhs;
+			if (r && r != this)
+			{
+				userid = r->userid;
+				autolockdiff = r->autolockdiff;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			os << autolockdiff;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			os >> autolockdiff;
+			return os;
+		}
+
+	};
+};
+#endif

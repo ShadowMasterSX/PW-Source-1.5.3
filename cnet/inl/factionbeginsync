@@ -1,0 +1,35 @@
+	public:
+		unsigned int tid;
+		int roleid;
+		enum { PROTOCOL_TYPE = PROTOCOL_FACTIONBEGINSYNC };
+	public:
+		FactionBeginSync() { type = PROTOCOL_FACTIONBEGINSYNC; }
+		FactionBeginSync(void*) : Protocol(PROTOCOL_FACTIONBEGINSYNC) { }
+		FactionBeginSync (unsigned int l_tid,int l_roleid)
+			 : tid(l_tid),roleid(l_roleid)
+		{
+			type = PROTOCOL_FACTIONBEGINSYNC;
+		}
+
+		FactionBeginSync(const FactionBeginSync &rhs)
+			: Protocol(rhs),tid(rhs.tid),roleid(rhs.roleid) { }
+
+		GNET::Protocol *Clone() const { return new FactionBeginSync(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << tid;
+			os << roleid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> tid;
+			os >> roleid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 128; }

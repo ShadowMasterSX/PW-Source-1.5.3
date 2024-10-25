@@ -1,0 +1,77 @@
+#ifndef __GNET_FREEZEPLAYERDATAARG_RPCDATA
+#define __GNET_FREEZEPLAYERDATAARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class FreezePlayerDataArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		int remote_roleid;
+		int userid;
+		int remote_zoneid;
+
+	public:
+		FreezePlayerDataArg (int l_roleid = 0,int l_remote_roleid = 0,int l_userid = 0
+			,int l_remote_zoneid = 0)
+			: roleid(l_roleid),remote_roleid(l_remote_roleid),userid(l_userid)
+			,remote_zoneid(l_remote_zoneid)
+		{
+		}
+
+		FreezePlayerDataArg(const FreezePlayerDataArg &rhs)
+			: roleid(rhs.roleid),remote_roleid(rhs.remote_roleid),userid(rhs.userid),
+			remote_zoneid(rhs.remote_zoneid) { }
+
+		Rpc::Data *Clone() const { return new FreezePlayerDataArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const FreezePlayerDataArg *r = dynamic_cast<const FreezePlayerDataArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				remote_roleid = r->remote_roleid;
+				userid = r->userid;
+				remote_zoneid = r->remote_zoneid;
+			}
+			return *this;
+		}
+
+		FreezePlayerDataArg& operator = (const FreezePlayerDataArg &rhs)
+		{
+			const FreezePlayerDataArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				remote_roleid = r->remote_roleid;
+				userid = r->userid;
+				remote_zoneid = r->remote_zoneid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << remote_roleid;
+			os << userid;
+			os << remote_zoneid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> remote_roleid;
+			os >> userid;
+			os >> remote_zoneid;
+			return os;
+		}
+
+	};
+};
+#endif

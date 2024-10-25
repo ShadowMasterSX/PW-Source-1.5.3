@@ -1,0 +1,47 @@
+
+#ifndef __GNET_GETFACTIONFORTRESS_HPP
+#define __GNET_GETFACTIONFORTRESS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "getfactionfortressarg"
+#include "getfactionfortressres"
+
+#include "factionfortressmanager.h"
+
+namespace GNET
+{
+
+class GetFactionFortress : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getfactionfortress"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		GetFactionFortressArg *arg = (GetFactionFortressArg *)argument;
+		GetFactionFortressRes *res = (GetFactionFortressRes *)result;
+		
+		res->retcode = FactionFortressMan::GetInstance().GameGetFortress(arg->factionid, res->detail);
+		DEBUG_PRINT("GetFactionFortress: receive. factionid=%d retcode=%d\n",arg->factionid,res->retcode);
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// GetFactionFortressArg *arg = (GetFactionFortressArg *)argument;
+		// GetFactionFortressRes *res = (GetFactionFortressRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

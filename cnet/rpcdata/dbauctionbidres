@@ -1,0 +1,97 @@
+#ifndef __GNET_DBAUCTIONBIDRES_RPCDATA
+#define __GNET_DBAUCTIONBIDRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailheader"
+#include "gmailsyncdata"
+
+namespace GNET
+{
+	class DBAuctionBidRes : public GNET::Rpc::Data
+	{
+	public:
+		unsigned char retcode;
+		unsigned int bidprice;
+		GMailHeader inform_seller;
+		GMailHeader inform_loser;
+		GMailHeader inform_winner;
+		int extend_time;
+		GMailSyncData syncdata;
+
+	public:
+		DBAuctionBidRes (unsigned char l_retcode = 0,unsigned int l_bidprice = 0,const GMailHeader& l_inform_seller = GMailHeader()
+			,const GMailHeader& l_inform_loser = GMailHeader(),const GMailHeader& l_inform_winner = GMailHeader(),int l_extend_time = 0
+			,const GMailSyncData& l_syncdata = GMailSyncData())
+			: retcode(l_retcode),bidprice(l_bidprice),inform_seller(l_inform_seller)
+			,inform_loser(l_inform_loser),inform_winner(l_inform_winner),extend_time(l_extend_time)
+			,syncdata(l_syncdata)
+		{
+		}
+
+		DBAuctionBidRes(const DBAuctionBidRes &rhs)
+			: retcode(rhs.retcode),bidprice(rhs.bidprice),inform_seller(rhs.inform_seller),
+			inform_loser(rhs.inform_loser),inform_winner(rhs.inform_winner),extend_time(rhs.extend_time),
+			syncdata(rhs.syncdata) { }
+
+		Rpc::Data *Clone() const { return new DBAuctionBidRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBAuctionBidRes *r = dynamic_cast<const DBAuctionBidRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				bidprice = r->bidprice;
+				inform_seller = r->inform_seller;
+				inform_loser = r->inform_loser;
+				inform_winner = r->inform_winner;
+				extend_time = r->extend_time;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		DBAuctionBidRes& operator = (const DBAuctionBidRes &rhs)
+		{
+			const DBAuctionBidRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				bidprice = r->bidprice;
+				inform_seller = r->inform_seller;
+				inform_loser = r->inform_loser;
+				inform_winner = r->inform_winner;
+				extend_time = r->extend_time;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << bidprice;
+			os << inform_seller;
+			os << inform_loser;
+			os << inform_winner;
+			os << extend_time;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> bidprice;
+			os >> inform_seller;
+			os >> inform_loser;
+			os >> inform_winner;
+			os >> extend_time;
+			os >> syncdata;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,50 @@
+
+#ifndef __GNET_DBGAMETALKROLEINFO_HPP
+#define __GNET_DBGAMETALKROLEINFO_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbgametalkroleinfoarg"
+#include "dbgametalkroleinfores"
+#include "log.h"
+#include "roleinforesp.hpp"
+
+namespace GNET
+{
+
+class DBGameTalkRoleInfo : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbgametalkroleinfo"
+#undef	RPC_BASECLASS
+	int64_t localuid;
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBGameTalkRoleInfoArg *arg = (DBGameTalkRoleInfoArg *)argument;
+		// DBGameTalkRoleInfoRes *res = (DBGameTalkRoleInfoRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBGameTalkRoleInfoArg *arg = (DBGameTalkRoleInfoArg *)argument;
+		DBGameTalkRoleInfoRes *res = (DBGameTalkRoleInfoRes *)result;
+		if(res->retcode != ERR_SUCCESS) return;
+		RoleInfoResp resp;
+		resp.localuid = localuid;
+		resp.roleinfo = res->info;
+		if(!GameTalkClient::GetInstance()->SendProtocol(resp))
+			Log::log(LOG_ERR, "DBGameTalkRoleInfo send RoleInfoResp failed.");
+	}
+
+	void OnTimeout()
+	{
+		Log::log(LOG_ERR, "DBGameTalkRoleInfo timeout.");
+	}
+
+};
+
+};
+#endif

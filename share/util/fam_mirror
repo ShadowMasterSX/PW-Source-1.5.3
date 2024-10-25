@@ -1,0 +1,222 @@
+#!/usr/bin/perl
+# Author: Atif Ghaffar <atif@developer.ch>
+# version 0.1
+# You may find the later versions of this program at
+# http://atif.developer.ch
+
+
+use strict;
+BEGIN {
+	my $usage=qq|
+	Normal USAGE:
+	----------------
+	$0 directory [directory2] [directory3] ... [directoryN]
+
+	To create a set of identical directories on the remote host if they dont exists
+	-------------------------------------------------------------------------------
+	CREATE_DIRS=1  $0 localdir1 host1:dir,host2:dir [localdir2 host1:dir,host3:dir] ...
+
+	To mirror all files to the remote host. This can be done as the initial setup.
+	------------------------------------------------------------------------------
+	INIT_MIRROR=1 $0 localdir1 host1:dir,host2:dir [localdir2 host1:dir,host3:dir] ...
+
+	To have VERBOSE messages about what this script is doing
+	--------------------------------------------------------
+	DEBUG=1 [INIT_MIRROR=1] [CREATE_DIRS=1]  $0 localdir1 host1:dir,host2:dir [localdir2 host1:dir,host3:dir]
+	\n|;
+	if (@ARGV > 1){
+	} else {
+		# show the usage unless a directory is speocified
+		print $usage;
+		exit;
+	}
+}
+use vars qw($directory $cmd $event $dir $file $filepath $dirname);
+use POSIX qw(setsid);
+use Time::Local 'timelocal_nocheck';
+
+if (fork()) { exit(0); }
+setsid();
+if (fork()) { exit(0); }
+
+#load some modules.
+use File::PathConvert qw(realpath);
+use File::Basename;
+use File::Find;
+use SGI::FAM;
+
+#start a fam object
+my $fam=new SGI::FAM;
+my $event;
+
+#define the rsh command. This could be rsh, ssh or whatever
+my $rsh="rsh "; #"ssh -l root ";
+#define the rsync command with the flags that you want
+my $rsync="rsync -rlopgztC -e 'rsh' "; #"rsync -rlopgztC --delete  -e 'ssh -l root' ";
+
+#fill up the @directories list
+my @directories;
+my %hosts;
+my %hostsdir;
+my $i;
+for( $i=0; $i+1<@ARGV; $i += 2 )
+{
+	my $dir = $ARGV[$i];
+	if( -d $dir && -e $dir )
+	{
+		$dir = realpath($dir);
+		push( @directories, $dir );
+
+		my @h;
+		my @hhd = split( ",", $ARGV[$i+1] );
+		foreach( @hhd )
+		{ my @temp = split(":",$_); push(@h,$temp[0]); $hostsdir{$dir . '-' . $temp[0]} = $temp[1]; }
+		$hosts{$dir} = \@h;
+	}
+}
+
+for (@directories){
+	#convert symlinks to realpath
+	my $dir = $_;
+
+	#get some stats about this directory
+	my ($dev,$ino,$mode,$nlink,$uid,$gid) = stat($dir);
+	$mode=sprintf "%04o", $mode & 07777; 
+
+	#create identical directories on replica hosts if environment variable CREATE_DIRS is set.
+	if ($ENV{'CREATE_DIRS'} || $ENV{'INIT_MIRROR'}){
+		for my $host(@{$hosts{$dir}} ){
+			my $hostdir = $hostsdir{$dir . '-' . $host};
+			$cmd="$rsh $host 'mkdir -p $hostdir; chmod $mode $hostdir; chown $uid.$gid $hostdir'";
+			print scalar localtime time if $ENV{'DEBUG'};
+			print " $cmd\n" if $ENV{'DEBUG'};
+			system ("$cmd 2>/dev/null");
+		}
+	}
+
+	if ($ENV{'INIT_MIRROR'}){
+		for my $host(@{$hosts{$dir}} ){
+			my $hostdir = $hostsdir{$dir . '-' . $host};
+			my $hostdirdir=dirname($hostdir); 
+			$cmd ="$rsync $dir $host:$hostdirdir/";
+			system ("$cmd 2>/dev/null");
+			print scalar localtime time if $ENV{'DEBUG'};
+			print " $cmd\n"  if $ENV{'DEBUG'};
+		}
+	}
+
+	print scalar localtime time if $ENV{'DEBUG'};
+	print " setting monitor on $dir @{$hosts{$dir}}\n"  if $ENV{'DEBUG'};
+	$fam->monitor($dir);
+}
+
+# now running the main loop which will recieve events from fam
+# this should actually be forked into a background process.
+# for the timebeing you can run it with & 
+# perhaps I will use POE at somepoint with this
+
+while (1) {
+	do {
+		$event=$fam->next_event;
+		$dir=$fam->which($event);
+		$file=$event->filename;
+		#dont copy swap files
+		next if $file=~/(\.swp|\~)$/;
+		if ($dir eq $file){
+			$file="";
+		}
+
+		($dir, $file) = resolvedirfile( $dir, $file );
+
+		#set correct filename. dir/file
+		my $filepath="$dir/$file";
+
+		#remove multiple / from filepath
+		$filepath=~s/\/+/\//g;
+	
+		next if ( $event->type =~/(end_exist)$/ );
+
+		# if the file or directory is deleted
+		# then delete it on the server too
+		# This needs some testing
+		if ($event->type =~/^(delete)$/)
+		{
+			for my $host(@{$hosts{$dir}} ){
+				my $hostdir = $hostsdir{$dir . '-' . $host};
+				my $hostfilepath = "$hostdir/$file";
+				$hostfilepath=~s/\/+/\//g;
+				my $hostdirname = dirname($hostfilepath); 
+
+				$cmd="$rsh $host 'rm -rf $hostfilepath'";
+				print scalar localtime time if $ENV{'DEBUG'};
+				print " $cmd\n"  if $ENV{'DEBUG'}; 
+				system ("$cmd 2>&1 >/dev/null");
+			}
+
+			if( -d $filepath )
+			{
+				print scalar localtime time if $ENV{'DEBUG'};
+				print " cancel monitor on " . realpath($filepath) . "\n"
+						if $ENV{'DEBUG'};
+				$fam->cancel( realpath($filepath) );
+			}
+		}
+		
+		if ($event->type =~/^(create|change)$/)
+		{
+			for my $host(@{$hosts{$dir}} ){
+				my $hostdir = $hostsdir{$dir . '-' . $host};
+				my $hostfilepath = "$hostdir/$file";
+				$hostfilepath=~s/\/+/\//g;
+				my $hostdirname=dirname($hostfilepath); 
+
+				$cmd="$rsync $filepath $host:$hostdirname/";
+				print scalar localtime time if $ENV{'DEBUG'};
+				print " $cmd\n"  if $ENV{'DEBUG'};
+				system ("$cmd 2>&1 >/dev/null");
+			}
+
+		}
+
+		if ( $event->type =~/(create|exist)$/ and -d $filepath )
+		{
+			print scalar localtime time if $ENV{'DEBUG'};
+			print " setting monitor on " . realpath($filepath) . "\n" if $ENV{'DEBUG'};
+			$fam->monitor( realpath($filepath) );
+		}
+
+	} while $fam->pending;
+}
+
+
+sub resolvedirfile
+{
+	my ( $dir, $file ) = @_;
+
+	for( @directories )
+	{
+		my $temp = $_;
+		if( $dir =~/$temp\// )
+		{
+			$dir =~s/$temp\///;
+			$file= "$dir/$file";
+			$file=~s/\/+/\//g;
+			$dir = $temp;
+			return ($dir, $file);
+		}
+	}
+
+	return ($dir, $file);
+}
+
+__END__
+
+
+For more info see
+perldoc
+	SGI::FAM
+Man pages
+	fam(1m)
+	fam(3x)
+	monitor(1)
+

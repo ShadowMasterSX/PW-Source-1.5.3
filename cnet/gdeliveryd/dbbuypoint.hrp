@@ -1,0 +1,36 @@
+
+#ifndef __GNET_DBBUYPOINT_HPP
+#define __GNET_DBBUYPOINT_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "dbbuypointarg"
+#include "dbbuypointres"
+
+
+namespace GNET
+{
+
+class DBBuyPoint : public ProxyRpc
+{
+#define	RPC_BASECLASS	ProxyRpc
+	#include "dbbuypoint"
+#undef	RPC_BASECLASS
+	bool Delivery(Manager::Session::ID proxy_sid, const OctetsStream& osArg)
+	{
+		return false;
+	}
+
+	void PostProcess(Manager::Session::ID proxy_sid,const OctetsStream& osArg, const OctetsStream& osRes)
+	{
+	}
+
+	void OnTimeout( const OctetsStream& osArg )
+	{
+	}
+
+};
+
+};
+#endif

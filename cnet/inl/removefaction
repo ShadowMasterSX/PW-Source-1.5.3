@@ -1,0 +1,32 @@
+	public:
+		FactionIDBean factionid;
+		enum { PROTOCOL_TYPE = PROTOCOL_REMOVEFACTION };
+	public:
+		RemoveFaction() { type = PROTOCOL_REMOVEFACTION; }
+		RemoveFaction(void*) : Protocol(PROTOCOL_REMOVEFACTION) { }
+		RemoveFaction (const FactionIDBean& l_factionid)
+			 : factionid(l_factionid)
+		{
+			type = PROTOCOL_REMOVEFACTION;
+		}
+
+		RemoveFaction(const RemoveFaction &rhs)
+			: Protocol(rhs),factionid(rhs.factionid) { }
+
+		GNET::Protocol *Clone() const { return new RemoveFaction(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << factionid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> factionid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

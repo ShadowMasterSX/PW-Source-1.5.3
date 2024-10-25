@@ -1,0 +1,66 @@
+#ifndef __GNET_DBROLEDETAIL_RPCDATA
+#define __GNET_DBROLEDETAIL_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "roleinfobean"
+#include "roleforbidbean"
+
+namespace GNET
+{
+	class DBRoleDetail : public GNET::Rpc::Data
+	{
+	public:
+		RoleInfoBean info;
+		RoleForbidBean forbid;
+
+	public:
+		DBRoleDetail ()
+		{
+		}
+
+		DBRoleDetail(const DBRoleDetail &rhs)
+			: info(rhs.info),forbid(rhs.forbid) { }
+
+		Rpc::Data *Clone() const { return new DBRoleDetail(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBRoleDetail *r = dynamic_cast<const DBRoleDetail *>(&rhs);
+			if (r && r != this)
+			{
+				info = r->info;
+				forbid = r->forbid;
+			}
+			return *this;
+		}
+
+		DBRoleDetail& operator = (const DBRoleDetail &rhs)
+		{
+			const DBRoleDetail *r = &rhs;
+			if (r && r != this)
+			{
+				info = r->info;
+				forbid = r->forbid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << info;
+			os << forbid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> info;
+			os >> forbid;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<DBRoleDetail>	DBRoleDetailVector;
+};
+#endif

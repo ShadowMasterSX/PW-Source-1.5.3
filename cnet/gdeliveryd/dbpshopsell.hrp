@@ -1,0 +1,73 @@
+#ifndef __GNET_DBPSHOPSELL_HPP
+#define __GNET_DBPSHOPSELL_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbpshopsellarg"
+#include "dbpshopsellres"
+
+#include "gdeliveryserver.hpp"
+#include "gproviderserver.hpp"
+#include "pshopsell_re.hpp"
+#include "dbpshopget.hrp"
+#include "pshopmarket.h"
+
+namespace GNET
+{
+
+class DBPShopSell : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbpshopsell"
+#undef	RPC_BASECLASS
+
+	unsigned int save_gsid;
+	unsigned int save_linksid;
+	unsigned int save_localsid;
+
+	void SendResult(int retcode, const DBPShopSellArg *arg, const PShopItem &itemsell)
+	{
+		GDeliveryServer::GetInstance()->Send(save_linksid, PShopSell_Re(retcode,
+																		save_localsid,
+																		arg->item_id,
+																		arg->item_pos,
+																		arg->item_count,
+																		arg->item_price,
+																		arg->inv_pos,
+																		itemsell));
+	}
+	void SyncGameServer(int roleid, int retcode, const GMailSyncData& data)
+	{
+		GProviderServer::GetInstance()->DispatchProtocol(save_gsid, GMailEndSync(0, retcode, roleid, data));
+	}
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid) {}
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBPShopSellArg *arg = (DBPShopSellArg *)argument;
+		DBPShopSellRes *res = (DBPShopSellRes *)result;
+		LOG_TRACE("DBPShopSell: RPC return, roleid=%d retcode=%d", arg->roleid, res->retcode);
+		if(res->retcode == ERR_SUCCESS)
+		{
+			PShopMarket::GetInstance().OnAddItemSale(arg->roleid, res->itemsell);
+			PShopMarket::GetInstance().GetShop(arg->roleid)->Trace();
+			PShopMarket::GetInstance().Trace();
+		}
+
+		SendResult(res->retcode, arg, res->itemsell);
+		SyncGameServer(arg->roleid, res->retcode, res->syncdata);
+	}
+
+	void OnTimeout()
+	{
+		DBPShopSellArg *arg = (DBPShopSellArg *)argument;
+		Log::log(LOG_ERR,"DBPShopSell: Timeout. roleid=%d.", arg->roleid);
+		SendResult(ERR_TIMEOUT, arg, PShopItem());
+		DBPShopGet::QueryShop(arg->roleid, save_linksid, save_localsid, 3, DBPShopGet::REASON_DB_TIMEOUT);
+	}
+
+};
+
+};
+#endif

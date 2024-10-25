@@ -1,0 +1,59 @@
+	public:
+		int retcode;
+		int country_id;
+		int country_invalid_timestamp;
+		int capital_worldtag;
+		float capital_posx;
+		float capital_posy;
+		float capital_posz;
+		std::vector<CountryBattleApplyEntry> list;
+		enum { PROTOCOL_TYPE = PROTOCOL_COUNTRYBATTLEAPPLY_RE };
+	public:
+		CountryBattleApply_Re() { type = PROTOCOL_COUNTRYBATTLEAPPLY_RE; }
+		CountryBattleApply_Re(void*) : Protocol(PROTOCOL_COUNTRYBATTLEAPPLY_RE) { }
+		CountryBattleApply_Re (int l_retcode,int l_country_id,int l_country_invalid_timestamp,
+			int l_capital_worldtag,float l_capital_posx,float l_capital_posy,
+			float l_capital_posz,const std::vector<CountryBattleApplyEntry>& l_list)
+			 : retcode(l_retcode),country_id(l_country_id),country_invalid_timestamp(l_country_invalid_timestamp)
+			,capital_worldtag(l_capital_worldtag),capital_posx(l_capital_posx),capital_posy(l_capital_posy)
+			,capital_posz(l_capital_posz),list(l_list)
+		{
+			type = PROTOCOL_COUNTRYBATTLEAPPLY_RE;
+		}
+
+		CountryBattleApply_Re(const CountryBattleApply_Re &rhs)
+			: Protocol(rhs),retcode(rhs.retcode),country_id(rhs.country_id),country_invalid_timestamp(rhs.country_invalid_timestamp)
+			,capital_worldtag(rhs.capital_worldtag),capital_posx(rhs.capital_posx),capital_posy(rhs.capital_posy)
+			,capital_posz(rhs.capital_posz),list(rhs.list) { }
+
+		GNET::Protocol *Clone() const { return new CountryBattleApply_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << country_id;
+			os << country_invalid_timestamp;
+			os << capital_worldtag;
+			os << capital_posx;
+			os << capital_posy;
+			os << capital_posz;
+			os << list;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> country_id;
+			os >> country_invalid_timestamp;
+			os >> capital_worldtag;
+			os >> capital_posx;
+			os >> capital_posy;
+			os >> capital_posz;
+			os >> list;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 512; }

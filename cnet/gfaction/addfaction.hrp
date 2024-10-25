@@ -1,0 +1,73 @@
+
+#ifndef __GNET_ADDFACTION_HPP
+#define __GNET_ADDFACTION_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "operations/operwrapper.h"
+
+#include "addfactionarg"
+#include "addfactionres"
+#include "factiondb.h"
+#include "gametalkdefs.h"
+#include "factionmemberupdate.hpp"
+#include "log.h"
+#include "ids.hxx"
+
+namespace GNET
+{
+
+class AddFaction : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "addfaction"
+#undef	RPC_BASECLASS
+
+	OperWrapper::wref_t oper;
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		AddFactionArg* arg= (AddFactionArg*) argument;
+		AddFactionRes* res = (AddFactionRes*)result;
+		OperWrapper::href_t ref(oper);
+		if(ref)
+		{
+			ref->SetResult(result);
+			ref->Execute();
+		}
+		if ( res->retcode==ERR_SUCCESS ) {
+			Factiondb::GetInstance()->ObtainFactionInfo(arg->fid);
+
+			GFactionServer *server = GFactionServer::GetInstance();
+			{
+				FactionMemberUpdate update;
+				update.factionid.ftype = GT_FACTION_TYPE;
+				update.factionid.factionid = (int64_t)arg->fid;
+				RoleBean role;
+				role.info.roleid = (int64_t)arg->rid;
+				update.titleid = _R_MASTER;
+				update.roles.push_back(role);
+				update.operation = GT_FACTION_MEMBER_ADD;
+				if(!server->DispatchProtocol(0, update)) {
+					Log::log(LOG_ERR, "AddFaction Send FactionMemberUpdate failed.");
+				}
+			}
+
+		}
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		AddFactionArg *arg = (AddFactionArg *)argument;
+		Log::log(LOG_ERR,"AddFaction, timeout roleid=%d,factionid=%d.", arg->rid, arg->fid);
+		Factiondb::GetInstance()->ObtainFactionInfo(arg->fid);
+	}
+
+};
+
+};
+#endif

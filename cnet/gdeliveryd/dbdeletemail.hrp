@@ -1,0 +1,81 @@
+
+#ifndef __GNET_DBDELETEMAIL_HPP
+#define __GNET_DBDELETEMAIL_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "gmailid"
+#include "dbdeletemailarg"
+#include "gmaildefres"
+#include "deletemail_re.hpp"
+#include "gdeliveryserver.hpp"
+#include "postoffice.h"
+#include "mapuser.h"
+namespace GNET
+{
+
+class DBDeleteMail : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbdeletemail"
+#undef	RPC_BASECLASS
+	unsigned int save_linksid;
+	unsigned int save_localsid;
+	bool         need_send2client;
+	typedef std::vector<unsigned char> maillist_t;
+	void SendResult( int retcode,int roleid,maillist_t& maillist )
+	{
+		if ( maillist.size()==0 ) return;
+		Thread::RWLock::RDScoped l(UserContainer::GetInstance().GetLocker());
+		PlayerInfo * pinfo = UserContainer::GetInstance().FindRoleOnline( roleid );
+		if ( NULL!=pinfo)
+		{
+			for (size_t i=0;i<maillist.size();++i)
+				GDeliveryServer::GetInstance()->Send(
+					save_linksid,
+					DeleteMail_Re( retcode,roleid,save_localsid,maillist[i] )
+				);
+		}
+	}
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBDeleteMailArg *arg = (DBDeleteMailArg *)argument;
+		// GMailDefRes *res = (GMailDefRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBDeleteMailArg *arg = (DBDeleteMailArg *)argument;
+		GMailDefRes *res = (GMailDefRes *)result;
+		
+		if ( res->retcode==ERR_SUCCESS )
+		{
+			for ( size_t i=0;i<arg->mailid.size();++i )
+			{
+				PostOffice::GetInstance().DeleteMail( arg->roleid,arg->mailid[i] );
+				DEBUG_PRINT("dbdeletemail: rpc return. retcode=%d,roleid=%d,mail_id=%d,localsid=%d\n",
+					res->retcode,arg->roleid,arg->mailid[i],save_localsid);
+			}
+		}
+		else
+			DEBUG_PRINT("dbdeletemail: rpc return. retcode=%d,roleid=%d,localsid=%d\n",
+					res->retcode,arg->roleid,save_localsid);
+		if ( need_send2client || res->retcode==ERR_SUCCESS )
+			SendResult(	res->retcode,arg->roleid,arg->mailid ); //if success, announce client, ignore need_send2client
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		DBDeleteMailArg *arg = (DBDeleteMailArg *)argument;
+		Log::log(LOG_ERR,"dbdeletemail: timeout. roleid=%d,localsid=%d",
+				arg->roleid,save_localsid);
+		if (need_send2client)
+			SendResult( ERR_TIMEOUT,arg->roleid,arg->mailid );
+	}
+
+};
+
+};
+#endif

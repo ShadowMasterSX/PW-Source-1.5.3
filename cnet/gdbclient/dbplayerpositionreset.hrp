@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBPLAYERPOSITIONRESET_HPP
+#define __GNET_DBPLAYERPOSITIONRESET_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbplayerpositionresetarg"
+#include "dbplayerpositionresetres"
+
+namespace GNET
+{
+
+class DBPlayerPositionReset : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbplayerpositionreset"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBPlayerPositionResetArg *arg = (DBPlayerPositionResetArg *)argument;
+		// DBPlayerPositionResetRes *res = (DBPlayerPositionResetRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBPlayerPositionResetArg *arg = (DBPlayerPositionResetArg *)argument;
+		// DBPlayerPositionResetRes *res = (DBPlayerPositionResetRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

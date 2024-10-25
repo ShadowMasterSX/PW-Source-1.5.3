@@ -1,0 +1,64 @@
+#ifndef __GNET_GFACTIONRESOURCEBATTLELIMIT_RPCDATA
+#define __GNET_GFACTIONRESOURCEBATTLELIMIT_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GFactionResourceBattleLimit : public GNET::Rpc::Data
+	{
+	public:
+		int faction_id;
+		int limit_mask;
+
+	public:
+		GFactionResourceBattleLimit (int l_faction_id = 0,int l_limit_mask = 0)
+			: faction_id(l_faction_id),limit_mask(l_limit_mask)
+		{
+		}
+
+		GFactionResourceBattleLimit(const GFactionResourceBattleLimit &rhs)
+			: faction_id(rhs.faction_id),limit_mask(rhs.limit_mask) { }
+
+		Rpc::Data *Clone() const { return new GFactionResourceBattleLimit(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GFactionResourceBattleLimit *r = dynamic_cast<const GFactionResourceBattleLimit *>(&rhs);
+			if (r && r != this)
+			{
+				faction_id = r->faction_id;
+				limit_mask = r->limit_mask;
+			}
+			return *this;
+		}
+
+		GFactionResourceBattleLimit& operator = (const GFactionResourceBattleLimit &rhs)
+		{
+			const GFactionResourceBattleLimit *r = &rhs;
+			if (r && r != this)
+			{
+				faction_id = r->faction_id;
+				limit_mask = r->limit_mask;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << faction_id;
+			os << limit_mask;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> faction_id;
+			os >> limit_mask;
+			return os;
+		}
+
+	};
+};
+#endif

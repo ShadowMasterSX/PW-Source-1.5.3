@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBPUTGLOBALCONTROL_HPP
+#define __GNET_DBPUTGLOBALCONTROL_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbputglobalcontrolarg"
+#include "dbputglobalcontrolres"
+
+namespace GNET
+{
+
+class DBPutGlobalControl : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbputglobalcontrol"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBPutGlobalControlArg *arg = (DBPutGlobalControlArg *)argument;
+		// DBPutGlobalControlRes *res = (DBPutGlobalControlRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBPutGlobalControlArg *arg = (DBPutGlobalControlArg *)argument;
+		// DBPutGlobalControlRes *res = (DBPutGlobalControlRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

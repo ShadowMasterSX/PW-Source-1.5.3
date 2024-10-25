@@ -1,0 +1,115 @@
+
+#ifndef __GNET_PUTSERVERDATA_HPP
+#define __GNET_PUTSERVERDATA_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "putserverdataarg"
+#include "localmacro.h"
+
+namespace GNET
+{
+
+class PutServerData : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "putserverdata"
+#undef	RPC_BASECLASS
+	bool SaveData(PutServerDataArg *arg, RpcRetcode *res)
+	{
+		try
+		{
+			StorageEnv::Storage * pserver= StorageEnv::GetStorage("serverdata");
+			StorageEnv::CommonTransaction txn;
+			Marshal::OctetsStream key, value;
+			
+			try
+			{
+				key << arg->world_tag;
+				GServerData data;
+				if(pserver->find(key, value, txn))
+				{
+					value >> data;
+					if(data.world_tag != arg->world_tag)
+					{
+						Log::log(LOG_WARNING, "PutServerData, key.world_tag(%d)!=value.world_tag(%d) modify it.", arg->world_tag, data.world_tag);
+						data.world_tag = arg->world_tag;
+					}
+				}
+				else
+					data.world_tag = arg->world_tag;
+
+				if(arg->data_mask & CDBMASK_SERVERDATA_WEDDING)
+					data.wedding_data.swap(arg->data.wedding_data);
+				if(arg->data_mask & CDBMASK_SERVERDATA_DPSRANK)
+					data.dpsrank_data.swap(arg->data.dpsrank_data);
+
+				pserver->insert(key, Marshal::OctetsStream()<<data, txn);
+
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			res->retcode = ERR_EXCEPTION;
+			if(e.get_errno()==DB_LOCK_DEADLOCK)
+				return false;
+			else
+				Log::log( LOG_ERR, "PutServerData, world_tag=%d, put_mask=%d, what=%s\n", arg->world_tag, arg->data_mask, e.what() );
+		}
+		return true;
+	}
+	
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		PutServerDataArg *arg = (PutServerDataArg *)argument;
+		RpcRetcode *res = (RpcRetcode *)result;
+
+		LOG_TRACE( "PutServerData, world_tag=%d data_mask=%d priority=%d.", arg->world_tag, arg->data_mask, arg->priority);
+
+		int extend = 100000;
+		int retry = arg->priority;
+		if(retry > 2)
+			retry = 2;
+		do
+		{
+			if(SaveData(arg,res) || retry<=0)
+				break;
+			usleep(extend);
+			extend += 900000;
+			retry--;
+		}while(true);
+
+		if(res->retcode != ERR_SUCCESS)
+			Log::log(LOG_ERR, "PutServerData, world_tag=%d data_mask=%d priority=%d retry failed.", arg->world_tag, arg->data_mask, arg->priority);
+		if(arg->priority>1)
+		{
+			Log::formatlog("putserverdata", "world_tag=%d data_mask=%d retcode=%d", arg->world_tag, arg->data_mask, res->retcode);
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// PutServerDataArg *arg = (PutServerDataArg *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

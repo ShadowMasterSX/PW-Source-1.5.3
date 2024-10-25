@@ -1,0 +1,65 @@
+#ifndef __GNET_DBBATTLEENDRES_RPCDATA
+#define __GNET_DBBATTLEENDRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailheader"
+
+namespace GNET
+{
+	class DBBattleEndRes : public GNET::Rpc::Data
+	{
+	public:
+		short retcode;
+		GMailHeader inform_winner;
+
+	public:
+		DBBattleEndRes (short l_retcode = 0,const GMailHeader& l_inform_winner = GMailHeader())
+			: retcode(l_retcode),inform_winner(l_inform_winner)
+		{
+		}
+
+		DBBattleEndRes(const DBBattleEndRes &rhs)
+			: retcode(rhs.retcode),inform_winner(rhs.inform_winner) { }
+
+		Rpc::Data *Clone() const { return new DBBattleEndRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBBattleEndRes *r = dynamic_cast<const DBBattleEndRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				inform_winner = r->inform_winner;
+			}
+			return *this;
+		}
+
+		DBBattleEndRes& operator = (const DBBattleEndRes &rhs)
+		{
+			const DBBattleEndRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				inform_winner = r->inform_winner;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << inform_winner;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> inform_winner;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,61 @@
+
+#ifndef __GNET_GETFACTIONFORTRESS_HPP
+#define __GNET_GETFACTIONFORTRESS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "getfactionfortressarg"
+#include "getfactionfortressres"
+
+#include "factionlib.h"
+
+namespace GNET
+{
+
+void DB2FactionFortressData(int factionid, const GFactionFortressInfo * pData, faction_fortress_data & data);
+void DB2FactionFortressData(int factionid, const GFactionFortressInfo2 * pData, faction_fortress_data2 & data2);
+
+class GetFactionFortress : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getfactionfortress"
+#undef	RPC_BASECLASS
+	FactionFortressResult * _callback;
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// GetFactionFortressArg *arg = (GetFactionFortressArg *)argument;
+		// GetFactionFortressRes *res = (GetFactionFortressRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		//GetFactionFortressArg *arg = (GetFactionFortressArg *)argument;
+		GetFactionFortressRes *res = (GetFactionFortressRes *)result;
+
+		if(res->retcode)
+		{
+			_callback->OnFailed();
+			return;
+		}
+		
+		faction_fortress_data data;
+		faction_fortress_data2 data2;
+		DB2FactionFortressData(res->detail.factionid,&(res->detail.info),data);
+		DB2FactionFortressData(res->detail.factionid,&(res->detail.info2),data2);
+		_callback->OnGetData(&data,&data2);
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+		_callback->OnTimeOut();
+	}
+
+};
+
+};
+#endif

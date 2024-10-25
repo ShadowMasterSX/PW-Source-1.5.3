@@ -1,0 +1,451 @@
+#!/usr/bin/perl
+
+use strict;
+use FileHandle;
+use POSIX ":sys_wait_h";
+
+	my %g_group_hosts = ();
+	my %g_host_groups = ();
+	my @g_service_names;
+	my @g_service_progs;
+	my @g_service_groups;
+	my @g_service_counts;
+
+	print_begintip();
+	reload_config();
+	reload_config_group_hosts();
+	if( @ARGV > 0 )
+	{
+		run_directly();
+	}
+	else
+	{
+		print_usage();
+	}
+
+sub print_begintip
+{
+	my $filename = "No";
+	$filename = '/etc/servicerun.conf' if -f '/etc/servicerun.conf';
+	$filename = './servicerun.conf' if -f './servicerun.conf';
+	print "servicerun 1.0. $filename configuration file loaded.\n";
+}
+
+sub print_usage
+{
+	print "
+Usage: servicerun service1[,service2,...]       run service and keep them alive.
+
+       servicerun [options] service1[,service2,...]
+         options:
+           --start                              run service and keep them alive.
+           --status                             show service status.
+           --stop                               stop services.
+           --restart                            restart services.
+           --all                                all services.
+           --nokeepalive                        run service without keeping alive.
+
+       servicerun [options]
+         options:
+           --status                             show all service status.
+           --service                            list all services.
+           --help                               show help.\n\n";
+}
+
+sub print_help
+{
+	print_usage();
+}
+
+sub print_service
+{
+	print "services list:\n";
+
+	my $count = 0;
+	my $file = new FileHandle;
+	if( $file->open( "< ./servicerun.conf" )
+		or $file->open( "< /etc/servicerun.conf" ) )
+	{
+		my $line;
+		while( $line = $file->getline() )
+		{
+			$line =~ s/#.*$//g;
+			$line =~ s/^\s+//g;
+			if( $line =~ m/\w+/ )
+			{
+				print "\t" . $line;
+				$count ++;
+			}
+		}
+		$file->close();
+		print "No services find in configuration file.\n" if( 0 == $count );
+	}
+	else
+	{
+		print "Configuration file not found: ./servicerun.conf or /etc/servicerun.conf\n";
+	}
+}
+
+sub reload_config
+{
+	@g_service_names = ();
+	@g_service_progs = ();
+	@g_service_groups = ();
+	@g_service_counts = ();
+
+	my $file = new FileHandle;
+	if( $file->open( "< ./servicerun.conf" )
+		or $file->open( "< /etc/servicerun.conf" ) )
+	{
+		my $line;
+		while( $line = $file->getline() )
+		{
+			$line =~ s/#.*$//g;
+			$line =~ s/^\s+//g;
+			my @servicegrpcnt = $line =~ /^([^\,\s]+)\s+([^\,\s]+)\s+([^\s]+.*)\s+(\d+)\s*$/;
+			my $name = $servicegrpcnt[0];
+			my $prog = $servicegrpcnt[1];
+			my @grps = split( /[\,\s]/, $servicegrpcnt[2] );
+			my $count = $servicegrpcnt[3];
+			push( @g_service_names, $name );
+			push( @g_service_progs, $prog );
+			push( @g_service_groups, \@grps );
+			push( @g_service_counts, $count );
+		}
+		$file->close();
+	}
+	else
+	{
+		print "Configuration file not found: ./servicerun.conf or /etc/servicerun.conf\n";
+	}
+}
+
+sub reload_config_group_hosts
+{
+	%g_group_hosts = ();
+
+	my $file = new FileHandle;
+	if( $file->open( "< ./rshrun.conf" )
+		or $file->open( "< /etc/rshrun.conf" ) )
+	{
+		my $line;
+		while( $line = $file->getline() )
+		{
+			$line =~ s/#.*$//g;
+			$line =~ s/^\s+//g;
+			my @hostgrp = $line =~ /^([^\,\s]+)\s+([^\s]+.*)\s*$/;
+			my @grps = split( /[\,\s]/, $hostgrp[1] );
+
+			foreach( @grps )
+			{
+				if( $g_group_hosts{$_} )
+				{	push(@{$g_group_hosts{$_}}, $hostgrp[0]);	}
+				else
+				{	my @hosts = ($hostgrp[0]);	$g_group_hosts{$_} = \@hosts; }
+			}
+
+			$g_host_groups{$hostgrp[0]} = \@grps;
+		}
+		$file->close();
+	}
+	else
+	{
+		print "Configuration file not found: ./rshrun.conf or /etc/rshrun.conf\n";
+	}
+}
+
+sub _run_service_ingroups
+{
+	my ($name, $prog, $groups, $count, $level) = @_;
+
+	my $file = new FileHandle;
+	$file->open( ">> ./servicerun.running" );
+
+	my $hasmore_level;
+	my $run_count = 0;
+	my $i;
+	for( $i=0; $i<@{$groups}; $i ++ )
+	{
+		my $group = @{$groups}[$i];
+
+		my @hosts = @{$g_group_hosts{$group}};
+		foreach( @hosts )
+		{
+			my $host = $_;
+			my @hostgroups = @{g_host_groups{$host}};
+			$hasmore_level = 1 if( @hostgroups > $level );
+			next if( @{$g_host_groups{$host}} != $level );
+
+			my $dir = $prog;
+			if( not $dir =~ s/\/\w+$// )	{ $dir = '.'; }
+			my @args = ("rsh", $host, "\'cd $dir;$prog> /dev/null\'");
+			
+			my $pid = fork();
+			if( 0 == $pid )
+			{	exec("@args &");	exit();	}
+
+			if( $pid )
+			{
+				my $sign = "@args";
+				$sign =~ s/\'//g;
+				$pid = 0;
+				my $times = 0;
+				while( 1 )
+				{
+					my $result = qx/\/bin\/ps -au/;
+					my @lines = $result=~/(.+)$/g;
+					foreach(@lines){ if(m/$sign/){print; my @t=$_=~/^\w+\s+(\d+)\s.+/g; $pid=$t[0];}}
+					$times ++;	last if( $times > 10 or 0 != $pid );
+					#sleep(1);
+				}
+
+				$file->print( "$name,$prog,$host,$pid\n" );
+				print "run $name in $host successfully!\n";
+				$run_count ++;
+				return $run_count if( $run_count >= $count );
+			}
+		}
+	}
+
+	$file->close;
+
+	return $run_count if( $run_count > 0 );
+	return -1 if( not $hasmore_level );
+	return 0;
+}
+
+sub run_service
+{
+	my ($keepalive, $name, $prog, $groups, $count) = @_;
+
+	my $run_count = 0;
+	my $level = 1;
+	while( $run_count < $count )
+	{
+		my $c = _run_service_ingroups( $name, $prog, $groups, $count-$run_count, $level );
+		last if( -1 == $c );
+		$run_count += $c;
+		$level ++;
+	}
+
+	print "no enough hosts.\n" if( $run_count < $count );
+	print "run $name at $run_count hosts.\n\n";
+	
+	if( $keepalive )
+	{
+		#WILLDO
+	}
+}
+
+sub service_start
+{
+	my ($keepalive, @services_org) = @_;
+	my @services;
+	foreach( @services_org )
+	{	$_ =~ s/\s//g;	my @temp = split( /[\,\s]/, $_ );	push( @services, @temp );	}
+
+	print "\nstarting services:@services\n";
+	print "no services defined.\n" if( 0 == @services );
+	return if( 0 == @services );
+
+	print "\n";
+
+	my ($i, $j);
+	for( $i=0; $i<@services; $i++ )
+	{
+		for( $j=0; $j<@g_service_names; $j++ )
+		{
+			if( $g_service_names[$j] eq $services[$i] )
+			{
+				run_service( $keepalive, $g_service_names[$j], $g_service_progs[$j],
+							 $g_service_groups[$j], $g_service_counts[$j] );
+			}
+		}
+	}
+}
+
+sub service_status
+{
+	my @services;
+	foreach( @_ )
+	{	$_ =~ s/\s//g;	my @temp = split( /[\,\s]/, $_ );	push( @services, @temp );	}
+	@services = @g_service_names if( 0 == @services );
+
+	print "\nservices status:@services\n";
+	print "no services defined.\n\n" if( 0 == @services );
+	return if( 0 == @services );
+
+	my $file = new FileHandle;
+	$file->open( "< ./servicerun.running" );
+
+	my $line;
+	my @runnings;
+	while( $line = $file->getline() )
+	{
+		push( @runnings, $line );
+	}
+	$file->close();
+
+	my $i;
+	for( $i=0; $i<@services; $i++ )
+	{
+		my $name = $services[$i];
+		my $isrun;
+		foreach( @runnings )
+		{
+			my @runinfo = $_ =~ /(.+),(.+),(.+),(.+)/;
+			next if( $name ne $runinfo[0] );
+
+			if( defined $runinfo[2] and kill(0,$runinfo[3]) )
+			{
+				print $name . "(" . $runinfo[3] . ") is running at " . $runinfo[2] . "\n";
+			}
+			else
+			{
+				print $name . " is not running.\n";
+			}
+			$isrun = 1;
+		}
+		print $name . " is not running.\n" if( not $isrun );
+	}
+
+	print "\n";
+}
+
+sub service_stop
+{
+	my @services;
+	foreach( @_ )
+	{	$_ =~ s/\s//g;	my @temp = split( /[\,\s]/, $_ );	push( @services, @temp );	}
+
+	print "\nstopping services:@services\n";
+	print "no services defined.\n" if( 0 == @services );
+	return if( 0 == @services );
+
+	my $file = new FileHandle;
+	$file->open( "< ./servicerun.running" );
+
+	my $line;
+	my @runnings;
+	while( $line = $file->getline() )
+	{
+		push( @runnings, $line );
+	}
+	$file->close();
+
+	my ($i,$j);
+	for( $i=0; $i<@services; $i++ )
+	{
+		my $name = $services[$i];
+		my $isrun;
+		foreach( $j=0; $j<@runnings; $j++ )
+		{
+			my @runinfo = $runnings[$j] =~ /(.+),(.+),(.+),(.+)/;
+			next if( $name ne $runinfo[0] );
+
+			my $prog = $runinfo[1];
+			my @args = ('rsh',$runinfo[2],"killall -9 $prog");
+			if( kill(0,$runinfo[3]) )
+			{
+				if( 0 == system( @args ) )
+				{
+					print $name . "(" . $runinfo[3] . ") at " . $runinfo[2] . " killed.\n";
+					$runnings[$j] = undef;
+				}
+				else
+				{
+					print $name . "(" . $runinfo[3] . ") at " . $runinfo[2] . " not killed.\n";
+				}
+			}
+			else
+			{
+				print $name . "(" . $runinfo[3] . ") at " . $runinfo[2] . " is not running.\n";
+				$runnings[$j] = undef;
+			}
+			$isrun = 1;
+		}
+		print "" . $name . " is not running.\n" if( not $isrun );
+	}
+
+	$file->open( "> ./servicerun.running" );
+	foreach( @runnings )
+	{	$file->print( $_ ) if( $_ );	}
+	$file->close();
+	print "\n";
+}
+
+sub run_directly
+{
+	if( @ARGV == 0 )
+	{
+		print_usage();
+		return;
+	}
+	elsif( @ARGV == 1 )
+	{
+		my $option = $ARGV[0];
+		if( $option eq '--status' )
+		{	service_status(@g_service_names);	}
+		elsif( $option eq '--service' )
+		{	print_service();				}
+		elsif( $option eq '--help' )
+		{	print_help();				}
+		elsif( not $option =~ m/^-/ )
+		{	service_start( 1, $ARGV[0] );	}
+		else
+		{	print_usage();				}
+	}
+	else
+	{
+		my $i;
+		my ($start, $status, $stop, $restart, $all, $nokeepalive);
+		for( $i=0; $i<@ARGV; $i++ )
+		{
+			my $option = $ARGV[$i];
+			last if( not $option =~ m/^-/ );
+
+			if( $option eq '--start' )
+			{	$start = 1;			}
+			elsif( $option eq '--status' )
+			{	$status = 1;		}
+			elsif( $option eq '--stop' )
+			{	$stop = 1;			}
+			elsif( $option eq '--restart' )
+			{	$restart = 1;		}
+			elsif( $option eq '--all' )
+			{	$all = 1;			}
+			elsif( $option eq '--nokeepalive' )
+			{	$nokeepalive = 1;	}
+			else
+			{	print_usage();	return;	}
+		}
+
+		my @services;
+		for( ; $i<@ARGV; $i++ )
+		{	push( @services, $ARGV[$i] );	}
+		@services = @g_service_names if( $all );
+
+		if( 0 == $i )	{	service_start(1,@services);	return;	}
+		if( $start )
+		{
+			service_start($nokeepalive?0:1,@services);
+			return;
+		}
+		elsif( $status )
+		{
+			service_status( @services );
+			return;
+		}
+		elsif( $stop )
+		{
+			service_stop( @services );
+			return;
+		}
+		elsif( $restart )
+		{
+			service_stop( @services );
+			service_start($nokeepalive?0:1,@services);
+			return;
+		}
+	}
+}

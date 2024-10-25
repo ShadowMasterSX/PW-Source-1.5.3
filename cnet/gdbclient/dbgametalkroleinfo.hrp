@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBGAMETALKROLEINFO_HPP
+#define __GNET_DBGAMETALKROLEINFO_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbgametalkroleinfoarg"
+#include "dbgametalkroleinfores"
+
+namespace GNET
+{
+
+class DBGameTalkRoleInfo : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbgametalkroleinfo"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBGameTalkRoleInfoArg *arg = (DBGameTalkRoleInfoArg *)argument;
+		// DBGameTalkRoleInfoRes *res = (DBGameTalkRoleInfoRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBGameTalkRoleInfoArg *arg = (DBGameTalkRoleInfoArg *)argument;
+		// DBGameTalkRoleInfoRes *res = (DBGameTalkRoleInfoRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

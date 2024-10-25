@@ -1,0 +1,38 @@
+
+#ifndef __GNET_DBSELLPOINT_HPP
+#define __GNET_DBSELLPOINT_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "sellpointarg"
+#include "sellpointres"
+#include "sellpoint_re.hpp"
+#include "glinkserver.hpp"
+namespace GNET
+{
+
+class DBSellPoint : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbsellpoint"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// SellPointArg *arg = (SellPointArg *)argument;
+		// SellPointRes *res = (SellPointRes *)result;
+	}
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+	}
+
+};
+
+};
+#endif

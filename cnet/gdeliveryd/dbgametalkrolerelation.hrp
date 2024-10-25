@@ -1,0 +1,145 @@
+
+#ifndef __GNET_DBGAMETALKROLERELATION_HPP
+#define __GNET_DBGAMETALKROLERELATION_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "log.h"
+
+#include "dbgametalkrolerelationarg"
+#include "dbgametalkrolerelationres"
+#include "rolerelationresp.hpp"
+#include "dbrolegroup"
+#include "dbrolebase"
+#include <vector>
+
+namespace GNET
+{
+
+class DBGameTalkRoleRelation : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbgametalkrolerelation"
+#undef	RPC_BASECLASS
+
+	int64_t userid;
+	Manager * save_manager;
+	Manager::Session::ID save_sid;
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBGameTalkRoleRelationArg *arg = (DBGameTalkRoleRelationArg *)argument;
+		// DBGameTalkRoleRelationRes *res = (DBGameTalkRoleRelationRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		//DBGameTalkRoleRelationArg *arg = (DBGameTalkRoleRelationArg *)argument;
+		DBGameTalkRoleRelationRes *res = (DBGameTalkRoleRelationRes *)result;
+		GameTalkManager *gtm = GameTalkManager::GetInstance();
+		RoleRelationResp resp;
+		resp.userid = userid;
+
+		if(res->retcode != ERR_SUCCESS) return;
+
+		resp.roleinfo = res->info;
+		resp.roleinfo.status.status = gtm->GetRoleStatus((int)resp.roleinfo.info.roleid);
+		resp.factions = res->factions;
+		
+		PlayerInfo *pinfosrc = UserContainer::GetInstance().FindRoleOnline((int)res->info.info.roleid);
+		if(NULL == pinfosrc)
+		{
+			std::vector<DBRoleGroup>::iterator it = res->groups.begin();
+			std::vector<DBRoleGroup>::iterator end = res->groups.end();
+			std::vector<DBRoleBase>::iterator rit;
+			std::vector<DBRoleBase>::iterator rend;
+
+			for(; it != end; ++it) {
+				RoleGroupBean group;
+				group.gtype = it->gtype;
+				group.groupid = (int64_t)it->id;
+				group.groupname.swap(it->name);
+				rit = it->friends.begin();
+				rend = it->friends.end();
+				for(; rit != rend; ++rit) {
+				RoleBean role;
+				role.info.roleid = (int64_t)rit->roleid;
+				role.info.rolename.swap(rit->name);
+				role.status.status = gtm->GetRoleStatus(rit->roleid);
+				group.friends.push_back(role);
+				}
+				resp.friends.push_back(group); 
+			}
+		}
+		else
+		{
+			std::vector<DBRoleGroup>::iterator it = res->groups.begin();
+			std::vector<DBRoleGroup>::iterator end = res->groups.end();
+			std::vector<DBRoleBase>::iterator rit;
+			std::map<char,int> gmap;
+			int index = 0;
+			RoleGroupBean group;
+			group.gtype = GT_GROUP_NORMAL;
+			group.groupid = 0;
+			gmap[0] = index++;
+			resp.friends.push_back(group);
+			
+			GGroupInfoVector::iterator git = pinfosrc->groups.begin();
+			GFriendInfoVector::iterator fit = pinfosrc->friends.begin();
+			for(;git != pinfosrc->groups.end();++git)
+			{
+				RoleGroupBean group;
+				group.gtype =GT_GROUP_NORMAL;
+				group.groupid = (int64_t)git->gid;
+				group.groupname = git->name;
+				gmap[git->gid] = index++;
+				resp.friends.push_back(group);
+			}
+			for(;fit != pinfosrc->friends.end();++fit)
+			{
+				RoleBean role;
+				role.info.roleid = (int64_t)fit->rid;
+				role.info.rolename = fit->name;
+				role.status.status = gtm->GetRoleStatus(fit->rid);
+				resp.friends[gmap[fit->gid]].friends.push_back(role);
+			}
+			if(pinfosrc->spouse !=0)
+			{
+				//加入配偶信息
+				for(;it != end; ++it)
+				{
+					if(it->gtype != GT_GROUP_SPOUSE)
+						continue;
+					else
+					{
+						RoleGroupBean group;
+						group.gtype = it->gtype;
+						group.groupid = (int64_t)it->id;
+						group.groupname = it->name;
+						rit = it->friends.begin();
+						RoleBean role;
+						role.info.roleid = (int64_t)rit->roleid;
+						role.info.rolename = rit->name;
+						role.status.status = gtm->GetRoleStatus(rit->roleid);
+						group.friends.push_back(role);
+						resp.friends.push_back(group);		
+					}
+				}
+			}
+		}
+
+		if(!save_manager->Send(save_sid, resp)) {
+			Log::log(LOG_ERR, "DBGameTalkRoleRelation Send RoleRelationResp failed.");
+		};
+	}
+
+	void OnTimeout()
+	{
+		Log::log(LOG_ERR, "DBGameTalkRoleRelation timeout.");
+	}
+
+};
+
+};
+#endif

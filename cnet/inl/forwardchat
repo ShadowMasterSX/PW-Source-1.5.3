@@ -1,0 +1,50 @@
+	public:
+		int zoneid;
+		int lineid;
+		int userid;
+		int roleid;
+		Octets name;
+		Octets msg;
+		enum { PROTOCOL_TYPE = PROTOCOL_FORWARDCHAT };
+	public:
+		ForwardChat() { type = PROTOCOL_FORWARDCHAT; }
+		ForwardChat(void*) : Protocol(PROTOCOL_FORWARDCHAT) { }
+		ForwardChat (int l_zoneid,int l_lineid,int l_userid,
+			int l_roleid,const Octets& l_name,const Octets& l_msg)
+			 : zoneid(l_zoneid),lineid(l_lineid),userid(l_userid)
+			,roleid(l_roleid),name(l_name),msg(l_msg)
+		{
+			type = PROTOCOL_FORWARDCHAT;
+		}
+
+		ForwardChat(const ForwardChat &rhs)
+			: Protocol(rhs),zoneid(rhs.zoneid),lineid(rhs.lineid),userid(rhs.userid)
+			,roleid(rhs.roleid),name(rhs.name),msg(rhs.msg) { }
+
+		GNET::Protocol *Clone() const { return new ForwardChat(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << zoneid;
+			os << lineid;
+			os << userid;
+			os << roleid;
+			os << name;
+			os << msg;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> zoneid;
+			os >> lineid;
+			os >> userid;
+			os >> roleid;
+			os >> name;
+			os >> msg;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 512; }

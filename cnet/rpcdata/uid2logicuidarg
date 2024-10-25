@@ -1,0 +1,59 @@
+#ifndef __GNET_UID2LOGICUIDARG_RPCDATA
+#define __GNET_UID2LOGICUIDARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class Uid2LogicuidArg : public GNET::Rpc::Data
+	{
+	public:
+		int userid;
+
+	public:
+		Uid2LogicuidArg (int l_userid = -1)
+			: userid(l_userid)
+		{
+		}
+
+		Uid2LogicuidArg(const Uid2LogicuidArg &rhs)
+			: userid(rhs.userid) { }
+
+		Rpc::Data *Clone() const { return new Uid2LogicuidArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const Uid2LogicuidArg *r = dynamic_cast<const Uid2LogicuidArg *>(&rhs);
+			if (r && r != this)
+			{
+				userid = r->userid;
+			}
+			return *this;
+		}
+
+		Uid2LogicuidArg& operator = (const Uid2LogicuidArg &rhs)
+		{
+			const Uid2LogicuidArg *r = &rhs;
+			if (r && r != this)
+			{
+				userid = r->userid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			return os;
+		}
+
+	};
+};
+#endif

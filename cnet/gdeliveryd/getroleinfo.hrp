@@ -1,0 +1,269 @@
+
+#ifndef __GNET_GETROLEINFO_HPP
+#define __GNET_GETROLEINFO_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#ifdef USE_BDB
+#include "dbbuffer.h"
+#endif
+#include "roleid"
+#include "groleinventory"
+#include "roleinfores"
+
+#include "rolelist_re.hpp"
+#include "accountdelrole.hrp"
+#include "gdeliveryserver.hpp"
+#include "groledbclient.hpp"
+#include "gproviderserver.hpp"
+
+#include "forbid.hxx"
+#include "gmshutuprole.hpp"
+#include "mapforbid.h"
+#include "maplinkserver.h"
+#include "mapuser.h"
+
+#include "centraldeliveryclient.hpp"
+#include "centraldeliveryserver.hpp"
+#include "getremoteroleinfo.hpp"
+#include "getremoteroleinfo_re.hpp"
+
+namespace GNET
+{
+
+class GetRoleInfo : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getroleinfo"
+#undef	RPC_BASECLASS
+
+	enum 
+	{
+		SOURCE_LOCAL = 0,
+		SOURCE_REMOTE = 1,
+	};
+
+	int userid;
+	int source;
+	int save_zoneid;
+
+	void HandleForbid(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		RoleInfoRes *res = (RoleInfoRes *)result;
+		if (res->retcode != ERR_SUCCESS) 
+			return;
+		GRoleForbidVector& forbid = res->value.forbid;
+		int time_left=0;
+		for (size_t i=0;i<forbid.size();i++)
+		{
+			time_left = forbid[i].createtime+forbid[i].time-time(NULL);
+			if (time_left<=0) 
+				continue;
+			switch (forbid[i].type)
+			{
+				case Forbid::FBD_FORBID_TALK:
+					LinkServer::GetInstance().BroadcastProtocol(GMShutupRole(_ROLE_INVALID,_SID_INVALID,
+								res->value.id,time_left,forbid[i].reason));
+					break;
+				case Forbid::FBD_FORBID_TRADE:
+					{
+						forbid[i].time = time_left;
+						ForbidTrade::GetInstance().SetForbidTrade( res->value.id, forbid[i] );
+					}
+					break;
+				case Forbid::FBD_FORBID_SELL:
+					break;
+				case Forbid::FBD_FORBID_LOGIN:
+					{
+						forbid[i].time = time_left;
+						ForbidRoleLogin::GetInstance().SetForbidRoleLogin(res->value.id, forbid[i]);
+					}
+					break;	
+			}
+		}
+	}
+
+	void HandleRoleList(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		RoleId *arg = (RoleId *)argument;
+		RoleInfoRes *res = (RoleInfoRes *)result;
+		LOG_TRACE("GetRoleInfo roleid %d",  arg->id);
+		
+		GDeliveryServer* dsm = GDeliveryServer::GetInstance();
+
+		Thread::RWLock::WRScoped l(UserContainer::GetInstance().GetLocker());
+		UserInfo* user = UserContainer::GetInstance().FindUser(userid);
+		if (NULL==user) 
+			return;
+
+		if (res->retcode != ERR_SUCCESS)
+		{
+			Log::log(LOG_ERR,"gdelivery::getrole:: get role %d failed. retcode=%d\n",arg->id,res->retcode);
+			dsm->Send(user->linksid,RoleList_Re(ERR_ROLELIST,(arg->id % MAX_ROLE_COUNT),
+				userid,user->localsid,RoleInfoVector()));
+			return;
+		}
+		
+		RoleInfoVector rolelist;
+		GRoleInfo& role = res->value;
+
+		if (role.worldtag==0) 
+			role.worldtag=1;
+
+		RoleInfo info(
+			role.id, role.gender, role.race,
+			role.cls, role.level, role.level2, role.name,
+			role.custom_data,
+			role.equipment,
+			role.status,
+			role.delete_time, role.create_time, role.lastlogin_time,
+			role.posx, role.posy, role.posz,
+			role.worldtag,
+			role.custom_status,
+			role.charactermode,
+			role.referrer_role,
+			role.cash_add,
+			role.reincarnation_data,
+			role.realm_data);
+		
+		switch (role.status)
+		{
+		case _ROLE_STATUS_NORMAL:
+		case _ROLE_STATUS_FROZEN:	
+			//cross server related
+			//更新角色的跨服信息
+			user->UpdateCrossInfoData(role.id, role.cross_data);
+			//cross server end
+
+			rolelist.add(info);
+			
+			user->role_pos[role.id % MAX_ROLE_COUNT]=UserInfo::point_t(role.posx,role.posy,role.posz);
+			user->worldtag[role.id % MAX_ROLE_COUNT]=role.worldtag;
+			user->create_time[role.id % MAX_ROLE_COUNT]=role.create_time;
+			user->role_status[role.id % MAX_ROLE_COUNT]=role.status;
+			
+			if(role.lastlogin_time>user->lastlogin)//获得帐号下所有角色最后登录时间
+			{
+				user->lastlogin = role.lastlogin_time;
+				LOG_TRACE("getroleinfo user %d lastlogintime %d", userid, user->lastlogin);
+			}
+		
+			dsm->Send(user->linksid,RoleList_Re(ERR_SUCCESS,(role.id % MAX_ROLE_COUNT),userid,user->localsid,rolelist));
+			break;
+		case _ROLE_STATUS_READYDEL:
+			//cross server related
+			//更新角色的跨服信息
+			user->UpdateCrossInfoData(role.id, role.cross_data);
+			//cross server end
+
+			rolelist.add(info);
+
+			user->role_pos[role.id % MAX_ROLE_COUNT]=UserInfo::point_t(role.posx,role.posy,role.posz);
+			user->worldtag[role.id % MAX_ROLE_COUNT]=role.worldtag;
+			user->create_time[role.id % MAX_ROLE_COUNT]=role.create_time;
+			user->role_status[role.id % MAX_ROLE_COUNT]=role.status;
+			
+			dsm->Send(user->linksid,RoleList_Re(ERR_SUCCESS,(role.id % MAX_ROLE_COUNT),userid,user->localsid,rolelist));
+			break;
+
+		case _ROLE_STATUS_CROSS_LOCKED:
+		{
+			//cross server related
+			//更新角色的跨服信息
+			user->UpdateCrossInfoData(role.id, role.cross_data);
+
+			user->role_pos[role.id % MAX_ROLE_COUNT]=UserInfo::point_t(role.posx,role.posy,role.posz);
+			user->worldtag[role.id % MAX_ROLE_COUNT]=role.worldtag;
+			user->create_time[role.id % MAX_ROLE_COUNT]=role.create_time;
+			user->role_status[role.id % MAX_ROLE_COUNT]=role.status;
+
+			//cross server end
+
+			if(dsm->IsCentralDS() || !CentralDeliveryClient::GetInstance()->IsConnect()) {
+				rolelist.add(info);
+					
+				if(role.lastlogin_time>user->lastlogin) {//获得帐号下所有角色最后登录时间
+					user->lastlogin = role.lastlogin_time;
+					LOG_TRACE("getroleinfo user %d lastlogintime %d", userid, user->lastlogin);
+				}
+
+				dsm->Send(user->linksid,RoleList_Re(ERR_SUCCESS,(role.id % MAX_ROLE_COUNT),userid,user->localsid,rolelist));
+			} else {
+				LOG_TRACE("Try to get roleinfo(roleid=%d remote_roleid=%d) from centralDS", role.id, role.cross_data.remote_roleid);
+				
+				GetRemoteRoleInfo pro(role.id, role.cross_data.remote_roleid, userid, (unsigned char)GDeliveryServer::GetInstance()->zoneid);
+				CentralDeliveryClient::GetInstance()->SendProtocol(pro);
+				
+				DelayRolelistTask::InsertRoleInfo(info);
+				Thread::HouseKeeper::AddTimerTask(new DelayRolelistTask(userid, role.id), 10);
+			}
+			
+			break;
+		}
+
+		case _ROLE_STATUS_MUSTDEL:
+			//(final version)send dbdeleterole to gameDB(permanently remove the role)
+			{
+				DBDeleteRole* rpc=(DBDeleteRole*) Rpc::Call(RPC_DBDELETEROLE,DBDeleteRoleArg(role.id,false));//do not send result to client
+				GameDBClient::GetInstance()->SendProtocol(rpc);
+			}
+			//send getnextrole to DB
+			int next_role=user->rolelist.GetNextRole();
+			if (next_role==_HANDLE_END)
+			{
+				dsm->Send(user->linksid,RoleList_Re(ERR_SUCCESS,_HANDLE_END,userid,user->localsid,RoleInfoVector()));
+			}
+			else
+			{
+				GetRoleInfo* rpc=(GetRoleInfo*) Rpc::Call(RPC_GETROLEINFO, RoleId(LOGICUID(role.id)+next_role) );
+				rpc->userid = userid;
+				rpc->source = SOURCE_LOCAL;
+				GameDBClient::GetInstance()->SendProtocol(rpc);
+			}
+			break;
+		}
+
+	}
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		RoleId *arg = (RoleId *)argument;
+		RoleInfoRes *res = (RoleInfoRes *)result;
+		
+		if(source == SOURCE_LOCAL) {
+			HandleForbid(argument,result,manager,sid);
+			HandleRoleList(argument,result,manager,sid);
+		} else if(source == SOURCE_REMOTE) {
+			if (res->value.cross_data.src_zoneid != save_zoneid) {
+				Log::log(LOG_ERR, "GetRoleInfo res->zoneid %d save_zoneid %d not equal", res->value.cross_data.src_zoneid, save_zoneid);
+				res->retcode = -6;
+			}
+			
+			LOG_TRACE("Send GRoleInfo %d back to zoneid %d", arg->id, save_zoneid);
+
+			CentralDeliveryServer::GetInstance()->DispatchProtocol(save_zoneid, GetRemoteRoleInfo_Re(res->retcode, arg->id, res->value.cross_data.remote_roleid, userid, res->value));
+		} else {
+			Log::log(LOG_ERR, "GetRoleInfo roleid %d unknown source %d", arg->id, source);
+		}
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		if(source == SOURCE_LOCAL) {
+			RoleId *arg = (RoleId *)argument;
+			GDeliveryServer* dsm=GDeliveryServer::GetInstance();
+			UserInfo* user=UserContainer::GetInstance().FindUser(userid);
+			if(!user) 
+				return; 
+			dsm->Send(user->linksid,RoleList_Re(ERR_ROLELIST,(arg->id % MAX_ROLE_COUNT),userid,user->localsid,RoleInfoVector()));
+		}
+	}
+
+};
+
+};
+#endif

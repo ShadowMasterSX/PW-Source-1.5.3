@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBFORBIDUSER_HPP
+#define __GNET_DBFORBIDUSER_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "forbiduserarg"
+
+
+namespace GNET
+{
+
+class DBForbidUser : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbforbiduser"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// ForbidUserArg *arg = (ForbidUserArg *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// ForbidUserArg *arg = (ForbidUserArg *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

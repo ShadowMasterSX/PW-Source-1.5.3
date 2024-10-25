@@ -1,0 +1,38 @@
+	public:
+		int roleid;
+		int64_t income;
+		int64_t remain;
+		enum { PROTOCOL_TYPE = PROTOCOL_TOUCHPOINTQUERY_RE };
+	public:
+		TouchPointQuery_Re() { type = PROTOCOL_TOUCHPOINTQUERY_RE; }
+		TouchPointQuery_Re(void*) : Protocol(PROTOCOL_TOUCHPOINTQUERY_RE) { }
+		TouchPointQuery_Re (int l_roleid,int64_t l_income,int64_t l_remain)
+			 : roleid(l_roleid),income(l_income),remain(l_remain)
+		{
+			type = PROTOCOL_TOUCHPOINTQUERY_RE;
+		}
+
+		TouchPointQuery_Re(const TouchPointQuery_Re &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),income(rhs.income),remain(rhs.remain) { }
+
+		GNET::Protocol *Clone() const { return new TouchPointQuery_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << income;
+			os << remain;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> income;
+			os >> remain;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

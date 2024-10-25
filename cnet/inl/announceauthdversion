@@ -1,0 +1,32 @@
+	public:
+		int au_version;
+		enum { PROTOCOL_TYPE = PROTOCOL_ANNOUNCEAUTHDVERSION };
+	public:
+		AnnounceAuthdVersion() { type = PROTOCOL_ANNOUNCEAUTHDVERSION; }
+		AnnounceAuthdVersion(void*) : Protocol(PROTOCOL_ANNOUNCEAUTHDVERSION) { }
+		AnnounceAuthdVersion (int l_au_version)
+			 : au_version(l_au_version)
+		{
+			type = PROTOCOL_ANNOUNCEAUTHDVERSION;
+		}
+
+		AnnounceAuthdVersion(const AnnounceAuthdVersion &rhs)
+			: Protocol(rhs),au_version(rhs.au_version) { }
+
+		GNET::Protocol *Clone() const { return new AnnounceAuthdVersion(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << au_version;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> au_version;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 16; }

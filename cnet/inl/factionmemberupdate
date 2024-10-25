@@ -1,0 +1,44 @@
+	public:
+		FactionIDBean factionid;
+		RoleBeanVector roles;
+		int titleid;
+		char operation;
+		enum { PROTOCOL_TYPE = PROTOCOL_FACTIONMEMBERUPDATE };
+	public:
+		FactionMemberUpdate() { type = PROTOCOL_FACTIONMEMBERUPDATE; }
+		FactionMemberUpdate(void*) : Protocol(PROTOCOL_FACTIONMEMBERUPDATE) { }
+		FactionMemberUpdate (const FactionIDBean& l_factionid,const RoleBeanVector& l_roles = RoleBeanVector(),int l_titleid = 0,
+			char l_operation = 0)
+			 : factionid(l_factionid),roles(l_roles),titleid(l_titleid)
+			,operation(l_operation)
+		{
+			type = PROTOCOL_FACTIONMEMBERUPDATE;
+		}
+
+		FactionMemberUpdate(const FactionMemberUpdate &rhs)
+			: Protocol(rhs),factionid(rhs.factionid),roles(rhs.roles),titleid(rhs.titleid)
+			,operation(rhs.operation) { }
+
+		GNET::Protocol *Clone() const { return new FactionMemberUpdate(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << factionid;
+			os << roles;
+			os << titleid;
+			os << operation;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> factionid;
+			os >> roles;
+			os >> titleid;
+			os >> operation;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1048576; }

@@ -1,0 +1,56 @@
+	public:
+		std::vector<int> forbid_ctrl_list;
+		std::vector<int> forbid_item_list;
+		std::vector<int> forbid_service_list;
+		std::vector<int> forbid_task_list;
+		std::vector<int> forbid_skill_list;
+		std::vector<int> forbid_shopitem_list;
+		std::vector<int> forbid_recipe_list;
+		enum { PROTOCOL_TYPE = PROTOCOL_SERVERFORBIDNOTIFY };
+	public:
+		ServerForbidNotify() { type = PROTOCOL_SERVERFORBIDNOTIFY; }
+		ServerForbidNotify(void*) : Protocol(PROTOCOL_SERVERFORBIDNOTIFY) { }
+		ServerForbidNotify (const std::vector<int>& l_forbid_ctrl_list,const std::vector<int>& l_forbid_item_list,const std::vector<int>& l_forbid_service_list,
+			const std::vector<int>& l_forbid_task_list,const std::vector<int>& l_forbid_skill_list,const std::vector<int>& l_forbid_shopitem_list,
+			const std::vector<int>& l_forbid_recipe_list)
+			 : forbid_ctrl_list(l_forbid_ctrl_list),forbid_item_list(l_forbid_item_list),forbid_service_list(l_forbid_service_list)
+			,forbid_task_list(l_forbid_task_list),forbid_skill_list(l_forbid_skill_list),forbid_shopitem_list(l_forbid_shopitem_list)
+			,forbid_recipe_list(l_forbid_recipe_list)
+		{
+			type = PROTOCOL_SERVERFORBIDNOTIFY;
+		}
+
+		ServerForbidNotify(const ServerForbidNotify &rhs)
+			: Protocol(rhs),forbid_ctrl_list(rhs.forbid_ctrl_list),forbid_item_list(rhs.forbid_item_list),forbid_service_list(rhs.forbid_service_list)
+			,forbid_task_list(rhs.forbid_task_list),forbid_skill_list(rhs.forbid_skill_list),forbid_shopitem_list(rhs.forbid_shopitem_list)
+			,forbid_recipe_list(rhs.forbid_recipe_list) { }
+
+		GNET::Protocol *Clone() const { return new ServerForbidNotify(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << forbid_ctrl_list;
+			os << forbid_item_list;
+			os << forbid_service_list;
+			os << forbid_task_list;
+			os << forbid_skill_list;
+			os << forbid_shopitem_list;
+			os << forbid_recipe_list;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> forbid_ctrl_list;
+			os >> forbid_item_list;
+			os >> forbid_service_list;
+			os >> forbid_task_list;
+			os >> forbid_skill_list;
+			os >> forbid_shopitem_list;
+			os >> forbid_recipe_list;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1024; }

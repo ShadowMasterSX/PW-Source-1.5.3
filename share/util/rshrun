@@ -1,0 +1,395 @@
+#!/usr/bin/perl
+
+use strict;
+use FileHandle;
+
+	my @g_hosts_loaded;
+	my %g_group_hosts = ();
+
+	print_begintip();
+	if( @ARGV > 0 )
+	{
+		run_directly();
+	}
+	else
+	{
+		do_loop();
+	}
+
+sub print_begintip
+{
+	my $filename = "No";
+	$filename = '/etc/rshrun.conf' if -f '/etc/rshrun.conf';
+	$filename = './rshrun.conf' if -f './rshrun.conf';
+	print "rshrun 1.0. $filename configuration file loaded.\n";
+}
+
+sub print_usage
+{
+	print "
+Usage: rshrun hostname1[,hostname2,...] command     run command at some hosts.
+
+       rshrun [options] command
+         options:
+           --loadall                                run command at all hosts.
+           -la                                      run command at all hosts.
+           --loadgroup=grpname1[,grpname2,...]      run command at some groups.
+           -lg=grpname1[,grpname2,...]              run command at some groups.
+           --load=hostname1[,hostname2,...]         run command at some hosts.
+           -l=hostname1[,hostname2,...]             run command at some hosts.
+           --asyn/-a                                run command asynchronous.
+
+       rshrun [options]
+         options:
+           --fping                                  test the loaded hosts alive
+                                                    or not.
+           --host/-h                                list all hosts.
+           --group/-g                               list all groups.
+           --help                                   show help.\n\n";
+}
+
+sub print_help
+{
+	print_usage();
+}
+
+sub print_command_help
+{
+	print "
+commands:
+    loadall                           load all hosts for continous commands.
+    loadgroup grpname1[ grpname2 ...] load groups' hosts for continous commands.
+    loadgroup grpname1[,grpname2,...] load groups' hosts for continous commands.
+    load hostname1[ hostname2 ...]    load hosts for continous commands.
+    load hostname1[,hostname2,...]    load hosts for continous commands.
+    load                              list the loaded hosts.
+    runasyn command                   run command in remote hosts asynchronous.
+    run command                       run command in remote hosts.
+    fping                             test the loaded hosts alive or not.
+    host                              list all hosts.
+    group                             list all group.
+    help                              show help.
+    quit/exit/q                       show help.\n";
+}
+
+sub print_host
+{
+	print "Hosts list:\n";
+
+	my $count = 0;
+	my $file = new FileHandle;
+	if( $file->open( "< ./rshrun.conf" )
+		or $file->open( "< /etc/rshrun.conf" ) )
+	{
+		my $line;
+		while( $line = $file->getline() )
+		{
+			$line =~ s/#.*$//g;
+			$line =~ s/^\s+//g;
+			if( $line =~ m/\w+/ )
+			{
+				print "\t" . $line;
+				$count ++;
+			}
+		}
+		$file->close();
+		print "No hosts find in configuration file.\n" if( 0 == $count );
+	}
+	else
+	{
+		print "Configuration file not found: ./rshrun.conf or /etc/rshrun.conf\n";
+	}
+}
+
+sub print_group
+{
+	print "Groups list:\n";
+
+	reload_config();
+
+	foreach( keys(%g_group_hosts) )
+	{
+		my @hosts = @{$g_group_hosts{$_}};
+
+		print "\t$_:@hosts\n";
+	}
+}
+
+sub print_loaded
+{
+	print "Loaded hosts:\n@g_hosts_loaded\n";
+}
+
+sub print_fping
+{
+	print "No hosts loaded.\n" if( 0 == @g_hosts_loaded );
+
+	foreach( @g_hosts_loaded )
+	{
+		my @args = ('fping',$_);
+		system( @args ) == 0 or print "fping not found.\n";
+	}
+	print "\n";
+}
+
+sub reload_config
+{
+	%g_group_hosts = ();
+
+	my $file = new FileHandle;
+	if( $file->open( "< ./rshrun.conf" )
+		or $file->open( "< /etc/rshrun.conf" ) )
+	{
+		my $line;
+		while( $line = $file->getline() )
+		{
+			$line =~ s/#.*$//g;
+			$line =~ s/^\s+//g;
+			my @hostgrp = $line =~ /^([^\,\s]+)\s+([^\s]+.*)\s*$/;
+			my @grps = split( /[\,\s]/, $hostgrp[1] );
+
+			foreach( @grps )
+			{
+				if( $g_group_hosts{$_} )
+				{	push(@{$g_group_hosts{$_}}, $hostgrp[0]);	}
+				else
+				{	my @hosts = ($hostgrp[0]);	$g_group_hosts{$_} = \@hosts; }
+			}
+		}
+		$file->close();
+	}
+	else
+	{
+		print "Configuration file not found: ./rshrun.conf or /etc/rshrun.conf\n";
+	}
+}
+
+sub load_clear
+{
+	@g_hosts_loaded = ();
+}
+
+sub load_all
+{
+	reload_config();
+
+	foreach( keys(%g_group_hosts) )
+	{
+		my @hosts = @{$g_group_hosts{$_}};
+
+		my ($i, $j);
+		for( $i=0; $i<@hosts; $i++ )
+		{
+			for( $j=0; $j<@g_hosts_loaded; $j++ )
+			{	last if($hosts[$i] eq $g_hosts_loaded[$j]);	}
+			push( @g_hosts_loaded, $hosts[$i] )	if( $j == @g_hosts_loaded );
+		}
+	}
+
+	print @g_hosts_loaded . " host(s) loaded.(@g_hosts_loaded)\n";
+}
+
+sub load_group
+{
+	my @groups;
+	foreach( @_ )
+	{
+		$_ =~ s/\s//g;
+		my @temp = split( /[\,\s]/, $_ );
+		push( @groups, @temp );
+	}
+
+	reload_config();
+
+	foreach( @groups )
+	{
+		if( $g_group_hosts{$_} )
+		{
+			my @hosts = @{$g_group_hosts{$_}};
+			my ($i, $j);
+			for( $i=0; $i<@hosts; $i++ )
+			{
+				for( $j=0; $j<@g_hosts_loaded; $j++ )
+				{	last if($hosts[$i] eq $g_hosts_loaded[$j]);	}
+				push( @g_hosts_loaded, $hosts[$i] )	if( $j == @g_hosts_loaded );
+			}
+		}
+		else
+		{
+			print "Group $_ not found.\n";
+		}
+	}
+
+	print @g_hosts_loaded . " host(s) loaded.(@g_hosts_loaded)\n";
+}
+
+sub load_host
+{
+	foreach( @_ )
+	{
+		$_ =~ s/\s//g;
+		my @temp = split( /[\,\s]/, $_ );
+		push( @g_hosts_loaded, @temp );
+	}
+
+	print @g_hosts_loaded . " host(s) loaded.(@g_hosts_loaded)\n";
+}
+
+sub run_directly
+{
+	load_clear();
+
+	if( @ARGV == 0 )
+	{
+		print_usage();
+		return;
+	}
+	elsif( @ARGV == 1 )
+	{
+		my $option = $ARGV[0];
+		if( $option eq '--host' or $option eq '-h' )
+		{	print_host();	}
+		elsif( $option eq '--group' or $option eq '-g' )
+		{	print_group();	}
+		elsif( $option eq '--help' )
+		{	print_help();	}
+		elsif( $option eq '--fping' )
+		{	load_all();	print_fping();	}
+		else
+		{	print_usage();	}
+	}
+	else
+	{
+		my $i;
+		my $fping = 0;
+		my $asyn = 0;
+		for( $i=0; $i<@ARGV; $i++ )
+		{
+			my $option = $ARGV[$i];
+			last if( not $option =~ m/^-/ );
+
+			if( $option eq '--loadall' or $option eq '-la' )
+			{	load_all();	}
+			elsif( $option =~ s/^--loadgroup=// or $option =~ s/^-lg=// )
+			{	load_group( $option );	}
+			elsif( $option =~ s/^--load=// or $option =~ s/^-l=// )
+			{	load_host( $option );	}
+			elsif( $option =~ m/^--fping/ or $option =~ m/^-p/ )
+			{	$fping = 1;				}
+			elsif( $option =~ m/^--asyn/ or $option =~ m/^-a/ )
+			{	$asyn = 1;				}
+			else
+			{	print_usage();	return;	}
+		}
+
+		if( 0 == $i )	{	load_host( $ARGV[0] );	$i ++;	}
+		if( $fping )	{	load_all() if( 0 == @g_hosts_loaded );	print_fping();	}
+
+		my $command;
+		for( ; $i<@ARGV; $i++ )
+		{	$command .= $ARGV[$i];	$command .= " ";	}
+		rshcmd_run( $command, $asyn, @g_hosts_loaded ) if( $command );
+		print_usage()	if( not $command and not $fping );
+	}
+}
+
+sub get_cmd_string
+{
+	print "\nrshrun> ";
+
+	my $usercmd;
+	$usercmd = <>;
+	$usercmd =~ s/^\s+//g;
+	$usercmd =~ s/\s+$//g;
+	chomp($usercmd);
+	return $usercmd;
+}
+
+sub rshcmd_run
+{
+	my ($cmd, $asyn, @hosts) = @_;
+
+	if( $asyn )
+	{
+		foreach( @hosts )
+		{
+			print "Running $cmd in $_ asynchronous.\n";
+			my @args = ("rsh", $_, "\'$cmd> /dev/null\'");
+			if( 0 == fork() )
+			{	exec("@args &");	exit();	}
+		}
+	}
+	else
+	{
+		foreach( @hosts )
+		{
+			print "Running $cmd in $_:\n";
+			my @args = ("rsh", $_, $cmd);
+			system(@args);
+			print "\n";
+		}
+	}
+}
+
+sub do_loop
+{
+	my $usercmd;
+	while( 1 )
+	{
+		$usercmd = get_cmd_string();
+		last if( $usercmd eq 'q' or $usercmd eq 'quit' or $usercmd eq 'exit' );
+
+		if( $usercmd =~ m/^loadall/ )
+		{
+			load_clear();	load_all();
+		}
+		elsif( $usercmd =~ s/^loadgroup\s// )
+		{
+			load_clear();	load_group( $usercmd );
+		}
+		elsif( $usercmd =~ s/^load\s// )
+		{
+			chomp($usercmd);
+			$usercmd =~ s/^\s+//;
+			if( $usercmd )	{	load_clear();	load_host( $usercmd );	}
+			else			{	print_loaded();			}
+		}
+		elsif( $usercmd eq 'load' )
+		{
+			print_loaded();
+		}
+		elsif( $usercmd =~ s/^runasyn\s// )
+		{
+			chomp($usercmd);
+			rshcmd_run( $usercmd, 1, @g_hosts_loaded );
+		}
+		elsif( $usercmd =~ s/^run\s// )
+		{
+			chomp($usercmd);
+			rshcmd_run( $usercmd, 0, @g_hosts_loaded );
+		}
+		elsif( $usercmd =~ m/^fping/ )
+		{
+			print_fping();
+		}
+		elsif( $usercmd =~ m/^host/ )
+		{
+			print_host();
+		}
+		elsif( $usercmd =~ m/^group/ )
+		{
+			print_group();
+		}
+		elsif( $usercmd =~ m/^help/ )
+		{
+			print_command_help();
+		}
+		else
+		{
+			print "-rshrun: $usercmd: command not found.\n";
+			print_command_help();
+		}
+	}
+}
+
+

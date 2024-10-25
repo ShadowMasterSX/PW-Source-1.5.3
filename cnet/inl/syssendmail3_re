@@ -1,0 +1,38 @@
+	public:
+		int64_t orderid;
+		int retcode;
+		int64_t roleid;
+		enum { PROTOCOL_TYPE = PROTOCOL_SYSSENDMAIL3_RE };
+	public:
+		SysSendMail3_Re() { type = PROTOCOL_SYSSENDMAIL3_RE; }
+		SysSendMail3_Re(void*) : Protocol(PROTOCOL_SYSSENDMAIL3_RE) { }
+		SysSendMail3_Re (int64_t l_orderid,int l_retcode,int64_t l_roleid)
+			 : orderid(l_orderid),retcode(l_retcode),roleid(l_roleid)
+		{
+			type = PROTOCOL_SYSSENDMAIL3_RE;
+		}
+
+		SysSendMail3_Re(const SysSendMail3_Re &rhs)
+			: Protocol(rhs),orderid(rhs.orderid),retcode(rhs.retcode),roleid(rhs.roleid) { }
+
+		GNET::Protocol *Clone() const { return new SysSendMail3_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << orderid;
+			os << retcode;
+			os << roleid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> orderid;
+			os >> retcode;
+			os >> roleid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 32; }

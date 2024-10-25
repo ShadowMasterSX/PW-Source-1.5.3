@@ -1,0 +1,62 @@
+
+#ifndef __GNET_GETTASKDATARPC_HPP
+#define __GNET_GETTASKDATARPC_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "gettaskdataarg"
+#include "gettaskdatares"
+
+#include "gproviderserver.hpp"
+#include "gettaskdata_re.hpp"
+#include "maptaskdata.h"
+namespace GNET
+{
+
+class GetTaskDataRpc : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "gettaskdatarpc"
+#undef	RPC_BASECLASS
+	public:
+		Manager::Session::ID save_sid;
+		int save_playerid;	
+		Octets save_env;
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		GetTaskDataArg *arg = (GetTaskDataArg *)argument;
+		GetTaskDataRes *res = (GetTaskDataRes *)result;
+		GetTaskData_Re re;
+		re.taskid = arg->taskid;
+		//re.retcode = res->retcode;
+		re.retcode = 0;
+		re.env = save_env;
+		re.playerid = save_playerid;
+		if( res->retcode == 0 )
+			re.taskdata = res->taskdata;
+		else
+		{
+			re.taskdata.resize(256);
+			memset(re.taskdata.begin(), 0, 256);
+		}
+		TaskData::GetInstance().SetTaskData(arg->taskid, re.taskdata);
+		GProviderServer::GetInstance()->Send(save_sid, re);
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

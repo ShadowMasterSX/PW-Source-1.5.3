@@ -1,0 +1,59 @@
+#ifndef __GNET_BATTLEENDRES_RPCDATA
+#define __GNET_BATTLEENDRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class BattleEndRes : public GNET::Rpc::Data
+	{
+	public:
+		short retcode;
+
+	public:
+		BattleEndRes (short l_retcode = 0)
+			: retcode(l_retcode)
+		{
+		}
+
+		BattleEndRes(const BattleEndRes &rhs)
+			: retcode(rhs.retcode) { }
+
+		Rpc::Data *Clone() const { return new BattleEndRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const BattleEndRes *r = dynamic_cast<const BattleEndRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		BattleEndRes& operator = (const BattleEndRes &rhs)
+		{
+			const BattleEndRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,4 @@
+killall -9 gauthd
+killall -9 gdeliveryd 
+killall -9 glinkd
+killall -SIGUSR1 gamedbd

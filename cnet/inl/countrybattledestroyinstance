@@ -1,0 +1,35 @@
+	public:
+		int domain_id;
+		int world_tag;
+		enum { PROTOCOL_TYPE = PROTOCOL_COUNTRYBATTLEDESTROYINSTANCE };
+	public:
+		CountryBattleDestroyInstance() { type = PROTOCOL_COUNTRYBATTLEDESTROYINSTANCE; }
+		CountryBattleDestroyInstance(void*) : Protocol(PROTOCOL_COUNTRYBATTLEDESTROYINSTANCE) { }
+		CountryBattleDestroyInstance (int l_domain_id,int l_world_tag)
+			 : domain_id(l_domain_id),world_tag(l_world_tag)
+		{
+			type = PROTOCOL_COUNTRYBATTLEDESTROYINSTANCE;
+		}
+
+		CountryBattleDestroyInstance(const CountryBattleDestroyInstance &rhs)
+			: Protocol(rhs),domain_id(rhs.domain_id),world_tag(rhs.world_tag) { }
+
+		GNET::Protocol *Clone() const { return new CountryBattleDestroyInstance(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << domain_id;
+			os << world_tag;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> domain_id;
+			os >> world_tag;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

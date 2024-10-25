@@ -1,0 +1,86 @@
+
+#ifndef __GNET_ROLENAMEEXISTS_HPP
+#define __GNET_ROLENAMEEXISTS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "storage.h"
+#include "rolenameexistsarg"
+#include "rolenameexistsres"
+
+namespace GNET
+{
+
+class RolenameExists : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "rolenameexists"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		RolenameExistsArg *arg = (RolenameExistsArg *)argument;
+		RolenameExistsRes *res = (RolenameExistsRes *)result;
+
+		UniqueNameServer::GetInstance()->TransformName(arg->rolename);
+
+		Octets name;
+		CharsetConverter::conv_charset_u2l( arg->rolename, name );
+		LOG_TRACE( "RolenameExists(rolename=%.*s)",name.size(), (char*)name.begin() );
+
+		try
+		{
+			StorageEnv::Storage * punamerole = StorageEnv::GetStorage("unamerole");
+			StorageEnv::AtomTransaction txn;
+			try
+			{
+				Marshal::OctetsStream value_unamerole;
+				if( punamerole->find( arg->rolename, value_unamerole, txn ) )
+				{
+					int zoneid, roleid, status, time;
+					value_unamerole >> zoneid >> roleid >> status >> time;
+					res->zoneid = zoneid;
+					res->roleid = roleid;
+					res->status = status;
+					res->time = time;
+					res->retcode = ERR_SUCCESS;
+					LOG_TRACE( "RolenameExists(name=%.*s), zoneid=%d, roleid=%d, status=%d, time=%d", 
+						name.size(), (char*)name.begin(), zoneid, roleid, status, time );
+				}
+				else
+				{
+					res->retcode = ERR_DATANOTFIND;
+				}
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "RolenameExists, what=%s\n", e.what() );
+			res->retcode = -1;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// RolenameExistsArg *arg = (RolenameExistsArg *)argument;
+		// RolenameExistsRes *res = (RolenameExistsRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

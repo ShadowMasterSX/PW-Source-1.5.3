@@ -1,0 +1,9 @@
+#!/usr/bin/python
+
+import sys
+COMMON_PATH = 'common/'
+sys.path.append(COMMON_PATH)
+
+import myparser
+
+myparser.parsestub()

@@ -1,0 +1,107 @@
+
+#ifndef __GNET_ADDFACTION_HPP
+#define __GNET_ADDFACTION_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "addfactionarg"
+#include "addfactionres"
+#include "guserfaction"
+#include "gfactioninfo"
+
+namespace GNET
+{
+
+class AddFaction : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "addfaction"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		AddFactionArg *arg = (AddFactionArg *)argument;
+		AddFactionRes *res = (AddFactionRes *)result;
+		Marshal::OctetsStream key;
+
+		GUserFaction user;
+		GFactionInfo info;
+		GRoleBase base;
+
+		try
+		{
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::Storage * puserfaction = StorageEnv::GetStorage("userfaction");
+			StorageEnv::Storage * pinfo = StorageEnv::GetStorage("factioninfo");
+			StorageEnv::Storage * pname = StorageEnv::GetStorage("factionname");
+			StorageEnv::CommonTransaction txn;
+			Marshal::OctetsStream vuser,vinfo;
+			try{
+				key << arg->rid;
+				if(puserfaction->find(key,vuser,txn))
+				{
+					vuser >> user;
+					if(user.fid!=0)
+					{
+						Log::log(LOG_ERR,"AddFaction, user belongs to another faction rid=%d fid=%d", arg->rid, user.fid);
+						res->retcode = ERR_FC_DBFAILURE;
+						return;
+					}
+				}
+				Log::formatlog("faction","type=create:roleid=%d:factionid=%d", arg->rid, arg->fid);
+				Marshal::OctetsStream( pbase->find( key, txn ) ) >> base;
+				user.name.swap(base.name);
+				user.cls = base.cls;
+
+				//if(pinfo->find(Marshal::OctetsStream() << 0,vinfo,txn))
+				//{
+				//	vinfo >> info;
+				//	res->fid = ++info.fid;
+				//}else
+				//	res->fid = info.fid = 1;
+				//pinfo->insert(Marshal::OctetsStream()<<0, Marshal::OctetsStream()<<info, txn);
+				pname->insert(Marshal::OctetsStream()<<arg->name, Marshal::OctetsStream()<<arg->fid, txn);
+
+				info.fid = arg->fid;
+				info.name = arg->name;
+				info.level = 0;
+				info.master.rid = arg->rid;
+				info.master.role = _R_MASTER;
+				info.member.add(info.master);
+				pinfo->insert(Marshal::OctetsStream()<<arg->fid, Marshal::OctetsStream()<<info, txn, DB_NOOVERWRITE);
+
+				user.rid = arg->rid;
+				user.fid = arg->fid;
+				user.role = _R_MASTER;
+				puserfaction->insert(Marshal::OctetsStream()<<arg->rid, Marshal::OctetsStream()<<user, txn);
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "AddFaction, roleid=%d, what=%s\n", arg->rid, e.what() );
+			res->retcode = -1;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,59 @@
+#ifndef __GNET_DBKELOADARG_RPCDATA
+#define __GNET_DBKELOADARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBKELoadArg : public GNET::Rpc::Data
+	{
+	public:
+		int nouse;
+
+	public:
+		DBKELoadArg (int l_nouse = 0)
+			: nouse(l_nouse)
+		{
+		}
+
+		DBKELoadArg(const DBKELoadArg &rhs)
+			: nouse(rhs.nouse) { }
+
+		Rpc::Data *Clone() const { return new DBKELoadArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBKELoadArg *r = dynamic_cast<const DBKELoadArg *>(&rhs);
+			if (r && r != this)
+			{
+				nouse = r->nouse;
+			}
+			return *this;
+		}
+
+		DBKELoadArg& operator = (const DBKELoadArg &rhs)
+		{
+			const DBKELoadArg *r = &rhs;
+			if (r && r != this)
+			{
+				nouse = r->nouse;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << nouse;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> nouse;
+			return os;
+		}
+
+	};
+};
+#endif

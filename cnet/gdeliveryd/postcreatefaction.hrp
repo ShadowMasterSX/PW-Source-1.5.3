@@ -1,0 +1,49 @@
+
+#ifndef __GNET_POSTCREATEFACTION_HPP
+#define __GNET_POSTCREATEFACTION_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#ifdef USE_BDB
+#include "dbbuffer.h"
+#endif
+#include "postcreatefactionarg"
+#include "postcreatefactionres"
+
+namespace GNET
+{
+
+class PostCreateFaction : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "postcreatefaction"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+#ifdef USE_BDB
+		PostCreateFactionArg *arg = (PostCreateFactionArg *)argument;
+		PostCreateFactionRes *res = (PostCreateFactionRes *)result;
+		Marshal::OctetsStream key, value;
+		key << arg->factionname;
+		value << arg->factionid;
+#endif
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// PostCreateFactionArg *arg = (PostCreateFactionArg *)argument;
+		// PostCreateFactionRes *res = (PostCreateFactionRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

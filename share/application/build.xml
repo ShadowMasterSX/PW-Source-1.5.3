@@ -1,0 +1,36 @@
+
+<project name="io" default="dist">
+
+<property name="src" value="./src"/>
+<property name="build" value="./build"/>
+
+<!--
+<path id="app.classpath">
+    <fileset dir="lib"><include name="*.jar"/></fileset>
+</path>
+-->
+<target name="init">
+	<mkdir dir="${build}" />
+</target>
+
+<target name="compile" depends="init">
+	<javac srcdir="${src}" destdir="${build}"
+		 encoding="GBK">
+<!--	<classpath refid="app.classpath"/>	-->
+	</javac>
+</target>
+
+<target name="dist" depends="compile">
+	<!--copy file="./lib/commons-collections-3.1.jar" todir="${build}"/-->
+	<!--copy file="./lib/commons-dbcp-1.2.1.jar" todir="${build}"/-->
+	<!--copy file="./lib/commons-pool-1.2.jar" todir="${build}"/-->
+	<jar jarfile="application.jar" basedir="${build}" manifest="${src}/MANIFEST.MF"/>
+	<!--delete dir="${build}" /-->
+</target>
+
+<target name="clean">
+	<delete dir="${build}" />
+</target>
+
+</project>
+

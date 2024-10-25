@@ -1,0 +1,71 @@
+#ifndef __GNET_DBPSHOPACTIVERES_RPCDATA
+#define __GNET_DBPSHOPACTIVERES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "pshopdetail"
+#include "gmailsyncdata"
+
+namespace GNET
+{
+	class DBPShopActiveRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		PShopDetail detail;
+		GMailSyncData syncdata;
+
+	public:
+		DBPShopActiveRes (int l_retcode = 0,PShopDetail l_detail = PShopDetail(),const GMailSyncData& l_syncdata = GMailSyncData())
+			: retcode(l_retcode),detail(l_detail),syncdata(l_syncdata)
+		{
+		}
+
+		DBPShopActiveRes(const DBPShopActiveRes &rhs)
+			: retcode(rhs.retcode),detail(rhs.detail),syncdata(rhs.syncdata) { }
+
+		Rpc::Data *Clone() const { return new DBPShopActiveRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPShopActiveRes *r = dynamic_cast<const DBPShopActiveRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				detail = r->detail;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		DBPShopActiveRes& operator = (const DBPShopActiveRes &rhs)
+		{
+			const DBPShopActiveRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				detail = r->detail;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << detail;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> detail;
+			os >> syncdata;
+			return os;
+		}
+
+	};
+};
+#endif

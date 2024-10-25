@@ -1,0 +1,59 @@
+#ifndef __GNET_DBGETCONSUMEINFOSARG_RPCDATA
+#define __GNET_DBGETCONSUMEINFOSARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBGetConsumeInfosArg : public GNET::Rpc::Data
+	{
+	public:
+		IntVector playerlist;
+
+	public:
+		DBGetConsumeInfosArg (const IntVector& l_playerlist = IntVector())
+			: playerlist(l_playerlist)
+		{
+		}
+
+		DBGetConsumeInfosArg(const DBGetConsumeInfosArg &rhs)
+			: playerlist(rhs.playerlist) { }
+
+		Rpc::Data *Clone() const { return new DBGetConsumeInfosArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBGetConsumeInfosArg *r = dynamic_cast<const DBGetConsumeInfosArg *>(&rhs);
+			if (r && r != this)
+			{
+				playerlist = r->playerlist;
+			}
+			return *this;
+		}
+
+		DBGetConsumeInfosArg& operator = (const DBGetConsumeInfosArg &rhs)
+		{
+			const DBGetConsumeInfosArg *r = &rhs;
+			if (r && r != this)
+			{
+				playerlist = r->playerlist;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << playerlist;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> playerlist;
+			return os;
+		}
+
+	};
+};
+#endif

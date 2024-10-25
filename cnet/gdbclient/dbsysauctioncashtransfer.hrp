@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBSYSAUCTIONCASHTRANSFER_HPP
+#define __GNET_DBSYSAUCTIONCASHTRANSFER_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbsysauctioncashtransferarg"
+#include "dbsysauctioncashtransferres"
+
+namespace GNET
+{
+
+class DBSysAuctionCashTransfer : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbsysauctioncashtransfer"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBSysAuctionCashTransferArg *arg = (DBSysAuctionCashTransferArg *)argument;
+		// DBSysAuctionCashTransferRes *res = (DBSysAuctionCashTransferRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBSysAuctionCashTransferArg *arg = (DBSysAuctionCashTransferArg *)argument;
+		// DBSysAuctionCashTransferRes *res = (DBSysAuctionCashTransferRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

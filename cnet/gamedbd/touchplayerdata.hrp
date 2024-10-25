@@ -1,0 +1,87 @@
+
+#ifndef __GNET_TOUCHPLAYERDATA_HPP
+#define __GNET_TOUCHPLAYERDATA_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "touchplayerdataarg"
+#include "touchplayerdatares"
+
+namespace GNET
+{
+
+class TouchPlayerData : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "touchplayerdata"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		TouchPlayerDataArg *arg = (TouchPlayerDataArg *)argument;
+		TouchPlayerDataRes *res = (TouchPlayerDataRes *)result;
+		LOG_TRACE("CrossRelated TouchPlayerData roleid %d userid %d", arg->roleid, arg->userid);
+		try
+		{
+			/*1 ÐÞ¸Äbase.status
+			 *2 °æ±¾ºÅ++ */
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::CommonTransaction txn;
+			Marshal::OctetsStream role_key;
+			GRoleBase base;
+			try
+			{
+				role_key << arg->roleid;
+				Marshal::OctetsStream(pbase->find(role_key, txn)) >> base;
+				
+				if (base.status != _ROLE_STATUS_CROSS_LOCKED)
+					Log::log(LOG_ERR, "CrossRelated TouchPlayerData userid %d roleid %d status %d invalid", arg->userid, arg->roleid, base.status);
+				base.status = _ROLE_STATUS_NORMAL;
+
+				CrossInfoData cds_info;
+				Marshal::OctetsStream(base.cross_data) >> cds_info;
+				cds_info.data_timestamp++;
+				cds_info.cross_timestamp = Timer::GetTime();
+				base.cross_data = Marshal::OctetsStream() << cds_info;
+				
+				Log::formatlog("crossrelated", "touchplayerdata:roleid=%d:remote_roleid=%d:data_timestamp=%d:src_zoneid=%d",
+					arg->roleid, cds_info.remote_roleid, cds_info.data_timestamp, cds_info.src_zoneid);
+
+				pbase->insert(role_key, Marshal::OctetsStream() << base, txn);
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee(DB_OLD_VERSION);
+				txn.abort(ee);
+				throw ee;
+			}
+		}
+		catch (DbException e)
+		{
+			Log::log(LOG_ERR, "CrossRelated TouchPlayerData, roleid %d what=%s", arg->roleid, e.what());
+			res->retcode = ERR_DATANOTFIND;
+			return;
+		}
+
+
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// TouchPlayerDataArg *arg = (TouchPlayerDataArg *)argument;
+		// TouchPlayerDataRes *res = (TouchPlayerDataRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<configure>
+
+<!--
+	1. modify , line 17 , <network subnet="?" manager="?">
+	2. modify , line 19 , <ppp client="?" secret="?"> ( ppp username and password )
+	3. modify , line 22 , <eth1default NETMASK="?"> ( obtained from ISP )
+	4. modify , line 24 , <host alias="?">
+	4. modify , all GATEWAY ( obtained from ISP )
+	5. modify , all HWADDR ( copy from BIOS )
+	6. modify , all IPADDR ( obtained from ISP )
+	7. DO NOT change iptables and cricket
+	8. modify replace
+	9. modify zoneid
+-->
+
+	<network subnet="172.16.200.0" manager="172.16.200.254">
+
+		<ppp client="test2HO4b" secret="ndssmdfoMiyq38uE"/>
+
+		<eth0default ONBOOT="no" BOOTPROTO="dhcp" NETMASK="255.255.255.0"/>
+		<eth1default ONBOOT="yes" BOOTPROTO="static" NETMASK="255.255.255.128" TYPE="Ethernet"/>
+
+		<host HOSTNAME="manager" alias="test.world2.com.cn" mount="/" NOZEROCONF="yes" GATEWAY="211.100.255.1">
+			<ifcfg DEVICE="eth0" HWADDR="00:14:22:15:6B:1A" ONBOOT="yes" BOOTPROTO="static"/>
+			<ifcfg DEVICE="eth1" HWADDR="00:14:22:15:6B:1B" IPADDR="211.100.255.11"/>
+			<ifcfg DEVICE="ppp0" BOOTPROTO="dialup" DEFROUTE="no" DEMAND="yes" HARDFLOWCTL="no" ESCAPECHARS="yes"/>
+		</host>
+		<!--host HOSTNAME="link1" group="link" kernel="pxeboot/vmlinuz-2.6.11.6.nodisk" mount="/export/link1" mountmode="rw" NOZEROCONF="yes" GATEWAY="221.192.136.62">
+			<ifcfg DEVICE="eth0" HWADDR="00:12:3f:24:dd:dc"/>
+			<ifcfg DEVICE="eth1" HWADDR="00:12:3F:24:DD:DD" IPADDR="221.192.136.1"/>
+			<ifcfg DEVICE="BMC" HWADDR="00:11:43:db:b4:e9"/>
+		</host>
+		<host HOSTNAME="link2" group="link" kernel="pxeboot/vmlinuz-2.6.11.6.nodisk" mount="/export/link2" mountmode="ro" NOZEROCONF="yes" GATEWAY="221.192.136.62">
+			<ifcfg DEVICE="eth0" HWADDR="00:12:3f:24:de:0e"/>
+			<ifcfg DEVICE="eth1" HWADDR="00:12:3F:24:DE:0F" IPADDR="221.192.136.2"/>
+			<ifcfg DEVICE="BMC" HWADDR="00:11:43:db:b4:e9"/>
+		</host>
+		<host HOSTNAME="game1" group="game" kernel="pxeboot/vmlinuz-2.6.11.6.nodisk" mount="/export/game1" mountmode="rw">
+			<ifcfg DEVICE="eth0" HWADDR="00:11:43:db:b4:e7"/>
+			<ifcfg DEVICE="BMC" HWADDR="00:11:43:db:b4:e9"/>
+		</host>
+		<host HOSTNAME="game2" group="game" kernel="pxeboot/vmlinuz-2.6.11.6.nodisk" mount="/export/game2" mountmode="rw">
+			<ifcfg DEVICE="eth0" HWADDR="00:11:43:db:a1:6e"/>
+			<ifcfg DEVICE="BMC" HWADDR="00:11:43:db:a1:70"/>
+		</host>
+		<host HOSTNAME="game3" group="game" kernel="pxeboot/vmlinuz-2.6.11.6.nodisk" mount="/export/game3" mountmode="rw">
+			<ifcfg DEVICE="eth0" HWADDR="00:11:43:db:b2:d7"/>
+			<ifcfg DEVICE="BMC" HWADDR="00:11:43:db:b2:d9"/>
+		</host>
+		<host HOSTNAME="game4" group="game" kernel="pxeboot/vmlinuz-2.6.11.6.nodisk" mount="/export/game4" mountmode="rw">
+			<ifcfg DEVICE="eth0" HWADDR="00:11:43:db:b6:97"/>
+			<ifcfg DEVICE="BMC" HWADDR="00:11:43:db:b6:99"/>
+		</host>
+		<host HOSTNAME="game5" group="game" kernel="pxeboot/vmlinuz-2.6.11.6.nodisk" mount="/export/game5" mountmode="rw">
+			<ifcfg DEVICE="eth0" HWADDR="00:11:43:db:b6:e4"/>
+			<ifcfg DEVICE="BMC" HWADDR="00:11:43:db:b6:e6"/>
+		</host>
+		<host HOSTNAME="game6" group="game" kernel="pxeboot/vmlinuz-2.6.11.6.nodisk" mount="/export/game6" mountmode="rw">
+			<ifcfg DEVICE="eth0" HWADDR="00:11:43:db:b6:e4"/>
+			<ifcfg DEVICE="BMC" HWADDR="00:11:43:db:b6:e6"/>
+		</host>
+		<host HOSTNAME="game7" group="game" kernel="pxeboot/vmlinuz-2.6.11.6.nodisk" mount="/export/game7" mountmode="rw">
+			<ifcfg DEVICE="eth0" HWADDR="00:11:43:db:b6:e4"/>
+			<ifcfg DEVICE="BMC" HWADDR="00:11:43:db:b6:e6"/>
+		</host>
+		<host HOSTNAME="delivery" group="delivery" kernel="pxeboot/vmlinuz-2.6.11.6.nodisk" mount="/export/delivery" mountmode="rw" GATEWAY="221.192.136.62">
+			<ifcfg DEVICE="eth0" HWADDR="00:11:43:db:b7:07"/>
+			<ifcfg DEVICE="eth1" HWADDR="00:11:43:DB:B7:08" IPADDR="221.192.136.21"/>
+			<ifcfg DEVICE="BMC" HWADDR="00:11:43:db:b7:09"/>
+		</host-->
+		<host HOSTNAME="database" group="database" kernel="pxeboot/vmlinuz-2.6.11.6.megaraid" mount="/export/database" mountmode="ro">
+			<ifcfg DEVICE="eth0" HWADDR="00:14:22:15:6B:23"/>
+			<ifcfg DEVICE="BMC" HWADDR="00:14:22:15:6B:25"/>
+		</host>
+		<!--host HOSTNAME="backup" group="backup" kernel="pxeboot/vmlinuz-2.6.11.6.megaraid" mount="/export/backup" mountmode="ro" GATEWAY="221.192.136.62">
+			<ifcfg DEVICE="eth0" HWADDR="00:12:3f:24:dd:1a"/>
+			<ifcfg DEVICE="eth1" HWADDR="00:11:43:DB:B7:08" IPADDR="221.192.136.21"/>
+			<ifcfg DEVICE="BMC" HWADDR="00:11:43:db:b4:e9"/>
+		</host-->
+
+		<iptables host="manager" content="
+*filter\n
+:INPUT ACCEPT [0:0]\n
+:FORWARD ACCEPT [0:0]\n
+:OUTPUT ACCEPT [0:0]\n
+-A INPUT -i eth1 -p udp -m udp --sport 123 --dport 123 -j ACCEPT \n
+-A INPUT -s 211.100.255.4 -i eth1 -j ACCEPT \n
+-A INPUT -s 211.100.255.5 -i eth1 -p tcp -m tcp --sport 25 -j ACCEPT \n
+-A INPUT -i eth1 -j DROP \n
+-A INPUT -i ppp0 -p tcp -m multiport --dports 22,80,443 -j ACCEPT \n
+-A INPUT -i ppp0 -p icmp -j ACCEPT \n
+-A INPUT -i ppp0 -p udp -m udp --sport 53 -j ACCEPT \n
+-A INPUT -s 172.16.2.10 -i ppp0 -p udp -m udp --dport 161 -j ACCEPT \n
+-A INPUT -s 172.16.3.100 -i ppp0 -p udp -m udp --dport 161 -j ACCEPT \n
+-A INPUT -s 172.16.2.2 -i ppp0 -p udp -m udp --dport 161 -j ACCEPT \n
+-A INPUT -i ppp0 -j DROP \n
+-A FORWARD -i eth1 -j DROP \n
+-A FORWARD -s 172.16.2.2 -i ppp0 -p tcp -m tcp --tcp-flags SYN,RST,ACK SYN -j ACCEPT \n
+COMMIT"/>
+		<iptables host="delivery" content="
+*filter\n
+:INPUT ACCEPT [0:0]\n
+:FORWARD ACCEPT [0:0]\n
+:OUTPUT ACCEPT [0:0]\n
+-A INPUT -s ! 61.152.110.234/255.255.255.255 -i eth1 -j DROP \n
+COMMIT"/>
+		<iptables host="link1" content="
+*filter\n
+:INPUT ACCEPT [0:0]\n
+:FORWARD ACCEPT [0:0]\n
+:OUTPUT ACCEPT [0:0]\n
+:SYNCHK - [0:0]\n
+-A INPUT -i eth1 -p tcp -m tcp --tcp-flags SYN,RST,ACK SYN -j SYNCHK \n
+-A SYNCHK -p tcp -m tcp --dport 29000 --tcp-option 2 -j ACCEPT \n
+-A SYNCHK -j DROP \n
+COMMIT"/>
+		<iptables host="link2" content="
+*filter\n
+:INPUT ACCEPT [0:0]\n
+:FORWARD ACCEPT [0:0]\n
+:OUTPUT ACCEPT [0:0]\n
+:SYNCHK - [0:0]\n
+-A INPUT -i eth1 -p tcp -m tcp --tcp-flags SYN,RST,ACK SYN -j SYNCHK \n
+-A SYNCHK -p tcp -m tcp --dport 29000 --tcp-option 2 -j ACCEPT \n
+-A SYNCHK -j DROP\n 
+COMMIT"/>
+
+		<file src="srcfiles/ntp.conf" dest="/etc/"/>
+		<file src="srcfiles/step-tickers" dest="/etc/ntp/"/>
+		<file src="srcfiles/cron.root" dest="/var/spool/cron/root"/>
+		<file src="srcfiles/cron.cricket" dest="/var/spool/cron/cricket" cricketcron="true"/>
+		<file src="srcfiles/restarttomcat.sh" dest="/root/bin/"/>
+		<file src="srcfiles/route-ppp0" dest="/etc/sysconfig/network-scripts/route-ppp0"/>
+	</network>
+
+	<cricket src="srcfiles/cricket.tar.gz">
+		<cricket-network pingloss="n:50" pingtime="n:250"/>
+		<cricket-protocol max-onlineusers="10000" link-max-onlineusers="5000"/>
+		<cricket-system-if ifInOctets-warn="80pct" ifOutOctets-warn="80pct" ifInErrors-warn="0.1pct" ifOutErrors-warn="0.1pct"/>
+		<cricket-system-storage>
+			<storage name="database" dev="sda" mount="/dbf"/>
+			<storage name="backup" dev="sda" mount="/export"/>
+			<storage name="manager" dev="sda" mount="/"/>
+			<storage name="nfsroot" server="manager" dev="sdc" mount="/export"/>
+		</cricket-system-storage>
+		<cricket-system-perf ssCpuRawIdle="100:n" laLoad5min="n:8"/>
+	</cricket>
+
+</configure>
+

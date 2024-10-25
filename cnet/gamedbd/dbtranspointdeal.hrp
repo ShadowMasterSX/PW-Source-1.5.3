@@ -1,0 +1,123 @@
+
+#ifndef __GNET_DBTRANSPOINTDEAL_HPP
+#define __GNET_DBTRANSPOINTDEAL_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "roleid"
+#include "dbtranspointdealres"
+#include "transman.h"
+#include "grolestatus"
+
+namespace GNET
+{
+
+class DBTransPointDeal : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbtranspointdeal"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		RoleId *arg = (RoleId *)argument;
+		DBTransPointDealRes *res = (DBTransPointDealRes *)result;
+		DEBUG_PRINT("dbtranspointdeal. received. roleid=%d\n",arg->id);
+		Thread::Mutex::Scoped l( TransMan::GetInstance().GetLock() );
+		TransMan::Memento* mem=TransMan::GetInstance().CreateMemento();
+		res->getmoney=0;
+		res->retcode=ERR_SUCCESS;
+		try
+		{
+			StorageEnv::Storage * pinventory = StorageEnv::GetStorage("inventory");
+			StorageEnv::Storage * ptrans = StorageEnv::GetStorage("translog");
+			StorageEnv::CommonTransaction txn;
+			Marshal::OctetsStream key;
+			try {
+				int retcode=0;
+				int money_get=0;
+				retcode=TransMan::GetInstance().OnRoleLogin_NoLock(arg->id,&money_get,res->delsell.GetVector(),txn,ptrans,mem);
+				if ( retcode!=ERR_SUCCESS ) {
+					res->retcode=retcode;
+					throw DbException(0);
+				}
+				res->getmoney=money_get;
+				key << arg->id;
+				if ( money_get )
+				{
+					GRolePocket pocket;
+
+					Marshal::OctetsStream(pinventory->find(key,txn))>>pocket;
+					pocket.money += money_get;
+					if ( pocket.money>MAX_PACKAGE_MONEY )
+					{
+						res->retcode=ERR_SP_MONEYEXCEED;
+						txn.abort( DbException(0) );
+						throw DbException(0);
+					}
+					pinventory->insert(
+							Marshal::OctetsStream()<<arg->id,
+							Marshal::OctetsStream()<<pocket,
+							txn
+						);
+					Log::formatlog("sellpoint","dbtranspointdeal. roleid=%d, get money %d\n",
+						arg->id,money_get);
+				}
+			}
+			catch (DbException e) { throw; }
+			catch (...)
+			{
+				DbException ee(DB_OLD_VERSION);
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			TransMan::GetInstance().RestoreMemento_NoLock( mem );
+			switch ( res->retcode )
+			{
+				default: //transman db error
+					Log::log(LOG_ERR,
+						"dbtranspointdeal. OnRoleLogin_NoLock dbexception. what=%s. roleid=%d\n",
+						DbException(res->retcode).what(),arg->id);
+					res->retcode=ERR_DATANOTFIND;
+					break;
+				case DB_LOCK_DEADLOCK:
+					Log::log(LOG_ERR,
+						"dbtranspointdeal. OnRoleLogin_NoLock dbexception. what=%s. roleid=%d\n",
+						DbException(res->retcode).what(),arg->id);
+					res->retcode=ERR_SP_DBDEADLOCK;
+					break;
+				case ERR_SP_MONEYEXCEED:
+					Log::log(LOG_ERR,
+						"dbtranspointdeal. money exceed. OnRoleLogin_NoLock err(%d). roleid=%d\n",
+						res->retcode,arg->id);
+					break;
+				case ERR_SUCCESS:
+					res->retcode=e.get_errno();
+					Log::log(LOG_ERR,"dbtranspointdeal. dbexception what=%s. roleid=%d\n",
+						e.what(),arg->id);
+					break;
+			}	
+		}
+		TransMan::GetInstance().ReleaseMemento(mem);
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// RoleId *arg = (RoleId *)argument;
+		// TransPointDealRes *res = (TransPointDealRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

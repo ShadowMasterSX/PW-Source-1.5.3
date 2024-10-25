@@ -1,0 +1,44 @@
+	public:
+		int roleid;
+		int remote_roleid;
+		int userid;
+		int zoneid;
+		enum { PROTOCOL_TYPE = PROTOCOL_GETREMOTEROLEINFO };
+	public:
+		GetRemoteRoleInfo() { type = PROTOCOL_GETREMOTEROLEINFO; }
+		GetRemoteRoleInfo(void*) : Protocol(PROTOCOL_GETREMOTEROLEINFO) { }
+		GetRemoteRoleInfo (int l_roleid,int l_remote_roleid,int l_userid = 0,
+			int l_zoneid = 0)
+			 : roleid(l_roleid),remote_roleid(l_remote_roleid),userid(l_userid)
+			,zoneid(l_zoneid)
+		{
+			type = PROTOCOL_GETREMOTEROLEINFO;
+		}
+
+		GetRemoteRoleInfo(const GetRemoteRoleInfo &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),remote_roleid(rhs.remote_roleid),userid(rhs.userid)
+			,zoneid(rhs.zoneid) { }
+
+		GNET::Protocol *Clone() const { return new GetRemoteRoleInfo(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << remote_roleid;
+			os << userid;
+			os << zoneid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> remote_roleid;
+			os >> userid;
+			os >> zoneid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

@@ -1,0 +1,90 @@
+#ifndef __GNET_GROLETABLECLSCONFIG_RPCDATA
+#define __GNET_GROLETABLECLSCONFIG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "grolebase"
+#include "grolestatus"
+#include "grolepocket"
+#include "groleinventory"
+#include "grolestorehouse"
+
+namespace GNET
+{
+	class GRoleTableClsconfig : public GNET::Rpc::Data
+	{
+	public:
+		char version;
+		GRoleBase base;
+		GRoleStatus status;
+		GRolePocket inventory;
+		GRoleInventoryVector equipment;
+		GRoleStorehouse storehouse;
+
+	public:
+		GRoleTableClsconfig (char l_version = 1)
+			: version(l_version)
+		{
+		}
+
+		GRoleTableClsconfig(const GRoleTableClsconfig &rhs)
+			: version(rhs.version),base(rhs.base),status(rhs.status),
+			inventory(rhs.inventory),equipment(rhs.equipment),storehouse(rhs.storehouse) { }
+
+		Rpc::Data *Clone() const { return new GRoleTableClsconfig(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GRoleTableClsconfig *r = dynamic_cast<const GRoleTableClsconfig *>(&rhs);
+			if (r && r != this)
+			{
+				version = r->version;
+				base = r->base;
+				status = r->status;
+				inventory = r->inventory;
+				equipment = r->equipment;
+				storehouse = r->storehouse;
+			}
+			return *this;
+		}
+
+		GRoleTableClsconfig& operator = (const GRoleTableClsconfig &rhs)
+		{
+			const GRoleTableClsconfig *r = &rhs;
+			if (r && r != this)
+			{
+				version = r->version;
+				base = r->base;
+				status = r->status;
+				inventory = r->inventory;
+				equipment = r->equipment;
+				storehouse = r->storehouse;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << (char)(1);
+			os << base;
+			os << status;
+			os << inventory;
+			os << equipment;
+			os << storehouse;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> version;
+			os >> base;
+			os >> status;
+			os >> inventory;
+			os >> equipment;
+			os >> storehouse;
+			return os;
+		}
+
+	};
+};
+#endif

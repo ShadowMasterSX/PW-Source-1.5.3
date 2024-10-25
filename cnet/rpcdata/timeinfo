@@ -1,0 +1,74 @@
+#ifndef __GNET_TIMEINFO_RPCDATA
+#define __GNET_TIMEINFO_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class TimeInfo : public GNET::Rpc::Data
+	{
+	public:
+		int64_t actiontime;
+		int showperiod;
+		int sellperiod;
+		int postperiod;
+
+	public:
+		TimeInfo ()
+		{
+		}
+
+		TimeInfo(const TimeInfo &rhs)
+			: actiontime(rhs.actiontime),showperiod(rhs.showperiod),sellperiod(rhs.sellperiod),
+			postperiod(rhs.postperiod) { }
+
+		Rpc::Data *Clone() const { return new TimeInfo(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const TimeInfo *r = dynamic_cast<const TimeInfo *>(&rhs);
+			if (r && r != this)
+			{
+				actiontime = r->actiontime;
+				showperiod = r->showperiod;
+				sellperiod = r->sellperiod;
+				postperiod = r->postperiod;
+			}
+			return *this;
+		}
+
+		TimeInfo& operator = (const TimeInfo &rhs)
+		{
+			const TimeInfo *r = &rhs;
+			if (r && r != this)
+			{
+				actiontime = r->actiontime;
+				showperiod = r->showperiod;
+				sellperiod = r->sellperiod;
+				postperiod = r->postperiod;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << actiontime;
+			os << showperiod;
+			os << sellperiod;
+			os << postperiod;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> actiontime;
+			os >> showperiod;
+			os >> sellperiod;
+			os >> postperiod;
+			return os;
+		}
+
+	};
+};
+#endif

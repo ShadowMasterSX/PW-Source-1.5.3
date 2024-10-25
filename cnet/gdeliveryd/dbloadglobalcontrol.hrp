@@ -1,0 +1,54 @@
+
+#ifndef __GNET_DBLOADGLOBALCONTROL_HPP
+#define __GNET_DBLOADGLOBALCONTROL_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbloadglobalcontrolarg"
+#include "dbloadglobalcontrolres"
+
+#include "globalcontrol.h"
+#include "gamedbclient.hpp"
+
+namespace GNET
+{
+
+class DBLoadGlobalControl : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbloadglobalcontrol"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBLoadGlobalControlArg *arg = (DBLoadGlobalControlArg *)argument;
+		// DBLoadGlobalControlRes *res = (DBLoadGlobalControlRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		DBLoadGlobalControlArg *arg = (DBLoadGlobalControlArg *)argument;
+		DBLoadGlobalControlRes *res = (DBLoadGlobalControlRes *)result;
+		DEBUG_PRINT("dbloadglobalcontrol: rpc return. retcode=%d", res->retcode);
+		
+		if(res->retcode == ERR_SUCCESS)
+			GlobalControl::GetInstance()->OnDBLoad(res->data);
+		else if(res->retcode == ERR_AGAIN)
+			GameDBClient::GetInstance()->SendProtocol( Rpc::Call(RPC_DBLOADGLOBALCONTROL,arg) );
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+		DBLoadGlobalControlArg *arg = (DBLoadGlobalControlArg *)argument;
+		Log::log(LOG_ERR,"dbloadglobalcontrol: timeout.\n");
+		GameDBClient::GetInstance()->SendProtocol( Rpc::Call(RPC_DBLOADGLOBALCONTROL,arg) );
+	}
+
+};
+
+};
+#endif

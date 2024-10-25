@@ -1,0 +1,65 @@
+#ifndef __GNET_FACTIONIDBEAN_RPCDATA
+#define __GNET_FACTIONIDBEAN_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class FactionIDBean : public GNET::Rpc::Data
+	{
+	public:
+		int ftype;
+		int64_t factionid;
+
+	public:
+		FactionIDBean (int l_ftype = 0,int64_t l_factionid = 0)
+			: ftype(l_ftype),factionid(l_factionid)
+		{
+		}
+
+		FactionIDBean(const FactionIDBean &rhs)
+			: ftype(rhs.ftype),factionid(rhs.factionid) { }
+
+		Rpc::Data *Clone() const { return new FactionIDBean(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const FactionIDBean *r = dynamic_cast<const FactionIDBean *>(&rhs);
+			if (r && r != this)
+			{
+				ftype = r->ftype;
+				factionid = r->factionid;
+			}
+			return *this;
+		}
+
+		FactionIDBean& operator = (const FactionIDBean &rhs)
+		{
+			const FactionIDBean *r = &rhs;
+			if (r && r != this)
+			{
+				ftype = r->ftype;
+				factionid = r->factionid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << ftype;
+			os << factionid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> ftype;
+			os >> factionid;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<FactionIDBean>	FactionIDBeanVector;
+};
+#endif

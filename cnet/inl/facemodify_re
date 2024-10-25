@@ -1,0 +1,47 @@
+	public:
+		int retcode;
+		int roleid;
+		int ticket_id;
+		int ticket_pos;
+		unsigned int crc;
+		enum { PROTOCOL_TYPE = PROTOCOL_FACEMODIFY_RE };
+	public:
+		FaceModify_Re() { type = PROTOCOL_FACEMODIFY_RE; }
+		FaceModify_Re(void*) : Protocol(PROTOCOL_FACEMODIFY_RE) { }
+		FaceModify_Re (int l_retcode,int l_roleid,int l_ticket_id,
+			int l_ticket_pos,unsigned int l_crc)
+			 : retcode(l_retcode),roleid(l_roleid),ticket_id(l_ticket_id)
+			,ticket_pos(l_ticket_pos),crc(l_crc)
+		{
+			type = PROTOCOL_FACEMODIFY_RE;
+		}
+
+		FaceModify_Re(const FaceModify_Re &rhs)
+			: Protocol(rhs),retcode(rhs.retcode),roleid(rhs.roleid),ticket_id(rhs.ticket_id)
+			,ticket_pos(rhs.ticket_pos),crc(rhs.crc) { }
+
+		GNET::Protocol *Clone() const { return new FaceModify_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << roleid;
+			os << ticket_id;
+			os << ticket_pos;
+			os << crc;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> roleid;
+			os >> ticket_id;
+			os >> ticket_pos;
+			os >> crc;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 128; }

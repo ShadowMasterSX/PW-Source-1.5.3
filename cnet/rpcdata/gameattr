@@ -1,0 +1,65 @@
+#ifndef __GNET_GAMEATTR_RPCDATA
+#define __GNET_GAMEATTR_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GameAttr : public GNET::Rpc::Data
+	{
+	public:
+		unsigned char attr;
+		Octets value;
+
+	public:
+		GameAttr (unsigned char l_attr = 0,const Octets& l_value = Octets())
+			: attr(l_attr),value(l_value)
+		{
+		}
+
+		GameAttr(const GameAttr &rhs)
+			: attr(rhs.attr),value(rhs.value) { }
+
+		Rpc::Data *Clone() const { return new GameAttr(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GameAttr *r = dynamic_cast<const GameAttr *>(&rhs);
+			if (r && r != this)
+			{
+				attr = r->attr;
+				value = r->value;
+			}
+			return *this;
+		}
+
+		GameAttr& operator = (const GameAttr &rhs)
+		{
+			const GameAttr *r = &rhs;
+			if (r && r != this)
+			{
+				attr = r->attr;
+				value = r->value;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << attr;
+			os << value;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> attr;
+			os >> value;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<GameAttr>	GameAttrVector;
+};
+#endif

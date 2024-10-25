@@ -1,0 +1,96 @@
+#ifndef __GNET_DBPSHOPCREATEARG_RPCDATA
+#define __GNET_DBPSHOPCREATEARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailsyncdata"
+
+namespace GNET
+{
+	class DBPShopCreateArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		int shoptype;
+		int item_id;
+		int item_pos;
+		int item_num;
+		int createtime;
+		GMailSyncData syncdata;
+
+	public:
+		DBPShopCreateArg (int l_roleid = 0,int l_shoptype = 0,int l_item_id = 0
+			,int l_item_pos = 0,int l_item_num = 0,int l_createtime = 0
+			,const GMailSyncData& l_syncdata = GMailSyncData())
+			: roleid(l_roleid),shoptype(l_shoptype),item_id(l_item_id)
+			,item_pos(l_item_pos),item_num(l_item_num),createtime(l_createtime)
+			,syncdata(l_syncdata)
+		{
+		}
+
+		DBPShopCreateArg(const DBPShopCreateArg &rhs)
+			: roleid(rhs.roleid),shoptype(rhs.shoptype),item_id(rhs.item_id),
+			item_pos(rhs.item_pos),item_num(rhs.item_num),createtime(rhs.createtime),
+			syncdata(rhs.syncdata) { }
+
+		Rpc::Data *Clone() const { return new DBPShopCreateArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPShopCreateArg *r = dynamic_cast<const DBPShopCreateArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				shoptype = r->shoptype;
+				item_id = r->item_id;
+				item_pos = r->item_pos;
+				item_num = r->item_num;
+				createtime = r->createtime;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		DBPShopCreateArg& operator = (const DBPShopCreateArg &rhs)
+		{
+			const DBPShopCreateArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				shoptype = r->shoptype;
+				item_id = r->item_id;
+				item_pos = r->item_pos;
+				item_num = r->item_num;
+				createtime = r->createtime;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << shoptype;
+			os << item_id;
+			os << item_pos;
+			os << item_num;
+			os << createtime;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> shoptype;
+			os >> item_id;
+			os >> item_pos;
+			os >> item_num;
+			os >> createtime;
+			os >> syncdata;
+			return os;
+		}
+
+	};
+};
+#endif

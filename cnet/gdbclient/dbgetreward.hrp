@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBGETREWARD_HPP
+#define __GNET_DBGETREWARD_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbgetrewardarg"
+#include "dbgetrewardres"
+
+namespace GNET
+{
+
+class DBGetReward : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbgetreward"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBGetRewardArg *arg = (DBGetRewardArg *)argument;
+		// DBGetRewardRes *res = (DBGetRewardRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBGetRewardArg *arg = (DBGetRewardArg *)argument;
+		// DBGetRewardRes *res = (DBGetRewardRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

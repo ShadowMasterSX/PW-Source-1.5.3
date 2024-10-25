@@ -1,0 +1,4142 @@
+#!/usr/bin/perl -w
+
+use strict;
+use IO::File;
+use XML::DOM;
+use Cwd;
+
+my $namespace = 'GNET';
+
+                     # usage: rpcgen [ -trace | -shuffle=[1-9] | rpcalls.xml ]
+my $gentrace = 1;    # 0 not gen trace function
+my $shuffle_level=0; # 0 not shuffle; shuffle levels = 1 - 9
+my $rpcallxml;
+my $i = 0;
+for (@ARGV)
+{
+        if ($ARGV[$i] eq "-trace")
+        {
+                $gentrace = 1;
+        }
+        elsif (substr($ARGV[$i],0,9) eq "-shuffle=" and $ARGV[$i] =~ /^-shuffle=[0-9]$/)
+        {
+                $shuffle_level = substr($ARGV[$i],9,1);
+        }
+        else { $rpcallxml = $ARGV[$i]; }
+        $i++;
+}
+if (not $rpcallxml) { $rpcallxml = 'rpcalls.xml'; }
+
+parse( $rpcallxml );
+
+#system ("rpc/xmlcoder.pl -f $rpcallxml -o gamedbd/xmlcoder.h") if (-e "rpc/xmlcoder.pl");
+
+my @dirstack;
+sub enterdir
+{
+	push ( @dirstack, getcwd() );
+	chdir ($_[0]);
+}
+
+sub leavedir
+{
+	chdir(pop(@dirstack));
+}
+
+my $doc;
+my @rpcdata_nodes;
+my @module_nodes;
+
+sub parse
+{
+	my $parser = new XML::DOM::Parser;
+ 	$doc = $parser->parsefile( shift );
+	my $app = $doc->getElementsByTagName('application')->item(0);
+
+	for ($app->getChildNodes)
+	{
+		next unless $_->getNodeType == ELEMENT_NODE;
+		my $name = $_->getNodeName;
+		import_file($doc, $app, $_->getAttribute('file')) if $name eq 'import';
+	}
+
+	my @protocol_nodes;
+	my @rpc_nodes;
+	my @adaptor_nodes;
+	my @context_nodes;
+	my @task_nodes;
+	my @graph_nodes;
+	my @state_nodes;
+	my @service_nodes;
+	my @exportdata_nodes;
+
+	for ($app->getChildNodes)
+	{
+		next unless $_->getNodeType == ELEMENT_NODE;
+		my $name = $_->getNodeName;
+		push(@protocol_nodes, $_) if $name eq 'protocol';
+		push(@rpcdata_nodes,  $_) if $name eq 'rpcdata';
+		push(@rpc_nodes,      $_) if $name eq 'rpc';
+		push(@adaptor_nodes,  $_) if $name eq 'adaptor';
+		push(@context_nodes,  $_) if $name eq 'context';
+		push(@task_nodes,     $_) if $name eq 'task';
+		push(@graph_nodes,    $_) if $name eq 'graph';
+		push(@state_nodes,    $_) if $name eq 'state';
+		push(@service_nodes,  $_) if $name eq 'service';
+		push(@exportdata_nodes,$_) if $name eq 'exportdata';
+	}
+
+	mkdir ('inl');
+	mkdir ('pdata');
+	mkdir ('rpcdata');
+
+	print "check protocol type...\n";
+	check_multiple_definition(\@protocol_nodes, "protocol");
+	check_multiple_definition(\@rpcdata_nodes,  "rpcdata");
+	check_multiple_definition(\@rpc_nodes, "rpc");
+	check_multiple_definition(\@state_nodes, "state");
+	check_multiple_definition(\@service_nodes, "service");
+	check_callid_validate(\@protocol_nodes, \@rpc_nodes);
+	generate_global_callid(\@protocol_nodes, \@rpc_nodes);
+	print "generate protocol inl and pdata...\n";
+	generate_protocol_inl($_) for (@protocol_nodes);
+	generate_protocol_data($_) for (@protocol_nodes);
+	print "generate rpc...\n";
+	generate_rpc_inl($_) for (@rpc_nodes);
+	generate_adaptor_inl($_) for (@adaptor_nodes);
+	generate_context_inl($_) for (@context_nodes);
+	generate_task_inl($_) for (@task_nodes);
+	generate_graph_inl($_) for (@graph_nodes);
+	print "generate rpcdata...\n";
+	generate_rpcdata($_, \@rpcdata_nodes, \@rpc_nodes) for (@rpcdata_nodes);
+	generate_rpcdata_novirtual($_) for (@rpcdata_nodes);
+	print "generate exportdata...\n";
+	generate_exportdata(\@exportdata_nodes, \@protocol_nodes);
+	generate_service($_, \@protocol_nodes, \@rpc_nodes, \@adaptor_nodes, \@context_nodes, \@task_nodes, \@graph_nodes, \@state_nodes) for (@service_nodes);
+
+	$doc->dispose;
+}
+my %imported_files;
+sub import_file
+{
+	my ($rootdoc, $root, $filename) = @_;
+	return if (exists($imported_files{$filename}));
+	$imported_files{$filename} = 1;
+	my $parser = new XML::DOM::Parser;
+ 	my $doc = $parser->parsefile($filename);
+	my $app = $doc->getElementsByTagName('application')->item(0);
+	$app->setOwnerDocument($rootdoc);
+	for ($app->getChildNodes)
+	{
+		next unless $_->getNodeType == ELEMENT_NODE;
+		$root->appendChild($_);
+		if ($_->getNodeName eq 'import')
+		{
+			if ($filename =~ /\//)
+			{
+				my $nfile = $filename;
+				$nfile =~s/(\S+\/)(\S+)$/$1/;
+				$nfile = $nfile . $_->getAttribute('file');
+				import_file ($rootdoc, $root, $nfile);
+			}
+			else
+			{
+				import_file($rootdoc, $root, $_->getAttribute('file'));
+			}
+		}
+	}
+}
+
+sub check_multiple_definition
+{
+	my ($nodes, $type) = @_;
+
+	my %node_set;
+	my $name;
+	for (@$nodes)
+	{
+		$name = $_->getAttribute('name');
+		print "Warning: multiple definition. <$type name=\"$name\">\n" if exists($node_set{$name});
+		$node_set{$name} = 1;
+	}
+}
+
+sub generate_rpcdata
+{
+	my ($rpcdata, $rpcdata_nodes, $rpc_nodes) = @_;
+
+	my $novirtual = $rpcdata->getAttribute('novirtual');
+	return if ($novirtual eq '1');
+
+	my $name = $rpcdata->getAttribute('name');
+	my $attr = $rpcdata->getAttribute("attr");
+	my $shuffle = $rpcdata->getAttribute('shuffle');
+	my $vars = $rpcdata->getElementsByTagName ("variable");
+	my $file = new IO::File('rpcdata/' . lc($name), O_TRUNC|O_WRONLY|O_CREAT);
+	my $flag = '__' . $namespace . '_' . uc($name) . '_RPCDATA';
+
+	my $inclcontent = generate_rpcdata_include($vars);
+	$inclcontent.= "#include <rpcdefs.h>" if $attr eq 'vector';
+	
+	$file->print (<<EOF);
+#ifndef $flag
+#define $flag
+
+#include <rpcdefs.h>
+$inclcontent
+
+namespace $namespace
+{
+EOF
+	
+	print_classdefheader( $file, $name, "GNET::Rpc::Data" );
+
+	my $vars_shuffle = shuffle_vars( $rpcdata, $shuffle );
+	print_enums($file,$rpcdata);
+	print_rpc_variables( $file, $vars_shuffle);
+	print_rpc_constructor( $file, $name, $vars, $vars_shuffle);
+
+        my $vars_shuffle2 = shuffle_marshal_vars( $rpcdata, $shuffle );
+	print_marshalmethods( $file, $vars_shuffle2, $shuffle);
+
+	print_tracemethods ($file, $vars, $name );
+	print_classdeftail( $file );
+
+	$file->print( "\ttypedef GNET::RpcDataVector<$name>\t$name" . "Vector;\n" ) if $attr eq 'vector';
+	$file->print (<<EOF);
+};
+#endif
+EOF
+
+}
+sub generate_exportdata
+{
+	my ($exportdata_nodes, $protocol_nodes) = @_;
+
+	my $n = @$exportdata_nodes;
+	my $file = new IO::File('pdata/exports.hxx', O_TRUNC|O_WRONLY|O_CREAT);
+
+	return if $n eq 0;
+	$file->print("#ifndef _GNET_EXPORT_STRUCT_HXX_\n");
+	$file->print("#define _GNET_EXPORT_STRUCT_HXX_\n\n");
+	for (@$exportdata_nodes)
+	{
+		my $source_name = $_->getAttribute('source');
+		my $dest_name = $_->getAttribute('dest');
+		my ($source_node, $source_type) = get_export_type($source_name, $protocol_nodes);
+		my ($dest_node, $dest_type) = get_export_type($dest_name, $protocol_nodes);
+		my $namespace = $_->getAttribute('namespace');
+		my $comment = $_->getAttribute('comment');
+
+		my @ignore_nodes;
+		my @assign_nodes;
+		for ($_->getChildNodes)
+		{
+			next unless $_->getNodeType == ELEMENT_NODE;
+			my $name = $_->getNodeName;
+			push (@ignore_nodes, $_) if $name eq 'ignore';
+			push (@assign_nodes, $_)   if $name eq 'assign';
+		}
+		generate_exportdata_function($file, $source_node, $source_type, $dest_node, $dest_type, \@ignore_nodes, \@assign_nodes, $namespace, $comment);
+	}
+	$file->print("\n\n#endif\n");
+}
+sub get_export_type
+{
+	my ($name , $protocol_nodes) = @_;
+	my ($source_node, $source_type);
+	$source_node = find_ref_node_2(\@rpcdata_nodes, $name);
+	if ($source_node)
+	{
+		$source_type = "rpcdata";
+		return $source_node,$source_type;
+	}
+	$source_node = find_ref_node_2($protocol_nodes,$name);
+	if ($source_node)
+	{
+		$source_type = "pdata";
+		return $source_node,$source_type;
+	}
+	die "Error: $name not found in exportdata\n";
+}
+sub generate_exportdata_function
+{
+	my ($file, $source_node, $source_type, $dest_node, $dest_type, $ignore_nodes, $assign_nodes, $namespace, $comment) = @_;
+
+	my $source_name = $source_node->getAttribute('name');
+	my $dest_name = $dest_node->getAttribute('name');
+
+	$file->print("\n");
+	$file->print("#include <$source_type/" .lc($source_name) . ">\n");
+	$file->print("#include <$dest_type/" .lc($dest_name) . ">\n");
+
+	$source_name = $source_name . "Data" if $source_type eq "pdata";
+	$dest_name = $dest_name . "Data" if $dest_type eq "pdata";
+
+	$file->print("namespace $namespace\n{\n") if ($namespace);
+
+	$file->print("//$comment\n") if $comment;
+	$file->print("inline void Build_$dest_name"."_From_$source_name(GNET::$dest_name& dest, const GNET::$source_name& src)\n{\n");
+	my @mismatch;
+	for ($dest_node->getChildNodes)
+	{
+		next unless $_->getNodeType == ELEMENT_NODE;
+		my $name = $_->getNodeName;
+
+		next unless $name eq "variable";
+		my $variablename = $_->getAttribute('name');
+		my $ignore_node = find_ref_node_2($ignore_nodes, $variablename);
+		if($ignore_node)
+		{
+			$file->print("\t//Ignore $variablename. " . $ignore_node->getAttribute('comment'). "\n");
+			next;
+		}
+		my $assign_node = find_ref_node_2($assign_nodes, $variablename);
+		if ($assign_node)
+		{
+			$file->print("\tdest.$variablename = " . $assign_node->getAttribute('value') . "; //special assignment\n");
+			next;
+		}
+		my $foundtype;
+		for ($source_node->getChildNodes)
+		{
+			next unless $_->getNodeType == ELEMENT_NODE;
+			my $name = $_->getNodeName;
+			next unless $name eq "variable";
+			$foundtype = $_->getAttribute('type') if $_->getAttribute('name') eq $variablename;
+		}
+		if ($foundtype)
+		{
+			my $warning="";
+			my $ntype = $_->getAttribute('type');
+			$warning = "//Warning, cast from '$foundtype' to '$ntype'.\n" if $foundtype ne $ntype;
+			$file->print("\tdest.$variablename = src.$variablename;$warning\n");
+		}
+		else
+		{
+			push(@mismatch, $variablename);
+		}
+	}
+	for (@mismatch)
+	{
+		$file->print("\t//Warning! Can't find \"" . $_ . "\" in $source_name.\n");
+	}
+	$file->print("}\n");
+	$file->print("}\n") if ($namespace);
+}
+
+sub generate_rpc_inl
+{
+	my $rpc = shift;
+	my $name = $rpc->getAttribute('name');
+	my $file = new IO::File('inl/' . lc($name), O_TRUNC|O_WRONLY|O_CREAT);
+
+	my $debug = $rpc->getAttribute('debug');
+	my $baseclass = 'RPC_BASECLASS'; #($rpc->getAttribute('baseclass') or 'Rpc');
+	my $prior = $rpc->getAttribute('prior');
+	my $maxsize = $rpc->getAttribute('maxsize');
+	my $sequence = $rpc->getAttribute('sequence');
+	if( !$maxsize )
+	{
+		print "\t\tWarning: `maxsize` parameter lose in $name\n";
+	}
+	my $timeout = $rpc->getAttribute('timeout');
+
+	my $callid = "RPC_" . uc($name);
+
+	my $debug_content = "";
+	$debug_content = "\n\t\t\tSTAT_MIN5(\"$name\",1);\n\t\t\t" if($debug);
+
+	my $copyconstructor = "\t\t$name(const $name &rhs)";
+	$copyconstructor .= " : $baseclass(rhs)" if $baseclass;
+	$copyconstructor .= " { }\n";
+
+	$file->print(<<EOF);
+		GNET::Protocol *Clone() const { $debug_content return new $name(*this); }
+	public:
+		$name(PROTOCOL_TYPE type, Rpc::Data *argument, Rpc::Data *result)
+			: $baseclass(type, argument, result ) { }
+		$name(PROTOCOL_TYPE type, ProtocolStubManager* stubman, Rpc::Data *argument, Rpc::Data *result)
+			: $baseclass(type, stubman, argument, result ) { }
+EOF
+	$file->print($copyconstructor);
+	$file->print("\t\tvirtual GNET::PROTOCOL_TYPE GetType() const {return $callid;}\n");
+	$file->print("\t\tint  PriorPolicy( ) const { return $prior; }\n") if $prior;
+	$file->print("\t\tbool SizePolicy(size_t size) const { return size <= $maxsize; }\n") if $maxsize;
+	$file->print("\t\tbool TimePolicy(int timeout) const { return timeout <= $timeout; }\n") if $timeout;
+	$file->print("\t\tint GetSequence() const { return $sequence; }\n") if length($sequence) >0 and $sequence ne "-1";
+	$file->print("\t\tconst char *GetName() const { return \"$name\"; }\n");
+}
+
+sub check_variables
+{
+	my $name = shift;
+	my $vars = shift;
+
+	my $n = $vars->getLength;
+	for (my $i = 0; $i < $n; $i++)
+	{
+		my $var = $vars->item ($i);
+		if ($var->getAttribute("name") eq 'type')
+                {      
+			print "\t\tError: variable name \"type\" found in protocol $name\n"; 
+		}
+	}
+}
+sub print_channel_protocol_set
+{
+	my ($file, $protocol) = @_;
+	my @pset;
+	for ($protocol->getChildNodes)
+	{
+		next unless $_->getNodeType == ELEMENT_NODE;
+		my $name = $_->getNodeName;
+		push(@pset, $_) if $name eq 'protocol';
+		push(@pset, $_) if $name eq 'rpc';
+	}
+	my $n = @pset;
+	return if ($n eq 0);
+
+	my $channeldata = $protocol->getAttribute('channeldata');
+	$file->print(<<EOF);
+		const PSET& GetProtocolSet() const
+		{
+			static PROTOCOL_TYPE plist[] =  
+			{
+EOF
+	foreach(@pset)
+	{
+		my $name = $_->getNodeName;
+		$file->print("\t\t\t\tPROTOCOL_" . uc($_->getAttribute('ref')) . ",\n") if ($name eq 'protocol');
+		$file->print("\t\t\t\tRPC_" . uc($_->getAttribute('ref')) . ",\n") if ($name eq 'rpc');
+	}
+	$file->print(<<EOF);
+			};
+			static std::set<PROTOCOL_TYPE> pset(&plist[0],&plist[0] + sizeof(plist)/sizeof(PROTOCOL_TYPE));
+			return pset;
+		}
+		Octets& GetChannelData() {return _data.$channeldata;}
+EOF
+	foreach(@pset)
+	{
+		
+	}
+}
+
+sub is_channel_protocol
+{
+	my $protocol = shift;
+
+	for ($protocol->getChildNodes)
+	{
+		next unless $_->getNodeType == ELEMENT_NODE;
+		my $name = $_->getNodeName;
+		return 1 if $name eq 'protocol';
+		return 1 if $name eq 'rpc';
+	}
+	return 0;
+}
+
+sub generate_protocol_inl
+{
+	my $protocol = shift;
+	my $name = $protocol->getAttribute('name');
+	my $file = new IO::File('inl/' . lc($name), O_TRUNC|O_WRONLY|O_CREAT);
+
+	my $vars = $protocol->getElementsByTagName('variable');
+	my $debug = $protocol->getAttribute('debug');
+	my $shuffle = $protocol->getAttribute('shuffle');
+
+	my $maxsize = $protocol->getAttribute('maxsize');
+	if( !$maxsize )
+	{
+		print "\t\tWarning: `maxsize` parameter lose in $name\n";
+	}
+
+        my $vars_shuffle = shuffle_vars( $protocol, $shuffle );
+	check_variables($name, $vars_shuffle);
+	print_protocol_constructor($file, $name, $vars, $vars_shuffle, is_channel_protocol($protocol));
+
+        #my $vars_shuffle2 = shuffle_marshal_vars( $protocol, $shuffle );
+	#print_marshalmethods($file, $vars_shuffle2, $shuffle, $debug, $name);
+
+$file->print(<<EOF);
+
+		PROTOCOL_TYPE GetType() const {return _data.GetType();}
+
+		OctetsStream& marshal(OctetsStream & os) const
+                {
+                        return _data.marshal(os);
+                }
+                const OctetsStream& unmarshal(const OctetsStream &os)
+                {
+                        return _data.unmarshal(os);
+                }
+		const char * GetName() const { return _data.GetName(); }
+		std::string trace() const { std::stringstream os; return _data.trace(os).str();}
+EOF
+	print_channel_protocol_set($file, $protocol);
+
+	#print_tracemethods($file, $vars, $name);
+	print_protocol_methods($file, $maxsize, $protocol->getAttribute('prior'), $protocol->getAttribute('sequence'));
+}
+
+sub generate_protocol_data
+{
+	my $protocol = shift;
+	my $name = $protocol->getAttribute('name');
+	my $file = new IO::File('pdata/' . lc($name), O_TRUNC|O_WRONLY|O_CREAT);
+
+	my $vars = $protocol->getElementsByTagName('variable');
+	my $debug = $protocol->getAttribute('debug');
+	my $shuffle = $protocol->getAttribute('shuffle');
+	my $comment = $protocol->getAttribute('comment');
+	if ($comment) { $comment = "\t\t//$comment"; }
+	else { $comment = ""; }
+        my $inclcontent = generate_rpcdata_include($vars);
+
+	my $maxsize = $protocol->getAttribute('maxsize');
+	if( !$maxsize )
+	{
+		print "\t\tWarning: `maxsize` parameter lose in $name\n";
+	}
+
+        my $vars_shuffle = shuffle_vars( $protocol, $shuffle );
+	check_variables($name, $vars_shuffle);
+	$file->print('#ifndef __' . $namespace . '_' . uc($name) . "_DATA_H\n");
+	$file->print('#define __' . $namespace . '_' . uc($name) . "_DATA_H\n");
+	$file->print("#include \"callid.hxx\"\n$inclcontent\n");
+	$file->print("namespace $namespace {\n\tstruct " . $name . "Data : public Protocol::Data$comment\n\t{\n");
+	print_enums($file, $protocol);
+	print_variables($file, $vars_shuffle, 'PROTOCOL_' . uc($name));
+	print_protocol_data_constructor($file, $name . "Data", $vars, $vars_shuffle, "PROTOCOL_" . uc($name));
+	$file->print("\t\tPROTOCOL_TYPE GetType() const {return type;}\n");
+        my $vars_shuffle2 = shuffle_marshal_vars( $protocol, $shuffle );
+	print_marshalmethods($file, $vars_shuffle2, $shuffle, $debug, $name);
+
+	print_tracemethods($file, $vars, $name);
+	print_protocol_data_methods($file, $maxsize, $protocol->getAttribute('prior'), $protocol->getAttribute('sequence'));
+
+	$file->print("\t\tconst char *GetName() const {return \"$name\";}\n");
+	$file->print("\t};\n};\n#endif\n");
+}
+sub generate_rpcdata_novirtual
+{
+	my $rpcdata= shift;
+	my $novirtual = $rpcdata->getAttribute('novirtual');
+	return if (not defined $novirtual );
+	return if ($novirtual ne '1');
+	my $name = $rpcdata->getAttribute('name');
+	my $attr = $rpcdata->getAttribute("attr");
+	my $debug = $rpcdata->getAttribute('debug');
+	my $structname = ucfirst($name);
+	my $vars = $rpcdata->getElementsByTagName('variable');
+	my $shuffle = $rpcdata->getAttribute('shuffle');
+	my $wrapper = $rpcdata->getAttribute('wrapper');
+	$wrapper = "Marshal::OctetsStream" if ($wrapper eq '');
+	my $vars_shuffle = shuffle_vars( $rpcdata, $shuffle );
+
+	my $file = new IO::File('rpcdata/' . lc($name), O_TRUNC|O_WRONLY|O_CREAT);
+	my $flag = '__' . $namespace . '_' . uc($name) . '_RPCDATA';
+	my $inclcontent = generate_rpcdata_include($vars);
+	$inclcontent.= "#include <rpcdefs.h>" if $attr eq 'vector';
+	$file->print (<<EOF);
+#ifndef $flag
+#define $flag
+
+#include <marshal.h>
+$inclcontent
+namespace $namespace
+{
+	struct $structname 
+	{
+EOF
+	check_variables($name, $vars);
+	print_enums($file,$rpcdata);
+	print_novirtual_rpcdata_variables($file, $vars);
+	print_novirtual_rpcdata_constructor($file, $structname, $vars, $vars_shuffle);
+	my $vars_shuffle2 = shuffle_marshal_vars( $rpcdata, $shuffle );
+	print_marshalmethods($file, $vars_shuffle2, $shuffle, $debug, $name);
+	print_tracemethods($file, $vars, $name);
+
+	$file->print("\t};\n");
+	$file->print( "\ttypedef GNET::RpcDataVector<$name>\t$name" . "Vector;\n" ) if $attr eq 'vector';
+	$file->print(<<EOF);
+	inline $wrapper& operator <<($wrapper& os, const $structname& st) { return st.marshal(os);}
+	inline const $wrapper& operator >>(const $wrapper& os, $structname& st) { return st.unmarshal(os); }
+}
+#endif
+EOF
+}
+
+sub generate_adaptor_inl
+{
+#TODO
+return;
+	my $adaptor = shift;
+	my $name = $adaptor->getAttribute('name');
+	my $file = new IO::File('inl/' . lc($name), O_TRUNC|O_WRONLY|O_CREAT);
+
+	my $vars = $adaptor->getElementsByTagName('variable');
+	my $debug = $adaptor->getAttribute('debug');
+	print_variables($file, $vars );
+}
+
+sub generate_context_inl
+{
+#TODO
+return;
+	my $context = shift;
+	my $name = $context->getAttribute('name');
+	my $file = new IO::File('inl/' . lc($name), O_TRUNC|O_WRONLY|O_CREAT);
+
+	my $vars = $context->getElementsByTagName('variable');
+	my $debug = $context->getAttribute('debug');
+	print_variables($file, $vars );
+}
+
+sub generate_task_inl
+{
+	my $task = shift;
+	my $name = $task->getAttribute('name');
+	my $file = new IO::File('inl/' . lc($name), O_TRUNC|O_WRONLY|O_CREAT);
+
+	my $vars = $task->getElementsByTagName('variable');
+	my $adaptorname = $task->getAttribute('adaptor');
+	print_variables($file, $vars );
+
+	my $varslist = "";
+	my $varseva = "";
+
+	my $i;
+	for( $i=0; $i<$vars->getLength; $i++ )
+	{
+		my $var = $vars->item($i);
+
+		$varslist .= "," if( length($varslist) > 0 );
+		if( 'ref' eq $var->getAttribute('attr') )
+		{	$varslist .= 'const ' . $var->getAttribute('type') . '& ' . $var->getAttribute('name');	}
+		else
+		{	$varslist .= $var->getAttribute('type') . ' ' . $var->getAttribute('name');		}
+
+		$varseva .= "," if( length($varseva) > 0 );
+		$varseva .= $var->getAttribute('name');
+	}
+
+
+$file->print(<<EOF);
+		$adaptorname adaptor;
+	public:
+		$name($varslist) : adaptor($varseva)
+		{
+			adaptor.AddObjectChangeListener(this);
+		}
+EOF
+
+}
+
+sub generate_graph_inl
+{
+	my $graph = shift;
+	my $name = $graph->getAttribute('name');
+	my $file = new IO::File('inl/' . lc($name), O_TRUNC|O_WRONLY|O_CREAT);
+
+	my $vars = $graph->getElementsByTagName('variable');
+	my $tasks = $graph->getElementsByTagName('task');
+	my $argument = $graph->getAttribute('argument');
+	print_variables($file, $vars );
+	my $taskcount = 1+$tasks->getLength;
+
+	my $i;
+	my $context_content = "";
+	for( $i=0; $i<$tasks->getLength; $i++ )
+	{
+		my $task = $tasks->item($i);
+		if( $task->getAttribute('context') )
+		{
+			$context_content .= ',' if( length($context_content) > 0 );
+			$context_content .= 'public ' . $task->getAttribute('context');
+		}
+	}
+	$context_content = 'public TaskContext' if( length($context_content) <= 0 );
+	$context_content = ':' . $context_content;
+
+	my $base = 'TaskGraph';
+	$base = $name . 'Base' if( $graph->getAttribute('type') eq 'RpcServer' );
+
+	$file->print(<<EOF);
+		class Context $context_content { };
+		Node *node[$taskcount];
+	public:
+		$name(const $argument * arg) : $base(new Context())
+		{
+EOF
+
+		for( $i=0; $i<$tasks->getLength; $i++ )
+		{
+			my $task = $tasks->item($i);
+			$file->print( "\t\t\tnode[" . $i . "] = CreateNode(new " . $task->getAttribute('name') . "(" );
+			my $taskvars = $task->getElementsByTagName('variable');
+			my $j;
+			for( $j=0; $j<$taskvars->getLength; $j++ )
+			{
+				my $taskvar = $taskvars->item($j);
+				$file->print( "," ) if( $j > 0 );
+				$file->print( "arg->" . $taskvar->getAttribute('name') );
+			}
+			$file->print( "));\n" );
+		}
+
+		$file->print( "\t\t\tnode[" . $i . "] = CreateStopNode();\n" );
+
+		$file->print(<<EOF);
+			for (int i = 1; i < $taskcount; i++)
+				node[i-1]->AddChild(node[i]);
+
+			Start(node[0]);
+		}
+EOF
+}
+
+sub get_protocol_rpc_in_module
+{
+	#for generate protocol and rpc in stubs.cxx
+	
+	my ($modules, $manager_name, $protocol_list, $rpc_list, $proxy_list) = @_;
+	while(my($module_name, $module_hash) = each %$modules)
+	{
+		while(my ($mname, $manager_array) = each %$module_hash)
+		{
+			if ($mname eq $manager_name)
+			{
+				my $plist = @$manager_array[0];
+				my $rlist = @$manager_array[1];
+				my $pxlist =@$manager_array[2];
+
+				push(@$protocol_list, $_) for (@$plist);
+				push(@$rpc_list, $_) for (@$rlist);
+				push(@$proxy_list, $_) for (@$pxlist);
+			}
+		}
+	}
+}
+sub get_manger_related_module
+{
+	#for generate include context in stubs.cxx
+	
+	my ($modules, $manager_name) = @_;
+	my @modulename_list;
+	while(my($module_name, $module_hash) = each %$modules)
+	{
+		while(my ($mname, $manager_array) = each %$module_hash)
+		{
+			if ($mname eq $manager_name)
+			{
+				push(@modulename_list, $module_name);
+			}
+		}
+	}
+	return @modulename_list;
+}
+sub generate_stubs_file_inl
+{
+	my ($file, $name, $modules, $module_gen_type) = @_;
+
+	my @module_name = get_manger_related_module($modules, $name);
+	for (@module_name)
+	{
+		if ($module_gen_type eq 'gatherlocal')
+		{
+			$file->print("#include \"" . lc($_) . ".hpp\"\n");
+		}
+		else
+		{
+			$file->print("#include \"" . lc($_) . "/" . lc($_) . ".hxx\"\n");
+		}
+	}
+}
+
+sub generate_one_module_header
+{
+	my ($module_name, $module_hash) = @_;
+
+	my $file = new IO::File(lc($module_name) . ".hxx", O_TRUNC|O_WRONLY|O_CREAT);
+	my $headguard = "_GNET_MODULE_" . uc($module_name) . "_HXX";
+	$file->print(<<EOF);
+#ifndef $headguard
+#define $headguard
+
+#include <marshal.h>
+#include <statistic.h>
+#include <rpc.h>
+#include <proxyrpc.h>
+#include <pdata/callid.hxx>
+
+EOF
+	while(my ($mname, $manager_array) = each %$module_hash)
+	{
+		my $plist = @$manager_array[0];
+		my $rlist = @$manager_array[1];
+		my $pxlist = @$manager_array[2];
+		foreach (@$plist)
+		{
+			my $protocolname = $_->getAttribute("name");
+			my $p_lc = lc($protocolname);
+			$file->print ("#include <pdata/" . $p_lc . ">\n");
+		}
+		foreach (@$rlist)
+		{
+			my $name = $_->getAttribute('name');
+			my $argument = ($_->getAttribute('argument') or $name.'Arg');
+			my $result = ($_->getAttribute('result') or $name.'Res');
+			$file->print ("#include <rpcdata/". lc($argument) . ">\n");
+			$file->print ("#include <rpcdata/". lc($result) . ">\n");
+		}
+		foreach (@$pxlist)
+		{
+			my $name = $_->getAttribute('name');
+			my $argument = ($_->getAttribute('argument') or $name.'Arg');
+			my $result = ($_->getAttribute('result') or $name.'Res');
+			$file->print ("#include <rpcdata/". lc($argument) . ">\n");
+			$file->print ("#include <rpcdata/". lc($result) . ">\n");
+		}
+		$file->print("\nnamespace NS_$mname\{\nusing namespace GNET;\n");
+		foreach (@$plist)
+		{
+			my $protocolname = $_->getAttribute("name");
+			my $p_lc = lc($protocolname);
+			my $p_data = $protocolname . "Data";
+			my $comment = $_->getAttribute('comment');
+			if ($comment){$comment = "//$comment";}
+			else {$comment = "";}
+			$file->print (<<EOF);
+class $protocolname : public GNET::Protocol	$comment
+{
+	#include "$p_lc"
+	
+	$p_data _data;
+	
+	void Process(PManager *manager, SESSION_ID sid);
+};
+
+EOF
+		}
+
+		foreach(@$rlist)
+		{
+			my $name = $_->getAttribute('name');
+			my $inl = lc($name);
+			my $baseclass = ($_->getAttribute('baseclass') or 'Rpc');
+			my $comment = $_->getAttribute('comment');
+			if ($comment){$comment = "//$comment";}
+			else {$comment = "";}
+			$file->print(<<EOF);
+class $name : public $baseclass		$comment
+{
+#define RPC_BASECLASS  $baseclass
+	#include "$inl"
+#undef RPC_BASECLASS
+	void Server(Rpc::Data *argument, Rpc::Data *result, PManager *manager, SESSION_ID sid);
+	void Client(Rpc::Data *argument, Rpc::Data *result, PManager *manager, SESSION_ID sid);
+	void OnTimeout(Rpc::Data *argument);
+};
+
+EOF
+		}
+
+		foreach(@$pxlist)
+		{
+			my $name = $_->getAttribute('name');
+			my $inl = lc($name);
+			my $baseclass = ($_->getAttribute('baseclass') or 'Rpc');
+			my $comment = $_->getAttribute('comment');
+			if ($comment){$comment = "//$comment";}
+			else {$comment = "";}
+			$file->print(<<EOF);
+class $name : public $baseclass		$comment
+{
+#define RPC_BASECLASS  $baseclass
+	#include "$inl"
+#undef RPC_BASECLASS
+	bool Delivery(SESSION_ID proxy_sid, const OctetsStream& osArg);
+	void PostProcess(SESSION_ID proxy_sid,const OctetsStream& osArg, const OctetsStream& osRes);
+	void OnTimeout(const OctetsStream& osArg);
+};
+EOF
+		}
+		$file->print("};\n");
+	}
+	$file->print("#endif\n");
+}
+
+sub generate_one_module_cpp
+{
+	my ($module_name, $module_hash) = @_;
+	my $file = new IO::File($module_name. '.cpp', O_WRONLY|O_CREAT|O_EXCL) or return;
+	$file->print("#include \"". lc($module_name) . ".hxx\"\n\n");
+
+	while(my ($mname, $manager_array) = each %$module_hash)
+	{
+		$file->print("\nnamespace NS_$mname\{\n\tusing namespace GNET;\n");
+
+		my $plist = @$manager_array[0];
+		my $rlist = @$manager_array[1];
+		my $pxlist = @$manager_array[2];
+		foreach (@$plist)
+		{
+			my $protocolname = $_->getAttribute("name");
+			my $p_lc = lc($protocolname);
+			$file->print("\tvoid $protocolname" . "\:\:Process(PManager *manager, SESSION_ID sid)\n");
+			$file->print("\t{\n\t\t//TODO\n\n\t}\n");
+		}
+		foreach (@$rlist)
+		{
+			my $name = $_->getAttribute('name');
+			my $argument = ($_->getAttribute('argument') or $name.'Arg');
+			my $result = ($_->getAttribute('result') or $name.'Res');
+			$file->print(<<EOF);
+	void $name\:\:Server(Rpc::Data *argument, Rpc::Data *result, PManager *manager, SESSION_ID sid)
+	{
+		// $argument *arg = ($argument *)argument;
+		// $result *res = ($result *)result;
+	}
+	void $name\:\:Client(Rpc::Data *argument, Rpc::Data *result, PManager *manager, SESSION_ID sid)
+	{
+		// TODO
+		// $argument *arg = ($argument *)argument;
+		// $result *res = ($result *)result;
+	}
+	void $name\:\:OnTimeout(Rpc::Data *argument)
+	{
+		// TODO Client Only
+		// $argument *arg = ($argument *)argument;
+	}
+EOF
+		}
+
+		foreach(@$pxlist)
+		{
+			my $name = $_->getAttribute('name');
+			my $baseclass = ($_->getAttribute('baseclass') or 'Rpc');
+			my $argument = ($_->getAttribute('argument') or $name.'Arg');
+			my $result = ($_->getAttribute('result') or $name.'Res');
+			my $sendmanager = $_->getAttribute('sendmanager');
+			my $recvmanager = $_->getAttribute('recvmanager');
+			my $proxyrpc_comment = "";
+			if ($recvmanager ne '') 
+			{
+			$proxyrpc_comment = "
+	/* proxyrpc $name
+			   Delivery
+	$recvmanager ======================>  $sendmanager
+
+			   OnPostProcess
+	$recvmanager <======================  $sendmanager
+
+	*/";
+			}
+		my $sendmanagercontent = "// $argument arg;
+		// osArg >> arg;
+		if( $sendmanager\::GetInstance()->SendProtocol( *this ) )";
+
+			$file->print(<<EOF);
+$proxyrpc_comment
+	bool $name\:\:Delivery(SESSION_ID proxy_sid, const OctetsStream& osArg)
+	{
+		// TODO
+		$sendmanagercontent
+		{
+			return true;
+		}
+		else
+		{
+			SetResult($result(ERR_DELIVER_SEND));
+			SendToSponsor();
+			return false;
+		}
+		return false;
+	}
+	void $name\:\:PostProcess(SESSION_ID proxy_sid,const OctetsStream& osArg, const OctetsStream& osRes)
+	{
+		// TODO
+		// $argument arg;
+		// osArg >> arg;
+		// $result res;
+		// osRes >> res;
+		// SetResult( &res ); // if you modified res, do not forget to call this. 
+	}
+	void $name\:\:OnTimeout(const OctetsStream& osArg)
+	{
+		// TODO Client Only
+		// $argument arg;
+		// osArg >> arg;
+	}
+EOF
+		}
+		$file->print("};\n\n");
+	}
+}
+
+sub generate_module_header_and_cpp
+{
+	my ($manager_name, $module_name, $module_hash, $skelton) = @_;
+
+	my $file;
+	if ($skelton)
+	{
+		$file = new IO::File(lc($module_name) . "_skelton.hxx", O_TRUNC|O_WRONLY|O_CREAT) or return;
+	}
+	else
+	{
+		$file = new IO::File(lc($module_name) . ".hpp", O_WRONLY|O_CREAT|O_EXCL) or return;
+	}
+	my $headguard = "_GNET_MODULE_" . uc($module_name) . "_" . uc($manager_name) . "_HPP";
+	$file->print(<<EOF);
+#ifndef $headguard
+#define $headguard
+
+#include <marshal.h>
+#include <statistic.h>
+#include <rpc.h>
+#include <proxyrpc.h>
+#include <pdata/callid.hxx>
+
+EOF
+	while(my ($mname, $manager_array) = each %$module_hash)
+	{
+		next if $mname ne $manager_name;
+
+		my $plist = @$manager_array[0];
+		my $rlist = @$manager_array[1];
+		my $pxlist = @$manager_array[2];
+		foreach (@$plist)
+		{
+			my $protocolname = $_->getAttribute("name");
+			my $p_lc = lc($protocolname);
+			$file->print ("#include <pdata/" . $p_lc . ">\n");
+		}
+		foreach (@$rlist)
+		{
+			my $name = $_->getAttribute('name');
+			my $argument = ($_->getAttribute('argument') or $name.'Arg');
+			my $result = ($_->getAttribute('result') or $name.'Res');
+			$file->print ("#include <rpcdata/". lc($argument) . ">\n");
+			$file->print ("#include <rpcdata/". lc($result) . ">\n");
+		}
+		foreach (@$pxlist)
+		{
+			my $name = $_->getAttribute('name');
+			my $argument = ($_->getAttribute('argument') or $name.'Arg');
+			my $result = ($_->getAttribute('result') or $name.'Res');
+			$file->print ("#include <rpcdata/". lc($argument) . ">\n");
+			$file->print ("#include <rpcdata/". lc($result) . ">\n");
+		}
+		$file->print("\nnamespace NS_$mname\{\nusing namespace GNET;\n");
+		foreach (@$plist)
+		{
+			my $protocolname = $_->getAttribute("name");
+			my $p_lc = lc($protocolname);
+			my $p_data = $protocolname . "Data";
+			my $comment = $_->getAttribute('comment');
+			if ($comment){$comment = "//$comment";}
+			else {$comment = "";}
+			$file->print (<<EOF);
+class $protocolname : public GNET::Protocol	$comment
+{
+	#include "$p_lc"
+	
+	$p_data _data;
+	
+	void Process(PManager *manager, SESSION_ID sid)
+	{
+		//TODO
+	}
+};
+
+EOF
+		}
+
+		foreach(@$rlist)
+		{
+			my $name = $_->getAttribute('name');
+			my $inl = lc($name);
+			my $baseclass = ($_->getAttribute('baseclass') or 'Rpc');
+			my $argument = ($_->getAttribute('argument') or $name.'Arg');
+			my $result = ($_->getAttribute('result') or $name.'Res');
+			my $comment = $_->getAttribute('comment');
+			if ($comment){$comment = "//$comment";}
+			else {$comment = "";}
+			$file->print(<<EOF);
+class $name : public $baseclass		$comment
+{
+#define RPC_BASECLASS  $baseclass
+	#include "$inl"
+#undef RPC_BASECLASS
+	void Server(Rpc::Data *argument, Rpc::Data *result, PManager *manager, SESSION_ID sid)
+	{
+		// $argument *arg = ($argument *)argument;
+		// $result *res = ($result *)result;
+	}
+	void Client(Rpc::Data *argument, Rpc::Data *result, PManager *manager, SESSION_ID sid)
+	{
+		// $argument *arg = ($argument *)argument;
+		// $result *res = ($result *)result;
+	}
+	void OnTimeout(Rpc::Data *argument)
+	{
+		// $argument *arg = ($argument *)argument;
+		// $result *res = ($result *)result;
+	}
+};
+
+EOF
+		}
+
+		foreach(@$pxlist)
+		{
+			my $name = $_->getAttribute('name');
+			my $inl = lc($name);
+			my $baseclass = ($_->getAttribute('baseclass') or 'Rpc');
+			my $argument = ($_->getAttribute('argument') or $name.'Arg');
+			my $result = ($_->getAttribute('result') or $name.'Res');
+			my $sendmanager = $_->getAttribute('sendmanager');
+			my $recvmanager = $_->getAttribute('recvmanager');
+			my $comment = $_->getAttribute('comment');
+			if ($comment){$comment = "//$comment";}
+			else {$comment = "";}
+		my $sendmanagercontent = "// $argument arg;
+		// osArg >> arg;
+		if( $sendmanager\::GetInstance()->SendProtocol( *this ) )";
+			$file->print(<<EOF);
+class $name : public $baseclass		$comment
+{
+#define RPC_BASECLASS  $baseclass
+	#include "$inl"
+#undef RPC_BASECLASS
+	bool Delivery(SESSION_ID proxy_sid, const OctetsStream& osArg)
+	{
+		// TODO
+		$sendmanagercontent
+		{
+			return true;
+		}
+		else
+		{
+			SetResult($result(ERR_DELIVER_SEND));
+			SendToSponsor();
+			return false;
+		}
+		return false;
+	}
+	void PostProcess(SESSION_ID proxy_sid,const OctetsStream& osArg, const OctetsStream& osRes)
+	{
+		// TODO
+		// $argument arg;
+		// osArg >> arg;
+		// $result res;
+		// osRes >> res;
+		// SetResult( &res ); // if you modified res, do not forget to call this. 
+	}
+	void OnTimeout(const OctetsStream& osArg)
+	{
+		// TODO Client Only
+		// $argument arg;
+		// osArg >> arg;
+	}
+};
+EOF
+		}
+		$file->print("};\n");
+	}
+	$file->print("#endif\n");
+}
+
+sub generate_modules_gatherglobal
+{
+	my ($modules) = @_;
+	while(my($module_name, $module_hash) = each %$modules)
+	{
+		print "generate module $module_name...\n";
+		my $dir = lc($module_name);
+		mkdir ($dir);
+		enterdir($dir);
+
+		generate_one_module_header($module_name, \%$module_hash);
+		generate_one_module_cpp($module_name, \%$module_hash);
+
+		generate_sub_makefile();
+		leavedir();
+	}
+}
+
+sub generate_modules_gatherlocal
+{
+	my ($manager_name, $modules) = @_;
+	while(my($module_name, $module_hash) = each %$modules)
+	{
+		generate_module_header_and_cpp($manager_name, $module_name, \%$module_hash, 0);
+		generate_module_header_and_cpp($manager_name, $module_name, \%$module_hash, 1);
+	}
+}
+
+sub generate_modules_scatterdir
+{
+	my ($modules) = @_;
+	while(my($module_name, $module_hash) = each %$modules)
+	{
+		print "generate module $module_name...\n";
+		my $dir = lc($module_name);
+		mkdir ($dir);
+		enterdir($dir);
+		my $file = new IO::File(lc($module_name) . ".hxx", O_TRUNC|O_WRONLY|O_CREAT) or return;
+		while(my ($mname, $manager_array) = each %$module_hash)
+		{
+			my $plist = @$manager_array[0];
+			my $rlist = @$manager_array[1];
+			my $pxlist = @$manager_array[2];
+			$file->print("#include \"". lc($mname) . "/" . lc($_->getAttribute('name')) . ".hpp\"\n") for(@$plist);
+			$file->print("#include \"". lc($mname) . "/" . lc($_->getAttribute('name')) . ".hrp\"\n") for(@$rlist);
+			$file->print("#include \"". lc($mname) . "/" . lc($_->getAttribute('name')) . ".hrp\"\n") for(@$pxlist);
+			mkdir (lc($mname));
+			enterdir(lc($mname));
+			generate_service_manager_protocol($mname, $_) for (@$plist);
+			generate_service_rpc($mname,$_) for (@$rlist);
+			generate_service_rpc($mname,$_) for (@$pxlist);
+			leavedir();
+		}
+		generate_sub_makefile();
+		leavedir();
+	}
+}
+sub generate_modules_scatternodir
+{
+	my ($modules) = @_;
+	while(my($module_name, $module_hash) = each %$modules)
+	{
+		print "generate module $module_name...\n";
+		my $dir = lc($module_name);
+		mkdir ($dir);
+		enterdir($dir);
+		my $file = new IO::File(lc($module_name) . ".hxx", O_TRUNC|O_WRONLY|O_CREAT) or return;
+		while(my ($mname, $manager_array) = each %$module_hash)
+		{
+			my $plist = @$manager_array[0];
+			my $rlist = @$manager_array[1];
+			my $pxlist = @$manager_array[2];
+
+			$file->print("#include \"" . lc($_->getAttribute('name')) . ".hpp\"\n") for(@$plist);
+			$file->print("#include \"" . lc($_->getAttribute('name')) . ".hrp\"\n") for(@$rlist);
+			$file->print("#include \"" . lc($_->getAttribute('name')) . ".hrp\"\n") for(@$pxlist);
+			generate_service_manager_protocol($mname, $_) for (@$plist);
+			generate_service_rpc($mname,$_) for (@$rlist);
+			generate_service_rpc($mname,$_) for (@$pxlist);
+		}
+		generate_sub_makefile();
+		leavedir();
+	}
+}
+
+
+sub print_enums
+{
+	my ($file, $protocol) = @_;
+	my $has_enum =0;
+	for ($protocol->getChildNodes)
+	{
+		next unless $_->getNodeType == ELEMENT_NODE;
+		my $name = $_->getNodeName;
+		if ($name eq 'enum')
+		{
+			if ($has_enum eq 0)
+			{
+				$file->print("\tpublic:\n\t\tenum\n\t\t{\n");
+				$has_enum = 1;
+			}
+			my $enum_name = $_->getAttribute('name');
+			my $enum_value = $_->getAttribute('value') . ",";
+			my $comment = $_->getAttribute('comment');
+			if ($comment)
+			{
+				$comment= "//$comment";
+				$file->printf("\t\t\t%-20s = %-15s %-20s\n", $enum_name, $enum_value,$comment);
+			}
+			else
+			{
+				$file->printf("\t\t\t%-20s = %-15s\n", $enum_name, $enum_value);
+			}
+		}
+	}
+	if ($has_enum eq 1)
+	{
+		$file->print("\t\t};\n");
+	}
+}
+
+sub print_variables
+{
+	my ($file, $vars, $callid) = @_;
+
+	$file->print( "\tpublic:\n" );
+	$file->print( "\t\tPROTOCOL_TYPE type;\n");
+
+	my $n = $vars->getLength;
+
+	for (my $i = 0; $i < $n; $i++)
+	{
+		my $var = $vars->item ($i);
+
+		my $name = $var->getAttribute("name");
+		my $type = $var->getAttribute("type");
+		my $size = $var->getAttribute("size");
+		my $attr = $var->getAttribute("attr");
+		my $comment = $var->getAttribute("comment");
+
+		my $tmp = "$type $name";
+		$tmp = $tmp . "[$size]" if $size;
+		$tmp = $tmp . ";";
+		
+		if ($comment)
+		{
+			$comment = "//$comment";
+			$file->printf("\t\t%-30s%s\n", $tmp, $comment);
+		}
+		else
+		{
+			$file->print("\t\t$tmp\n");
+		}
+
+		#$file->print( "\t\t$type $name" );
+		#$file->print( "[$size]" ) if $size;
+		#$file->print( ";" );
+		#$file->print( "\t\t//$comment") if $comment;
+		#$file->print( "\n" );
+			
+	}
+	#$file->print( "\t\tenum { PROTOCOL_TYPE = $callid };" ) if( $callid );
+	$file->print( "\n" );
+}
+
+sub print_rpc_variables
+{
+	my ($file, $vars, $callid) = @_;
+
+	$file->print( "\tpublic:\n" );
+
+	my $n = $vars->getLength;
+
+	for (my $i = 0; $i < $n; $i++)
+	{
+		my $var = $vars->item ($i);
+
+		my $name = $var->getAttribute("name");
+		my $type = $var->getAttribute("type");
+		my $size = $var->getAttribute("size");
+		my $attr = $var->getAttribute("attr");
+		my $comment = $var->getAttribute("comment");
+
+		my $tmp = "$type $name";
+		$tmp = $tmp . "[$size]" if $size;
+		$tmp = $tmp . ";";
+		
+		if ($comment)
+		{
+			$comment = "//$comment";
+			$file->printf("\t\t%-30s%s\n", $tmp, $comment);
+		}
+		else
+		{
+			$file->print("\t\t$tmp\n");
+		}
+	}
+	#$file->print( "\t\tenum { PROTOCOL_TYPE = $callid };" ) if( $callid );
+	$file->print( "\n" );
+}
+
+sub print_novirtual_rpcdata_variables
+{
+	my ($file, $vars) = @_;
+
+	my $n = $vars->getLength;
+
+	for (my $i = 0; $i < $n; $i++)
+	{
+		my $var = $vars->item ($i);
+
+		my $name = $var->getAttribute("name");
+		my $type = $var->getAttribute("type");
+		my $size = $var->getAttribute("size");
+		my $attr = $var->getAttribute("attr");
+		my $comment = $var->getAttribute("comment");
+
+		my $tmp = "$type $name";
+		$tmp = $tmp . "[$size]" if $size;
+		$tmp = $tmp . ";";
+		
+		if ($comment)
+		{
+			$comment = "//$comment";
+			$file->printf("\t\t%-30s%s\n", $tmp, $comment);
+		}
+		else
+		{
+			$file->print("\t\t$tmp\n");
+		}
+	}
+	#$file->print( "\n" );
+}
+
+
+sub is_builtin_type
+{
+	my $typename = shift;
+	my @type = split(/\s+/, $typename);
+	my $len = @type;
+	my @table = ("char", "short", "int", "long", "float", "double", "int64_t","uint64_t");
+
+	if ($len > 1 and  not ($type[0] eq "unsigned") )
+	{
+		return 0;
+	}
+	my $name = $type[0];
+	$name = $type[1]  if $len >1;
+	my $n = @table;
+	for (my $i=0; $i < $n; $i++)
+	{
+		if ($name eq $table[$i])
+		{
+			return 1;
+		}
+	}
+	return 0;
+}
+sub is_builtin_rpcdata
+{
+	my $typename = shift;
+	my @table = ("RpcRetcode", "IntOctets", "CharVector", "ByteVector", "ShortVector", "WordVector",
+		"IntVector","UintVector","OctetsVector","IntOctetsVector");
+	for(@table)
+	{
+		return 1 if ($_ eq $typename);
+	}
+	return 0;
+}
+
+sub print_protocol_constructor
+{
+	my $file = shift;
+	my $classname = shift;
+	my $vars = shift;
+	my $vars_shuffle = shift;
+	my $ischannel = shift;
+
+	my $callid = "PROTOCOL_" . uc($classname);
+
+	my $n = $vars->getLength;
+
+	my ($evaluate1_1, $evaluate1_2, $evaluate1_3) = ('', '', '');
+	my ($evaluate2_1, $evaluate2_2) = ('', '', '');
+	my $evaluate3 = '';
+
+	my $isfirst = 1;
+	my $count_default = 0;
+	my $baseclass = "Protocol";
+	$baseclass = "ChannelProtocol" if $ischannel;
+	for (my $i = 0; $i < $n; $i++)
+	{
+		my $var = $vars->item ($i);
+
+		my $name = $var->getAttribute("name");
+		my $type = $var->getAttribute("type");
+		my $size = $var->getAttribute("size");
+		my $attr = $var->getAttribute("attr");
+		my $default = $var->getAttribute("default");
+
+		my $count = $i + 1;
+
+		if( length($default)>0 )
+                {
+                        $count_default ++;
+                }
+		if( $type eq 'char' and $size )
+		{
+			$evaluate1_1 .= "const $type * l_$name";
+			$evaluate1_1 .= " = \"$default\"" if(length($default)>0);
+			$evaluate1_1 .= "," if ($count < $n);
+			$evaluate1_1 .= "\n\t\t\t" if( 0 == ($count % 3) and $count > 1 and $count < $n);
+			$evaluate1_3 .= "\t\t\tstrncpy( $name, l_$name, sizeof($name)-1 );\n";
+			$evaluate1_3 .= "\t\t\t$name [sizeof($name)-1] = 0;\n";
+			$evaluate2_2 .= "\t\t\tmemcpy( $name, rhs.$name, sizeof($name) );\n";
+			$evaluate3 .= "\t\t\t\tmemcpy( $name, r->$name, sizeof($name) );\n";
+		}
+		else
+		{
+			#if( $attr eq 'ref' )	{	$evaluate1_1 .= "const $type& l_$name";	}
+			#else					{	$evaluate1_1 .= "$type l_$name";	}
+			if (is_builtin_type($type) == 1) {$evaluate1_1 .= "$type l_$name";}
+			else	{ $evaluate1_1 .= "const $type& l_$name";}
+
+			$evaluate1_1 .= " = $default" if(length($default)>0);
+			$evaluate1_1 .= "," if ($count < $n);
+			$evaluate1_1 .= "\n\t\t\t" if( 0 == ($count % 3) and $count > 1 and $count < $n);
+			$evaluate3 .= "\t\t\t\t$name = r->$name;\n";
+		}
+	}
+	#if ($count_default == $n)
+        #{       print "\t\tWarning: all parameters have default value in $classname\n"; }	
+	
+	my @evaluate12 = generate_protocol_evaluate12( $vars_shuffle );
+	$evaluate1_2 = shift @evaluate12;
+	$evaluate2_1 = shift @evaluate12;
+	$evaluate1_2 = "\n\t\t\t : " . $evaluate1_2 if $evaluate1_2;
+	my $evaluate1 = "($evaluate1_1)$evaluate1_2\n\t\t{\n$evaluate1_3\t\t}\n";
+	my $evaluate2 = ": $baseclass(rhs)";
+	$evaluate2 = ": $baseclass(rhs),$evaluate2_1" if $evaluate2_1;
+	$evaluate2 .= "\n\t\t{\n$evaluate2_2\t\t}" if $evaluate2_2;
+	$evaluate2 .= " { }" if not $evaluate2_2;
+
+	if ($count_default == $n)
+	{
+	$file->print(<<EOF);
+	public:
+		$classname $evaluate1
+		$classname(PROTOCOL_TYPE type, ProtocolStubManager *stubman):$baseclass(type, stubman) { }
+		$classname(const $classname &rhs) : _data(rhs._data){ }
+
+		GNET::Protocol *Clone() const { return new $classname(*this); }
+EOF
+	}
+	else
+	{
+	$file->print(<<EOF);
+	public:
+		$classname(){ }
+		$classname(PROTOCOL_TYPE type, ProtocolStubManager *stubman):$baseclass(type, stubman) { }
+		$classname $evaluate1
+		$classname(const $classname &rhs) : _data(rhs._data){ }
+
+		GNET::Protocol *Clone() const { return new $classname(*this); }
+EOF
+	}
+}
+
+sub print_protocol_data_constructor
+{
+	my $file = shift;
+	my $classname = shift;
+	my $vars = shift;
+	my $vars_shuffle = shift;
+	my $callid = shift;
+
+	#my $callid = "PROTOCOL_" . uc($classname);
+
+	my $n = $vars->getLength;
+
+	my ($evaluate1_1, $evaluate1_2, $evaluate1_3) = ('', '', '');
+	my ($evaluate2_1, $evaluate2_2) = ('', '', '');
+	my $evaluate3 = '';
+
+	my $isfirst = 1;
+	my $count_default = 0;
+	for (my $i = 0; $i < $n; $i++)
+	{
+		my $var = $vars->item ($i);
+
+		my $name = $var->getAttribute("name");
+		my $type = $var->getAttribute("type");
+		my $size = $var->getAttribute("size");
+		my $attr = $var->getAttribute("attr");
+		my $default = $var->getAttribute("default");
+
+		my $count = $i + 1;
+
+		if( length($default)>0 )
+                {
+                        $count_default ++;
+                }
+		if( $type eq 'char' and $size )
+		{
+			$evaluate1_1 .= "const $type * l_$name";
+			$evaluate1_1 .= " = \"$default\"" if(length($default)>0);
+			$evaluate1_1 .= "," if ($count < $n);
+			$evaluate1_1 .= "\n\t\t\t" if( 0 == ($count % 3) and $count > 1 and $count < $n);
+			$evaluate1_3 .= "\t\t\tstrncpy( $name, l_$name, sizeof($name)-1 );\n";
+			$evaluate1_3 .= "\t\t\t$name [sizeof($name)-1] = 0;\n";
+			$evaluate2_2 .= "\t\t\tmemcpy( $name, rhs.$name, sizeof($name) );\n";
+			$evaluate3 .= "\t\t\t\tmemcpy( $name, r->$name, sizeof($name) );\n";
+		}
+		else
+		{
+			#if( $attr eq 'ref' )	{	$evaluate1_1 .= "const $type& l_$name";	}
+			#else					{	$evaluate1_1 .= "$type l_$name";	}
+			if (is_builtin_type($type) ==1) {$evaluate1_1 .= "$type l_$name";}
+			else	{ $evaluate1_1 .= "const $type& l_$name";}
+			$evaluate1_1 .= " = $default" if(length($default)>0);
+			$evaluate1_1 .= "," if ($count < $n);
+			$evaluate1_1 .= "\n\t\t\t" if( 0 == ($count % 3) and $count > 1 and $count < $n);
+			$evaluate3 .= "\t\t\t\t$name = r->$name;\n";
+		}
+	}
+	#if ($count_default == $n)
+        #{       print "\t\tWarning: all parameters have default value in $classname\n"; }	
+	
+	my @evaluate12 = generate_protocoldata_evaluate12( $vars_shuffle );
+	$evaluate1_2 = shift @evaluate12;
+	$evaluate2_1 = shift @evaluate12;
+	$evaluate1_2 = "\n\t\t\t : " . $evaluate1_2 if $evaluate1_2;
+	my $evaluate1 = "($evaluate1_1)$evaluate1_2\n\t\t{\n\t\t\ttype = $callid;\n$evaluate1_3\t\t}\n";
+	my $evaluate2 = ": ";
+	$evaluate2 = ": $evaluate2_1" if $evaluate2_1;
+	$evaluate2 .= "\n\t\t{\n$evaluate2_2\t\ttype = $callid;}" if $evaluate2_2;
+	$evaluate2 .= " { type = $callid;}" if not $evaluate2_2;
+
+	if ($count_default == $n)
+	{
+	$file->print(<<EOF);
+	public:
+		$classname $evaluate1
+		$classname(const $classname &rhs)
+			$evaluate2
+
+EOF
+	}
+	else
+	{
+	$file->print(<<EOF);
+	public:
+		$classname() { type = $callid; }
+		$classname $evaluate1
+		$classname(const $classname &rhs)
+			$evaluate2
+
+EOF
+	}
+}
+
+sub print_rpc_constructor
+{
+	my ($file, $classname, $vars, $vars_shuffle) = @_;
+
+	my $n = $vars->getLength;
+
+	my ($evaluate1_1, $evaluate1_2, $evaluate1_3) = ('', '', '');
+	my ($evaluate2_1, $evaluate2_2) = ('', '');
+	my $evaluate3 = '';
+
+	my $isfirst = 1;
+	my $count_default = 0;
+	for (my $i = 0; $i < $n; $i++)
+	{
+		my $var = $vars->item ($i);
+
+		my $name = $var->getAttribute ("name");
+		my $type = $var->getAttribute ("type");
+		my $size = $var->getAttribute ("size");
+		my $attr = $var->getAttribute ("attr");
+		my $default = $var->getAttribute ("default");
+		
+		if( length($default)<=0 and $attr eq 'primary' )
+		{	print "\t\tError: No default value for $name in $classname.\n"; }
+
+		my $count = $i + 1;
+
+		if( length($default)>0 )
+                {
+                        $count_default ++;
+                        if( $type eq 'char' and $size )
+                        {
+                                $evaluate1_1 .= "," if (not $isfirst);
+                                $evaluate1_1 .= "const $type * l_$name";
+                                $evaluate1_1 .= " = \"$default\"" if(length($default)>0);
+                                $evaluate1_1 .= "\n\t\t\t" if( 0 == ($count_default%3) and $count_default>1 and $count<$n);
+                                $evaluate1_3 .= "\t\t\tstrncpy( $name, l_$name, sizeof($name)-1 );\n";
+                                $evaluate1_3 .= "\t\t\t$name [sizeof($name)-1] = 0;\n";
+                        }
+                        else
+                        {
+                                $evaluate1_1 .= "," if (not $isfirst);
+                                #if( $attr eq 'ref' )    {       $evaluate1_1 .= "const $type& l_$name"; }
+                                #else                    {       $evaluate1_1 .= "$type l_$name";        }
+				if (is_builtin_type($type) ==1) {$evaluate1_1 .= "$type l_$name";}
+				else	{ $evaluate1_1 .= "const $type& l_$name";}
+                                $evaluate1_1 .= " = $default" if(length($default)>0);
+                                $evaluate1_1 .= "\n\t\t\t" if( 0 == ($count_default%3) and $count_default>1 and $count<$n);
+                               # $evaluate1_2 .= "," if (not $isfirst);
+                               # $evaluate1_2 .= "$name(l_$name)";
+                               # $evaluate1_2 .= "\n\t\t\t" if( 0 == ($count_default%3) and $count_default>1 and $count<$n);
+                        }
+                        undef $isfirst;
+                }
+
+                if( $type eq 'char' and $size )
+                {
+                        $evaluate2_2 .= "\t\t\tmemcpy( $name, rhs.$name, sizeof($name) );\n";
+                        $evaluate3 .= "\t\t\t\tmemcpy( $name, r->$name, sizeof($name) );\n";
+                }
+                else
+                {
+                        # $evaluate2_1 .= "$name(rhs.$name)";
+                        # $evaluate2_1 .= "," if ($count < $n);
+                        # $evaluate2_1 .= "\n\t\t\t" if( 0 == ($count % 3) and $count > 1 and $count < $n);
+                        $evaluate3 .= "\t\t\t\t$name = r->$name;\n";
+                }
+	}
+	my @evaluate12 = generate_rpc_evaluate12( $vars_shuffle );
+	$evaluate1_2 = shift @evaluate12;	
+	$evaluate2_1 = shift @evaluate12;	
+	#print "$evaluate1_2\n";
+	#print "$evaluate2_1\n";
+	$evaluate1_2 = "\n\t\t\t: " . $evaluate1_2 if $evaluate1_2;
+	my $evaluate1 = "($evaluate1_1)$evaluate1_2\n\t\t{\n$evaluate1_3\t\t}\n";
+	my $evaluate2;
+	$evaluate2 = ": $evaluate2_1" if $evaluate2_1;
+	$evaluate2 .= "\n\t\t{\n$evaluate2_2\t\t}" if $evaluate2_2;
+	$evaluate2 .= " { }" if not $evaluate2_2;
+
+	$file->print( "\tpublic:\
+		$classname $evaluate1\
+		$classname(const $classname &rhs)\
+			$evaluate2\n\
+		Rpc::Data *Clone() const { return new $classname(*this); }\n\
+		Rpc::Data& operator = (const Rpc::Data &rhs)\
+		{\
+			const $classname *r = dynamic_cast<const $classname *>(&rhs);\
+			if (r && r != this)\
+			{\n$evaluate3\t\t\t}\
+			return *this;\
+		}\n\
+		$classname& operator = (const $classname &rhs)\
+		{\
+			const $classname *r = &rhs;\
+			if (r && r != this)\
+			{\n$evaluate3\t\t\t}\
+			return *this;\
+		}\n" );
+}
+
+sub print_novirtual_rpcdata_constructor
+{
+	my $file = shift;
+	my $classname = shift;
+	my $vars = shift;
+	my $vars_shuffle = shift;
+
+
+	my $n = $vars->getLength;
+
+	my ($evaluate1_1, $evaluate1_2, $evaluate1_3) = ('', '', '');
+	my ($evaluate2_1, $evaluate2_2) = ('', '', '');
+	my $evaluate3 = '';
+
+	my $isfirst = 1;
+	my $count_default = 0;
+	for (my $i = 0; $i < $n; $i++)
+	{
+		my $var = $vars->item ($i);
+
+		my $name = $var->getAttribute("name");
+		my $type = $var->getAttribute("type");
+		my $size = $var->getAttribute("size");
+		my $attr = $var->getAttribute("attr");
+		my $default = $var->getAttribute("default");
+
+		my $count = $i + 1;
+
+		if( length($default)>0 )
+                {
+                        $count_default ++;
+                }
+		if( $type eq 'char' and $size )
+		{
+			$evaluate1_1 .= "const $type * l_$name";
+			$evaluate1_1 .= " = \"$default\"" if(length($default)>0);
+			$evaluate1_1 .= "," if ($count < $n);
+			$evaluate1_1 .= "\n\t\t\t" if( 0 == ($count % 3) and $count > 1 and $count < $n);
+			$evaluate1_3 .= "\t\t\tstrncpy( $name, l_$name, sizeof($name)-1 );\n";
+			$evaluate1_3 .= "\t\t\t$name [sizeof($name)-1] = 0;\n";
+			$evaluate2_2 .= "\t\t\tmemcpy( $name, rhs.$name, sizeof($name) );\n";
+			$evaluate3 .= "\t\t\t\tmemcpy( $name, r->$name, sizeof($name) );\n";
+		}
+		else
+		{
+			#if( $attr eq 'ref' )	{	$evaluate1_1 .= "const $type& l_$name";	}
+			#else					{	$evaluate1_1 .= "$type l_$name";	}
+			if (is_builtin_type($type) ==1) {$evaluate1_1 .= "$type l_$name";}
+			else	{ $evaluate1_1 .= "const $type& l_$name";}
+			$evaluate1_1 .= " = $default" if(length($default)>0);
+			$evaluate1_1 .= "," if ($count < $n);
+			$evaluate1_1 .= "\n\t\t\t" if( 0 == ($count % 3) and $count > 1 and $count < $n);
+			$evaluate3 .= "\t\t\t\t$name = r->$name;\n";
+		}
+	}
+	#if ($count_default == $n)
+        #{       print "\t\tWarning: all parameters have default value in $classname\n"; }	
+	
+	my @evaluate12 = generate_protocoldata_evaluate12( $vars_shuffle );
+	$evaluate1_2 = shift @evaluate12;
+	$evaluate2_1 = shift @evaluate12;
+	$evaluate1_2 = "\n\t\t\t : " . $evaluate1_2 if $evaluate1_2;
+	my $evaluate1 = "($evaluate1_1)$evaluate1_2\n\t\t{\n\t\t\t\n$evaluate1_3\t\t}\n";
+	my $evaluate2 = ": ";
+	$evaluate2 = ": $evaluate2_1" if $evaluate2_1;
+	$evaluate2 .= "\n\t\t{\n$evaluate2_2\t\t}" if $evaluate2_2;
+	$evaluate2 .= " { }" if not $evaluate2_2;
+
+	if ($count_default == $n)
+	{
+	$file->print(<<EOF);
+	public:
+		$classname $evaluate1
+		$classname(const $classname &rhs)
+			$evaluate2
+EOF
+	}
+	else
+	{
+	$file->print(<<EOF);
+	public:
+		$classname() { }
+		$classname $evaluate1
+		$classname(const $classname &rhs)
+			$evaluate2
+EOF
+	}
+}
+
+sub print_marshalmethods
+{
+	my ($file, $vars, $shuffle, $debug, $classname) = @_;
+
+	my $n = $vars->getLength;
+
+	$file->print("\
+		GNET::Marshal::OctetsStream& marshal(GNET::Marshal::OctetsStream & os) const\
+		{\n");
+
+	$file->print("\t\t\tSTAT_MIN5(\"$classname\",os.size());\n") if($debug);
+
+	my @suffix = is_shuffle($shuffle) ? shuffle( 0 .. $n - 1 ) : ( 0 .. $n -1 );
+	my $mcontext = '';
+	my $unmcontext = '';
+        for my $i ( @suffix )
+	{
+		my $var = $vars->item ($i);
+		my $name = $var->getAttribute("name");
+		my $type = $var->getAttribute("type");
+		my $size = $var->getAttribute("size");
+		my $iscoordinate = $var->getAttribute("coordinate");
+		my $default = $var->getAttribute("default");
+		my $fixvalue = $var->getAttribute("fixvalue");
+		my $version = $var->getAttribute("version");
+
+		my $additional = $var->getAttribute("additional");
+		
+
+		$unmcontext.= "\t\t\tif( version >= $version ) {\n"  if( length($version) > 0 );
+
+		if( $additional )
+		{
+			if( rand($n) % 2 )
+			{
+				$mcontext .= "\t\t\tstatic $type $name = $additional;\n\t\t\t$name++;\n\t\t\tos << $name;\n";
+				$unmcontext .= "\t\t\t$type $name;\n\t\t\tos >> $name;\n";
+			}
+			else
+			{
+				$mcontext .= "\t\t\t$type $name = $additional;\n\t\t\tos << $name;\n";
+				$unmcontext .= "\t\t\t$type $name;\n\t\t\tos >> $name;\n";
+			}
+		}
+		elsif( $fixvalue eq 'true' )
+		{
+			$mcontext .= "\t\t\tos << ($type)($default);\n";
+			$unmcontext .= "\t\t\tos >> $name;\n";
+		}
+		elsif ( $type eq 'int'  and  _rand( $shuffle ) ) 
+		{
+			$mcontext .= "\t\t\tos << CompactSINT($name);\n";
+			$unmcontext .= "\t\t\tos >> CompactSINT($name);\n";
+		}
+		elsif ( $type eq 'unsigned int' and  _rand( $shuffle ) )
+		{
+			$mcontext .= "\t\t\tos << CompactUINT($name);\n";
+			$unmcontext .= "\t\t\tos >> CompactUINT($name);\n";
+		}
+		elsif( $type eq 'char' and $size )
+		{
+			$mcontext .= "\t\t\tos.push_byte($name,sizeof($name));\n";
+			$unmcontext .= "\t\t\tos.pop_byte($name,sizeof($name));\n";
+		}
+		elsif ( $type eq 'Octets' and $iscoordinate eq 'true' )
+		{
+			$mcontext .=<<EOF;
+#if defined __GNUC__
+                        if( $name.size() > 2 )
+                        {   
+                                Octets tmp;
+                                short t = *(short*)$name.begin();
+                                GNET::Coordinate::compress( t, $name, tmp );
+                                os << tmp;
+                        }
+                        else
+                        {
+                                os << $name;
+                        }
+#else
+                        os << $name;
+#endif
+EOF
+			$unmcontext .=<<EOF;
+os >> $name;
+#if !defined __GNUC__
+                        if( $name.size() > 2 )
+                        {
+                                Octets tmp;
+                                short t = *(short*)$name.begin();
+                                GNET::Coordinate::uncompress( t, $name, tmp );
+                                $name.swap( tmp );
+                        }
+#endif
+EOF
+		}
+		else
+		{	
+			$mcontext .= "\t\t\tos << $name;\n";	
+			$unmcontext .= "\t\t\tos >> $name;\n";	
+		}
+		$unmcontext .= "\t\t\t}\n" if( length($version) > 0 );
+	}
+	$file->print("$mcontext");
+
+	$file->print("\t\t\treturn os;\
+		}\n\
+		const GNET::Marshal::OctetsStream& unmarshal(const GNET::Marshal::OctetsStream &os)\
+		{\n");
+
+	$file->print("\t\t\tSTAT_MIN5(\"$classname\",os.size());\n") if($debug);
+	$file->print("$unmcontext");
+	$file->print("\t\t\treturn os;\
+		}\n");
+
+}
+sub print_protocol_methods
+{
+	my ($file, $maxsize, $prior, $sequence) = @_;
+
+	$file->print("\n\t\tint PriorPolicy( ) const { return _data.PriorPolicy();}\n") if $prior;
+	$file->print("\n\t\tbool SizePolicy(size_t size) const { return _data.SizePolicy(size); }\n") if $maxsize;
+	$file->print("\n\t\tunsigned int MaxPolicySize() const { return _data.MaxSize();}\n") if $maxsize;
+	$file->print("\n\t\tint GetSequence() const { return _data.GetSequence(); }\n") if length($sequence) >0 and $sequence ne "-1";
+}
+sub print_protocol_data_methods
+{
+	my ($file, $maxsize, $prior, $sequence) = @_;
+
+	$file->print("\n\t\tint PriorPolicy( ) const { return $prior; }\n") if $prior;
+	$file->print("\n\t\tbool SizePolicy(size_t size) const { return size <= $maxsize; }\n") if $maxsize;
+	$file->print("\n\t\tunsigned int MaxSize() const { return 0; /*TODO calcualate actual size*/}\n"); 
+	$file->print("\n\t\tint GetSequence() const { return $sequence; }\n") if length($sequence) > 0 and $sequence ne "-1";
+}
+
+sub print_classdefheader
+{
+	my ($file, $name, $super) = @_;
+	$file->print(<<EOF);
+	class $name : public $super
+	{
+EOF
+}
+
+sub print_classdeftail
+{
+	shift->print( "\n\t};\n" );
+}
+
+sub find_ref_node
+{
+	my ($nodes, $ref) = @_;
+	$_->getAttribute('name') eq $ref && return $_ for (@$nodes);
+	die "error: ref=\"" . $ref ."\", can't find `" . $ref . "`.\n";
+}
+sub find_ref_node_2
+{
+	my ($nodes, $ref) = @_;
+	$_->getAttribute('name') eq $ref && return $_ for (@$nodes);
+}
+
+sub is_exists
+{
+	my ($nodes, $new) = @_;
+	for (@$nodes)
+	{
+		return 1 if( $_->getAttribute('name') eq $new->getAttribute('name') );
+	}
+	return undef;
+}
+
+sub parser_manager_protocol
+{
+	my ($manager, $protocol_nodes, $state_subset, $modules) = @_;
+	my @protocol_list;
+	my $manager_name = ucfirst($manager->getAttribute('name')) . ucfirst($manager->getAttribute('type'));
+	for ($manager->getChildNodes)
+	{
+		next unless $_->getNodeType == ELEMENT_NODE;
+		my $name = $_->getNodeName;
+		if ($name eq 'protocol')
+		{
+			my $modulename = $_->getAttribute('module');
+			if ($modulename)
+			{
+				my $manager_list = \%{$modules->{$modulename}};
+				my $lists= \@{$manager_list->{$manager_name}};
+				my $list = @$lists[0]; #0--protocol      1--rpc  2--proxyrpc
+				my $p = find_ref_node($protocol_nodes, $_->getAttribute('ref'));
+				$p->setAttribute('module',$modulename);
+				push(@$list, $p);
+				@$lists[0] = \@$list;
+			}
+			else
+			{
+				push(@protocol_list, find_ref_node($protocol_nodes, $_->getAttribute('ref')));
+			}
+			#find channel protocol
+			my $channelattr = $_->getAttribute('channelattr');
+			next unless $channelattr;
+			find_ref_node(\@protocol_list, $_->getAttribute('ref'))->setAttribute('channelattr', $channelattr);
+			if ($channelattr eq 'forward')
+			{
+			
+			}
+			if ($channelattr eq 'process')
+			{
+				my $p = find_ref_node(\@protocol_list, $_->getAttribute('ref'));
+				for($p->getChildNodes)
+				{
+					next unless $_->getNodeType == ELEMENT_NODE;
+					my $name = $_->getNodeName;
+					if ($name eq 'protocol')
+					{
+						if ($modulename)
+						{
+							my $manager_list = \%{$modules->{$modulename}};
+							my $lists= \@{$manager_list->{$manager_name}};
+							my $list = @$lists[0]; #0--protocol      1--rpc  2--proxyrpc
+							my $p = find_ref_node($protocol_nodes, $_->getAttribute('ref'));
+							$p->setAttribute('module',$modulename);
+							push(@$list, $p);
+							@$lists[0] = \@$list;
+						}
+						else
+						{
+							push(@protocol_list, find_ref_node($protocol_nodes, $_->getAttribute('ref'))) if ($name eq 'protocol');
+						}
+					}
+				}
+			}
+		}
+	}
+	#unique the protocol_list array
+	my %saw;
+	my @out = grep(!$saw{$_}++, @protocol_list);
+	return @out;
+}
+sub parser_manager_rpc
+{
+	my ($manager, $rpc_nodes, $state_subset, $modules) = @_;
+	my @rpc_list;
+	my $manager_name = ucfirst($manager->getAttribute('name')) . ucfirst($manager->getAttribute('type'));
+	for ($manager->getChildNodes)
+	{
+		next unless $_->getNodeType == ELEMENT_NODE;
+		my $name = $_->getNodeName;
+
+		find_ref_node($rpc_nodes, $_->getAttribute('ref'))->setAttribute('baseclass',$_->getAttribute('baseclass')) if $name eq 'rpc';
+		find_ref_node($rpc_nodes, $_->getAttribute('ref'))->setAttribute('sendmanager',$_->getAttribute('sendmanager')) if $name eq 'rpc';
+
+		if ($name eq 'rpc')
+		{
+			my $rpc= find_ref_node($rpc_nodes, $_->getAttribute('ref'));
+			$rpc->setAttribute('baseclass', $_->getAttribute('baseclass'));
+			$rpc->setAttribute('sendmanager', $_->getAttribute('sendmanager'));
+			$rpc->setAttribute('module', $_->getAttribute('module'));
+
+			my $argument_type = $rpc->getAttribute('argument');
+			if (!is_builtin_rpcdata($argument_type))
+			{
+				my $rpcarg = find_ref_node(\@rpcdata_nodes, $argument_type);
+				if ($rpcarg->getAttribute('novirtual') eq '1')
+				{
+					die "Error: rpc \'" . $rpc->getAttribute('name') . "\' use novirtual rpcdata \'" . $rpc->getAttribute('argument') . "\' as argument.";
+				}
+			}
+			my $result_type = $rpc->getAttribute('result');
+			if (!is_builtin_rpcdata($result_type))
+			{
+				my $rpcres = find_ref_node(\@rpcdata_nodes, $rpc->getAttribute('result'));
+				if ($rpcres->getAttribute('novirtual') eq '1')
+				{
+					die "Error: rpc \'" . $rpc->getAttribute('name') . "\' use novirtual rpcdata \'" . $rpc->getAttribute('argument') . "\' as result.";
+				}
+			}
+
+			my $modulename = $_->getAttribute('module');
+			if ($modulename)
+			{
+				my $manager_list = \%{$modules->{$modulename}};
+				my $lists= \@{$manager_list->{$manager_name}};
+
+				if ($_->getAttribute('baseclass') eq 'proxyrpc')
+				{
+					my $list = @$lists[2]; #0 -- protocol      1 -- rpc 	2--proxy
+					push(@$list, $rpc);
+					@$lists[2] = \@$list;
+				}
+				else
+				{
+					my $list = @$lists[1]; #0 -- protocol      1 -- rpc	2--proxy
+					push(@$list, $rpc);
+					@$lists[1] = \@$list;
+				}
+			}
+			else
+			{
+				push(@rpc_list, $rpc);
+			}
+		
+		}
+	}
+	#unique the rpc_list array
+	my %saw;
+	my @out = grep(!$saw{$_}++, @rpc_list);
+	return @out;
+}
+sub parser_manager_state
+{
+	my ($manager, $state_nodes, $service_state_nodes) = @_;
+	my @state_list;
+	for ($manager->getChildNodes)
+	{
+		next unless $_->getNodeType == ELEMENT_NODE;
+		my $name = $_->getNodeName;
+		my $state_name = find_ref_node($state_nodes, $_->getAttribute('ref'))->getAttribute('name') if $name eq 'state';
+		my $in_service = 0;
+		if ($name eq 'state')
+		{
+			my $in_service = 0;
+			for(@$service_state_nodes)
+			{
+				next unless $_->getNodeType == ELEMENT_NODE;
+				my $state_name2 = $_->getAttribute('name');
+				$in_service = 1 if $state_name eq $state_name2;
+			}
+			push(@state_list, find_ref_node($state_nodes, $_->getAttribute('ref'))) if $in_service eq 0;
+		}
+	}
+	return @state_list;
+}
+
+sub generate_service
+{
+	my ($service, $protocol_nodes, $rpc_nodes, $adaptor_nodes, $context_nodes, $task_nodes, $graph_nodes, $state_nodes) = @_;
+	my $name = $service->getAttribute('name');
+
+	my @manager_nodes;
+	my @protocol_subset;
+	my @rpc_subset;
+	my @g_proxyrpc_subset;
+	my @graph_subset;
+	my @state_subset;
+	my $protocolbinder;
+	my $compressbinder;
+	my @cxxsrc;
+	my @cppsrc;
+	my %modules; 
+	my $module_gen_type = 'scatternodir';
+	mkdir $name;
+	enterdir($name);
+	for ($service->getChildNodes)
+	{
+		next unless $_->getNodeType == ELEMENT_NODE;
+		my $name = $_->getNodeName;
+		push(@manager_nodes, $_) if $name eq 'manager';
+		push(@protocol_subset, find_ref_node($protocol_nodes, $_->getAttribute('ref'))) if $name eq 'protocol';
+
+		find_ref_node($rpc_nodes, $_->getAttribute('ref'))->setAttribute('baseclass',$_->getAttribute('baseclass')) if $name eq 'rpc';
+		find_ref_node($rpc_nodes, $_->getAttribute('ref'))->setAttribute('sendmanager',$_->getAttribute('sendmanager')) if $name eq 'rpc';
+		find_ref_node($rpc_nodes, $_->getAttribute('ref'))->setAttribute('recvmanager',$_->getAttribute('recvmanager')) if $name eq 'rpc';
+		push(@rpc_subset, find_ref_node($rpc_nodes, $_->getAttribute('ref'))) if $name eq 'rpc';
+
+		find_ref_node($rpc_nodes, $_->getAttribute('ref'))->setAttribute('sendmanager',$_->getAttribute('sendmanager')) if $name eq 'proxyrpc';
+		find_ref_node($rpc_nodes, $_->getAttribute('ref'))->setAttribute('recvmanager',$_->getAttribute('recvmanager')) if $name eq 'proxyrpc';
+		find_ref_node($rpc_nodes, $_->getAttribute('ref'))->setAttribute('baseclass','ProxyRpc') if $name eq 'proxyrpc';
+		if ($name eq 'proxyrpc')
+		{
+			my $modulename = $_->getAttribute('module');
+			if ($modulename)
+			{
+				my $proxyrpc = find_ref_node($rpc_nodes, $_->getAttribute('ref'));
+				$proxyrpc->setAttribute('module',$modulename);
+				my $manager_list = \%{$modules{$modulename}};
+				my $lists= \@{$manager_list->{"GLOBAL"}};
+				my $list = @$lists[2]; #0--protocol      1--rpc  2--proxyrpc
+				push(@$list, $proxyrpc);
+				@$lists[2] = \@$list;
+			}
+			else {
+				push(@g_proxyrpc_subset, find_ref_node($rpc_nodes, $_->getAttribute('ref'))) if $name eq 'proxyrpc';
+			}
+		}
+
+		push(@graph_subset, find_ref_node($graph_nodes, $_->getAttribute('ref'))) if $name eq 'graph';
+		push(@state_subset, find_ref_node($state_nodes, $_->getAttribute('ref'))) if $name eq 'state';
+	}
+
+	foreach ( @state_subset )
+	{
+		my $state = $_;
+		for( $state->getChildNodes )
+		{
+			next unless $_->getNodeType == ELEMENT_NODE;
+			my $name = $_->getNodeName;
+			if( $name eq 'protocol' )
+			{
+				my $prot = $_->getAttribute('ref');
+				my $temp = find_ref_node($protocol_nodes, $prot);
+				push(@protocol_subset, $temp) if( $temp and not is_exists(\@protocol_subset, $temp) );
+			}
+			if( $name eq 'rpc' )
+			{
+				my $temp = find_ref_node($rpc_nodes, $_->getAttribute('ref'));
+				push(@rpc_subset, $temp) if( $temp and not is_exists(\@rpc_subset, $temp) );
+			}
+		}
+	}
+	print "generate service $name ...\n";
+	generate_service_graph($_, $adaptor_nodes, $context_nodes, $task_nodes) for (@graph_subset);
+
+	#callid is generated in pdata directory now.
+	#generate_service_callid($name, \@protocol_subset, \@rpc_subset); 
+
+	my $state_len = @state_subset;	
+	generate_service_state($name, \@state_subset, 0) if $state_len >0;
+	$module_gen_type = $_->getAttribute('module_gen_type');
+	$module_gen_type = 'scatternodir' if ($module_gen_type eq '');
+	foreach (@manager_nodes)
+	{
+		my $manager = $_->getAttribute('name');
+		my $type =lc($_->getAttribute('type'));
+		my $manager_name;
+		my @protocol_list;
+		my @rpc_list;
+		my @state_list;
+		if ($type eq 'client') 
+		{
+			$manager_name = $manager . 'Client';
+		}
+		else 
+		{
+			$manager_name = $manager . 'Server';
+		}
+
+		push(@state_list, parser_manager_state($_, $state_nodes, \@state_subset));
+		push(@protocol_list, parser_manager_protocol($_, $protocol_nodes, $state_nodes, \%modules));
+		push(@rpc_list, parser_manager_rpc($_, $rpc_nodes, $state_nodes, \%modules));
+
+		mkdir (lc($manager_name));
+		enterdir(lc($manager_name));
+
+		#generate_service_protocol($_) for (\@protocol_list);
+		generate_service_manager_protocol($manager_name, $_) for (@protocol_list);
+		generate_service_rpc($manager_name,$_) for (@rpc_list);
+		my $state_num = @state_list + $state_len;
+		generate_service_state($manager_name, \@state_list, $state_len) if $state_num >0;
+
+		my $p_len = @protocol_list;
+		my $r_len = @rpc_list;
+		if ($p_len ==0 and $r_len ==0)
+		{
+			my @module_name = get_manger_related_module(\%modules, $manager_name);
+			my $module_name_len = @module_name;
+			if ($module_name_len eq 0)
+			{
+				print ("Warning: Manager $manager_name has no protocol and rpc!\n");
+			}
+		}
+
+		generate_service_manager_stubs($manager_name, \@protocol_list, \@rpc_list, \@g_proxyrpc_subset, \%modules, $module_gen_type);
+
+		generate_modules_gatherlocal($manager_name, \%modules) if ($module_gen_type eq 'gatherlocal');
+		generate_sub_makefile();
+		leavedir();
+		push(@cxxsrc, lc($manager_name) . '/stubs.cxx');
+		push(@cxxsrc, lc($manager_name) . '/state.cxx') if $state_num >0;
+		push(@cppsrc, lc($manager_name) . '/' . lc($manager_name) . '.cpp');
+	}
+	my $proxyrpc_len = @g_proxyrpc_subset;
+	if ($proxyrpc_len >0)
+	{
+		mkdir("proxyrpc");
+		enterdir("proxyrpc");
+		generate_service_rpc("GLOBAL", $_) for (@g_proxyrpc_subset);
+		generate_sub_makefile();
+		leavedir();
+	}
+
+	generate_modules_gatherglobal(\%modules)  if ($module_gen_type eq 'gatherglobal');
+	generate_modules_scatterdir(\%modules)  if ($module_gen_type eq 'scatterdir');
+	generate_modules_scatternodir(\%modules)  if ($module_gen_type eq 'scatternodir');
+
+	#global protocol stub is removed.
+	#generate_service_stubs($name, \@protocol_subset, \@rpc_subset, $protocolbinder, $compressbinder);
+	generate_manager($_) for (@manager_nodes);
+	generate_main($name, \@manager_nodes);
+
+	push(@cxxsrc, 'state.cxx') if ($state_len >0);
+	push(@cppsrc, lc($name) . '.cpp');
+
+	if ($module_gen_type eq 'gatherglobal')
+	{
+		while(my($module_name, $module_hash) = each %modules)
+		{
+			push(@cppsrc, lc($module_name) . "/" . lc($module_name) . ".cpp");
+		}
+	}
+
+	generate_makefile($name, \@cxxsrc, \@cppsrc);
+
+	leavedir();
+}
+
+sub generate_main
+{
+	my ($name, $manager_nodes) = @_;
+	my $file = new IO::File($name . '.cpp', O_WRONLY|O_CREAT|O_EXCL) or return;
+
+	for (@$manager_nodes)
+	{
+		my $incl = lc($_->getAttribute('name')) . lc($_->getAttribute('type'));
+		$file->print("#include \"$incl/$incl.hpp\" \n");
+	}
+	$file->print(<<EOF);
+#include <conf.h>
+#include <log.h>
+#include <threadpool.h>
+#include <threadpolicy.h>
+#include <gnet_init.h>
+#include <iostream>
+#include <unistd.h>
+
+using namespace $namespace;
+
+GNET::IOMan g_ioman;
+abase::timer gtimer(1000,300000);
+
+int main(int argc, char *argv[])
+{
+	if (argc != 2 || access(argv[1], R_OK) == -1)
+	{
+		std::cerr << "Usage: " << argv[0] << " configurefile" << std::endl;
+		exit(-1);
+	}
+	//初始化顺序有严格要求
+
+	//初始化静态变量
+	GNET::InitStaticObjects();
+	//初始化配置
+	Conf *conf = Conf::GetInstance(argv[1]);
+	//初始化IOMan
+	g_ioman.Init(false);	//multithread
+
+	//初始化线程池
+	GNET::ThreadPolicyBase * policy = new GNET::ThreadPolicyBase();
+	policy->AddGroup(-1, 0);
+	policy->AddGroup(-1, 0);
+	policy->SetSequenceCount(2);
+	policy->AddThread(0, GNET::TASK_TYPE_GLOBAL);
+	policy->AddThread(1, GNET::TASK_TYPE_GLOBAL);
+	policy->AddThread(0, GNET::TASK_TYPE_GLOBAL | GNET::TASK_TYPE_SEQUENCE);
+	policy->AddThread(1, GNET::TASK_TYPE_GLOBAL | GNET::TASK_TYPE_SEQUENCE);
+        Thread::Pool::_pool.Init(policy);
+        Thread::Pool::_pool.Start();
+
+	//初始化Log.  Log中会初始化相关Manager
+	GLog::Init("$name", &g_ioman);
+EOF
+
+	for (@$manager_nodes)
+	{
+		my $type = ucfirst(lc($_->getAttribute('type')));
+		my $mn = ucfirst($_->getAttribute('name')) . $type;
+		$file->print(<<EOF);
+	{
+		$mn *manager = $mn\::GetInstance();
+		manager->SetAccumulate(atoi(conf->find(manager->Identification(), "accumulate").c_str()));
+		manager->SetThreadPool(&Thread::Pool::_pool);
+		manager->PrepareInit();
+		if (manager->Init$type(&g_ioman) ==NULL)
+		{
+			printf ("Init PManager %s error\\n", "$mn");
+		}
+	}
+EOF
+	}
+
+	$file->print(<<EOF);
+
+	//初始化Timer
+	GNET::IntervalTimer::PrepareTimer(&gtimer, 50000, &Thread::Pool::_pool);
+        GNET::IntervalTimer::StartTimerThread();
+
+	//开始主循环
+	while(1)
+	{       
+		g_ioman.Poll(10);
+		GNET::Timer::Update();
+	}
+
+	//关闭
+	GNET::IntervalTimer::StopTimer();
+	GNET::Thread::Pool::_pool.Stop();
+	sleep(2);
+	GNET::Thread::Pool::_pool.WaitStop();
+
+	return 0;
+}
+
+EOF
+}
+
+sub generate_makefile
+{
+	my ($exename, $cxxsrc, $cppsrc) = @_;
+	my $makefile = new IO::File('Makefile', O_WRONLY|O_CREAT|O_EXCL) or return;
+	$makefile->print(<<EOF);
+
+TOP_SRCDIR = ..
+
+SINGLE_THREAD = false
+DEBUG_VERSION = false
+
+include ../mk/gcc.defs.mk
+
+EOF
+	#$makefile->print('OBJS = ' . join (' ', @$objs) . "\n\n");
+	$makefile->print('CXXSRC =  ');
+	my $counter =0;
+	for (@$cxxsrc)
+	{
+		$counter = $counter +1;
+		$makefile->print("\\\n\t") if ($counter % 6) eq 0;
+		$makefile->print("$_ ");
+	}
+	$makefile->print("\n");
+
+	$makefile->print('CPPSRC =  ');
+	$counter = 0;
+	for (@$cppsrc)
+	{
+		$counter = $counter +1;
+		$makefile->print("\\\n\t") if ($counter % 6) eq 0;
+		$makefile->print("$_ ");
+	}
+	$makefile->print("\n");
+
+	$makefile->print(<<EOF);
+
+OBJS  = \$(patsubst %.cxx, %.o, \$(CXXSRC))
+OBJS += \$(patsubst %.cpp, %.o, \$(CPPSRC))
+
+EXES = $exename
+
+all : \$(EXES)
+
+\$(EXES): \$(OBJS)
+	\$(LD) \$(LDFLAGS) -o \$@ \$(OBJS)
+
+include ../mk/gcc.rules.mk
+EOF
+}
+
+sub generate_sub_makefile
+{
+	my $makefile = new IO::File('Makefile', O_WRONLY|O_CREAT|O_EXCL) or return;
+	$makefile->print(<<EOF);
+all:
+	cd ..;make all
+clean:
+	cd ..;make clean
+depend:
+	cd ..;make depend
+EOF
+}
+
+sub generate_manager
+{
+	my ($manager) = @_;
+	my $name = $manager->getAttribute('name');
+	my $type = lc($manager->getAttribute('type'));
+	my $initstate = $manager->getAttribute('initstate');
+	my $reconnect = $manager->getAttribute('reconnect');
+
+	my $filename_hpp = lc($name) . $type . '.hpp';
+	my $filename_cpp = lc($name) . $type . '.cpp';
+
+	my $managerdir;
+	my $stubman;
+	if ($type eq 'client')
+	{
+		$managerdir = lc($name) . "client/";
+		$stubman = lc($name) . "client_stubman";
+	}
+	else
+	{
+		$managerdir = lc($name) . "server/";
+		$stubman = lc($name) . "server_stubman";
+	}
+	
+	my $file_hpp = new IO::File($managerdir . $filename_hpp, O_WRONLY|O_CREAT|O_EXCL) or return;
+	my $file_cpp = new IO::File($managerdir . $filename_cpp, O_WRONLY|O_CREAT|O_EXCL) or return;
+
+	my $flag = '__' . $namespace . '_' . uc($name) . uc($type) . '_HPP';
+
+	my $classname = ucfirst($name) . ucfirst($type);
+	my $setupstub_name = "Setup" . $classname . "Stubs()";
+	my $setupignore_name = "Setup" . $classname . "StateIgnore()";
+
+	my $state_incl;
+	my $state_decl;
+	my $state_define;
+	if ($initstate eq '')
+	{
+		$state_incl= "";
+		$state_decl =	"const SessionState *GetInitState() const {return NULL;}\n" .
+				"\tbool IsStatePolicyEnable() const {return false;}\n";
+		$state_define = "";
+		$setupignore_name = "";
+	}
+	else
+	{
+		$state_incl = 	"#include \"state.hxx\"\n";
+		$state_decl = 	"const SessionState *GetInitState() const;\n";
+		$state_define = "const SessionState* $classname\::GetInitState() const
+{
+	return &state_$initstate;
+}
+";
+	}
+	if ($type eq 'client')
+	{
+		$file_hpp->print(<<EOF);
+#ifndef $flag
+#define $flag
+
+#include <protocol.h>
+#include <mutex.h>
+#include "stubs.hxx"
+$state_incl
+
+namespace $namespace
+{
+
+class $classname : public PManager
+{
+	static $classname instance;
+	size_t		accumulate_limit;
+	SESSION_ID	sid;
+	bool		conn_state;
+	Mutex		locker_state;
+EOF
+	if ($reconnect)
+	{
+		$file_hpp->print(<<EOF);
+	enum { BACKOFF_INIT = 2, BACKOFF_DEADLINE = 256 };
+	size_t		backoff;
+	void Reconnect();
+EOF
+	}
+
+		$file_hpp->print(<<EOF);
+	$state_decl
+	bool OnCheckAccumulate(size_t size) const { return accumulate_limit == 0 || size < accumulate_limit; }
+	void OnAddSession(SESSION_ID sid);
+	void OnDelSession(SESSION_ID sid);
+	void OnAbortSession(const SockAddr &sa);
+	void OnCheckAddress(SockAddr &) const;
+public:
+	void PrepareInit() {$setupstub_name; $setupignore_name;}
+	static $classname *GetInstance() { return &instance; }
+	std::string Identification() const { return "$classname"; }
+	void SetAccumulate(size_t size) { accumulate_limit = size; }
+EOF
+	my $locker_name = $classname . '::locker_state';
+		if ( $reconnect )
+		{
+			$file_hpp->print(<<EOF);
+	$classname() : accumulate_limit(0), conn_state(false), backoff(BACKOFF_INIT) { }
+EOF
+		} else {
+			$file_hpp->print(<<EOF);
+	$classname() : accumulate_limit(0), conn_state(false) { }
+EOF
+		}
+
+		$file_hpp->print(<<EOF);
+
+	bool SendProtocol(const Protocol &protocol) { return conn_state && Send(sid, protocol); }
+	bool SendProtocol(const Protocol *protocol) { return conn_state && Send(sid, protocol); }
+
+	template<typename PDATA>
+	bool DispatchProtocolData(const PDATA & pdata, bool urg = false)
+	{
+		return conn_state && PManager::SendProtocolData(sid, pdata, urg);
+	}
+	virtual const ProtocolStubManager * GetStubManager() const { return &$stubman; }
+};
+
+};
+#endif
+EOF
+	} else {
+		$file_hpp->print(<<EOF);
+#ifndef $flag
+#define $flag
+
+#include <protocol.h>
+#include <mutex.h>
+#include "stubs.hxx"
+$state_incl
+
+namespace $namespace
+{
+
+class $classname : public PManager
+{
+	static $classname instance;
+	size_t		accumulate_limit;
+	$state_decl
+	bool OnCheckAccumulate(size_t size) const { return accumulate_limit == 0 || size < accumulate_limit; }
+	void OnAddSession(SESSION_ID sid);
+	void OnDelSession(SESSION_ID sid);
+public:
+	void PrepareInit() {$setupstub_name; $setupignore_name;}
+	static $classname *GetInstance() { return &instance; }
+	std::string Identification() const { return "$classname"; }
+	void SetAccumulate(size_t size) { accumulate_limit = size; }
+	$classname() : accumulate_limit(0) { }
+	virtual const ProtocolStubManager * GetStubManager() const { return &$stubman; }
+};
+
+};
+#endif
+EOF
+	}
+
+
+	if ($type eq 'client')
+	{
+		$file_cpp->print(<<EOF);
+
+#include "$filename_hpp"
+$state_incl
+EOF
+		$file_cpp->print("#include \"timertask.h\"\n") if $reconnect;
+		$file_cpp->print(<<EOF);
+namespace $namespace
+{
+
+$classname $classname\::instance;
+
+EOF
+		if ( $reconnect )
+		{
+			$file_cpp->print(<<EOF);
+void $classname\::Reconnect()
+{
+	Thread::HouseKeeper::AddTimerTask(new ReconnectTask(this, 1), backoff);
+	backoff *= 2;
+	if (backoff > BACKOFF_DEADLINE) backoff = BACKOFF_DEADLINE;
+}
+
+EOF
+		}
+
+		$file_cpp->print(<<EOF);
+$state_define
+void $classname\::OnAddSession(SESSION_ID sid)
+{
+	Mutex::Scoped l(locker_state);
+	if (conn_state)
+	{
+		CloseSession(sid);
+		return;
+	}
+	conn_state = true;
+	this->sid = sid;
+EOF
+		$file_cpp->print("\tbackoff = BACKOFF_INIT;\n") if $reconnect;
+		$file_cpp->print(<<EOF);
+	//TODO
+}
+
+void $classname\::OnDelSession(SESSION_ID sid)
+{
+	Mutex::Scoped l(locker_state);
+	conn_state = false;
+EOF
+		$file_cpp->print("\tReconnect();\n") if $reconnect;
+		$file_cpp->print(<<EOF);
+	//TODO
+}
+
+void $classname\::OnAbortSession(const SockAddr &sa)
+{
+	Mutex::Scoped l(locker_state);
+	conn_state = false;
+EOF
+		$file_cpp->print("\tReconnect();\n") if $reconnect;
+		$file_cpp->print(<<EOF);
+	//TODO
+}
+
+void $classname\::OnCheckAddress(SockAddr &sa) const
+{
+	//TODO
+}
+
+};
+EOF
+	} else {
+		$file_cpp->print(<<EOF);
+
+#include "$filename_hpp"
+$state_incl
+
+namespace $namespace
+{
+
+$classname $classname\::instance;
+
+$state_define
+void $classname\::OnAddSession(SESSION_ID sid)
+{
+	//TODO
+}
+
+void $classname\::OnDelSession(SESSION_ID sid)
+{
+	//TODO
+}
+
+};
+EOF
+
+	}
+}
+
+sub generate_rpcdata_include_type 
+{
+        my $type = shift;
+        my $content = "";
+
+        #my $rpcdata = find_ref_node( \@rpcdata_nodes, $type);
+        my $rpcdata = find_ref_node_2( \@rpcdata_nodes, $type);
+        if ($rpcdata)
+        {
+                #$content = "\n#include \"" . lc($type) . "\"";
+                $content = "\n#include <rpcdata/" . lc($type) . ">";
+                return $content;
+        }
+        my $pos = index($type, "std::vector<");
+        if ($pos == 0)
+        {
+                $type = substr($type, 12, length($type) - 13);
+                return generate_rpcdata_include_type($type);
+        }
+        $pos = rindex($type, "Vector");
+        if ($pos == length($type) - 6)
+        {
+                $type = substr($type, 0, length($type) - 6);
+                return generate_rpcdata_include_type($type);
+        }
+        return $content;
+}
+
+sub generate_rpcdata_include
+{
+        my $vars = shift;
+        my $n = $vars->getLength;
+        my $content = "";
+        for (my $i = 0; $i < $n; $i++)
+        {
+                my $var = $vars->item ($i);
+                my $type = $var->getAttribute("type");
+                $content .= generate_rpcdata_include_type($type);
+		$content .= "\n#include <rpcdefs.h>" if is_builtin_rpcdata($type);
+        }
+	$content .="\n";
+        return $content;
+}
+
+sub generate_service_protocol
+{
+	my $protocol = shift;
+	my $name = $protocol->getAttribute('name');
+	my $file = new IO::File( lc($name) . '.hpp', O_WRONLY|O_CREAT|O_EXCL) or return;
+	my $flag = '__' . $namespace . '_' . uc($name) . '_HPP';
+	my $inl  = lc($name);
+	my $vars = $protocol->getElementsByTagName('variable');
+        my $inclcontent = generate_rpcdata_include($vars);
+
+	$file->print(<<EOF);
+
+#ifndef $flag
+#define $flag
+
+#include <pdata/callid.hxx>
+#include <rpcdefs.h>
+$inclcontent
+
+namespace $namespace
+{
+
+class $name : public GNET::Protocol
+{
+	#include "$inl"
+
+	void Process(PManager *manager, SESSION_ID sid)
+	{
+		// TODO
+	}
+};
+
+};
+
+#endif
+EOF
+}
+
+sub generate_service_manager_protocol
+{
+	my ($manager_name, $protocol) = @_;
+	my $name = $protocol->getAttribute('name');
+	my $file = new IO::File( lc($name) . '.hpp', O_WRONLY|O_CREAT|O_EXCL) or return;
+	my $flag = '__' . $namespace . '_' . uc($manager_name) . '_' . uc($name) . '_HPP';
+	my $inl  = lc($name);
+	my $vars = $protocol->getElementsByTagName('variable');
+        my $inclcontent = generate_rpcdata_include($vars);
+	my $comment = $protocol->getAttribute('comment');
+	if ($comment) {$comment="//$comment";}
+	else {$comment="";}
+
+	my $baseclass = "Protocol";
+	my $channelattr = $protocol->getAttribute('channelattr');
+	my $processcontent="";
+	if ($channelattr)
+	{
+		$baseclass = "ChannelProtocol";
+		if ($channelattr eq 'process')
+		{
+			$processcontent= "Protocol *p = DecodeChannelData(manager);
+		if (p) \
+		{\
+			p->Process(manager,sid); \
+			p->Destroy(); \
+		}";
+		}
+		if ($channelattr eq 'forward')
+		{
+			$processcontent = "//if (CheckChannelData()) target_manager->SendProtocol(target_sid, this);";
+		}
+	}
+
+
+	my $newnamespace = "NS_" . $manager_name;
+	my $pdata = $name . "Data";
+	my $pdataheader = "pdata/". lc($name);
+	$file->print(<<EOF);
+
+#ifndef $flag
+#define $flag
+
+#include <marshal.h>
+#include <statistic.h>
+#include <rpc.h>
+#include <proxyrpc.h>
+#include <pdata/callid.hxx>
+$inclcontent
+#include <$pdataheader>
+
+namespace $newnamespace
+{
+using namespace $namespace;
+class $name : public GNET::$baseclass	$comment
+{
+	#include "$inl"
+	
+	$pdata _data;
+
+	void Process(PManager *manager, SESSION_ID sid)
+	{
+		// TODO
+		$processcontent
+	}
+};
+
+};
+
+#endif
+EOF
+}
+
+sub generate_service_rpc
+{
+	my $manager_name = shift;
+	my $rpc = shift;
+	my $name = $rpc->getAttribute('name');
+	my $file = new IO::File( lc($name) . '.hrp', O_WRONLY|O_CREAT|O_EXCL) or return;
+	my $flag = '__' . $namespace . '_' . uc($manager_name) . '_' . uc($name) . '_HPP';
+	my $inl = lc($name);
+
+	my $newnamespace = "NS_". $manager_name;
+
+	my $baseclass = ($rpc->getAttribute('baseclass') or 'Rpc');
+	my $argument = ($rpc->getAttribute('argument') or $name.'Arg');
+	my $result = ($rpc->getAttribute('result') or $name.'Res');
+	my $table = $rpc->getAttribute('table');
+	my $attr = $rpc->getAttribute('attr');
+	my $key = $rpc->getAttribute('key');
+	my $retcode = $rpc->getAttribute('retcode');
+	my $value = $rpc->getAttribute('value');
+	my $comment = $rpc->getAttribute('comment');
+	if ($comment) {$comment="//$comment";}
+	else {$comment="";}
+	my $sendmanager = $rpc->getAttribute('sendmanager');
+	$sendmanager = "" if( not defined $sendmanager );
+	my $proxyrpc_comment = "";
+	my $recvmanager = $rpc->getAttribute('recvmanager');
+	if ($recvmanager ne '') 
+	{
+	$proxyrpc_comment = "
+/*
+		   Delivery
+$recvmanager ======================>  $sendmanager
+
+		   OnPostProcess
+$recvmanager <======================  $sendmanager
+
+*/
+";
+	}
+	my $sendmanagercontent = "// $argument arg;
+		// osArg >> arg;
+		if( $sendmanager\::GetInstance()->SendProtocol( *this ) )";
+	if( $sendmanager eq 'QQDBClient' )
+	{
+		$sendmanagercontent = "$argument arg;
+		osArg >> arg;
+		if( GNET::QQDBClient::DispatchProtocol( ROLEID2USERID(arg.roleid), *this ) )";
+	}
+
+	my $inclarg = '#include <rpcdata/' . lc($argument) . '>';
+	my $inclres = '#include <rpcdata/' . lc($result) . '>';
+	$inclres = '' if( lc($result) eq 'rpcretcode' );
+	my $inclsendmanager = '#include "' . lc($sendmanager) . '/' . lc($sendmanager) . '.hpp"';
+	$inclsendmanager = '#include "deliver.h"' if( $sendmanager eq 'deliver' );
+	
+	my $incldbbuffer = "";
+	$incldbbuffer = "#ifdef USE_DB\n#include \"dbbuffer.h\"\n#endif" if($attr eq 'get' or $attr eq 'put' or $attr eq 'del');
+
+	my $servercontent = "";
+	if( $attr eq 'get' )
+	{
+		$servercontent = "
+#ifdef USE_DB
+		$argument *arg = ($argument *)argument;
+		$result *res = ($result *)result;
+		Marshal::OctetsStream key, value;
+		key << *arg;
+		res->$retcode = DBBuffer::buf_find( \"$table\", key, value );
+		if( 0 == res->$retcode )
+			value >> res->$value;
+#endif";
+	}
+	elsif( $attr eq 'put' )
+	{
+		$servercontent = "
+#ifdef USE_DB
+		$argument *arg = ($argument *)argument;
+		$result *res = ($result *)result;
+		Marshal::OctetsStream key, value;
+		key << arg->$key;
+		value << arg->$value;";
+		if( lc($result) eq 'rpcretcode' )
+		{	$servercontent .= "\n		res->retcode = DBBuffer::buf_insert( \"$table\", key, value );" if( lc($result) eq 'rpcretcode' );	}
+		else
+		{	$servercontent .= "\n		DBBuffer::buf_insert( \"$table\", key, value );" if( lc($result) eq 'rpcretcode' );	}
+
+		$servercontent .= "\n#endif";
+	}
+	elsif( $attr eq 'del' )
+	{
+		$servercontent = "
+#ifdef USE_DB
+		$argument *arg = ($argument *)argument;
+		$result *res = ($result *)result;
+		Marshal::OctetsStream key;
+		key << *arg;";
+		if( lc($result) eq 'rpcretcode' )
+		{	$servercontent .= "\n		res->retcode = DBBuffer::buf_del( \"$table\", key );" if( lc($result) eq 'rpcretcode' );	}
+		else
+		{	$servercontent .= "\n		DBBuffer::buf_del( \"$table\", key );" if( lc($result) eq 'rpcretcode' );	}
+
+		$servercontent .= "\n#endif";
+	}
+	else
+	{
+		$servercontent = "
+		// $argument *arg = ($argument *)argument;
+		// $result *res = ($result *)result;";
+	}
+
+	if( $baseclass eq 'ProxyRpc' )
+	{
+		$file->print(<<EOF);
+
+#ifndef $flag
+#define $flag
+
+#include <marshal.h>
+#include <statistic.h>
+#include <rpc.h>
+#include <proxyrpc.h>
+#include <pdata/callid.hxx>
+$inclarg
+$inclres
+$inclsendmanager
+
+namespace $newnamespace
+{
+using namespace $namespace;
+$proxyrpc_comment
+class $name : public $baseclass		$comment
+{
+#define	RPC_BASECLASS	$baseclass
+	#include "$inl"
+#undef	RPC_BASECLASS
+
+	bool Delivery(SESSION_ID proxy_sid, const OctetsStream& osArg)
+	{
+		// TODO
+		$sendmanagercontent
+		{
+			return true;
+		}
+		else
+		{
+			SetResult($result(ERR_DELIVER_SEND));
+			SendToSponsor();
+			return false;
+		}
+	}
+
+	void PostProcess(SESSION_ID proxy_sid,const OctetsStream& osArg, const OctetsStream& osRes)
+	{
+		// TODO
+		// $argument arg;
+		// osArg >> arg;
+		// $result res;
+		// osRes >> res;
+		// SetResult( &res ); // if you modified res, do not forget to call this. 
+	}
+
+	void OnTimeout( )
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif
+EOF
+
+	}
+	elsif ( $baseclass eq 'StatefulRpc' )
+	{
+		$file->print(<<EOF);
+#ifndef $flag
+#define $flag
+
+#include <marshal.h>
+#include <statistic.h>
+#include <rpc.h>
+#include <proxyrpc.h>
+#include <pdata/callid.hxx>
+#include "state.hxx"
+#include <statefulrpc.h>
+$incldbbuffer
+$inclarg
+$inclres
+
+namespace $newnamespace
+{
+using namespace $namespace
+
+class $name : public $baseclass<$argument, $result>
+{
+#define	RPC_BASECLASS	$baseclass<$argument, $result>
+	#include "$inl"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, SESSION_ID sid)
+	{$servercontent
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, SESSION_ID sid)
+	{
+		// TODO
+		// $argument *arg = ($argument *)argument;
+		// $result *res = ($result *)result;
+		FireResult(result);
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+		FireTimeout();
+	}
+
+};
+
+};
+#endif
+EOF
+	}
+	else
+	{
+	$file->print(<<EOF);
+
+#ifndef $flag
+#define $flag
+
+#include <pdata/callid.hxx>
+#include <rpcdefs.h>
+$incldbbuffer
+$inclarg
+$inclres
+
+namespace $newnamespace
+{
+using namespace $namespace;
+
+class $name : public $baseclass		$comment
+{
+#define	RPC_BASECLASS	$baseclass
+	#include "$inl"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, PManager *manager, SESSION_ID sid)
+	{$servercontent
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, PManager *manager, SESSION_ID sid)
+	{
+		// TODO
+		// $argument *arg = ($argument *)argument;
+		// $result *res = ($result *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif
+EOF
+	}
+
+}
+
+sub generate_service_adaptor
+{
+#TODO
+return;
+	my ($adaptor) = @_;
+	return unless $adaptor;
+	my $name = $adaptor->getAttribute('name');
+	my $file = new IO::File( lc($name) . '.hpp', O_WRONLY|O_CREAT|O_EXCL) or return;
+	my $flag = '__' . $namespace . '_' . uc($name) . '_HPP';
+	my $inl  = lc($name);
+
+	$file->print(<<EOF);
+
+#ifndef $flag
+#define $flag
+
+#include "rpcdefs.h"
+#include "taskgraph.h"
+
+namespace $namespace
+{
+
+class $name : public GNET::Thread::TaskAdaptor
+{
+	#include "$inl"
+
+};
+
+};
+
+#endif
+EOF
+
+}
+
+sub generate_service_context
+{
+#TODO
+return;
+	my ($context) = @_;
+	return unless $context;
+	my $name = $context->getAttribute('name');
+	my $file = new IO::File( lc($name) . '.hpp', O_WRONLY|O_CREAT|O_EXCL) or return;
+	my $flag = '__' . $namespace . '_' . uc($name) . '_HPP';
+	my $inl  = lc($name);
+
+	$file->print(<<EOF);
+
+#ifndef $flag
+#define $flag
+
+#include "rpcdefs.h"
+#include "taskgraph.h"
+
+namespace $namespace
+{
+
+class $name : public GNET::Thread::TaskContext
+{
+	#include "$inl"
+
+};
+
+};
+
+#endif
+EOF
+
+}
+
+sub generate_service_task
+{
+	my ($task,$adaptor_nodes,$context_nodes) = @_;
+	return unless $task;
+	my $name = $task->getAttribute('name');
+	my $file = new IO::File( lc($name) . '.hpp', O_WRONLY|O_CREAT|O_EXCL) or return;
+	my $flag = '__' . $namespace . '_' . uc($name) . '_HPP';
+	my $inl  = lc($name);
+
+	my $adaptor = find_ref_node($adaptor_nodes, $task->getAttribute('adaptor') );
+	generate_service_adaptor($adaptor) if $adaptor;
+
+	my $context = find_ref_node($context_nodes, $task->getAttribute('context') );
+	generate_service_context($context) if $context;
+
+	my $prototype = $task->getAttribute('prototype');
+	my $argument = ($task->getAttribute('argument') or $name.'Arg');
+	my $result = ($task->getAttribute('result') or $name.'Res');
+
+	$file->print(<<EOF);
+#ifndef $flag
+#define $flag
+
+#include "rpcdefs.h"
+#include "taskgraph.h"
+#include "statefulrpc.h"
+#include "transport.h"
+EOF
+
+	$file->print('#include "' . lc($adaptor->getAttribute('name')) . ".hpp\"\n") if( $adaptor and $adaptor->getAttribute('name') );
+	$file->print('#include "' . lc($context->getAttribute('name')) . ".hpp\"\n") if( $context and $context->getAttribute('name') );
+
+	if( $task->getAttribute('type') eq 'RpcClient' )
+	{
+		$file->print(<<EOF);
+namespace $namespace
+{
+
+class $name : public GNET::RpcClientTask<$prototype, $argument, $result>
+{
+	#include "$inl"
+
+};
+
+};
+
+#endif
+EOF
+	}
+	else
+	{
+		$file->print(<<EOF);
+namespace $namespace
+{
+
+class $name : public GNET::Thread::StatefulRunnable
+{
+	#include "$inl"
+
+	int GetState() const { return SUCCEED; }
+
+	void Run()
+	{
+		// TODO
+
+
+		FireObjectChange();
+    }
+};
+
+};
+
+#endif
+EOF
+	}
+}
+
+sub generate_service_graph
+{
+	my ($graph, $adaptor_nodes, $context_nodes, $task_nodes) = @_;
+	my $name = $graph->getAttribute('name');
+	my $file = new IO::File( lc($name) . '.hpp', O_WRONLY|O_CREAT|O_EXCL) or return;
+	my $flag = '__' . $namespace . '_' . uc($name) . '_HPP';
+	my $inl  = lc($name);
+
+	my @task_subset;
+	for( $graph->getChildNodes )
+	{
+		next unless $_->getNodeType == ELEMENT_NODE;
+		my $name = $_->getNodeName;
+
+		push(@task_subset, find_ref_node($task_nodes, $_->getAttribute('name'))) if $name eq 'task';
+	}
+	generate_service_task($_,$adaptor_nodes,$context_nodes) for (@task_subset);
+
+	my $argument = ($graph->getAttribute('argument') or $name.'Arg');
+	my $result = ($graph->getAttribute('result') or $name.'Arg');
+
+	$file->print(<<EOF);
+#ifndef $flag
+#define $flag
+
+#include "rpcdefs.h"
+#include "taskgraph.h"
+#include "statefulrpc.h"
+EOF
+
+	$file->print('#include "' . lc($argument) . "\"\n") if( $argument );
+	$file->print('#include "' . lc($result) . "\"\n") if( $result );
+
+	for (@task_subset)
+	{
+		next unless $_;
+		my $name = $_->getAttribute('name');
+		$file->print('#include "' . lc($name) . ".hpp\"\n");
+	}
+
+	my $base = $name . "Base";
+
+	if( $graph->getAttribute('type') eq 'RpcServer' )
+	{
+		$file->print(<<EOF);
+namespace $namespace
+{
+typedef GNET::RpcServerTask<$argument, $result>	$base;
+class $name : public GNET::RpcServerTask<$argument, $result>
+{
+	#include "$inl"
+
+	void RunnableChangeState(Thread::TaskGraph::Node *n)
+	{
+		int state = n->GetState();
+
+		if ( n == node[0] )
+		{
+			if ( state == SUCCEED )
+				GetResult()->retcode = true;
+			else if ( state == FAIL ) 
+				GetResult()->retcode = false;
+		}
+
+		if ( state == FAIL )
+		{
+			Stop();
+		}
+	}
+
+};
+
+};
+
+#endif
+EOF
+	}
+	else
+	{
+		$file->print(<<EOF);
+namespace $namespace
+{
+
+class $name : public GNET::Thread::TaskGraph
+{
+	#include "$inl"
+
+};
+
+};
+
+#endif
+EOF
+
+	}
+
+}
+
+sub check_callid_validate
+{
+	my $protocol = shift;
+	my $rpc = shift;
+	my %ids;
+	foreach( @$protocol )
+	{
+		my $type = $_->getAttribute('type');
+		my $name = $_->getAttribute('name');
+		if ($ids{$type})
+		{
+			print "\t\t Error: duplicate typeid $type in Protocol $ids{$type} and $name\n";
+		}
+		else
+		{
+			$ids{$type} = $name;	
+		}
+	}
+	foreach( @$rpc )
+	{
+		my $type = $_->getAttribute('type');
+		my $name = $_->getAttribute('name');
+		if ($ids{$type})
+		{
+			print "\t\t Error: duplicate typeid $type in Protocol $ids{$type} and $name\n";
+		}
+		else
+		{
+			$ids{$type} = $name;	
+		}
+	}
+}
+
+
+sub generate_global_callid
+{
+	my ($protocol, $rpc) = @_ ;
+	my $file = new IO::File('pdata/callid.hxx', O_WRONLY|O_CREAT|O_TRUNC);
+	my $flag = '__' . $namespace . '_GLOBAL_CALLID';
+	
+	$file->print(<<EOF);
+
+#ifndef $flag
+#define $flag
+
+namespace GNET
+{
+
+enum CallID
+{
+EOF
+	foreach( @$rpc )
+	{
+		my $type = $_->getAttribute('type');
+		if( $type >= 16 and $type <= 32 )
+		{
+			print "rpc ".$_->getAttribute('name').", type is $type,(16-32 reserved)\n";
+		}
+		else
+		{
+			$file->print("\tRPC_" . uc($_->getAttribute('name')) . "\t=\t" . $_->getAttribute('type') . ",\n" );
+		}
+	}
+
+	$file->print(<<EOF);
+};
+
+enum ProtocolType
+{
+EOF
+	foreach( @$protocol )
+	{
+		my $type = $_->getAttribute('type');
+		if( $type >= 16 and $type <= 32 )
+		{
+			print "protocol ".$_->getAttribute('name').", type is $type,(16-32 reserved)\n";
+		}
+		else
+		{
+			$file->print("\tPROTOCOL_" . uc($_->getAttribute('name')) . "\t=\t" . $_->getAttribute('type') . ",\n" );
+		}
+	}
+	$file->print(<<EOF);
+};
+
+};
+#endif
+EOF
+
+}
+
+sub generate_service_callid
+{
+	my ($name, $protocol, $rpc) = @_ ;
+	my $file = new IO::File('callid.hxx', O_WRONLY|O_CREAT|O_TRUNC);
+	my $flag = '__' . $namespace . '_' . uc($name) . '_CALLID';
+	
+	$file->print(<<EOF);
+
+#ifndef $flag
+#define $flag
+
+namespace GNET
+{
+
+enum CallID
+{
+EOF
+	foreach( @$rpc )
+	{
+		my $type = $_->getAttribute('type');
+		if( $type >= 16 and $type <= 32 )
+		{
+			print "service $name \'s protocol ".$_->getAttribute('name').", type is $type,(16-32 reserved)\n";
+		}
+		else
+		{
+			$file->print("\tRPC_" . uc($_->getAttribute('name')) . "\t=\t" . $_->getAttribute('type') . ",\n" );
+		}
+	}
+
+	$file->print(<<EOF);
+};
+
+enum ProtocolType
+{
+EOF
+	foreach( @$protocol )
+	{
+		my $type = $_->getAttribute('type');
+		if( $type >= 16 and $type <= 32 )
+		{
+			print "service $name \'s protocol ".$_->getAttribute('name').", type is $type,(16-32 reserved)\n";
+		}
+		else
+		{
+			$file->print("\tPROTOCOL_" . uc($_->getAttribute('name')) . "\t=\t" . $_->getAttribute('type') . ",\n" );
+		}
+	}
+	$file->print(<<EOF);
+};
+
+};
+#endif
+EOF
+
+}
+
+
+sub generate_service_state
+{
+	my ($mname, $state, $global_state_len) = @_;
+	my $state_num = @$state + $global_state_len;
+	return if ($state_num eq 0);
+	my $file = new IO::File('state.hxx', O_WRONLY|O_CREAT|O_TRUNC);
+	my $flag = '__' . $namespace . '_' . uc($mname) . '_STATE';
+
+	$file->print(<<EOF);
+#ifndef $flag
+#define $flag
+
+#ifdef WIN32
+#include "gnproto.h"
+#else
+#include "protocol.h"
+#endif
+
+namespace $namespace
+{
+
+EOF
+	
+	for (@$state)
+	{
+		my $name = $_->getAttribute('name');
+		$file->print(<<EOF);
+extern GNET::SessionState state_$name;
+
+EOF
+	}
+
+	$file->print("void Setup$mname"."StateIgnore();\n");
+	$file->print(<<EOF);
+};
+
+#endif
+EOF
+	$file = new IO::File('state.cxx', O_WRONLY|O_CREAT|O_TRUNC);
+
+	$file->print(<<EOF);
+#include <pdata/callid.hxx>
+
+#ifdef WIN32
+#include <winsock2.h>
+#include "gnproto.h"
+#include "gncompress.h"
+#else
+#include <protocol.h>
+#endif
+EOF
+	if ($global_state_len >0)
+	{
+		$file->print("#include \"../state.hxx\"\n");
+	}
+	$file->print(<<EOF);
+
+namespace $namespace
+{
+
+EOF
+	for (@$state)
+	{
+		my $name = $_->getAttribute('name');
+		my $timeout = $_->getAttribute('timeout');
+
+		$file->print(<<EOF);
+static GNET::PROTOCOL_TYPE _state_$name\[] = 
+{
+EOF
+		for ($_->getChildNodes)
+		{
+			next unless $_->getNodeType == ELEMENT_NODE;
+			my $name = $_->getNodeName;
+			$file->print("\tRPC_" . uc($_->getAttribute('ref')) . ",\n") if $name eq 'rpc';
+			$file->print("\tPROTOCOL_" . uc($_->getAttribute('ref')) . ",\n") if $name eq 'protocol';
+		}
+
+		$file->print(<<EOF);
+};
+
+GNET::SessionState state_$name(_state_$name,
+						sizeof(_state_$name)/sizeof(GNET::PROTOCOL_TYPE), $timeout, "$name");
+
+EOF
+	}
+	my $has_ignore = 0;
+        for (@$state)
+        {
+		my $state_name = $_->getAttribute('name');
+		for($_->getChildNodes)
+		{
+			next unless $_->getNodeName eq 'ignore';
+			$has_ignore = 1;
+		}
+	}
+	$file->print("void Setup$mname". "StateIgnore()\n{\n");
+	if ($has_ignore eq 1)
+	{
+		$file->print(<<EOF);
+	static bool inited = false;
+	if (inited) return;
+	inited = true;
+
+EOF
+	}
+	for (@$state)
+	{
+		my $state_name = $_->getAttribute('name');
+		for($_->getChildNodes)
+		{
+			next unless $_->getNodeName eq 'ignore';
+			for($_->getChildNodes)
+			{
+				my $name = $_->getNodeName;
+				if ($name eq 'state')
+				{
+					my $spec_name = $_->getAttribute('ref');
+					$file->print("\tstate_$state_name". '.AddIgnore(' . "&state_$spec_name);\n");
+				}
+				if ($name eq 'protocol')
+				{
+					my $spec_name = $_->getAttribute('ref');
+					$file->print("\tstate_$state_name". '.AddIgnore(PROTOCOL_' . uc("$spec_name") . ");\n");
+				}
+			}
+		}
+	}
+	$file->print("}\n");
+	
+	$file->print(<<EOF);
+
+};
+
+EOF
+
+}
+
+sub generate_stubs_macros
+{
+	my ($manager_name, $file, $index) = @_;
+
+	if ($index == 1)
+	{
+	$file->print(<<EOF);
+#define DEFINE_PROTOCOL(pname, modulename) \\
+void WEAK pname::Process(PManager *manager, SESSION_ID sid) \\
+{\\
+        Log::log(LOG_WARNING, "$manager_name: protocol %s should processed by module %s", #pname, #modulename);  \\
+}
+
+EOF
+	}
+	elsif ($index == 2)
+	{
+	$file->print(<<EOF);
+#define DEFINE_RPC(pname, modulename) \\
+void WEAK pname::Server(Rpc::Data *argument, Rpc::Data *result, PManager *manager, SESSION_ID sid)\\
+{\\
+        Log::log(LOG_WARNING, "$manager_name: rpc %s server should processed by module %s", #pname, #modulename);  \\
+}\\
+void WEAK pname::Client(Rpc::Data *argument, Rpc::Data *result, PManager *manager, SESSION_ID sid) \\
+{\\
+        Log::log(LOG_WARNING, "$manager_name: rpc %s client should processed by module %s", #pname, #modulename);  \\
+}\\
+void WEAK pname::OnTimeout(Rpc::Data *argument)\\
+{\\
+        Log::log(LOG_WARNING, "$manager_name: rpc %s ontimeout should processed by module %s", #pname, #modulename);  \\
+}
+
+EOF
+	}
+	elsif ($index == 3)
+	{
+	$file->print(<<EOF);
+#define DEFINE_PROXYRPC(pname, modulename) \\
+bool WEAK pname::Delivery(SESSION_ID proxy_sid, const OctetsStream& osArg) \\
+{\\
+        Log::log(LOG_WARNING, "$manager_name: proxyrpc %s delivery should processed by module %s", #pname, #modulename);  \\
+        return false; \\
+}\\
+void WEAK pname::PostProcess(SESSION_ID proxy_sid,const OctetsStream& osArg, const OctetsStream& osRes) \\
+{\\
+        Log::log(LOG_WARNING, "$manager_name: proxyrpc %s postprocess should processed by module %s", #pname, #modulename);  \\
+}\\
+void WEAK pname::OnTimeout(const OctetsStream& osArg)\\
+{\\
+        Log::log(LOG_WARNING, "$manager_name: proxyrpc %s ontimeout should processed by module %s", #pname, #modulename);  \\
+}
+
+EOF
+	}
+}
+
+sub generate_service_manager_stubs
+{
+	my ($name, $protocol, $rpc, $global_proxyrpc, $modules, $module_gen_type) = @_ ;
+	my $file = new IO::File("stubs.cxx", O_WRONLY|O_CREAT|O_TRUNC);
+
+	$file->print("#ifdef WIN32\n#include <winsock2.h>\n#include \"gncompress.h\"\n#else\n#include \"protocol.h\"\n#endif\n");
+
+	generate_stubs_file_inl($file, $name, $modules, $module_gen_type);
+
+	my $stubman  = lc($name) . '_stubman';
+
+	for (@$protocol)
+	{
+		my $name = $_->getAttribute('name');
+		$file->print('#include "' . lc($name) . ".hpp\"\n");
+	}
+	for (@$rpc)
+	{
+		my $name = $_->getAttribute('name');
+		$file->print('#include "' . lc($name) . ".hrp\"\n");
+	}
+	for (@$global_proxyrpc)
+	{
+		my $flag =0;
+		$flag = 1 if lc($_->getAttribute('sendmanager')) eq lc($name);
+		$flag = 1 if lc($_->getAttribute('recvmanager')) eq lc($name);
+		my $name = $_->getAttribute('name');
+		if ($flag >0)
+		{
+			$file->print('#include "../proxyrpc/' . lc($name) . ".hrp\"\n");
+		}
+	}
+
+	$file->print(<<EOF);
+
+GNET::ProtocolStubManager $stubman;
+
+EOF
+
+	my $m_protocol_list;
+	my $m_rpc_list;
+	my $m_proxy_list;
+	get_protocol_rpc_in_module($modules, $name, \@$m_protocol_list, \@$m_rpc_list, \@$m_proxy_list);
+	push(@$protocol,$_) for(@$m_protocol_list);
+	push(@$rpc, $_) for(@$m_rpc_list);
+	push(@$rpc, $_) for(@$m_proxy_list);  #module proxy list is local
+
+	if ($module_gen_type eq 'gatherglobal')
+	{
+		my $defined1 =0;
+		my $defined2 =0;
+		my $defined3 =0;
+		my $num = $m_protocol_list + $m_rpc_list + $m_proxy_list;
+		$file->print("\n#define WEAK __attribute__((weak))\n") if $num >0;
+		foreach(@$m_protocol_list)
+		{
+			$defined1 = 1, generate_stubs_macros($name, $file, 1) if ($defined1 == 0);
+			$file->print("DEFINE_PROTOCOL(".  $_->getAttribute('name') .",". $_->getAttribute('module') . ");\n");
+		}
+		$file->print ("\n");
+		foreach(@$m_rpc_list)
+		{
+			$defined2 = 1, generate_stubs_macros($name, $file,2) if ($defined2 == 0);
+			$file->print("DEFINE_RPC(".  $_->getAttribute('name') .",". $_->getAttribute('module') . ");\n");
+		}
+		$file->print ("\n");
+		foreach(@$m_proxy_list)
+		{
+			$defined3 = 1, generate_stubs_macros($name, $file,3) if ($defined3 ==0);
+			$file->print("DEFINE_PROXYRPC(".  $_->getAttribute('name') .",". $_->getAttribute('module') . ");\n");
+		}
+	}
+
+	$file->print("\n");
+	$file->print("namespace NS_$name {}\n");
+	$file->print("using namespace NS_$name;\n");
+	$file->print("using namespace $namespace;\n");
+	$file->print("void Setup" . $name . "Stubs()\n{\n");
+	$file->print("\tProtocolStubManager &man = $stubman;\n");
+
+	for (@$protocol)
+	{
+		my $name = $_->getAttribute('name');
+		my $callname = 'PROTOCOL_' . uc($name);
+		$file->print(<<EOF);
+	man.InsertStub2($callname, new $name());
+EOF
+	}
+
+	for (@$rpc)
+	{
+		my $name = $_->getAttribute('name');
+		my $callname = 'RPC_' . uc($name);
+		my $argument = ($_->getAttribute('argument') or $name.'Arg');
+		my $result   = ($_->getAttribute('result') or $name.'Res');
+		$file->print(<<EOF);
+	man.InsertStub2($callname, new $name($callname,new $argument, new $result));
+EOF
+	}
+	for (@$global_proxyrpc)
+	{
+		my $flag =0;
+		$flag = 1 if lc($_->getAttribute('sendmanager')) eq lc ($name);
+		$flag = 1 if lc($_->getAttribute('recvmanager')) eq lc ($name);
+		my $name = $_->getAttribute('name');
+		my $callname = 'RPC_' . uc($name);
+		my $argument = ($_->getAttribute('argument') or $name.'Arg');
+		my $result   = ($_->getAttribute('result') or $name.'Res');
+		if ($flag >0)
+		{
+		$file->print(<<EOF);
+	man.InsertStub2($callname, new NS_GLOBAL::$name(new $argument, new $result));
+EOF
+		}
+	}
+	$file->print("}\n");
+
+	{
+	my $file2 = new IO::File("stubs.hxx", O_WRONLY|O_CREAT|O_TRUNC);
+	$file2->print("#ifndef __GNET_" . uc($name) . "_STUB_HPP\n");
+	$file2->print("#define __GNET_" . uc($name) . "_STUB_HPP\n");
+	$file2->print("#include" . '<protocol.h>' . "\n");
+	$file2->print("\nextern GNET::ProtocolStubManager $stubman;\n");
+	$file2->print("\nvoid Setup" . $name . "Stubs();\n");
+	$file2->print("\n#endif\n");
+	}
+}
+
+sub is_shuffle
+{
+        my ( $shuffle ) = @_;
+        return 1 if ( $shuffle and $shuffle_level ge $shuffle );
+        return 0;
+}       
+
+sub add_dummy
+{
+        return 1 if ( $shuffle_level ne "1" );
+        return 0;
+}       
+
+sub _rand
+{
+        my ( $shuffle ) = @_;
+        return 1 if ( is_shuffle( $shuffle ) and  rand(100) > 50 );
+        return 0;
+} 
+
+sub shuffle_vars
+{
+        my ($protocol, $shuffle) = @_;
+
+        my $protocoltmp = $protocol->cloneNode(0);
+        my $vars = $protocol->getElementsByTagName('variable');
+        my $n = $vars->getLength;
+
+        my @suffix = is_shuffle($shuffle ) ? shuffle( 0 .. $n - 1 ) : ( 0 .. $n - 1 );
+	$protocoltmp->appendChild($vars->item($_)->cloneNode(0)) for ( @suffix );
+	return $protocoltmp->getElementsByTagName('variable');
+}
+
+sub print_tracemethods          
+{                               
+        my ($file, $vars, $classname) = @_;
+
+        return if ($gentrace == 0) ;
+                        
+        my $n = $vars->getLength;
+
+        $file->print("\
+		std::stringstream& trace(std::stringstream& os) const\
+		{\n");  
+                        
+        #$file->print("\t\t\tos << \"$classname\";\n");
+                
+        for (my $i = 0; $i < $n; $i++)
+        {               
+                my $var = $vars->item ($i); 
+                        
+                my $name = $var->getAttribute("name");
+                my $type = $var->getAttribute("type");
+                my $size = $var->getAttribute("size");
+                my $default = $var->getAttribute("default");
+                my $fixvalue = $var->getAttribute("fixvalue");
+
+                if ( $fixvalue eq 'true' )
+                {
+                        #$file->print("\t\t\tos << ',' << ($type)($default);\n");
+                        $file->print("\t\t\tos << ($type)($default)");
+                }
+                #elsif ( $type =~ /^std::vector/ || $type =~ /^std::deque/
+                #       || $type =~ /^std::map/ || $type =~ /^std::list/ ) 
+                #{
+                #       $file->print("\t\t\tTraceContainer(os, $name);\n");
+                #}
+                elsif ( $type eq 'Octets' )
+                {
+                        #$file->print("\t\t\tos.write((const char *)$name.begin(), $name.size());\n");
+                        $file->print("\t\t\tos << \"$name=\" << $name.size() << \"bytes\"");
+                }
+                elsif ( $type =~ /^std::vector/ || $type =~ /^std::deque/
+                       || $type =~ /^std::map/ || $type =~ /^std::list/ ) 
+                {
+                       #$file->print("\t\t\tos << \"$name=\" << $name.size() << \"elements\"");
+		       $file->print("\t\t\tos << \"$name=\";\n");
+		       my $element_type = $type;
+		       $element_type =~s/\S*<(\S*)>$/$1/;
+		       if (is_builtin_type($element_type) || find_ref_node_2(\@rpcdata_nodes, $element_type))
+		       {
+                       		$file->print("\t\t\tTraceContainer(os, $name)");
+		       }
+		       else
+		       {
+		       		$file->print("\t\t\tos << \"$element_type\"");
+		       }
+                }
+		elsif ( $type eq 'char' || $type eq 'unsigned char')
+		{
+                        $file->print("\t\t\tos << \"$name=\" << (int)$name");
+		}
+                elsif (is_builtin_type($type) || $type =~ /^std::string/ )
+                {
+                        #$file->print("\t\t\tos << ',' << $name;\n");
+                        $file->print("\t\t\tos << \"$name=\" << $name");
+                }
+		else
+		{
+			$file->print("\t\t\tos << \"$name=[\"; $name.trace(os); os << ']'");
+		}
+		if ($i ne $n -1)
+		{
+			$file->print (" << ',';\n");
+		}
+		else
+		{
+			$file->print (";\n");
+		}
+        }
+        $file->print("\t\t\treturn os;\
+                }\n");
+}
+
+sub shuffle_marshal_vars
+{
+        my $nodes = shift;
+        my $shuffle = shift;
+
+	my $node_shuffle = $nodes->cloneNode(0);
+	my $vars = $nodes->getElementsByTagName('variable');
+	my $n = $vars->getLength;
+
+	if( is_shuffle($shuffle) and add_dummy() )
+	{
+		my @additional = ("int(this)", "int(&os)", "int(os.begin())");
+
+		my $nd = rand($n) % 3 + 1;
+		for (my $i = 0;  $i < $nd; ++ $i )
+		{
+			my $new = $doc->createElement('variable');
+			$new->setAttribute("type", "int");
+			$new->setAttribute("name", "__dummy__$i");
+			$new->setAttribute("additional", $additional[$i]);
+			$node_shuffle->appendChild($new);
+		}
+		my $maxsize = $nodes->getAttribute('maxsize');
+		if( $maxsize )
+		{
+			$maxsize =  $maxsize + $nd * 4;
+			$nodes->setAttribute('maxsize', $maxsize);
+		}
+	}
+
+	my @suffix = is_shuffle( $shuffle ) == 1 ? shuffle( 0 .. $n - 1) : ( 0 .. $n - 1 );
+	$node_shuffle->appendChild($vars->item($_)->cloneNode(0)) for ( @suffix );
+	return $node_shuffle->getElementsByTagName('variable');
+}
+
+sub shuffle
+{
+        return @_ if !@_ || ref $_ [0] eq 'ARRAY' && !@{$_ [0]};
+        my $array = @_ == 1 && ref $_ [0] eq 'ARRAY' ? shift : [@_];
+        for (my $i = @$array; -- $i;) {
+                my $r = int rand ($i + 1);
+                ($array -> [$i], $array -> [$r]) = ($array -> [$r], $array -> [$i]);
+        }
+        wantarray ? @$array : $array;
+}
+sub generate_rpc_evaluate12
+{
+	my ( $vars_shuffle ) = @_;
+	my $isfirst = 1;
+	my $count_default = 0;
+	my $evaluate1_2 = "";
+	my $evaluate2_1 = "";
+	my $n = $vars_shuffle->getLength;
+	for (my $i = 0; $i < $n; $i++)
+	{
+		my $var = $vars_shuffle->item ($i);
+                my $name = $var->getAttribute("name");
+		my $type = $var->getAttribute("type");
+		my $size = $var->getAttribute("size");
+		my $default = $var->getAttribute ("default");
+		my $attr = $var->getAttribute ("attr");			
+
+		if( length($default)<=0 and $attr eq 'primary' )
+		{	print "\t\tError: No default value for $name .\n"; }
+
+		my $count = $i + 1;
+
+		if( length($default)>0 and ( $type ne 'char' or ( $type eq 'char' and length($size)<=0 ) ) )
+		{
+			$count_default ++;
+			$evaluate1_2 .= "," if (not $isfirst);
+			$evaluate1_2 .= "$name(l_$name)";
+			$evaluate1_2 .= "\n\t\t\t" if( 0 == ($count_default%3) and $count_default>1 and $count<$n);
+			undef $isfirst;
+		}
+
+		if ( $type ne 'char' or ( $type eq 'char' and length($size)<=0 ) )
+		{
+			$evaluate2_1 .= "$name(rhs.$name)";
+			$evaluate2_1 .= "," if ($count < $n);
+			$evaluate2_1 .= "\n\t\t\t" if( 0 == ($count % 3) and $count > 1 and $count < $n);
+		}
+	}
+	return $evaluate1_2, $evaluate2_1;
+}
+
+sub generate_protocoldata_evaluate12
+{
+	my $vars= shift;
+	my $n = $vars->getLength;
+
+	my ($evaluate1_2, $evaluate2_1) = ('', '', '');
+	my $isfirst = 1;
+	for (my $i = 0; $i < $n; $i++)
+	{
+		my $var = $vars->item ($i);
+
+		my $name = $var->getAttribute("name");
+		my $type = $var->getAttribute("type");
+		my $size = $var->getAttribute("size");
+
+		my $count = $i + 1;
+
+		if( $type ne 'char' or ( $type eq 'char' and length($size)<=0 ) )
+		{
+			$evaluate1_2 .= "," if (not $isfirst );
+			$evaluate1_2 .= "$name(l_$name)";
+			$evaluate1_2 .= "\n\t\t\t" if( 0 == ($count % 3) and $count > 1 and $count < $n);
+			$evaluate2_1 .= "," if (not $isfirst);
+			$evaluate2_1 .= "$name(rhs.$name)";
+			$evaluate2_1 .= "\n\t\t\t" if( 0 == ($count % 3) and $count > 1 and $count < $n);
+			undef $isfirst;
+		}
+
+	}
+	return $evaluate1_2, $evaluate2_1;
+}
+sub generate_protocol_evaluate12
+{
+	my $vars= shift;
+	my $n = $vars->getLength;
+
+	my ($evaluate1_2, $evaluate2_1) = ('', '', '');
+	my $isfirst = 1;
+	for (my $i = 0; $i < $n; $i++)
+	{
+		my $var = $vars->item ($i);
+
+		my $name = $var->getAttribute("name");
+		my $type = $var->getAttribute("type");
+		my $size = $var->getAttribute("size");
+
+		my $count = $i + 1;
+
+		if( $type ne 'char' or ( $type eq 'char' and length($size)<=0 ) )
+		{
+			$evaluate1_2 .= "," if (not $isfirst );
+			$evaluate1_2 .= "l_$name";
+			$evaluate1_2 .= "\n\t\t\t" if( 0 == ($count % 3) and $count > 1 and $count < $n);
+			$evaluate2_1 .= "," if (not $isfirst);
+			$evaluate2_1 .= "$name(rhs.$name)";
+			$evaluate2_1 .= "\n\t\t\t" if( 0 == ($count % 3) and $count > 1 and $count < $n);
+			undef $isfirst;
+		}
+
+	}
+	$evaluate1_2 = "_data($evaluate1_2)";
+	return $evaluate1_2, $evaluate2_1;
+}
+

@@ -1,0 +1,32 @@
+	public:
+		int reserved;
+		enum { PROTOCOL_TYPE = PROTOCOL_NEWKEEPALIVE };
+	public:
+		NewKeepAlive() { type = PROTOCOL_NEWKEEPALIVE; }
+		NewKeepAlive(void*) : Protocol(PROTOCOL_NEWKEEPALIVE) { }
+		NewKeepAlive (int l_reserved)
+			 : reserved(l_reserved)
+		{
+			type = PROTOCOL_NEWKEEPALIVE;
+		}
+
+		NewKeepAlive(const NewKeepAlive &rhs)
+			: Protocol(rhs),reserved(rhs.reserved) { }
+
+		GNET::Protocol *Clone() const { return new NewKeepAlive(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << reserved;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> reserved;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 32; }

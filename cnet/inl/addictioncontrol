@@ -1,0 +1,47 @@
+	public:
+		int zoneid;
+		int userid;
+		int rate;
+		int msg;
+		std::vector<GPair> data;
+		enum { PROTOCOL_TYPE = PROTOCOL_ADDICTIONCONTROL };
+	public:
+		AddictionControl() { type = PROTOCOL_ADDICTIONCONTROL; }
+		AddictionControl(void*) : Protocol(PROTOCOL_ADDICTIONCONTROL) { }
+		AddictionControl (int l_zoneid = 0,int l_userid = 0,int l_rate = 0,
+			int l_msg = 0,const std::vector<GPair>& l_data = std::vector<GPair>())
+			 : zoneid(l_zoneid),userid(l_userid),rate(l_rate)
+			,msg(l_msg),data(l_data)
+		{
+			type = PROTOCOL_ADDICTIONCONTROL;
+		}
+
+		AddictionControl(const AddictionControl &rhs)
+			: Protocol(rhs),zoneid(rhs.zoneid),userid(rhs.userid),rate(rhs.rate)
+			,msg(rhs.msg),data(rhs.data) { }
+
+		GNET::Protocol *Clone() const { return new AddictionControl(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << zoneid;
+			os << userid;
+			os << rate;
+			os << msg;
+			os << data;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> zoneid;
+			os >> userid;
+			os >> rate;
+			os >> msg;
+			os >> data;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 101; }
+
+		bool SizePolicy(size_t size) const { return size <= 512; }

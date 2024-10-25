@@ -1,0 +1,115 @@
+/*
+# .              # 的
+# &              # 并且
+# |              # 或者
+# >              # 大于
+# <              # 小于
+# =              # 等于
+# >=             # 至少
+# <=             # 最多
+
+# value          # 值
+
+# id             # ID
+# count          # 个数
+# livetime       # 存活时间
+# hp             # 血值
+# attackmode     # 攻击方式
+# restricttarget # 是否需要目标
+# rectlength     # 面攻击矩形边长
+# attack         # 攻击力
+# poison         # 毒攻击
+# attackwater    # 水系攻击力
+# woodfactor     # 降低木系防御系数
+# woodprob       # 降低木系防御系数概率
+# fixprob        # 定身概率
+# defence        # 防御力
+# velocity       # 移动速度
+# interval       # 攻击间隔
+# view           # 视野
+# searchdistance # 自动寻找距离
+# attackdistance # 攻击距离
+
+# probability    # 概率参数
+# time           # 时间参数
+# ratio          # 比率参数
+# increment      # 增量参数
+# amount         # 总量参数
+# value          = 数值参数
+# distance       # 距离参数
+# factor         # 系数参数
+# damage         # 物理伤害参数
+# golddamage     # 金系伤害参数
+# wooddamage     # 木系伤害参数
+# waterdamage    # 水系伤害参数
+# firedamage     # 火系伤害参数
+# earthdamage    # 土系伤害参数
+# skilllevel     # 某技能级别
+# level          # 级别
+# decmp          # MP减少值
+# mp             # MP
+# decsp          # SP减少值
+# sp             # SP
+# weapondistance # 武器攻击距离
+# pray           # 开始吟唱
+# inform         # 开始执行
+# perform        # 执行攻击
+# enhancedefence # 加强防御力
+# enhancespeed   # 加强速度
+# enhancehp      # 增加HP上限
+# incswordattack # 刀剑攻击力增加
+# incspearattack # 长兵攻击力增加
+# incaxeattack   # 斧锤攻击力增加
+# incboxingattack # 拳术攻击力增加
+# incskillgold   # 技能金系伤害攻击力增加
+# incskillwood   # 技能木系伤害攻击力增加
+# incskillwater  # 技能水系伤害攻击力增加
+# incskillfire   # 技能火系伤害攻击力增加
+# incskillearth  # 技能土系伤害攻击力增加
+# incmprestore   # MP恢复加快
+# incdodge       # 躲避率增加
+# incdefence     # 附体后自身防御力提升比率
+# incattackratio # 控制普通攻击力增加比率
+# callup         # 被召唤NPC
+# enmity         # 怪物仇恨度
+# repel          # 击退
+# break          # 破甲
+# passive        # 变被动
+# debaseresist   # 五行抗性降低
+# awed           # 震慑
+# frighten       # 吓退
+# swivet         # 狂乱
+# sleep          # 睡眠
+# coma           # 致昏
+# fix            # 定身
+# envelop        # 封印
+# slow           # 迟滞
+# physicalinjury # 持续物理伤害
+# metalinjury    # 持续金伤害
+# woodinjury     # 持续木伤害
+# waterinjury    # 持续水伤害
+# fireinjury     # 持续火伤害
+# earthinjury    # 持续土伤害
+# heal           # 治疗
+# revive         # 复活 
+# feathershield  # 羽盾
+
+# valid          # 有效
+
+# id             # ID
+# level          # 级别
+# performerlevel # 攻击者级别
+# warmuptime     # 蓄力时间
+# rand           # 随机数(0-99)
+# player         # 攻击者
+# target         # 被攻击者
+# xtarget        # 被攻击者
+*/
+bool=<>;
+int=<>;
+float=<>;
+SkillLevel=<@value,int>;
+Callup=<id,int>,<count,int>,<livetime,int>,<hp,int>,<attackmode,int>,<restricttarget,bool>,<rectlength,float>,<attack,int>,<poison,int>,<attackwater,int>,<woodfactor,float>,<woodprob,float>,<fixprob,float>,<defence,int>,<velocity,float>,<interval,float>,<view,float>,<searchdistance,float>,<attackdistance,float>;
+PlayerWrapper=<probability,float>,<time,int>,<ratio,float>,<increment,float>,<amount,float>,<value,float>,<distance,float>,<factor,float>,<damage,float>,<golddamage,float>,<wooddamage,float>,<waterdamage,float>,<firedamage,float>,<earthdamage,float>,<skilllevel,SkillLevel>,<level,int>,<decmp,int>,<decsp,int>,<mp,int>,<sp,int>,<weapondistance,float>,<pray,int>,<inform,int>,<perform,int>,<enhancedefence,int>,<enhancespeed,int>,<enhancehp,int>,<incswordattack,float>,<incspearattack,float>,<incaxeattack,float>,<incboxingattack,float>,<incskillgold,int>,<incskillwood,int>,<incskillwater,int>,<incskillfire,int>,<incskillearth,int>,<incmprestore,int>,<incdodge,float>,<incdefence,float>,<incattackratio,float>,<callup,Callup>,<startcallup,int>,<repel,bool>,<break,bool>,<passive,bool>,<debaseresist,bool>,<awed,bool>,<frighten,bool>,<swivet,bool>,<sleep,bool>,<coma,bool>,<fix,bool>,<envelop,bool>,<slow,bool>,<physicalinjury,bool>,<metalinjury,bool>,<woodinjury,bool>,<waterinjury,bool>,<fireinjury,bool>,<earthinjury,bool>,<heal,int>,<revive,float>,<feathershield,bool>;
+TargetWrapper=<valid,bool>;
+Skill=<id,int>,<level,int>,<performerlevel,int>,<warmuptime,int>,<rand,int>,<player,PlayerWrapper>,<target,TargetWrapper>,<xtarget,PlayerWrapper>;

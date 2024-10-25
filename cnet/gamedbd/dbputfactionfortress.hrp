@@ -1,0 +1,80 @@
+
+#ifndef __GNET_DBPUTFACTIONFORTRESS_HPP
+#define __GNET_DBPUTFACTIONFORTRESS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbputfactionfortressarg"
+#include "dbputfactionfortressres"
+
+namespace GNET
+{
+
+class DBPutFactionFortress : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbputfactionfortress"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBPutFactionFortressArg *arg = (DBPutFactionFortressArg *)argument;
+		DBPutFactionFortressRes *res = (DBPutFactionFortressRes *)result;
+		LOG_TRACE( "DBPutFactionFortress, factionid=%d.", arg->detail.factionid);
+
+		try
+		{
+			StorageEnv::Storage * pfortress = StorageEnv::GetStorage("factionfortress");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				Marshal::OctetsStream key;
+				key << arg->detail.factionid;
+				
+				GFactionFortressDetail detail;
+				Marshal::OctetsStream(pfortress->find(key, txn)) >> detail;
+				
+				if(detail.factionid != arg->detail.factionid)
+				{
+					Log::log( LOG_ERR, "DBPutFactionFortress, key.id(%d)!=value.id(%d)\n", arg->detail.factionid, detail.factionid);
+					res->retcode = ERR_EXCEPTION;
+					return;
+				}
+			
+				pfortress->insert(key, Marshal::OctetsStream()<<arg->detail, txn);
+
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBPutFactionFortress, factionid=%d, what=%s\n", arg->detail.factionid, e.what() );
+			res->retcode = ERR_EXCEPTION;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBPutFactionFortressArg *arg = (DBPutFactionFortressArg *)argument;
+		// DBPutFactionFortressRes *res = (DBPutFactionFortressRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

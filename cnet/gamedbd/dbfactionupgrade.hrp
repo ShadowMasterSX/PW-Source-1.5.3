@@ -1,0 +1,81 @@
+
+#ifndef __GNET_DBFACTIONUPGRADE_HPP
+#define __GNET_DBFACTIONUPGRADE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbfactionupgradearg"
+#include "dbfactionupgraderes"
+
+namespace GNET
+{
+
+class DBFactionUpgrade : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbfactionupgrade"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBFactionUpgradeArg *arg = (DBFactionUpgradeArg *)argument;
+		DBFactionUpgradeRes *res = (DBFactionUpgradeRes *)result;
+		Marshal::OctetsStream key;
+
+		if(arg->fid==0)
+		{
+			res->retcode = ERR_FC_DBFAILURE;
+			return;
+		}
+		Log::formatlog("upgradefaction","factionid=%d:master=%d:money=%d:level=%d",
+				arg->fid, arg->roleid, arg->money, arg->level);
+		try
+		{
+			GFactionInfo info;
+			StorageEnv::Storage * pinfo = StorageEnv::GetStorage("factioninfo");
+			StorageEnv::CommonTransaction txn;
+			try{
+				key << arg->fid;
+				Marshal::OctetsStream(pinfo->find(key, txn)) >> info;
+				info.level++;
+				res->level = info.level;
+				res->money = arg->money;
+				if(info.level!=arg->level || arg->level>2 || (int)info.master.rid != arg->roleid)
+				{
+					res->master = info.master.rid;
+					res->retcode = ERR_OUTOFSYNC;
+					return;
+				}
+				res->master = info.master.rid;
+				pinfo->insert(key, Marshal::OctetsStream()<<info, txn);
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBFactionUpgrade, fid=%d, what=%s\n", arg->fid, e.what() );
+			res->retcode = -1;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

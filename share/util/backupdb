@@ -1,0 +1,21 @@
+#!/usr/bin/perl
+
+my $cmd = "/usr/bin/rsh database '/root/gamedbd/listbackups /dbf/backup latest_whole'";
+my $backup = qx/$cmd/;
+
+if( length($backup) > 0 )
+{
+	system( "/usr/bin/rcp -r database:/dbf/backup/$backup backup:/export/backup/$backup" );
+	system( "/usr/bin/rsh backup 'cd /export/backup; /bin/tar cvjf $backup.tar.bz $backup; rm -rf $backup'" );
+}
+else
+{
+	my $cmd = "/bin/date +%Y%m%d-%H%M%S";
+	my $t = qx/$cmd/;
+	chomp($t);
+
+	system( "/usr/bin/rcp -r database:/dbf/dbhome backup:/export/backup/$t" );
+	system( "/usr/bin/rsh backup 'cd /export/backup; /bin/tar cvjf $t.tar.bz $t; rm -rf $t'" );
+}
+
+

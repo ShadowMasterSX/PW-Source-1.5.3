@@ -1,0 +1,9 @@
+		GNET::Protocol *Clone() const {  return new DBStockBalance(*this); }
+	public:
+		enum { PROTOCOL_TYPE = RPC_DBSTOCKBALANCE };
+		DBStockBalance(Type type, Rpc::Data *argument, Rpc::Data *result)
+			: RPC_BASECLASS(type, argument, result ) { }
+		DBStockBalance(const DBStockBalance &rhs) : RPC_BASECLASS(rhs) { }
+		int  PriorPolicy( ) const { return 1; }
+		bool SizePolicy(size_t size) const { return size <= 512; }
+		bool TimePolicy(int timeout) const { return timeout <= 100; }

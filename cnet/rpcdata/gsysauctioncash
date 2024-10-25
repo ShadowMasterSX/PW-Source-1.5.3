@@ -1,0 +1,64 @@
+#ifndef __GNET_GSYSAUCTIONCASH_RPCDATA
+#define __GNET_GSYSAUCTIONCASH_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GSysAuctionCash : public GNET::Rpc::Data
+	{
+	public:
+		unsigned int cash_2;
+		unsigned int cash_used_2;
+
+	public:
+		GSysAuctionCash (unsigned int l_cash_2 = 0,unsigned int l_cash_used_2 = 0)
+			: cash_2(l_cash_2),cash_used_2(l_cash_used_2)
+		{
+		}
+
+		GSysAuctionCash(const GSysAuctionCash &rhs)
+			: cash_2(rhs.cash_2),cash_used_2(rhs.cash_used_2) { }
+
+		Rpc::Data *Clone() const { return new GSysAuctionCash(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GSysAuctionCash *r = dynamic_cast<const GSysAuctionCash *>(&rhs);
+			if (r && r != this)
+			{
+				cash_2 = r->cash_2;
+				cash_used_2 = r->cash_used_2;
+			}
+			return *this;
+		}
+
+		GSysAuctionCash& operator = (const GSysAuctionCash &rhs)
+		{
+			const GSysAuctionCash *r = &rhs;
+			if (r && r != this)
+			{
+				cash_2 = r->cash_2;
+				cash_used_2 = r->cash_used_2;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << cash_2;
+			os << cash_used_2;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> cash_2;
+			os >> cash_used_2;
+			return os;
+		}
+
+	};
+};
+#endif

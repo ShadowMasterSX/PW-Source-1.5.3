@@ -1,0 +1,50 @@
+	public:
+		char event_type;
+		int src_faction;
+		int dest_faction;
+		int domain_id;
+		GFactionResourceBattleRole leader_role;
+		std::vector<GFactionResourceBattleRole> members;
+		enum { PROTOCOL_TYPE = PROTOCOL_FACTIONRESOURCEBATTLEEVENTNOTICE };
+	public:
+		FactionResourceBattleEventNotice() { type = PROTOCOL_FACTIONRESOURCEBATTLEEVENTNOTICE; }
+		FactionResourceBattleEventNotice(void*) : Protocol(PROTOCOL_FACTIONRESOURCEBATTLEEVENTNOTICE) { }
+		FactionResourceBattleEventNotice (char l_event_type,int l_src_faction,int l_dest_faction,
+			int l_domain_id,const GFactionResourceBattleRole& l_leader_role,const std::vector<GFactionResourceBattleRole>& l_members)
+			 : event_type(l_event_type),src_faction(l_src_faction),dest_faction(l_dest_faction)
+			,domain_id(l_domain_id),leader_role(l_leader_role),members(l_members)
+		{
+			type = PROTOCOL_FACTIONRESOURCEBATTLEEVENTNOTICE;
+		}
+
+		FactionResourceBattleEventNotice(const FactionResourceBattleEventNotice &rhs)
+			: Protocol(rhs),event_type(rhs.event_type),src_faction(rhs.src_faction),dest_faction(rhs.dest_faction)
+			,domain_id(rhs.domain_id),leader_role(rhs.leader_role),members(rhs.members) { }
+
+		GNET::Protocol *Clone() const { return new FactionResourceBattleEventNotice(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << event_type;
+			os << src_faction;
+			os << dest_faction;
+			os << domain_id;
+			os << leader_role;
+			os << members;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> event_type;
+			os >> src_faction;
+			os >> dest_faction;
+			os >> domain_id;
+			os >> leader_role;
+			os >> members;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 2048; }

@@ -1,0 +1,77 @@
+#ifndef __GNET_PREPLAYERRENAMEARG_RPCDATA
+#define __GNET_PREPLAYERRENAMEARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class PrePlayerRenameArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		int zoneid;
+		int userid;
+		Octets newname;
+
+	public:
+		PrePlayerRenameArg (int l_roleid = -1,int l_zoneid = -1,int l_userid = -1
+			,const Octets& l_newname = Octets())
+			: roleid(l_roleid),zoneid(l_zoneid),userid(l_userid)
+			,newname(l_newname)
+		{
+		}
+
+		PrePlayerRenameArg(const PrePlayerRenameArg &rhs)
+			: roleid(rhs.roleid),zoneid(rhs.zoneid),userid(rhs.userid),
+			newname(rhs.newname) { }
+
+		Rpc::Data *Clone() const { return new PrePlayerRenameArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const PrePlayerRenameArg *r = dynamic_cast<const PrePlayerRenameArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				zoneid = r->zoneid;
+				userid = r->userid;
+				newname = r->newname;
+			}
+			return *this;
+		}
+
+		PrePlayerRenameArg& operator = (const PrePlayerRenameArg &rhs)
+		{
+			const PrePlayerRenameArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				zoneid = r->zoneid;
+				userid = r->userid;
+				newname = r->newname;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << zoneid;
+			os << userid;
+			os << newname;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> zoneid;
+			os >> userid;
+			os >> newname;
+			return os;
+		}
+
+	};
+};
+#endif

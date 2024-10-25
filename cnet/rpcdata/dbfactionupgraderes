@@ -1,0 +1,77 @@
+#ifndef __GNET_DBFACTIONUPGRADERES_RPCDATA
+#define __GNET_DBFACTIONUPGRADERES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBFactionUpgradeRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		int master;
+		unsigned int money;
+		char level;
+
+	public:
+		DBFactionUpgradeRes (int l_retcode = -1,int l_master = 0,unsigned int l_money = 0
+			,char l_level = 0)
+			: retcode(l_retcode),master(l_master),money(l_money)
+			,level(l_level)
+		{
+		}
+
+		DBFactionUpgradeRes(const DBFactionUpgradeRes &rhs)
+			: retcode(rhs.retcode),master(rhs.master),money(rhs.money),
+			level(rhs.level) { }
+
+		Rpc::Data *Clone() const { return new DBFactionUpgradeRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBFactionUpgradeRes *r = dynamic_cast<const DBFactionUpgradeRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				master = r->master;
+				money = r->money;
+				level = r->level;
+			}
+			return *this;
+		}
+
+		DBFactionUpgradeRes& operator = (const DBFactionUpgradeRes &rhs)
+		{
+			const DBFactionUpgradeRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				master = r->master;
+				money = r->money;
+				level = r->level;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << master;
+			os << money;
+			os << level;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> master;
+			os >> money;
+			os >> level;
+			return os;
+		}
+
+	};
+};
+#endif

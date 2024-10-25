@@ -1,0 +1,73 @@
+
+#ifndef __GNET_DBKEDELETEKING_HPP
+#define __GNET_DBKEDELETEKING_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbkedeletekingarg"
+#include "dbkedeletekingres"
+
+namespace GNET
+{
+
+class DBKEDeleteKing : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbkedeleteking"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBKEDeleteKingArg *arg = (DBKEDeleteKingArg *)argument;
+		DBKEDeleteKingRes *res = (DBKEDeleteKingRes *)result;
+		LOG_TRACE("DBKEDeleteKing, king=%d, reason=%d.", arg->king_roleid, arg->reason);
+		try
+		{
+			StorageEnv::Storage * pking = StorageEnv::GetStorage("kingelection");
+			StorageEnv::AtomTransaction txn;
+			try
+			{
+				KingElectionDetail detail;
+				Marshal::OctetsStream( pking->find(Marshal::OctetsStream()<<(int)0,txn) ) >> detail;
+				if(detail.king.roleid != arg->king_roleid)
+				{
+					res->retcode = ERR_VERIFYFAILED;
+					return;
+				}
+				detail.king = KEKing();
+				pking->insert(Marshal::OctetsStream()<<(int)0, Marshal::OctetsStream()<<detail, txn);
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBKEDeleteKing, what=%s\n", e.what() );
+			res->retcode = ERR_EXCEPTION;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBKEDeleteKingArg *arg = (DBKEDeleteKingArg *)argument;
+		// DBKEDeleteKingRes *res = (DBKEDeleteKingRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

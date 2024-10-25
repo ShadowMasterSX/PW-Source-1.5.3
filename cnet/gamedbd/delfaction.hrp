@@ -1,0 +1,148 @@
+
+#ifndef __GNET_DELFACTION_HPP
+#define __GNET_DELFACTION_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "factionid"
+#include "delfactionres"
+#include "gterritorydetail"
+#include "gterritorystore"
+#include "gchallengerinfo"
+#include "gchallengerinfolist"
+
+namespace GNET
+{
+
+class DelFaction : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "delfaction"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		FactionId *arg = (FactionId *)argument;
+		DelFactionRes *res = (DelFactionRes *)result;
+
+		GFactionInfo info;
+		GTerritoryStore store;
+
+		try
+		{
+			StorageEnv::Storage * puserfaction = StorageEnv::GetStorage("userfaction");
+			StorageEnv::Storage * pfactioninfo = StorageEnv::GetStorage("factioninfo");
+			StorageEnv::Storage * pfactionname = StorageEnv::GetStorage("factionname");
+			StorageEnv::Storage * pcity = StorageEnv::GetStorage("city");
+			StorageEnv::CommonTransaction txn;
+			try{
+				Log::formatlog("faction","type=delete:factionid=%d", arg->fid);
+				Marshal::OctetsStream(pfactioninfo->find(Marshal::OctetsStream()<<arg->fid, txn)) >> info;
+				if(info.level>=1)
+				{
+					res->retcode = -1;
+					return;
+				}
+				Marshal::OctetsStream vstore;
+				if(pcity->find(Marshal::OctetsStream()<<0,vstore,txn))
+				{
+					vstore >> store;
+				//	bool changed = false;
+					std::vector<GTerritoryDetail>::iterator it=store.cities.begin(),ie=store.cities.end();
+					for(;it!=ie;++it)
+					{
+						GChallengerInfoList gci;
+						if(it->owner==arg->fid)
+						{
+						/*
+							Log::formatlog("battle","reset=owner:city=%d:owner=%d", it->id,arg->fid);
+							it->owner = 0;
+							it->color = 0;
+							changed = true;
+						*/
+							res->retcode = -1;
+							return;
+						}
+						if(it->challengerdetails.size())
+							Marshal::OctetsStream(it->challengerdetails) >> gci;
+						else
+							continue;
+						for(std::vector<GChallengerInfo>::iterator gciter = gci.challengerlist.begin();gciter!=gci.challengerlist.end();++gciter)
+						{
+							if(gciter->faction == arg->fid)
+							{
+								res->retcode = -1;
+								return;
+							}
+						}
+					}
+					/*	
+						if(it->challenger==arg->fid)
+						{
+							Log::formatlog("battle","reset=challenger:city=%d:challenger=%d:deposit=%d",it->id, 
+								   it->challenger,it->deposit);
+							it->challenger = 0;
+							it->battle_time = 0;
+							it->deposit = 0;
+							changed = true;
+						}
+					}
+					if(changed)
+						pcity->insert(Marshal::OctetsStream()<<0,Marshal::OctetsStream()<<store,txn);
+					*/
+				}
+
+				pfactionname->del(Marshal::OctetsStream()<<info.name, txn);
+				res->fname = info.name;
+				pfactioninfo->del(Marshal::OctetsStream()<<arg->fid,txn);
+				res->retcode = ERR_SUCCESS;
+
+				GUserFaction user;
+				for(GMemberVector::iterator it=info.member.begin(); it!=info.member.end();++it)
+				{
+					Marshal::OctetsStream key,value;
+					key << (*it).rid;
+					if(puserfaction->find(key, value, txn))
+					{
+						value >> user;
+						if(user.fid==arg->fid)
+						{
+							user.fid = 0;
+							user.role = _R_UNMEMBER;
+							user.nickname.clear();
+							user.delayexpel.clear();
+							puserfaction->insert(key, Marshal::OctetsStream() << user, txn);
+						}else
+							Log::log( LOG_ERR, "DelFaction %d, data error role=%d fid=%d\n", arg->fid,it->rid,user.fid);
+					}
+				}
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DelFaction, fid=%d, what=%s\n", arg->fid, e.what() );
+			res->retcode = -1;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

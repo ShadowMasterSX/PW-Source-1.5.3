@@ -1,0 +1,92 @@
+	public:
+		int aid;
+		int zoneid;
+		TraderInfo seller;
+		TraderInfo buyer;
+		int64_t sn;
+		int price;
+		unsigned char shelf;
+		int posttype;
+		int num;
+		int loginip;
+		TimeInfo time;
+		PostInfo info;
+		Octets backup;
+		int64_t timestamp;
+		int reserved1;
+		int reserved2;
+		enum { PROTOCOL_TYPE = PROTOCOL_POST };
+	public:
+		Post() { type = PROTOCOL_POST; }
+		Post(void*) : Protocol(PROTOCOL_POST) { }
+		Post (int l_aid,int l_zoneid,TraderInfo l_seller,
+			TraderInfo l_buyer,int64_t l_sn,int l_price,
+			unsigned char l_shelf,int l_posttype,int l_num,
+			int l_loginip,TimeInfo l_time,PostInfo l_info,
+			Octets l_backup,int64_t l_timestamp,int l_reserved1 = 0,
+			int l_reserved2 = 0)
+			 : aid(l_aid),zoneid(l_zoneid),seller(l_seller)
+			,buyer(l_buyer),sn(l_sn),price(l_price)
+			,shelf(l_shelf),posttype(l_posttype),num(l_num)
+			,loginip(l_loginip),time(l_time),info(l_info)
+			,backup(l_backup),timestamp(l_timestamp),reserved1(l_reserved1)
+			,reserved2(l_reserved2)
+		{
+			type = PROTOCOL_POST;
+		}
+
+		Post(const Post &rhs)
+			: Protocol(rhs),aid(rhs.aid),zoneid(rhs.zoneid),seller(rhs.seller)
+			,buyer(rhs.buyer),sn(rhs.sn),price(rhs.price)
+			,shelf(rhs.shelf),posttype(rhs.posttype),num(rhs.num)
+			,loginip(rhs.loginip),time(rhs.time),info(rhs.info)
+			,backup(rhs.backup),timestamp(rhs.timestamp),reserved1(rhs.reserved1)
+			,reserved2(rhs.reserved2) { }
+
+		GNET::Protocol *Clone() const { return new Post(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << aid;
+			os << zoneid;
+			os << seller;
+			os << buyer;
+			os << sn;
+			os << price;
+			os << shelf;
+			os << posttype;
+			os << num;
+			os << loginip;
+			os << time;
+			os << info;
+			os << backup;
+			os << timestamp;
+			os << reserved1;
+			os << reserved2;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> aid;
+			os >> zoneid;
+			os >> seller;
+			os >> buyer;
+			os >> sn;
+			os >> price;
+			os >> shelf;
+			os >> posttype;
+			os >> num;
+			os >> loginip;
+			os >> time;
+			os >> info;
+			os >> backup;
+			os >> timestamp;
+			os >> reserved1;
+			os >> reserved2;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1048576; }

@@ -1,0 +1,65 @@
+#ifndef __GNET_USERPAIR_RPCDATA
+#define __GNET_USERPAIR_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "userid"
+#include "user"
+
+namespace GNET
+{
+	class UserPair : public GNET::Rpc::Data
+	{
+	public:
+		UserID key;
+		User value;
+
+	public:
+		UserPair ()
+		{
+		}
+
+		UserPair(const UserPair &rhs)
+			: key(rhs.key),value(rhs.value) { }
+
+		Rpc::Data *Clone() const { return new UserPair(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const UserPair *r = dynamic_cast<const UserPair *>(&rhs);
+			if (r && r != this)
+			{
+				key = r->key;
+				value = r->value;
+			}
+			return *this;
+		}
+
+		UserPair& operator = (const UserPair &rhs)
+		{
+			const UserPair *r = &rhs;
+			if (r && r != this)
+			{
+				key = r->key;
+				value = r->value;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << key;
+			os << value;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> key;
+			os >> value;
+			return os;
+		}
+
+	};
+};
+#endif

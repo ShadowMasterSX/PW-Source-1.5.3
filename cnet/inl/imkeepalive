@@ -1,0 +1,32 @@
+	public:
+		char code;
+		enum { PROTOCOL_TYPE = PROTOCOL_IMKEEPALIVE };
+	public:
+		IMKeepAlive() { type = PROTOCOL_IMKEEPALIVE; }
+		IMKeepAlive(void*) : Protocol(PROTOCOL_IMKEEPALIVE) { }
+		IMKeepAlive (char l_code)
+			 : code(l_code)
+		{
+			type = PROTOCOL_IMKEEPALIVE;
+		}
+
+		IMKeepAlive(const IMKeepAlive &rhs)
+			: Protocol(rhs),code(rhs.code) { }
+
+		GNET::Protocol *Clone() const { return new IMKeepAlive(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << code;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> code;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 16; }

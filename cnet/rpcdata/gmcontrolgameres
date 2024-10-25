@@ -1,0 +1,65 @@
+#ifndef __GNET_GMCONTROLGAMERES_RPCDATA
+#define __GNET_GMCONTROLGAMERES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GMControlGameRes : public GNET::Rpc::Data
+	{
+	public:
+		int gsid;
+		int retcode;
+
+	public:
+		GMControlGameRes (int l_retcode = 0)
+			: retcode(l_retcode)
+		{
+		}
+
+		GMControlGameRes(const GMControlGameRes &rhs)
+			: gsid(rhs.gsid),retcode(rhs.retcode) { }
+
+		Rpc::Data *Clone() const { return new GMControlGameRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GMControlGameRes *r = dynamic_cast<const GMControlGameRes *>(&rhs);
+			if (r && r != this)
+			{
+				gsid = r->gsid;
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		GMControlGameRes& operator = (const GMControlGameRes &rhs)
+		{
+			const GMControlGameRes *r = &rhs;
+			if (r && r != this)
+			{
+				gsid = r->gsid;
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << gsid;
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> gsid;
+			os >> retcode;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<GMControlGameRes>	GMControlGameResVector;
+};
+#endif

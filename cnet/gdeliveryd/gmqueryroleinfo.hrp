@@ -1,0 +1,50 @@
+
+#ifndef __GNET_GMQUERYROLEINFO_HPP
+#define __GNET_GMQUERYROLEINFO_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "roleid"
+#include "gmqueryroleinfores"
+#include "gdeliveryserver.hpp"
+#include "mapuser.h"
+namespace GNET
+{
+
+class GMQueryRoleInfo : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "gmqueryroleinfo"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		RoleId *arg = (RoleId *)argument;
+		GMQueryRoleInfoRes *res = (GMQueryRoleInfoRes *)result;
+		DEBUG_PRINT("gdelivery::gmqueryroleinfo: sid=%d,roleid=%d\n",sid, arg->id);
+
+		PlayerInfo * pinfo = UserContainer::GetInstance().FindRole(arg->id);
+		if(NULL == pinfo)
+			res->status = _STATUS_OFFLINE;
+		else
+			res->status =  pinfo->user->status;
+
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// RoleId *arg = (RoleId *)argument;
+		// GMQueryRoleInfoRes *res = (GMQueryRoleInfoRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

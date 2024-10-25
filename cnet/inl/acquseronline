@@ -1,0 +1,35 @@
+	public:
+		ACQ acq;
+		IntDataVector users;
+		enum { PROTOCOL_TYPE = PROTOCOL_ACQUSERONLINE };
+	public:
+		ACQUserOnline() { type = PROTOCOL_ACQUSERONLINE; }
+		ACQUserOnline(void*) : Protocol(PROTOCOL_ACQUSERONLINE) { }
+		ACQUserOnline (ACQ l_acq,IntDataVector l_users)
+			 : acq(l_acq),users(l_users)
+		{
+			type = PROTOCOL_ACQUSERONLINE;
+		}
+
+		ACQUserOnline(const ACQUserOnline &rhs)
+			: Protocol(rhs),acq(rhs.acq),users(rhs.users) { }
+
+		GNET::Protocol *Clone() const { return new ACQUserOnline(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << acq;
+			os << users;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> acq;
+			os >> users;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1048576; }

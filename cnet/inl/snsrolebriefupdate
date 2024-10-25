@@ -1,0 +1,47 @@
+	public:
+		int roleid;
+		SNSRoleBrief brief;
+		SNSRoleSkills skills;
+		SNSRoleEquipment equipment;
+		SNSRolePetCorral petcorral;
+		enum { PROTOCOL_TYPE = PROTOCOL_SNSROLEBRIEFUPDATE };
+	public:
+		SNSRoleBriefUpdate() { type = PROTOCOL_SNSROLEBRIEFUPDATE; }
+		SNSRoleBriefUpdate(void*) : Protocol(PROTOCOL_SNSROLEBRIEFUPDATE) { }
+		SNSRoleBriefUpdate (int l_roleid,const SNSRoleBrief& l_brief,const SNSRoleSkills& l_skills,
+			const SNSRoleEquipment& l_equipment,const SNSRolePetCorral& l_petcorral)
+			 : roleid(l_roleid),brief(l_brief),skills(l_skills)
+			,equipment(l_equipment),petcorral(l_petcorral)
+		{
+			type = PROTOCOL_SNSROLEBRIEFUPDATE;
+		}
+
+		SNSRoleBriefUpdate(const SNSRoleBriefUpdate &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),brief(rhs.brief),skills(rhs.skills)
+			,equipment(rhs.equipment),petcorral(rhs.petcorral) { }
+
+		GNET::Protocol *Clone() const { return new SNSRoleBriefUpdate(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << brief;
+			os << skills;
+			os << equipment;
+			os << petcorral;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> brief;
+			os >> skills;
+			os >> equipment;
+			os >> petcorral;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 40960; }

@@ -1,0 +1,65 @@
+#ifndef __GNET_DBAUCTIONGETRES_RPCDATA
+#define __GNET_DBAUCTIONGETRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gauctiondetail"
+
+namespace GNET
+{
+	class DBAuctionGetRes : public GNET::Rpc::Data
+	{
+	public:
+		unsigned char retcode;
+		GAuctionDetail item;
+
+	public:
+		DBAuctionGetRes (unsigned char l_retcode = 0,const GAuctionDetail& l_item = GAuctionDetail())
+			: retcode(l_retcode),item(l_item)
+		{
+		}
+
+		DBAuctionGetRes(const DBAuctionGetRes &rhs)
+			: retcode(rhs.retcode),item(rhs.item) { }
+
+		Rpc::Data *Clone() const { return new DBAuctionGetRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBAuctionGetRes *r = dynamic_cast<const DBAuctionGetRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				item = r->item;
+			}
+			return *this;
+		}
+
+		DBAuctionGetRes& operator = (const DBAuctionGetRes &rhs)
+		{
+			const DBAuctionGetRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				item = r->item;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << item;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> item;
+			return os;
+		}
+
+	};
+};
+#endif

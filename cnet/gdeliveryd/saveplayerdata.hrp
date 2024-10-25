@@ -1,0 +1,84 @@
+
+#ifndef __GNET_SAVEPLAYERDATA_HPP
+#define __GNET_SAVEPLAYERDATA_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "saveplayerdataarg"
+#include "saveplayerdatares"
+#include "senddataandidentity_re.hpp"
+#include "centraldeliveryserver.hpp"
+#include "centraldeliveryclient.hpp"
+
+namespace GNET
+{
+
+class SavePlayerData : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "saveplayerdata"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// SavePlayerDataArg *arg = (SavePlayerDataArg *)argument;
+		// SavePlayerDataRes *res = (SavePlayerDataRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		SavePlayerDataArg *arg = (SavePlayerDataArg *)argument;
+		SavePlayerDataRes *res = (SavePlayerDataRes *)result;
+
+		LOG_TRACE("CrossRelated Recv SavePlayerData, roleid %d remote_roleid %d userid %d retcode = %d", arg->roleid, arg->remote_roleid, arg->userid, res->retcode);
+		
+		GRoleInfo& role = res->roleinfo;
+		if(role.worldtag == 0) role.worldtag = 1;
+
+		RoleInfo info(
+				role.id, role.gender, role.race,
+				role.cls, role.level, role.level2, role.name,
+				role.custom_data,
+				role.equipment,
+				role.status,
+				role.delete_time, role.create_time, role.lastlogin_time,
+				role.posx, role.posy, role.posz,
+				role.worldtag,
+				role.custom_status,
+				role.charactermode,
+				role.referrer_role,
+				role.cash_add,
+				role.reincarnation_data,
+				role.realm_data);
+		
+		Octets roleinfo_pack = (Marshal::OctetsStream() << info);
+		
+		bool is_roleid_changed = ((arg->flag == DS_TO_CENTRALDS) && (arg->roleid != res->new_roleid)); //原服到跨服时，是否分配了新的跨服roleid
+		SendDataAndIdentity_Re re(res->retcode, res->new_roleid, arg->remote_roleid, arg->userid, arg->flag, GDeliveryServer::GetInstance()->GetZoneid(), roleinfo_pack, is_roleid_changed);
+		
+		if(GDeliveryServer::GetInstance()->IsCentralDS()) {
+			CentralDeliveryServer::GetInstance()->DispatchProtocol(arg->src_zoneid, re);
+		} else {
+			CentralDeliveryClient::GetInstance()->SendProtocol(re);
+		}
+		
+		if(res->retcode != ERR_SUCCESS) {
+			UserIdentityCache::GetInstance()->Remove(arg->userid);
+		} else {
+			if(arg->roleid != res->new_roleid) {
+				UserIdentityCache::GetInstance()->UpdateRoleCrsInfo(arg->userid, res->new_roleid);
+			}
+		}
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

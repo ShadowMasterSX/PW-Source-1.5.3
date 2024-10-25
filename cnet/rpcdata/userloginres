@@ -1,0 +1,113 @@
+#ifndef __GNET_USERLOGINRES_RPCDATA
+#define __GNET_USERLOGINRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class UserLoginRes : public GNET::Rpc::Data
+	{
+	public:
+		char retcode;
+		int remain_playtime;
+		int func;
+		int funcparm;
+		char blIsGM;
+		int free_time_left;
+		int free_time_end;
+		int creatime;
+		int adduppoint;
+		int soldpoint;
+
+	public:
+		UserLoginRes (char l_retcode = -1,int l_remain_playtime = 0,int l_func = 0
+			,int l_funcparm = 0,char l_blIsGM = 0,int l_free_time_left = 0
+			,int l_free_time_end = 0,int l_creatime = 0,int l_adduppoint = 0
+			,int l_soldpoint = 0)
+			: retcode(l_retcode),remain_playtime(l_remain_playtime),func(l_func)
+			,funcparm(l_funcparm),blIsGM(l_blIsGM),free_time_left(l_free_time_left)
+			,free_time_end(l_free_time_end),creatime(l_creatime),adduppoint(l_adduppoint)
+			,soldpoint(l_soldpoint)
+		{
+		}
+
+		UserLoginRes(const UserLoginRes &rhs)
+			: retcode(rhs.retcode),remain_playtime(rhs.remain_playtime),func(rhs.func),
+			funcparm(rhs.funcparm),blIsGM(rhs.blIsGM),free_time_left(rhs.free_time_left),
+			free_time_end(rhs.free_time_end),creatime(rhs.creatime),adduppoint(rhs.adduppoint),
+			soldpoint(rhs.soldpoint) { }
+
+		Rpc::Data *Clone() const { return new UserLoginRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const UserLoginRes *r = dynamic_cast<const UserLoginRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				remain_playtime = r->remain_playtime;
+				func = r->func;
+				funcparm = r->funcparm;
+				blIsGM = r->blIsGM;
+				free_time_left = r->free_time_left;
+				free_time_end = r->free_time_end;
+				creatime = r->creatime;
+				adduppoint = r->adduppoint;
+				soldpoint = r->soldpoint;
+			}
+			return *this;
+		}
+
+		UserLoginRes& operator = (const UserLoginRes &rhs)
+		{
+			const UserLoginRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				remain_playtime = r->remain_playtime;
+				func = r->func;
+				funcparm = r->funcparm;
+				blIsGM = r->blIsGM;
+				free_time_left = r->free_time_left;
+				free_time_end = r->free_time_end;
+				creatime = r->creatime;
+				adduppoint = r->adduppoint;
+				soldpoint = r->soldpoint;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << remain_playtime;
+			os << func;
+			os << funcparm;
+			os << blIsGM;
+			os << free_time_left;
+			os << free_time_end;
+			os << creatime;
+			os << adduppoint;
+			os << soldpoint;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> remain_playtime;
+			os >> func;
+			os >> funcparm;
+			os >> blIsGM;
+			os >> free_time_left;
+			os >> free_time_end;
+			os >> creatime;
+			os >> adduppoint;
+			os >> soldpoint;
+			return os;
+		}
+
+	};
+};
+#endif

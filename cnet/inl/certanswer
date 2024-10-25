@@ -1,0 +1,35 @@
+	public:
+		Octets authd_cert;
+		int reserved1;
+		enum { PROTOCOL_TYPE = PROTOCOL_CERTANSWER };
+	public:
+		CertAnswer() { type = PROTOCOL_CERTANSWER; }
+		CertAnswer(void*) : Protocol(PROTOCOL_CERTANSWER) { }
+		CertAnswer (Octets l_authd_cert,int l_reserved1 = 0)
+			 : authd_cert(l_authd_cert),reserved1(l_reserved1)
+		{
+			type = PROTOCOL_CERTANSWER;
+		}
+
+		CertAnswer(const CertAnswer &rhs)
+			: Protocol(rhs),authd_cert(rhs.authd_cert),reserved1(rhs.reserved1) { }
+
+		GNET::Protocol *Clone() const { return new CertAnswer(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << authd_cert;
+			os << reserved1;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> authd_cert;
+			os >> reserved1;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 101; }
+
+		bool SizePolicy(size_t size) const { return size <= 8192; }

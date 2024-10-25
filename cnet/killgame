@@ -1,0 +1,5 @@
+killall -9 gdeliveryd 
+killall -9 glinkd
+killall -9 gfactiond
+killall -SIGUSR1 gamedbd.wdb
+killall -SIGUSR1 uniquenamed.wdb

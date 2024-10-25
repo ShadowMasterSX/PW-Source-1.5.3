@@ -1,0 +1,77 @@
+#ifndef __GNET_QUERYUSERIDRES_RPCDATA
+#define __GNET_QUERYUSERIDRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class QueryUseridRes : public GNET::Rpc::Data
+	{
+	public:
+		int result;
+		int userid;
+		int roleid;
+		int level;
+
+	public:
+		QueryUseridRes (int l_result = 0,int l_userid = 0,int l_roleid = 0
+			,int l_level = 0)
+			: result(l_result),userid(l_userid),roleid(l_roleid)
+			,level(l_level)
+		{
+		}
+
+		QueryUseridRes(const QueryUseridRes &rhs)
+			: result(rhs.result),userid(rhs.userid),roleid(rhs.roleid),
+			level(rhs.level) { }
+
+		Rpc::Data *Clone() const { return new QueryUseridRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const QueryUseridRes *r = dynamic_cast<const QueryUseridRes *>(&rhs);
+			if (r && r != this)
+			{
+				result = r->result;
+				userid = r->userid;
+				roleid = r->roleid;
+				level = r->level;
+			}
+			return *this;
+		}
+
+		QueryUseridRes& operator = (const QueryUseridRes &rhs)
+		{
+			const QueryUseridRes *r = &rhs;
+			if (r && r != this)
+			{
+				result = r->result;
+				userid = r->userid;
+				roleid = r->roleid;
+				level = r->level;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << result;
+			os << userid;
+			os << roleid;
+			os << level;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> result;
+			os >> userid;
+			os >> roleid;
+			os >> level;
+			return os;
+		}
+
+	};
+};
+#endif

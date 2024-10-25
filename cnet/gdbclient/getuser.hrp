@@ -1,0 +1,48 @@
+
+#ifndef __GNET_GETUSER_HPP
+#define __GNET_GETUSER_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#ifdef USE_BDB
+#include "dbbuffer.h"
+#endif
+#include "userarg"
+#include "userres"
+
+namespace GNET
+{
+
+class GetUser : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getuser"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+#ifdef USE_BDB
+		UserArg *arg = (UserArg *)argument;
+		UserRes *res = (UserRes *)result;
+		Marshal::OctetsStream key, value;
+		key << arg->id;
+		res->retcode = DBBuffer::buf_find( "user", key, value );
+		if( 0 == res->retcode )
+			value >> res->value;
+#endif
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

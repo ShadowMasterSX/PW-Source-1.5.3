@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBAUCTIONGET_HPP
+#define __GNET_DBAUCTIONGET_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbauctiongetarg"
+#include "dbauctiongetres"
+
+namespace GNET
+{
+
+class DBAuctionGet : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbauctionget"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// AuctionId *arg = (AuctionId *)argument;
+		// DBAuctionGetRes *res = (DBAuctionGetRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// AuctionId *arg = (AuctionId *)argument;
+		// DBAuctionGetRes *res = (DBAuctionGetRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

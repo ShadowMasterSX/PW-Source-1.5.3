@@ -1,0 +1,78 @@
+#ifndef __GNET_ACCPUINFO_RPCDATA
+#define __GNET_ACCPUINFO_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class ACCPUInfo : public GNET::Rpc::Data
+	{
+	public:
+		short arch;
+		short level;
+		int ct;
+		int count;
+
+	public:
+		ACCPUInfo (short l_arch = 0,short l_level = 0,int l_ct = 0
+			,int l_count = 0)
+			: arch(l_arch),level(l_level),ct(l_ct)
+			,count(l_count)
+		{
+		}
+
+		ACCPUInfo(const ACCPUInfo &rhs)
+			: arch(rhs.arch),level(rhs.level),ct(rhs.ct),
+			count(rhs.count) { }
+
+		Rpc::Data *Clone() const { return new ACCPUInfo(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const ACCPUInfo *r = dynamic_cast<const ACCPUInfo *>(&rhs);
+			if (r && r != this)
+			{
+				arch = r->arch;
+				level = r->level;
+				ct = r->ct;
+				count = r->count;
+			}
+			return *this;
+		}
+
+		ACCPUInfo& operator = (const ACCPUInfo &rhs)
+		{
+			const ACCPUInfo *r = &rhs;
+			if (r && r != this)
+			{
+				arch = r->arch;
+				level = r->level;
+				ct = r->ct;
+				count = r->count;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << arch;
+			os << level;
+			os << ct;
+			os << count;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> arch;
+			os >> level;
+			os >> ct;
+			os >> count;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<ACCPUInfo>	ACCPUInfoVector;
+};
+#endif

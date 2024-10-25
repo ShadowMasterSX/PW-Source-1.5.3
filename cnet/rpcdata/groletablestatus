@@ -1,0 +1,59 @@
+#ifndef __GNET_GROLETABLESTATUS_RPCDATA
+#define __GNET_GROLETABLESTATUS_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "grolestatus"
+
+namespace GNET
+{
+	class GRoleTableStatus : public GNET::Rpc::Data
+	{
+	public:
+		GRoleStatus status;
+
+	public:
+		GRoleTableStatus ()
+		{
+		}
+
+		GRoleTableStatus(const GRoleTableStatus &rhs)
+			: status(rhs.status) { }
+
+		Rpc::Data *Clone() const { return new GRoleTableStatus(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GRoleTableStatus *r = dynamic_cast<const GRoleTableStatus *>(&rhs);
+			if (r && r != this)
+			{
+				status = r->status;
+			}
+			return *this;
+		}
+
+		GRoleTableStatus& operator = (const GRoleTableStatus &rhs)
+		{
+			const GRoleTableStatus *r = &rhs;
+			if (r && r != this)
+			{
+				status = r->status;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << status;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> status;
+			return os;
+		}
+
+	};
+};
+#endif

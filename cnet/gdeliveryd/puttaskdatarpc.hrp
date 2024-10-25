@@ -1,0 +1,54 @@
+
+#ifndef __GNET_PUTTASKDATARPC_HPP
+#define __GNET_PUTTASKDATARPC_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "puttaskdataarg"
+#include "puttaskdatares"
+#include "maptaskdata.h"
+#include "gamedbclient.hpp"
+
+namespace GNET
+{
+
+class PutTaskDataRpc : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "puttaskdatarpc"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// PutTaskDataArg *arg = (PutTaskDataArg *)argument;
+		// PutTaskDataRes *res = (PutTaskDataRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		PutTaskDataArg *arg = (PutTaskDataArg *)argument;
+		PutTaskDataRes *res = (PutTaskDataRes *)result;
+		if( res->retcode != 0 )
+		{
+			DEBUG_PRINT("gdeliverd:puttaskdata failed, taskid is %d\n", arg->taskid);
+		}
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+		PutTaskDataArg *arg = (PutTaskDataArg *)argument;
+		DEBUG_PRINT("gdeliverd:puttaskdata timeout, taskid is %d\n", arg->taskid);
+		Octets td;
+		if( TaskData::GetInstance().GetTaskData(arg->taskid, td) )
+			arg->taskdata = td;
+		GameDBClient::GetInstance()->SendProtocol(this);
+	}
+
+};
+
+};
+#endif

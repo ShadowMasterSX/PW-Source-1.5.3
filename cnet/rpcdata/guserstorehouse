@@ -1,0 +1,94 @@
+#ifndef __GNET_GUSERSTOREHOUSE_RPCDATA
+#define __GNET_GUSERSTOREHOUSE_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "groleinventory"
+
+namespace GNET
+{
+	class GUserStorehouse : public GNET::Rpc::Data
+	{
+	public:
+		int capacity;
+		unsigned int money;
+		GRoleInventoryVector items;
+		int reserved1;
+		int reserved2;
+		int reserved3;
+		int reserved4;
+
+	public:
+		GUserStorehouse (int l_capacity = 0,unsigned int l_money = 0,int l_reserved1 = 0
+			,int l_reserved2 = 0,int l_reserved3 = 0,int l_reserved4 = 0)
+			: capacity(l_capacity),money(l_money),reserved1(l_reserved1)
+			,reserved2(l_reserved2),reserved3(l_reserved3),reserved4(l_reserved4)
+		{
+		}
+
+		GUserStorehouse(const GUserStorehouse &rhs)
+			: capacity(rhs.capacity),money(rhs.money),items(rhs.items),
+			reserved1(rhs.reserved1),reserved2(rhs.reserved2),reserved3(rhs.reserved3),
+			reserved4(rhs.reserved4) { }
+
+		Rpc::Data *Clone() const { return new GUserStorehouse(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GUserStorehouse *r = dynamic_cast<const GUserStorehouse *>(&rhs);
+			if (r && r != this)
+			{
+				capacity = r->capacity;
+				money = r->money;
+				items = r->items;
+				reserved1 = r->reserved1;
+				reserved2 = r->reserved2;
+				reserved3 = r->reserved3;
+				reserved4 = r->reserved4;
+			}
+			return *this;
+		}
+
+		GUserStorehouse& operator = (const GUserStorehouse &rhs)
+		{
+			const GUserStorehouse *r = &rhs;
+			if (r && r != this)
+			{
+				capacity = r->capacity;
+				money = r->money;
+				items = r->items;
+				reserved1 = r->reserved1;
+				reserved2 = r->reserved2;
+				reserved3 = r->reserved3;
+				reserved4 = r->reserved4;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << capacity;
+			os << money;
+			os << items;
+			os << reserved1;
+			os << reserved2;
+			os << reserved3;
+			os << reserved4;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> capacity;
+			os >> money;
+			os >> items;
+			os >> reserved1;
+			os >> reserved2;
+			os >> reserved3;
+			os >> reserved4;
+			return os;
+		}
+
+	};
+};
+#endif

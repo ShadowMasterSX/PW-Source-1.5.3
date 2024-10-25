@@ -1,0 +1,68 @@
+#ifndef __GNET_TRADERINFO_RPCDATA
+#define __GNET_TRADERINFO_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class TraderInfo : public GNET::Rpc::Data
+	{
+	public:
+		int userid;
+		int64_t roleid;
+		Octets rolename;
+
+	public:
+		TraderInfo ()
+		{
+		}
+
+		TraderInfo(const TraderInfo &rhs)
+			: userid(rhs.userid),roleid(rhs.roleid),rolename(rhs.rolename) { }
+
+		Rpc::Data *Clone() const { return new TraderInfo(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const TraderInfo *r = dynamic_cast<const TraderInfo *>(&rhs);
+			if (r && r != this)
+			{
+				userid = r->userid;
+				roleid = r->roleid;
+				rolename = r->rolename;
+			}
+			return *this;
+		}
+
+		TraderInfo& operator = (const TraderInfo &rhs)
+		{
+			const TraderInfo *r = &rhs;
+			if (r && r != this)
+			{
+				userid = r->userid;
+				roleid = r->roleid;
+				rolename = r->rolename;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			os << roleid;
+			os << rolename;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			os >> roleid;
+			os >> rolename;
+			return os;
+		}
+
+	};
+};
+#endif

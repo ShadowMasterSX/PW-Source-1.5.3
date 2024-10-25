@@ -1,0 +1,77 @@
+#ifndef __GNET_DBGAMETALKROLERELATIONRES_RPCDATA
+#define __GNET_DBGAMETALKROLERELATIONRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "rolebean"
+#include "factionidbean"
+#include "dbrolegroup"
+
+namespace GNET
+{
+	class DBGameTalkRoleRelationRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		RoleBean info;
+		FactionIDBeanVector factions;
+		DBRoleGroupVector groups;
+
+	public:
+		DBGameTalkRoleRelationRes ()
+		{
+		}
+
+		DBGameTalkRoleRelationRes(const DBGameTalkRoleRelationRes &rhs)
+			: retcode(rhs.retcode),info(rhs.info),factions(rhs.factions),
+			groups(rhs.groups) { }
+
+		Rpc::Data *Clone() const { return new DBGameTalkRoleRelationRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBGameTalkRoleRelationRes *r = dynamic_cast<const DBGameTalkRoleRelationRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				info = r->info;
+				factions = r->factions;
+				groups = r->groups;
+			}
+			return *this;
+		}
+
+		DBGameTalkRoleRelationRes& operator = (const DBGameTalkRoleRelationRes &rhs)
+		{
+			const DBGameTalkRoleRelationRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				info = r->info;
+				factions = r->factions;
+				groups = r->groups;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << info;
+			os << factions;
+			os << groups;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> info;
+			os >> factions;
+			os >> groups;
+			return os;
+		}
+
+	};
+};
+#endif

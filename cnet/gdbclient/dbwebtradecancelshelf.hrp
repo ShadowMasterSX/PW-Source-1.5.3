@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBWEBTRADECANCELSHELF_HPP
+#define __GNET_DBWEBTRADECANCELSHELF_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbwebtradecancelshelfarg"
+#include "dbwebtradecancelshelfres"
+
+namespace GNET
+{
+
+class DBWebTradeCancelShelf : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbwebtradecancelshelf"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBWebTradeCancelShelfArg *arg = (DBWebTradeCancelShelfArg *)argument;
+		// DBWebTradeCancelShelfRes *res = (DBWebTradeCancelShelfRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBWebTradeCancelShelfArg *arg = (DBWebTradeCancelShelfArg *)argument;
+		// DBWebTradeCancelShelfRes *res = (DBWebTradeCancelShelfRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

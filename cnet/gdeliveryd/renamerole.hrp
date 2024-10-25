@@ -1,0 +1,42 @@
+
+#ifndef __GNET_RENAMEROLE_HPP
+#define __GNET_RENAMEROLE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "renamerolearg"
+
+
+namespace GNET
+{
+
+class RenameRole : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "renamerole"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// RenameRoleArg *arg = (RenameRoleArg *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// RenameRoleArg *arg = (RenameRoleArg *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

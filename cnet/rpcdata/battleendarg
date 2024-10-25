@@ -1,0 +1,77 @@
+#ifndef __GNET_BATTLEENDARG_RPCDATA
+#define __GNET_BATTLEENDARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class BattleEndArg : public GNET::Rpc::Data
+	{
+	public:
+		int battle_id;
+		int result;
+		unsigned int defender;
+		unsigned int attacker;
+
+	public:
+		BattleEndArg (int l_battle_id = 0,int l_result = 0,unsigned int l_defender = 0
+			,unsigned int l_attacker = 0)
+			: battle_id(l_battle_id),result(l_result),defender(l_defender)
+			,attacker(l_attacker)
+		{
+		}
+
+		BattleEndArg(const BattleEndArg &rhs)
+			: battle_id(rhs.battle_id),result(rhs.result),defender(rhs.defender),
+			attacker(rhs.attacker) { }
+
+		Rpc::Data *Clone() const { return new BattleEndArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const BattleEndArg *r = dynamic_cast<const BattleEndArg *>(&rhs);
+			if (r && r != this)
+			{
+				battle_id = r->battle_id;
+				result = r->result;
+				defender = r->defender;
+				attacker = r->attacker;
+			}
+			return *this;
+		}
+
+		BattleEndArg& operator = (const BattleEndArg &rhs)
+		{
+			const BattleEndArg *r = &rhs;
+			if (r && r != this)
+			{
+				battle_id = r->battle_id;
+				result = r->result;
+				defender = r->defender;
+				attacker = r->attacker;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << battle_id;
+			os << result;
+			os << defender;
+			os << attacker;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> battle_id;
+			os >> result;
+			os >> defender;
+			os >> attacker;
+			return os;
+		}
+
+	};
+};
+#endif

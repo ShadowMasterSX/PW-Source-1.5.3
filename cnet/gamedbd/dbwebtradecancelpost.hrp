@@ -1,0 +1,100 @@
+
+#ifndef __GNET_DBWEBTRADECANCELPOST_HPP
+#define __GNET_DBWEBTRADECANCELPOST_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbwebtradecancelpostarg"
+#include "dbwebtradecancelpostres"
+
+namespace GNET
+{
+
+class DBWebTradeCancelPost : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbwebtradecancelpost"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBWebTradeCancelPostArg *arg = (DBWebTradeCancelPostArg *)argument;
+		DBWebTradeCancelPostRes *res = (DBWebTradeCancelPostRes *)result;
+
+		Marshal::OctetsStream key, title;
+		try
+		{
+			StorageEnv::Storage * pwebtrade = StorageEnv::GetStorage("webtrade");
+			StorageEnv::Storage * pmailbox = StorageEnv::GetStorage("mailbox");
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				if(arg->sn == 0) 
+					throw DbException(DB_VERIFY_BAD); 
+
+				GWebTradeDetail detail;
+				key << arg->sn;
+				Marshal::OctetsStream(pwebtrade->find(key,txn)) >> detail;
+				if(detail.info.seller_roleid != arg->roleid)
+					throw DbException(DB_VERIFY_BAD);
+				Log::formatlog("webtradecancelpost","role=%d:sn=%lld:reason=%d:type=%d:itemid=%d:item_count=%d:money=%d:role=%d:petid=%d:pet_count=%d", 
+						arg->roleid,arg->sn,arg->reason,detail.info.posttype,detail.info.item_id,detail.info.item_count,detail.info.money,arg->roleid,0,0);
+				//¥Ê≈Ã	
+				title << detail.info.sn << detail.info.posttype << detail.info.money << detail.info.item_id << detail.info.item_count << detail.info.commodity_id;
+				res->inform_seller.receiver = detail.info.seller_roleid;
+				res->inform_seller.sndr_type = _MST_WEBTRADE;
+				res->inform_seller.sender = (arg->reason==1 ? WEBTRADE_POST_FAILED : WEBTRADE_CANCEL_POST);
+				res->inform_seller.title = title;
+				if(detail.info.posttype == 1)
+					MailSender::Send(pmailbox,res->inform_seller, detail.info.money+(arg->reason==1 ? detail.deposit : 0), txn);
+				else if(detail.info.posttype == 2)
+					MailSender::Send(pmailbox,res->inform_seller, detail.item, (arg->reason==1 ? detail.deposit : 0), txn); 
+				else if(detail.info.posttype == 4)
+				{
+					MailSender::Send(pmailbox,res->inform_seller, (arg->reason==1 ? detail.deposit : 0), txn);
+					Marshal::OctetsStream krole;
+					krole << arg->roleid;
+					GRoleBase base;
+					Marshal::OctetsStream(pbase->find(krole,txn)) >> base;
+					base.status = _ROLE_STATUS_NORMAL;
+					pbase->insert(krole, Marshal::OctetsStream()<<base, txn);
+				}
+				
+				pwebtrade->del(key, txn);
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBWebTradeCancelPost, role=%d sn=%lld, what=%s.\n",
+				arg->roleid, arg->sn, e.what());
+			res->retcode = ERR_EXCEPTION;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBWebTradeCancelPostArg *arg = (DBWebTradeCancelPostArg *)argument;
+		// DBWebTradeCancelPostRes *res = (DBWebTradeCancelPostRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

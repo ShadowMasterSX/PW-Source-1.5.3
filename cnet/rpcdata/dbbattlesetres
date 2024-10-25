@@ -1,0 +1,59 @@
+#ifndef __GNET_DBBATTLESETRES_RPCDATA
+#define __GNET_DBBATTLESETRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBBattleSetRes : public GNET::Rpc::Data
+	{
+	public:
+		short retcode;
+
+	public:
+		DBBattleSetRes (short l_retcode = 0)
+			: retcode(l_retcode)
+		{
+		}
+
+		DBBattleSetRes(const DBBattleSetRes &rhs)
+			: retcode(rhs.retcode) { }
+
+		Rpc::Data *Clone() const { return new DBBattleSetRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBBattleSetRes *r = dynamic_cast<const DBBattleSetRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		DBBattleSetRes& operator = (const DBBattleSetRes &rhs)
+		{
+			const DBBattleSetRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			return os;
+		}
+
+	};
+};
+#endif

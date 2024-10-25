@@ -1,0 +1,83 @@
+#ifndef __GNET_ACPLATFORMINFO_RPCDATA
+#define __GNET_ACPLATFORMINFO_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class ACPlatformInfo : public GNET::Rpc::Data
+	{
+	public:
+		int id;
+		int major_version;
+		int minor_version;
+		int build_number;
+		int count;
+
+	public:
+		ACPlatformInfo (int l_id = 0,int l_major_version = 0,int l_minor_version = 0
+			,int l_build_number = 0,int l_count = 0)
+			: id(l_id),major_version(l_major_version),minor_version(l_minor_version)
+			,build_number(l_build_number),count(l_count)
+		{
+		}
+
+		ACPlatformInfo(const ACPlatformInfo &rhs)
+			: id(rhs.id),major_version(rhs.major_version),minor_version(rhs.minor_version),
+			build_number(rhs.build_number),count(rhs.count) { }
+
+		Rpc::Data *Clone() const { return new ACPlatformInfo(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const ACPlatformInfo *r = dynamic_cast<const ACPlatformInfo *>(&rhs);
+			if (r && r != this)
+			{
+				id = r->id;
+				major_version = r->major_version;
+				minor_version = r->minor_version;
+				build_number = r->build_number;
+				count = r->count;
+			}
+			return *this;
+		}
+
+		ACPlatformInfo& operator = (const ACPlatformInfo &rhs)
+		{
+			const ACPlatformInfo *r = &rhs;
+			if (r && r != this)
+			{
+				id = r->id;
+				major_version = r->major_version;
+				minor_version = r->minor_version;
+				build_number = r->build_number;
+				count = r->count;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << id;
+			os << major_version;
+			os << minor_version;
+			os << build_number;
+			os << count;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> id;
+			os >> major_version;
+			os >> minor_version;
+			os >> build_number;
+			os >> count;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<ACPlatformInfo>	ACPlatformInfoVector;
+};
+#endif

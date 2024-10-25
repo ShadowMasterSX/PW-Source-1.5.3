@@ -1,0 +1,50 @@
+
+#ifndef __GNET_PUTROLETASK_HPP
+#define __GNET_PUTROLETASK_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#ifdef USE_BDB
+#include "dbbuffer.h"
+#endif
+#include "roletaskpair"
+
+
+namespace GNET
+{
+
+class PutRoleTask : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "putroletask"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+#ifdef USE_BDB
+		RoleTaskPair *arg = (RoleTaskPair *)argument;
+		RpcRetcode *res = (RpcRetcode *)result;
+		Marshal::OctetsStream key, value;
+		key << arg->key;
+		value << arg->value;
+		res->retcode = DBBuffer::buf_insert( "task", key, value );
+#endif
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// RoleTaskPair *arg = (RoleTaskPair *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

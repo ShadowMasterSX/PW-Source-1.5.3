@@ -1,0 +1,102 @@
+#ifndef __GNET_DBSENDMASSMAILARG_RPCDATA
+#define __GNET_DBSENDMASSMAILARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmail"
+#include "gmailsyncdata"
+
+namespace GNET
+{
+	class DBSendMassMailArg : public GNET::Rpc::Data
+	{
+	public:
+		char mass_type;
+		GMail mail;
+		int cost_obj_id;
+		int cost_obj_num;
+		int cost_obj_pos;
+		unsigned int cost_money;
+		std::vector<int> receiver_list;
+		GMailSyncData syncdata;
+
+	public:
+		DBSendMassMailArg (char l_mass_type = -1,const GMail& l_mail = GMail(),int l_cost_obj_id = -1
+			,int l_cost_obj_num = 0,int l_cost_obj_pos = -1,unsigned int l_cost_money = 0
+			,const std::vector<int>& l_receiver_list = std::vector<int>(),const GMailSyncData& l_syncdata = GMailSyncData())
+			: mass_type(l_mass_type),mail(l_mail),cost_obj_id(l_cost_obj_id)
+			,cost_obj_num(l_cost_obj_num),cost_obj_pos(l_cost_obj_pos),cost_money(l_cost_money)
+			,receiver_list(l_receiver_list),syncdata(l_syncdata)
+		{
+		}
+
+		DBSendMassMailArg(const DBSendMassMailArg &rhs)
+			: mass_type(rhs.mass_type),mail(rhs.mail),cost_obj_id(rhs.cost_obj_id),
+			cost_obj_num(rhs.cost_obj_num),cost_obj_pos(rhs.cost_obj_pos),cost_money(rhs.cost_money),
+			receiver_list(rhs.receiver_list),syncdata(rhs.syncdata) { }
+
+		Rpc::Data *Clone() const { return new DBSendMassMailArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBSendMassMailArg *r = dynamic_cast<const DBSendMassMailArg *>(&rhs);
+			if (r && r != this)
+			{
+				mass_type = r->mass_type;
+				mail = r->mail;
+				cost_obj_id = r->cost_obj_id;
+				cost_obj_num = r->cost_obj_num;
+				cost_obj_pos = r->cost_obj_pos;
+				cost_money = r->cost_money;
+				receiver_list = r->receiver_list;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		DBSendMassMailArg& operator = (const DBSendMassMailArg &rhs)
+		{
+			const DBSendMassMailArg *r = &rhs;
+			if (r && r != this)
+			{
+				mass_type = r->mass_type;
+				mail = r->mail;
+				cost_obj_id = r->cost_obj_id;
+				cost_obj_num = r->cost_obj_num;
+				cost_obj_pos = r->cost_obj_pos;
+				cost_money = r->cost_money;
+				receiver_list = r->receiver_list;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << mass_type;
+			os << mail;
+			os << cost_obj_id;
+			os << cost_obj_num;
+			os << cost_obj_pos;
+			os << cost_money;
+			os << receiver_list;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> mass_type;
+			os >> mail;
+			os >> cost_obj_id;
+			os >> cost_obj_num;
+			os >> cost_obj_pos;
+			os >> cost_money;
+			os >> receiver_list;
+			os >> syncdata;
+			return os;
+		}
+
+	};
+};
+#endif

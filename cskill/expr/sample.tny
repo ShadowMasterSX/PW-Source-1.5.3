@@ -1,0 +1,47 @@
+int a[9]={1,2,3,-4,5,6};
+/*
+a[3]=a[3]*2;
+print a[3];
+*/
+/*
+int i=8+(-5);
+int j=9-i;
+int a[6+1]={1,2,3,-4,5,6};
+a[j-3]=2*a[3];
+i=i+1;
+player.level=i;
+*/
+/*
+float f=3.5;
+float result;
+result=i*f;
+player.level=level;
+player.skilllevel[3]=5;
+level=player.skilllevel[3];
+*/
+/*
+Skilllevel sl;
+
+Player p;
+p.level=5; p.hp=20; p.mp=30; p.skilllevel=sl;
+
+Skill s;
+s.level=1;
+s.hitback=0.9;
+s.player=p;
+
+player.hp=s.player.hp;
+player.mp=s.player.mp;
+player.level=s.player.level;
+s.player.skilllevel[3]=100;
+player.skilllevel[3]=s.player.skilllevel[3];
+*/
+/*
+player.skilllevel[i]=30+result;
+player.level=player.skilllevel[i];
+
+player.level=player.level>=level & level<3 | level>5 ? 3*level : 0 ;
+player.hp=player.mp>=2 & player.mp<=15  ? 9.3*level:1+level;
+player.mp=(5+2)*3+6.5;
+player.level=p.level;
+*/

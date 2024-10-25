@@ -1,0 +1,35 @@
+	public:
+		int64_t localuid;
+		int64_t roleid;
+		enum { PROTOCOL_TYPE = PROTOCOL_ROLEINFOREQ };
+	public:
+		RoleInfoReq() { type = PROTOCOL_ROLEINFOREQ; }
+		RoleInfoReq(void*) : Protocol(PROTOCOL_ROLEINFOREQ) { }
+		RoleInfoReq (int64_t l_localuid,int64_t l_roleid)
+			 : localuid(l_localuid),roleid(l_roleid)
+		{
+			type = PROTOCOL_ROLEINFOREQ;
+		}
+
+		RoleInfoReq(const RoleInfoReq &rhs)
+			: Protocol(rhs),localuid(rhs.localuid),roleid(rhs.roleid) { }
+
+		GNET::Protocol *Clone() const { return new RoleInfoReq(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << localuid;
+			os << roleid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> localuid;
+			os >> roleid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1024; }

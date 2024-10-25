@@ -1,0 +1,59 @@
+#ifndef __GNET_GETTASKDATAARG_RPCDATA
+#define __GNET_GETTASKDATAARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GetTaskDataArg : public GNET::Rpc::Data
+	{
+	public:
+		int taskid;
+
+	public:
+		GetTaskDataArg (int l_taskid = -1)
+			: taskid(l_taskid)
+		{
+		}
+
+		GetTaskDataArg(const GetTaskDataArg &rhs)
+			: taskid(rhs.taskid) { }
+
+		Rpc::Data *Clone() const { return new GetTaskDataArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GetTaskDataArg *r = dynamic_cast<const GetTaskDataArg *>(&rhs);
+			if (r && r != this)
+			{
+				taskid = r->taskid;
+			}
+			return *this;
+		}
+
+		GetTaskDataArg& operator = (const GetTaskDataArg &rhs)
+		{
+			const GetTaskDataArg *r = &rhs;
+			if (r && r != this)
+			{
+				taskid = r->taskid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << taskid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> taskid;
+			return os;
+		}
+
+	};
+};
+#endif

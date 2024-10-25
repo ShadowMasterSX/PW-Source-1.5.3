@@ -1,0 +1,85 @@
+
+#ifndef __GNET_FETCHPLAYERDATA_HPP
+#define __GNET_FETCHPLAYERDATA_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "fetchplayerdataarg"
+#include "fetchplayerdatares"
+
+namespace GNET
+{
+
+class FetchPlayerData : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "fetchplayerdata"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		FetchPlayerDataArg *arg = (FetchPlayerDataArg *)argument;
+		FetchPlayerDataRes *res = (FetchPlayerDataRes *)result;
+
+		LOG_TRACE("CrossRelated FetchPlayerData, roleid %d userid %d", arg->roleid, arg->userid);
+		
+		try {
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::Storage * pstatus = StorageEnv::GetStorage("status");
+			StorageEnv::Storage * pinventory = StorageEnv::GetStorage("inventory");
+			StorageEnv::Storage * pequipment = StorageEnv::GetStorage("equipment");
+			StorageEnv::Storage * pstorehouse = StorageEnv::GetStorage("storehouse");
+			StorageEnv::Storage * ptask = StorageEnv::GetStorage("task");
+			
+			StorageEnv::CommonTransaction txn;
+			Marshal::OctetsStream role_key;
+			
+			try {
+				role_key << arg->roleid;
+				
+				Marshal::OctetsStream(pbase->find(role_key, txn)) >> res->data.base;
+				if (res->data.base.status != _ROLE_STATUS_NORMAL) {
+					res->retcode = -1;
+					return;
+				}
+				
+				Marshal::OctetsStream(pstatus->find(role_key, txn)) >> res->data.status;
+				Marshal::OctetsStream(pinventory->find(role_key, txn)) >> res->data.inventory;
+				Marshal::OctetsStream(pequipment->find(role_key, txn)) >> res->data.equipment;
+				Marshal::OctetsStream(pstorehouse->find(role_key, txn)) >> res->data.storehouse;
+				Marshal::OctetsStream(ptask->find(role_key, txn)) >> res->data.task;
+				res->retcode = ERR_SUCCESS;
+
+			} catch ( DbException e ) { 
+				throw; 
+			} catch ( ... ) {
+				DbException ee(DB_OLD_VERSION);
+				txn.abort(ee);
+				throw ee;
+			}
+		} catch (DbException e) {
+			Log::log(LOG_ERR, "CrossRelated FetchPlayerData, roleid %d userid %d what=%s", arg->roleid, arg->userid, e.what());
+			res->retcode = ERR_DATANOTFIND;
+			return;
+		}
+
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// FetchPlayerDataArg *arg = (FetchPlayerDataArg *)argument;
+		// FetchPlayerDataRes *res = (FetchPlayerDataRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

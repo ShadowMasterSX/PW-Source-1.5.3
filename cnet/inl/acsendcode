@@ -1,0 +1,38 @@
+	public:
+		int roleid;
+		std::string code_name;
+		std::string param;
+		enum { PROTOCOL_TYPE = PROTOCOL_ACSENDCODE };
+	public:
+		ACSendCode() { type = PROTOCOL_ACSENDCODE; }
+		ACSendCode(void*) : Protocol(PROTOCOL_ACSENDCODE) { }
+		ACSendCode (int l_roleid,std::string l_code_name,std::string l_param)
+			 : roleid(l_roleid),code_name(l_code_name),param(l_param)
+		{
+			type = PROTOCOL_ACSENDCODE;
+		}
+
+		ACSendCode(const ACSendCode &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),code_name(rhs.code_name),param(rhs.param) { }
+
+		GNET::Protocol *Clone() const { return new ACSendCode(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << code_name;
+			os << param;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> code_name;
+			os >> param;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 256; }

@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--lp1b--><application name="gacd" version="2005_10_20_01"><!--lp1e-->
+
+	<logmanager>
+
+		<cheat id="6" name="forbid module"/>
+		<cheat id="8" name="forbid process"/>
+		<cheat id="9" name="forbid window"/>
+		<cheat id="101" name="report_dirty"/>
+		<cheat id="102" name="report_counterr"/>
+		<cheat id="103" name="report_history_counterr"/>
+		<cheat id="104" name="report_freq_counterr"/>
+		<cheat id="105" name="report_patternerr"/>
+		<cheat id="201" name="code_res_unknown"/>
+		<cheat id="202" name="code_res_checkerr"/>
+		<cheat id="203" name="code_res_timeout"/>
+		<cheat id="300" name="log_in_err"/>
+		<cheat id="301" name="log_out_err"/>
+
+		<kickid id="1986"/>
+		<kickid id="673"/>
+		<kickid id="257472"/>
+		
+		<!--lp2b--><action name="kick"/><!--lp2e-->
+		<!--<action name="kick"/>-->
+		<!--<action name="killself"/>-->
+		<!--<action name="killforbid"/>-->
+	
+	</logmanager>
+
+	<!--<statmanager mininter="30" maxinter="300" std_recal="3">-->
+	<statmanager mininter="30" maxinter="60" std_recal="3" logmax="20">
+		<randinfo>
+			<info id="2" name="pattern" reject="false"/>
+			<info id="3"/>
+			<info id="5"/>
+			<info id="6"/>
+			<info id="7"/>
+			<info id="8"/>
+			<info id="9"/>
+			<info id="11"/>
+		</randinfo>
+
+		<!--lp3b--><forbid> 
+			<item id="1" refid="6" value="hook.dll" size="49152" refpro="°´¼ü¾«Áé"/>
+			<item id="3" refid="8" value="°´¼ü¾«Áé"/>
+			<item id="7" refid="6" value="HOOK.DLL" size="49152" refpro="°´¼ü¾«Áé"/>
+		</forbid><!--lp3e-->
+	</statmanager>
+
+	<codemanager>
+		<sendto from="16" to="191984" sendid="testparent" inter="31" timeout="50"/>
+		<checkreturn libname="./checkreturn.so" funcname="_Z5checkSsRKSt6vectorISt4pairIsiESaIS1_EE"/>
+		<precodes id="1" name="findnotpad" value="(2001,)(101,)(102,)(1101,)(1102,)(5002,)(5003,)(5004,)(1,)" res="(2001,0)"/>
+		<precodes id="2" name="question" value="(2002,)(5005,*)(101,)(1101,)(1,)" res="(2002,0)"/>
+		<precodes id="3" name="kill" value="(201,)(202,)(1201,)(1202,)(2,)(2003,)"/>
+		<precodes id="4" name="cpuid" value="(2004, )"/>
+		<precodes id="5" name="findwindow" value="(2005,?FindWindowByClassName@@YG_NXZ)(5007,?)(1,)(102,)(1102,)(2005,run2005)"/>
+		<precodes id="6" name="prothrid" value="(2,)(203,)(204,)(1203,)(1204,)(2006,)(2007,)"/>
+		<precodes id="7" name="findmodule" value="(2,)(206,)(209,)(210,)(1206,)(1209,)(1210,)(5008,?)(2008,)"/>
+		<precodes id="8" name="findprocess" value="(2,)(206,)(207,)(208,)(1206,)(1207,)(1208,)(5009,?)(2009,)"/>
+		<precodes id="9" name="killprocess" value="(2,)(202,)(211,)(206,)(207,)(208,)(1202,)(1206,)(1207,)(1208,)(1211,)(5009,?)(2013,)"/>
+		<precodes id="10" name="testparent" value="(2,)(203,)(206,)(207,)(208,)(212,)(1203,)(1206,)(1207,)(1208,)(1212,)(5010,)(2010,)"/>
+		<precodes id="11" name="msgbox" value="(1,)(101,)(1101,)(5011,?)(2011,)"/>
+		<precodes id="12" name="return5" value="(2012,)"/>
+		<precodes id="13" name="runpre" value="(4096,?)(-1,)"/>
+	</codemanager>
+
+	
+
+<NetDLL>
+<!-- ref dll -->
+<string id="1" value="user32.dll"/>
+<string id="2" value="kernel32.dll"/>
+
+<!-- api ref -->
+<dllapi id="101" symbol="__imp__MessageBoxA@16" lib="1" fid="1101"/>
+<dllapi id="102" symbol="__imp__FindWindowA@8" lib="1" fid="1102"/>
+<dllapi id="201" symbol="__imp__GetCurrentProcess@0" lib="2" fid="1201"/>
+<dllapi id="202" symbol="__imp__TerminateProcess@8" lib="2" fid="1202"/>
+<dllapi id="203" symbol="__imp__GetCurrentProcessId@0" lib="2" fid="1203"/>
+<dllapi id="204" symbol="__imp__GetCurrentThreadId@0" lib="2" fid="1204"/>
+<dllapi id="205" symbol="__imp__GetModuleHandleA@4" lib="2" fid="1205"/>
+<dllapi id="206" symbol="_CreateToolhelp32Snapshot@8" lib="2" fid="1206"/>
+<dllapi id="207" symbol="_Process32First@8" lib="2" fid="1207"/>
+<dllapi id="208" symbol="_Process32Next@8" lib="2" fid="1208"/>
+<dllapi id="209" symbol="_Module32First@8" lib="2" fid="1209"/>
+<dllapi id="210" symbol="_Module32Next@8" lib="2" fid="1210"/>
+<dllapi id="211" symbol="__imp__OpenProcess@12" lib="2" fid="1211"/>
+<dllapi id="212" symbol="__imp__CloseHandle@4" lib="2" fid="1212"/>
+
+<!-- api name -->
+<string id="1101" value="MessageBoxA"/>
+<string id="1102" value="FindWindowA"/>
+<string id="1201" value="GetCurrentProcess"/>
+<string id="1202" value="TerminateProcess"/>
+<string id="1203" value="GetCurrentProcessId"/>
+<string id="1204" value="GetCurrentThreadId"/>
+<string id="1205" value="GetModuleHandleA"/>
+<string id="1206" value="CreateToolhelp32Snapshot"/>
+<string id="1207" value="Process32First"/>
+<string id="1208" value="Process32Next"/>
+<string id="1209" value="Module32First"/>
+<string id="1210" value="Module32Next"/>
+<string id="1211" value="OpenProcess"/>
+<string id="1212" value="CloseHandle"/>
+
+<string id="4096" value="hi" symbol="test@@3PBDB"/>
+<run id="-1" param0="4096"/>
+
+<!-- obj func -->
+
+<!-- find notepad window then msgbox -->
+<objfile id="2001" value="test2.obj"/>
+<string id="5002" value="Notepad" symbol="?fclass@@3PBDB"/>
+<string id="5003" value="capb" symbol="?cap@@3PBDB"/>
+<string id="5004" value="msga" symbol="?msg@@3PBDB"/>
+<run id="2001"/>
+
+<!-- msgmbox and return yes or no -->
+<objfile id="2002" value="testsum.obj"/>
+<string id="5005" sid="1" value="Are you cheater?" symbol="?question@@3PBDB"/>
+<string id="5005" sid="2" value="1 + 1 = 2?" symbol="?question@@3PBDB"/>
+<string id="5005" sid="3" value="How are you?" symbol="?question@@3PBDB"/>
+<run id="2002"/>
+
+<!-- kill -->
+<objfile id="2003" value="kill.obj"/>
+<run id="2003"/>
+
+<!-- get cpuinfo -->
+<objfile id="2004" value="cpuid.obj"/>
+<run id="2004" param0="0"/>
+<run id="2004" param0="1"/>
+<run id="2004" param0="2"/>
+<run id="2004" param0="3"/>
+<run id="2004" param0="4"/>
+<run id="2004" param0="5"/>
+<run id="2004" param0="6"/>
+<run id="2004" param0="7"/>
+
+<!-- find window -->
+<objfile id="2005" value="findwindow.obj"/>
+<string id="5006" sid="1" value="wgwg1" symbol="?windowName@@3PBDB"/>
+<string id="5006" sid="2" value="wgwg2" symbol="?windowName@@3PBDB"/>
+<string id="5007" sid="1" value="Notepad" symbol="?className@@3PBDB"/>
+<string id="5007" sid="2" value="IEFrame" symbol="?className@@3PBDB"/>
+<run id="2005"/>
+
+<!-- get current process id -->
+<objfile id="2006" value="processid.obj"/>
+<run id="2006"/>
+
+<!-- get current thread id -->
+<objfile id="2007" value="threadid.obj"/>
+<run id="2007"/>
+
+<!-- find module and return size-->
+<objfile id="2008" value="findmodule.obj"/>
+<string id="5008" value="somemodule" symbol="?moduleName@@3PBDB"/>
+<run id="2008"/>
+
+<!-- find process -->
+<objfile id="2009" value="findprocess.obj"/>
+<string id="5009" value="someprocess" symbol="?processName@@3PBDB"/>
+<run id="2009"/>
+
+<!-- test parent -->
+<objfile id="2010" value="testparent.obj"/>
+<string id="5010" value="Explorer.EXE" symbol="?parentName@@3PBDB"/>
+<run id="2010"/>
+
+<!-- msgbox -->
+<objfile id="2011" value="msgbox.obj"/>
+<string id="5011" value="somemsg" symbol="?sendmsg@@3PBDB"/>
+<run id="2011"/>
+
+<!-- return5 -->
+<objfile id="2012" value="return5.obj"/>
+<run id="2012"/>
+
+<!-- killprocess -->
+<objfile id="2013" value="killprocess.obj"/>
+<!--<string id="5009" value="someprocess" symbol="?processName@@3PBDB"/>-->
+<run id="2013"/>
+
+
+<!-- string -->
+
+<Compile>
+<code id="2004" value="7600d4070600558bec83ec148b450853c1e80256578945fc608b45fc0fa28945ec895df0894df48955f8618b450883e00383e800742a48741b48740c8b45f85f5e5b8be55dc204008b45f45f5e5b8be55dc204008b45f05f5e5b8be55dc204008b45ec5f5e5b8be55dc2040090909090909090909090" symbol="?getcpuid@@YGKK@Z"/>
+<code id="1" value="1100010000007573657233322e646c6c00" symbol="user32.dll"/>
+<code id="2012" value="1600dc070600b805000000c390909090909090909090" symbol="?Return5@@YGKXZ"/>
+<code id="1206" value="1f00b6040000437265617465546f6f6c68656c703332536e617073686f7400" symbol="CreateToolhelp32Snapshot"/>
+<code id="1102" value="12004e04000046696e6457696e646f774100" symbol="FindWindowA"/>
+<code id="2005" reference="?className@@3PBDB,__imp__FindWindowA@8" value="3000d5071000020011008f131a006600a1000000006a0050ff1500000000f7d81bc0f7d8c39090909090909090909090" symbol="?FindWindowByClassName@@YG_NXZ"/>
+<code id="101" value="0a006500010001004d04" symbol="__imp__MessageBoxA@16"/>
+<code id="206" value="0a00ce0001000200b604" symbol="_CreateToolhelp32Snapshot@8"/>
+<code id="1205" value="1700b50400004765744d6f64756c6548616e646c654100" symbol="GetModuleHandleA"/>
+<code id="2007" reference="__imp__GetCurrentThreadId@0" value="1c00d7070c0001000e00cc00ff250000000090909090909090909090" symbol="?ThreadID@@YGKXZ"/>
+<code id="2005" reference="?windowName@@3PBDB,?className@@3PBDB,__imp__FindWindowA@8" value="3400d5071400030015008e131b008f1323006600a1000000008b0d000000005051ff1500000000f7d81bc0f7d8c3909090909090" symbol="?FindWindowByAll@@YG_NXZ"/>
+<code id="2001" reference="?fclass@@3PBDB,__imp__FindWindowA@8,?cap@@3PBDB,?msg@@3PBDB,__imp__MessageBoxA@16" value="4c00d1071c0005001d008a132600660030008b1336008c1342006500a1000000006a0050ff150000000085c074188b0d000000008b15000000006a0051526a00ff1500000000c39090909090" symbol="?msgboxif@@YGXXZ"/>
+<code id="204" value="0a00cc0001000200b404" symbol="__imp__GetCurrentThreadId@0"/>
+<code id="2003" reference="__imp__GetCurrentProcess@0,__imp__TerminateProcess@8" value="2000d307100002001400c9001b00ca006a00ff150000000050ff1500000000c3" symbol="?TerminateProc@@YGHXZ"/>
+<code id="2010" reference="?parentName@@3PBDB,_CreateToolhelp32Snapshot@8,__imp__GetCurrentProcessId@0,_Process32First@8,_Process32Next@8,_Process32Next@8,_Process32First@8,_Process32Next@8,?parentName@@3PBDB,_Process32Next@8,__imp__CloseHandle@4,__imp__CloseHandle@4,__imp__CloseHandle@4" value="5c01da073c000d003d0092135700ce005f00cb007c00cf008b00d000a400d000b700cf00ca00d000d90092130c01d0001701d4003001d4004601d400a10000000081ec2c01000085c05356570f84f80000006a006a02e8000000008bf8ff150000000085ff8bf00f84dd0000008d442410c7442410280100005057e80000000085c074288d4c24105157e80000000085c074193b7424180f848a0000008d5424105257e80000000085c075e78b74240c8d4424105057e80000000085c00f84800000008d4c24105157e80000000085c074713b742418752da1000000008d54243485d274658a088a5424343aca75168d5424342bd084c974348a48018a5c0201403acb74f08d4424105057e80000000085c075be57ff15000000005f5e33c05b81c42c010000c38b742428eb8357ff15000000005f5eb8010000005b81c42c010000c357ff15000000005f5e33c05b81c42c010000c3909090909090" symbol="?TestParent@@YGHXZ"/>
+<code id="1202" value="1700b20400005465726d696e61746550726f6365737300" symbol="TerminateProcess"/>
+<code id="1207" value="1500b704000050726f636573733332466972737400" symbol="Process32First"/>
+<code id="2" value="1300020000006b65726e656c33322e646c6c00" symbol="kernel32.dll"/>
+<code id="5008" value="110090130000736f6d656d6f64756c6500" symbol="?moduleName@@3PBDB"/>
+<code id="5009" value="120091130000736f6d6570726f6365737300" symbol="?processName@@3PBDB"/>
+<code id="2009" reference="?processName@@3PBDB,_CreateToolhelp32Snapshot@8,_Process32First@8,_Process32Next@8,?processName@@3PBDB,_Process32Next@8" value="e000d90720000600210091133a00ce005700cf006600d00074009113b900d000a10000000081ec2801000085c056570f849c0000006a006a02e8000000008bf885ff0f84890000008d442408c7442408280100005057e80000000085c074728d4c24085157e80000000085c074638a54242c8b350000000084d28d44242c8d4c242c740f80fa5c75028bc88a50014084d275f180395c75014185c974158a0684c074203a01750b8a4601464184c07413ebf18d5424085257e80000000085c07410ebab5fb8010000005e81c428010000c35f33c05e81c428010000c390909090" symbol="?FindProcess@@YGHXZ"/>
+<code id="2005" reference="?windowName@@3PBDB,__imp__FindWindowA@8" value="3000d5071000020011008e131a006600a100000000506a00ff1500000000f7d81bc0f7d8c39090909090909090909090" symbol="?FindWindowByWindowName@@YG_NXZ"/>
+<code id="207" value="0a00cf0001000200b704" symbol="_Process32First@8"/>
+<code id="1203" value="1a00b304000047657443757272656e7450726f63657373496400" symbol="GetCurrentProcessId"/>
+<code id="5003" value="0b008b1300006361706200" symbol="?cap@@3PBDB"/>
+<code id="5005" value="11008d13000031202b2031203d20323f00" symbol="5005_2"/>
+<code id="5005" value="17008d13000041726520796f7520636865617465723f00" symbol="5005_1"/>
+<code id="5005" value="13008d130000486f772061726520796f753f00" symbol="5005_3"/>
+<code id="5007" value="0e008f13000049454672616d6500" symbol="5007_2"/>
+<code id="5007" value="0e008f1300004e6f746570616400" symbol="5007_1"/>
+<code id="1101" value="12004d0400004d657373616765426f784100" symbol="MessageBoxA"/>
+<code id="5002" value="0e008a1300004e6f746570616400" symbol="?fclass@@3PBDB"/>
+<code id="1210" value="1300ba0400004d6f64756c6533324e65787400" symbol="Module32Next"/>
+<code id="1211" value="1200bb0400004f70656e50726f6365737300" symbol="OpenProcess"/>
+<code id="209" value="0a00d10001000200b904" symbol="_Module32First@8"/>
+<code id="1209" value="1400b90400004d6f64756c653332466972737400" symbol="Module32First"/>
+<code id="5010" value="1300921300004578706c6f7265722e45584500" symbol="?parentName@@3PBDB"/>
+<code id="2013" reference="?processName@@3PBDB,_CreateToolhelp32Snapshot@8,_Process32First@8,_Process32Next@8,?processName@@3PBDB,_Process32Next@8,__imp__OpenProcess@12,__imp__TerminateProcess@8" value="0801dd0728000800290091134200ce005f00cf007200d00080009113c500d000df00d300e600ca00a10000000081ec2801000085c056570f84b60000006a006a02e8000000008bf885ff0f84a30000008d442408c7442408280100005057e80000000085c00f84880000008d4c24085157e80000000085c074798a54242c8b350000000084d28d44242c8d4c242c740f80fa5c75028bc88a50014084d275f180395c75014185c974158a0684c074203a01750b8a4601464184c07413ebf18d5424085257e80000000085c07426ebab8b4424106a00506a0068ff0f1f00ff150000000050ff15000000005f5e81c428010000c35f33c05e81c428010000c390909090909090909090" symbol="?KillProcess@@YGHXZ"/>
+<code id="2011" value="0c00db07060041444d494e00" symbol="??_C@_05GALO@ADMIN?$AA@"/>
+<code id="5011" value="0e0093130000736f6d656d736700" symbol="?sendmsg@@3PBDB"/>
+<code id="1204" value="1900b404000047657443757272656e74546872656164496400" symbol="GetCurrentThreadId"/>
+<code id="2011" reference="?sendmsg@@3PBDB,??_C@_05GALO@ADMIN?$AA@,__imp__MessageBoxA@16" value="3400db0714000300150093131c00db0725006500a1000000006a006800000000506a00ff1500000000c390909090909090909090" symbol="?MsgBox@@YGHXZ"/>
+<code id="5006" value="0c008e130000776777673200" symbol="5006_2"/>
+<code id="5006" value="0c008e130000776777673100" symbol="5006_1"/>
+<code id="1208" value="1400b804000050726f6365737333324e65787400" symbol="Process32Next"/>
+<code id="2002" reference="?question@@3PBDB,__imp__MessageBoxA@16" value="3000d2071000020011008d131d006500a1000000006a0450506a00ff150000000033c983f8060f94c18bc1c390909090" symbol="?testsum@@YGHXZ"/>
+<code id="212" value="0a00d40001000200bc04" symbol="__imp__CloseHandle@4"/>
+<code id="211" value="0a00d30001000200bb04" symbol="__imp__OpenProcess@12"/>
+<code id="205" value="0a00cd0001000200b504" symbol="__imp__GetModuleHandleA@4"/>
+<code id="201" value="0a00c90001000200b104" symbol="__imp__GetCurrentProcess@0"/>
+<code id="2006" reference="__imp__GetCurrentProcessId@0" value="1c00d6070c0001000e00cb00ff250000000090909090909090909090" symbol="?ProcessID@@YGKXZ"/>
+<code id="4096" value="090000100000686900" symbol="test@@3PBDB"/>
+<code id="1212" value="1200bc040000436c6f736548616e646c6500" symbol="CloseHandle"/>
+<code id="102" value="0a006600010001004e04" symbol="__imp__FindWindowA@8"/>
+<code id="203" value="0a00cb0001000200b304" symbol="__imp__GetCurrentProcessId@0"/>
+<code id="208" value="0a00d00001000200b804" symbol="_Process32Next@8"/>
+<code id="1201" value="1800b104000047657443757272656e7450726f6365737300" symbol="GetCurrentProcess"/>
+<code id="202" value="0a00ca0001000200b204" symbol="__imp__TerminateProcess@8"/>
+<code id="210" value="0a00d20001000200ba04" symbol="_Module32Next@8"/>
+<code id="5004" value="0b008c1300006d73676100" symbol="?msg@@3PBDB"/>
+<code id="2008" reference="?moduleName@@3PBDB,_CreateToolhelp32Snapshot@8,_Module32First@8,_Module32Next@8,?moduleName@@3PBDB,_Module32Next@8" value="c000d80720000600210090133600ce004f00d1005e00d200670090139a00d200a10000000081ec2402000085c0535674716a006a08e8000000008bf085f674628d442408c7442408240200005056e80000000085c0744b8d4c24085156e80000000085c0743ca1000000008d54242885d274208a088a5424283aca75168d5424282bd084c974268a48018a5c0201403acb74f08d4424085056e80000000085c075c45e33c05b81c424020000c38b4424205e5b81c424020000c3909090909090" symbol="?FindModule@@YGKXZ"/>
+<code id="2001" value="0600d1070200" symbol="run2001"/>
+<code id="2012" value="0600dc070200" symbol="run2012"/>
+<code id="2005" value="0600d5070200" symbol="run2005"/>
+<code id="2010" value="0600da070200" symbol="run2010"/>
+<code id="2009" value="0600d9070200" symbol="run2009"/>
+<code id="2011" value="0600db070200" symbol="run2011"/>
+<code id="2006" value="0600d6070200" symbol="run2006"/>
+<code id="-1" value="0a00ffff020000100000" symbol="run-1_4096"/>
+<code id="2013" value="0600dd070200" symbol="run2013"/>
+<code id="2002" value="0600d2070200" symbol="run2002"/>
+<code id="2004" value="0a00d407020002000000" symbol="run2004_2"/>
+<code id="2004" value="0a00d407020004000000" symbol="run2004_4"/>
+<code id="2004" value="0a00d407020001000000" symbol="run2004_1"/>
+<code id="2004" value="0a00d407020005000000" symbol="run2004_5"/>
+<code id="2004" value="0a00d407020003000000" symbol="run2004_3"/>
+<code id="2004" value="0a00d407020007000000" symbol="run2004_7"/>
+<code id="2004" value="0a00d407020000000000" symbol="run2004_0"/>
+<code id="2004" value="0a00d407020006000000" symbol="run2004_6"/>
+<code id="2007" value="0600d7070200" symbol="run2007"/>
+<code id="2008" value="0600d8070200" symbol="run2008"/>
+<code id="2003" value="0600d3070200" symbol="run2003"/>
+</Compile></NetDLL>
+</application>

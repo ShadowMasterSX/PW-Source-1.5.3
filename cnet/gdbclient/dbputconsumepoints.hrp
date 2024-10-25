@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBPUTCONSUMEPOINTS_HPP
+#define __GNET_DBPUTCONSUMEPOINTS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbputconsumepointsarg"
+
+
+namespace GNET
+{
+
+class DBPutConsumePoints : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbputconsumepoints"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBPutConsumePointsArg *arg = (DBPutConsumePointsArg *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBPutConsumePointsArg *arg = (DBPutConsumePointsArg *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

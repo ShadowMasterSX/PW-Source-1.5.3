@@ -1,0 +1,79 @@
+#ifndef __GAMETALKDEFS_H__
+#define __GAMETALKDEFS_H__
+namespace GNET {
+	enum {
+		GT_UPDATE_NAME = 1,
+		GT_UPDATE_GENDER = 2,
+		GT_UPDATE_RACE = 4,
+		GT_UPDATE_LEVEL = 16,
+		GT_UPDATE_EXT = 32768
+	};
+
+	enum {  
+		GT_ROLE_NORMAL = 0,
+		GT_ROLE_READYDEL = 1,
+		GT_ROLE_FBD_LOGIN = 2,
+		GT_ROLE_NON_EXIST = 3
+	};
+
+	enum {  
+		GT_FORBID_PREDELETE = 1,
+		GT_FORBID_LOGIN = 2,
+		GT_FORBID_MUTE = 3
+	};      
+
+	enum {
+		GT_FRIEND_ADD = 0,
+		GT_FRIEND_DEL = 1,
+		GT_FRIEND_MOVE = 2
+	};
+
+	enum {
+		GT_GROUP_ADD = 0,
+		GT_GROUP_DEL = 1,
+		GT_GROUP_MOD = 2
+	};
+
+	enum {
+		GT_GROUP_NORMAL = 0,
+		GT_GROUP_SPOUSE = 1
+	};
+
+	enum {
+		GT_SPOUSE_GROUP_ID = 1
+	};
+
+	enum {
+		GT_FACTION_UPDATE_NAME = 1,
+		GT_FACTION_UPDATE_ANNOUNCE = 2,
+		GT_FACTION_UPDATE_EXT = 32768
+	};
+
+	enum {
+		GT_FACTION_MEMBER_ADD = 0,
+		GT_FACTION_MEMBER_DEL = 1,
+		GT_FACTION_MEMBER_MOVE = 2
+	};
+
+	enum {
+		GT_FACTION_TYPE = 0
+	};
+
+	enum {
+		GT_CONTENT_MAX_LENGTH = 256
+	};
+
+	enum {
+		GT_TEAM_ADD = 0,
+		GT_TEAM_DEL = 1,
+		GT_TEAM_CAP = 2
+	};
+	
+	enum {
+		GT_LEAVE_VOICE_CHANNEL = 0,
+		GT_ENTER_VOICE_CHANNEL = 1,
+	};
+}
+
+
+#endif

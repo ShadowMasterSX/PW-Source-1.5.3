@@ -1,0 +1,124 @@
+#ifndef __GNET_DBAUCTIONOPENARG_RPCDATA
+#define __GNET_DBAUCTIONOPENARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailsyncdata"
+
+namespace GNET
+{
+	class DBAuctionOpenArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		unsigned int auctionid;
+		unsigned short category;
+		int item_id;
+		int item_pos;
+		int item_num;
+		unsigned int baseprice;
+		unsigned int binprice;
+		int elapse_time;
+		int end_time;
+		unsigned int deposit;
+		GMailSyncData syncdata;
+
+	public:
+		DBAuctionOpenArg (int l_roleid = 0,unsigned int l_auctionid = 0,unsigned short l_category = 0
+			,int l_item_id = -1,int l_item_pos = -1,int l_item_num = 0
+			,unsigned int l_baseprice = 0,unsigned int l_binprice = 0,int l_elapse_time = 0
+			,int l_end_time = 0,unsigned int l_deposit = 0,const GMailSyncData& l_syncdata = GMailSyncData())
+			: roleid(l_roleid),auctionid(l_auctionid),category(l_category)
+			,item_id(l_item_id),item_pos(l_item_pos),item_num(l_item_num)
+			,baseprice(l_baseprice),binprice(l_binprice),elapse_time(l_elapse_time)
+			,end_time(l_end_time),deposit(l_deposit),syncdata(l_syncdata)
+		{
+		}
+
+		DBAuctionOpenArg(const DBAuctionOpenArg &rhs)
+			: roleid(rhs.roleid),auctionid(rhs.auctionid),category(rhs.category),
+			item_id(rhs.item_id),item_pos(rhs.item_pos),item_num(rhs.item_num),
+			baseprice(rhs.baseprice),binprice(rhs.binprice),elapse_time(rhs.elapse_time),
+			end_time(rhs.end_time),deposit(rhs.deposit),syncdata(rhs.syncdata) { }
+
+		Rpc::Data *Clone() const { return new DBAuctionOpenArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBAuctionOpenArg *r = dynamic_cast<const DBAuctionOpenArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				auctionid = r->auctionid;
+				category = r->category;
+				item_id = r->item_id;
+				item_pos = r->item_pos;
+				item_num = r->item_num;
+				baseprice = r->baseprice;
+				binprice = r->binprice;
+				elapse_time = r->elapse_time;
+				end_time = r->end_time;
+				deposit = r->deposit;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		DBAuctionOpenArg& operator = (const DBAuctionOpenArg &rhs)
+		{
+			const DBAuctionOpenArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				auctionid = r->auctionid;
+				category = r->category;
+				item_id = r->item_id;
+				item_pos = r->item_pos;
+				item_num = r->item_num;
+				baseprice = r->baseprice;
+				binprice = r->binprice;
+				elapse_time = r->elapse_time;
+				end_time = r->end_time;
+				deposit = r->deposit;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << auctionid;
+			os << category;
+			os << item_id;
+			os << item_pos;
+			os << item_num;
+			os << baseprice;
+			os << binprice;
+			os << elapse_time;
+			os << end_time;
+			os << deposit;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> auctionid;
+			os >> category;
+			os >> item_id;
+			os >> item_pos;
+			os >> item_num;
+			os >> baseprice;
+			os >> binprice;
+			os >> elapse_time;
+			os >> end_time;
+			os >> deposit;
+			os >> syncdata;
+			return os;
+		}
+
+	};
+};
+#endif

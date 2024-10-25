@@ -1,0 +1,11 @@
+java -jar gen.jar ../skill/skill.og > gen.log 2>&1
+echo $?
+ERRCOUNT=`grep Error: gen.log |wc -l`
+if [ $ERRCOUNT != 0 ]; then
+	echo ==== Error Skill Count: $ERRCOUNT =====
+	grep Error: gen.log -B 1 -A 15
+	exit 1
+fi
+/usr/bin/time indent -i4 -nut -l150 -hnl skills/*.h
+rm skills/*.h~
+rsync -I -c skills/* ../skills

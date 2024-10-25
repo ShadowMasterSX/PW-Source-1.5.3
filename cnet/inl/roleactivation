@@ -1,0 +1,35 @@
+	public:
+		int64_t roleid;
+		char operation;
+		enum { PROTOCOL_TYPE = PROTOCOL_ROLEACTIVATION };
+	public:
+		RoleActivation() { type = PROTOCOL_ROLEACTIVATION; }
+		RoleActivation(void*) : Protocol(PROTOCOL_ROLEACTIVATION) { }
+		RoleActivation (int64_t l_roleid,char l_operation = 0)
+			 : roleid(l_roleid),operation(l_operation)
+		{
+			type = PROTOCOL_ROLEACTIVATION;
+		}
+
+		RoleActivation(const RoleActivation &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),operation(rhs.operation) { }
+
+		GNET::Protocol *Clone() const { return new RoleActivation(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << operation;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> operation;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

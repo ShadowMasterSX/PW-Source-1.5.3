@@ -1,0 +1,60 @@
+#ifndef __GNET_DBPUTFORCEARG_RPCDATA
+#define __GNET_DBPUTFORCEARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gforceglobaldatalist"
+
+namespace GNET
+{
+	class DBPutForceArg : public GNET::Rpc::Data
+	{
+	public:
+		GForceGlobalDataList list;
+
+	public:
+		DBPutForceArg (const GForceGlobalDataList& l_list = GForceGlobalDataList())
+			: list(l_list)
+		{
+		}
+
+		DBPutForceArg(const DBPutForceArg &rhs)
+			: list(rhs.list) { }
+
+		Rpc::Data *Clone() const { return new DBPutForceArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPutForceArg *r = dynamic_cast<const DBPutForceArg *>(&rhs);
+			if (r && r != this)
+			{
+				list = r->list;
+			}
+			return *this;
+		}
+
+		DBPutForceArg& operator = (const DBPutForceArg &rhs)
+		{
+			const DBPutForceArg *r = &rhs;
+			if (r && r != this)
+			{
+				list = r->list;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << list;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> list;
+			return os;
+		}
+
+	};
+};
+#endif

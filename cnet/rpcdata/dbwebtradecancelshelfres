@@ -1,0 +1,59 @@
+#ifndef __GNET_DBWEBTRADECANCELSHELFRES_RPCDATA
+#define __GNET_DBWEBTRADECANCELSHELFRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBWebTradeCancelShelfRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+
+	public:
+		DBWebTradeCancelShelfRes (int l_retcode = 0)
+			: retcode(l_retcode)
+		{
+		}
+
+		DBWebTradeCancelShelfRes(const DBWebTradeCancelShelfRes &rhs)
+			: retcode(rhs.retcode) { }
+
+		Rpc::Data *Clone() const { return new DBWebTradeCancelShelfRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBWebTradeCancelShelfRes *r = dynamic_cast<const DBWebTradeCancelShelfRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		DBWebTradeCancelShelfRes& operator = (const DBWebTradeCancelShelfRes &rhs)
+		{
+			const DBWebTradeCancelShelfRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			return os;
+		}
+
+	};
+};
+#endif

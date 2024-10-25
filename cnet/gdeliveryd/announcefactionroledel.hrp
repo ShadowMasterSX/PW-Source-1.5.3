@@ -1,0 +1,46 @@
+
+#ifndef __GNET_ANNOUNCEFACTIONROLEDEL_HPP
+#define __GNET_ANNOUNCEFACTIONROLEDEL_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "announcefactionroledelarg"
+#include "announcefactionroledelres"
+
+namespace GNET
+{
+
+class AnnounceFactionRoleDel : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "announcefactionroledel"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// AnnounceFactionRoleDelArg *arg = (AnnounceFactionRoleDelArg *)argument;
+		// AnnounceFactionRoleDelRes *res = (AnnounceFactionRoleDelRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		AnnounceFactionRoleDelArg *arg = (AnnounceFactionRoleDelArg *)argument;
+		AnnounceFactionRoleDelRes *res = (AnnounceFactionRoleDelRes *)result;
+		if (res->retcode != ERR_SUCCESS)
+			Log::log(LOG_ERR,"dbdeleterole::delete role %d in GameDBD successfully. But Announce FactionServer failed.",arg->roleid);
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		// TODO Client Only
+		AnnounceFactionRoleDelArg *arg = (AnnounceFactionRoleDelArg *)argument;
+		Log::log(LOG_ERR,"dbdeleterole::delete role %d in GameDBD successfully. But Announce FactionServer failed.",arg->roleid);
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,187 @@
+#ifndef __GNET_USER_RPCDATA
+#define __GNET_USER_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "stocklog"
+#include "gpair"
+#include "groleforbid"
+
+namespace GNET
+{
+	class User : public GNET::Rpc::Data
+	{
+	public:
+		unsigned int logicuid;
+		unsigned int rolelist;
+		int cash;
+		int money;
+		unsigned int cash_add;
+		unsigned int cash_buy;
+		unsigned int cash_sell;
+		unsigned int cash_used;
+		int add_serial;
+		int use_serial;
+		std::vector<StockLog> exg_log;
+		Octets addiction;
+		Octets cash_password;
+		std::vector<GPair> autolock;
+		char status;
+		GRoleForbidVector forbid;
+		Octets reference;
+		Octets consume_reward;
+		Octets taskcounter;
+		Octets cash_sysauction;
+		Octets login_record;
+		Octets mall_consumption;
+		short reserved32;
+
+	public:
+		User (unsigned int l_logicuid = 0,unsigned int l_rolelist = 0,int l_cash = 0
+			,int l_money = 0,unsigned int l_cash_add = 0,unsigned int l_cash_buy = 0
+			,unsigned int l_cash_sell = 0,unsigned int l_cash_used = 0,int l_add_serial = 0
+			,int l_use_serial = 0,std::vector<StockLog> l_exg_log = std::vector<StockLog>(),std::vector<GPair> l_autolock = std::vector<GPair>()
+			,char l_status = 0,short l_reserved32 = 0)
+			: logicuid(l_logicuid),rolelist(l_rolelist),cash(l_cash)
+			,money(l_money),cash_add(l_cash_add),cash_buy(l_cash_buy)
+			,cash_sell(l_cash_sell),cash_used(l_cash_used),add_serial(l_add_serial)
+			,use_serial(l_use_serial),exg_log(l_exg_log),autolock(l_autolock)
+			,status(l_status),reserved32(l_reserved32)
+		{
+		}
+
+		User(const User &rhs)
+			: logicuid(rhs.logicuid),rolelist(rhs.rolelist),cash(rhs.cash),
+			money(rhs.money),cash_add(rhs.cash_add),cash_buy(rhs.cash_buy),
+			cash_sell(rhs.cash_sell),cash_used(rhs.cash_used),add_serial(rhs.add_serial),
+			use_serial(rhs.use_serial),exg_log(rhs.exg_log),addiction(rhs.addiction),
+			cash_password(rhs.cash_password),autolock(rhs.autolock),status(rhs.status),
+			forbid(rhs.forbid),reference(rhs.reference),consume_reward(rhs.consume_reward),
+			taskcounter(rhs.taskcounter),cash_sysauction(rhs.cash_sysauction),login_record(rhs.login_record),
+			mall_consumption(rhs.mall_consumption),reserved32(rhs.reserved32) { }
+
+		Rpc::Data *Clone() const { return new User(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const User *r = dynamic_cast<const User *>(&rhs);
+			if (r && r != this)
+			{
+				logicuid = r->logicuid;
+				rolelist = r->rolelist;
+				cash = r->cash;
+				money = r->money;
+				cash_add = r->cash_add;
+				cash_buy = r->cash_buy;
+				cash_sell = r->cash_sell;
+				cash_used = r->cash_used;
+				add_serial = r->add_serial;
+				use_serial = r->use_serial;
+				exg_log = r->exg_log;
+				addiction = r->addiction;
+				cash_password = r->cash_password;
+				autolock = r->autolock;
+				status = r->status;
+				forbid = r->forbid;
+				reference = r->reference;
+				consume_reward = r->consume_reward;
+				taskcounter = r->taskcounter;
+				cash_sysauction = r->cash_sysauction;
+				login_record = r->login_record;
+				mall_consumption = r->mall_consumption;
+				reserved32 = r->reserved32;
+			}
+			return *this;
+		}
+
+		User& operator = (const User &rhs)
+		{
+			const User *r = &rhs;
+			if (r && r != this)
+			{
+				logicuid = r->logicuid;
+				rolelist = r->rolelist;
+				cash = r->cash;
+				money = r->money;
+				cash_add = r->cash_add;
+				cash_buy = r->cash_buy;
+				cash_sell = r->cash_sell;
+				cash_used = r->cash_used;
+				add_serial = r->add_serial;
+				use_serial = r->use_serial;
+				exg_log = r->exg_log;
+				addiction = r->addiction;
+				cash_password = r->cash_password;
+				autolock = r->autolock;
+				status = r->status;
+				forbid = r->forbid;
+				reference = r->reference;
+				consume_reward = r->consume_reward;
+				taskcounter = r->taskcounter;
+				cash_sysauction = r->cash_sysauction;
+				login_record = r->login_record;
+				mall_consumption = r->mall_consumption;
+				reserved32 = r->reserved32;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << logicuid;
+			os << rolelist;
+			os << cash;
+			os << money;
+			os << cash_add;
+			os << cash_buy;
+			os << cash_sell;
+			os << cash_used;
+			os << add_serial;
+			os << use_serial;
+			os << exg_log;
+			os << addiction;
+			os << cash_password;
+			os << autolock;
+			os << status;
+			os << forbid;
+			os << reference;
+			os << consume_reward;
+			os << taskcounter;
+			os << cash_sysauction;
+			os << login_record;
+			os << mall_consumption;
+			os << reserved32;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> logicuid;
+			os >> rolelist;
+			os >> cash;
+			os >> money;
+			os >> cash_add;
+			os >> cash_buy;
+			os >> cash_sell;
+			os >> cash_used;
+			os >> add_serial;
+			os >> use_serial;
+			os >> exg_log;
+			os >> addiction;
+			os >> cash_password;
+			os >> autolock;
+			os >> status;
+			os >> forbid;
+			os >> reference;
+			os >> consume_reward;
+			os >> taskcounter;
+			os >> cash_sysauction;
+			os >> login_record;
+			os >> mall_consumption;
+			os >> reserved32;
+			return os;
+		}
+
+	};
+};
+#endif

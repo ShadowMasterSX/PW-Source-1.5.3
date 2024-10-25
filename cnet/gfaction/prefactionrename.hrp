@@ -1,0 +1,58 @@
+
+#ifndef __GNET_PREFACTIONRENAME_HPP
+#define __GNET_PREFACTIONRENAME_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "operwrapper.h"
+
+#include "prefactionrenamearg"
+#include "prefactionrenameres"
+#include "gfs_io.h"
+#include "log.h"
+
+namespace GNET
+{
+
+class PreFactionRename : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "prefactionrename"
+#undef	RPC_BASECLASS
+	OperWrapper::wref_t oper;
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// PreFactionRenameArg *arg = (PreFactionRenameArg *)argument;
+		// PreFactionRenameRes *res = (PreFactionRenameRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		PreFactionRenameArg *arg = (PreFactionRenameArg *)argument;
+		PreFactionRenameRes *res = (PreFactionRenameRes *)result;
+		OperWrapper::href_t ref(oper);
+		if ( ref )
+		{
+			ref->SetAddInfo( FactionOPAddInfo(res->retcode,arg->fid) );
+			ref->SetResult(NULL);
+			ref->Execute();
+		}
+		else
+		{
+			Log::log(LOG_ERR,"faction:%d rename prefactionrename recall failed.\n",arg->fid);
+			uns_send_postfactionrename(ERR_FC_OUTOFSERVICE,
+					arg->zid,arg->fid,arg->newname);
+		}
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,62 @@
+	public:
+		int retcode;
+		int userid;
+		int itemid;
+		int itemcnt;
+		Octets itemname;
+		int itemexpire;
+		int itemprice;
+		int cashremain;
+		Octets chargeno;
+		enum { PROTOCOL_TYPE = PROTOCOL_BILLINGCONFIRM_RE };
+	public:
+		BillingConfirm_Re() { type = PROTOCOL_BILLINGCONFIRM_RE; }
+		BillingConfirm_Re(void*) : Protocol(PROTOCOL_BILLINGCONFIRM_RE) { }
+		BillingConfirm_Re (int l_retcode,int l_userid,int l_itemid,
+			int l_itemcnt,Octets l_itemname,int l_itemexpire,
+			int l_itemprice,int l_cashremain,Octets l_chargeno)
+			 : retcode(l_retcode),userid(l_userid),itemid(l_itemid)
+			,itemcnt(l_itemcnt),itemname(l_itemname),itemexpire(l_itemexpire)
+			,itemprice(l_itemprice),cashremain(l_cashremain),chargeno(l_chargeno)
+		{
+			type = PROTOCOL_BILLINGCONFIRM_RE;
+		}
+
+		BillingConfirm_Re(const BillingConfirm_Re &rhs)
+			: Protocol(rhs),retcode(rhs.retcode),userid(rhs.userid),itemid(rhs.itemid)
+			,itemcnt(rhs.itemcnt),itemname(rhs.itemname),itemexpire(rhs.itemexpire)
+			,itemprice(rhs.itemprice),cashremain(rhs.cashremain),chargeno(rhs.chargeno) { }
+
+		GNET::Protocol *Clone() const { return new BillingConfirm_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << userid;
+			os << itemid;
+			os << itemcnt;
+			os << itemname;
+			os << itemexpire;
+			os << itemprice;
+			os << cashremain;
+			os << chargeno;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> userid;
+			os >> itemid;
+			os >> itemcnt;
+			os >> itemname;
+			os >> itemexpire;
+			os >> itemprice;
+			os >> cashremain;
+			os >> chargeno;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 256; }

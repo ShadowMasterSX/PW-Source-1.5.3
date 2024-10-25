@@ -1,0 +1,63 @@
+
+#ifndef __GNET_DELROLE_HPP
+#define __GNET_DELROLE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#ifdef USE_BDB
+#include "dbbuffer.h"
+#endif
+#include "roleid"
+
+#include "gdeliveryserver.hpp"
+#include "deleterole_re.hpp"
+#include "putuser.hrp"
+#include "mapuser.h"
+#include "gametalkmanager.h"
+
+namespace GNET
+{
+
+class DelRole : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "delrole"
+#undef	RPC_BASECLASS
+	unsigned int save_link_sid;
+	unsigned int save_localsid;
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		RoleId *arg = (RoleId *)argument;
+		RpcRetcode *res = (RpcRetcode *)result;
+		
+		GDeliveryServer* dsm=GDeliveryServer::GetInstance();
+
+		if(res->retcode == ERR_SUCCESS)
+		{
+			int userid = UidConverter::Instance().Roleid2Uid(arg->id);
+			Thread::RWLock::WRScoped l(UserContainer::GetInstance().GetLocker());
+			UserInfo* userinfo=UserContainer::GetInstance().FindUser(userid);
+			if(userinfo)
+				userinfo->role_status[arg->id % MAX_ROLE_COUNT] = _ROLE_STATUS_READYDEL;		
+			GameTalkManager::GetInstance()->NotifyPreRemoveRole(arg->id);
+		}
+		else
+		{
+			Log::log(LOG_ERR,"gdelivery:delrole: failed.retcode=%d,roleid=%d\n",res->retcode,arg->id);
+		}
+		dsm->Send(save_link_sid,DeleteRole_Re(res->retcode,arg->id,save_localsid));
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,85 @@
+#ifndef __GNET_DBPSHOPPLAYERBUYRES_RPCDATA
+#define __GNET_DBPSHOPPLAYERBUYRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailsyncdata"
+#include "groleinventory"
+#include "pshopitem"
+
+namespace GNET
+{
+	class DBPShopPlayerBuyRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		GMailSyncData syncdata;
+		unsigned int money;
+		GRoleInventoryVector yinpiao;
+		PShopItem itemchange;
+
+	public:
+		DBPShopPlayerBuyRes (int l_retcode = 0,const GMailSyncData& l_syncdata = GMailSyncData(),unsigned int l_money = 0
+			,const GRoleInventoryVector& l_yinpiao = GRoleInventoryVector(),const PShopItem& l_itemchange = PShopItem())
+			: retcode(l_retcode),syncdata(l_syncdata),money(l_money)
+			,yinpiao(l_yinpiao),itemchange(l_itemchange)
+		{
+		}
+
+		DBPShopPlayerBuyRes(const DBPShopPlayerBuyRes &rhs)
+			: retcode(rhs.retcode),syncdata(rhs.syncdata),money(rhs.money),
+			yinpiao(rhs.yinpiao),itemchange(rhs.itemchange) { }
+
+		Rpc::Data *Clone() const { return new DBPShopPlayerBuyRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPShopPlayerBuyRes *r = dynamic_cast<const DBPShopPlayerBuyRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				syncdata = r->syncdata;
+				money = r->money;
+				yinpiao = r->yinpiao;
+				itemchange = r->itemchange;
+			}
+			return *this;
+		}
+
+		DBPShopPlayerBuyRes& operator = (const DBPShopPlayerBuyRes &rhs)
+		{
+			const DBPShopPlayerBuyRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				syncdata = r->syncdata;
+				money = r->money;
+				yinpiao = r->yinpiao;
+				itemchange = r->itemchange;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << syncdata;
+			os << money;
+			os << yinpiao;
+			os << itemchange;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> syncdata;
+			os >> money;
+			os >> yinpiao;
+			os >> itemchange;
+			return os;
+		}
+
+	};
+};
+#endif

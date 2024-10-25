@@ -1,0 +1,230 @@
+#ifndef __GNET_DBPSHOPPLAYERBUY_HPP
+#define __GNET_DBPSHOPPLAYERBUY_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbpshopplayerbuyarg"
+#include "dbpshopplayerbuyres"
+#include "utilfunction.h"
+
+namespace GNET
+{
+
+class DBPShopPlayerBuy : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbpshopplayerbuy"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		/*
+		 * 玩家从店铺买物品:
+		 * 买方: 即玩家,包裹获得物品,花费金钱
+		 * 卖方: 即店铺,店铺获得金钱或银票,失去物品
+		 *
+		 * 买方扣钱规则:
+		 * 1) 只扣除背包金钱,不会消耗任何银票
+		 * 
+		 * 卖方累加钱规则
+		 * 1) 获得金钱则计入店铺金钱;
+		 * 2) 如果店铺金钱满,则将店铺当前金钱+本次获得金钱统一转换为银票
+		 * 3) 获得银票则计入店铺银票,银票满则交易失败;
+		 */
+		DBPShopPlayerBuyArg *arg = (DBPShopPlayerBuyArg *)argument;
+		DBPShopPlayerBuyRes *res = (DBPShopPlayerBuyRes *)result;
+		LOG_TRACE("DBPShopPlayerBuy, roleid=%d", arg->roleid);
+		unsigned int orignal_money = arg->syncdata.inventory.money;
+		unsigned int item_id = arg->item_id;
+		unsigned int item_pos = arg->item_pos;
+		int item_count = arg->item_count;
+		try
+		{
+			StorageEnv::Storage * pinventory = StorageEnv::GetStorage("inventory");
+			StorageEnv::Storage * pequipment = StorageEnv::GetStorage("equipment");
+			StorageEnv::Storage * pstorehouse = StorageEnv::GetStorage("storehouse");
+			StorageEnv::Storage * plog = arg->syncdata.logs.size()?StorageEnv::GetStorage("shoplog"):NULL;
+			StorageEnv::Storage * pshop = StorageEnv::GetStorage("playershop");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				/**** 第一阶段:获取数据  ***/
+				//获取卖方店铺
+				Marshal::OctetsStream key_shop;
+				key_shop << arg->master;
+				PShopDetail shop;
+				Marshal::OctetsStream(pshop->find(key_shop, txn)) >> shop;
+				if(!PShopFunc::OptionPolicy(shop, PShopFunc::PSHOP_OP_TRADE))
+				{
+					Log::log(LOG_ERR,"DBPShopPlayerBuy, playerbuy opt invalid masterid=%d roleid=%d )",arg->master,arg->roleid);
+					throw DbException(DB_VERIFY_BAD);
+				}
+
+				//获取买方包裹
+				Marshal::OctetsStream key;
+				key << arg->roleid;
+				GRolePocket pocket;
+				Marshal::OctetsStream(pinventory->find(key, txn)) >> pocket;
+				if(arg->syncdata.inventory.timestamp <= pocket.timestamp)
+				{
+					Log::log(LOG_ERR,"DBPShopPlayerBuy, timestamp mismatch. roleid=%d (%d<%d)",
+						arg->roleid, arg->syncdata.inventory.timestamp, pocket.timestamp);
+					throw DbException(DB_VERIFY_BAD);
+				}
+				int money_delta = arg->syncdata.inventory.money - pocket.money;
+
+				unsigned int cur_yp_count = 0;
+				for(size_t i=0; i<shop.yinpiao.size(); ++i)
+					cur_yp_count += shop.yinpiao[i].count;
+
+				/**** 第二阶段:交易检查  ****/
+				//检查卖方店铺
+				//1)出售栏是否有该物品
+				PShopItemVector &slist = shop.slist;
+				ShopInvMan shopinvman(slist, PSHOP_SLIST_CAP);
+				const PShopItem * pItem = shopinvman.GetItem(item_pos);
+				if(!pItem || pItem->item.id != item_id || pItem->item.count < item_count)
+				{
+					Log::log(LOG_ERR,"DBPShopPlayerBuy, buy item invalid item%d count%d roleid=%d )",item_id, item_count, arg->roleid);
+					throw DbException(DB_VERIFY_BAD);
+				}
+				//2)money_cost和yp_cost是否正确
+				uint64_t item_value = (uint64_t)pItem->price * (uint64_t)item_count;
+				uint64_t total_cost = (uint64_t)arg->money_cost + (uint64_t)arg->yp_cost * (uint64_t)WANMEI_YINPIAO_PRICE;
+				if(item_value != total_cost)
+				{
+					Log::log(LOG_ERR,"DBPShopPlayerBuy, buy cost invalid val%lld cost%lld roleid=%d )",item_value, total_cost, arg->roleid);
+					throw DbException(DB_VERIFY_BAD);
+				}
+
+				//3)仓库是否能容纳金钱
+				uint64_t money_gain = total_cost;
+				uint32_t yp_gain = 0;
+				uint64_t total_money = (uint64_t)shop.money + (uint64_t)money_gain;
+				if(total_money >= WANMEI_YINPIAO_PRICE ||			//获得金钱大于银票价格
+				   money_gain > (PSHOP_MONEY_CAP - shop.money))		//店铺金钱满
+				{
+					//金钱发生兑换
+					//店铺已有金钱+本次获得金钱一起兑换
+					unsigned int yp=0;
+					unsigned int remain=0;
+					PShopFunc::MoneyToYinPiao(total_money, yp, remain);
+					money_gain = remain;
+					yp_gain = yp;
+
+					//注意店铺金钱已兑换,这里置为0
+					shop.money = 0;
+				}
+				if((PSHOP_YINPIAO_CAP - cur_yp_count) < yp_gain)
+				{
+					Log::log(LOG_ERR,"DBPShopPlayerBuy, shop yinpiao too much py%d gain%d roleid=%d )",cur_yp_count, yp_gain, arg->roleid);
+					throw DbException(DB_VERIFY_BAD);
+				}
+
+				//检查买方包裹
+				//1)背包钱和银票是否够
+				//2)包裹是否有空位
+				InvMan invman(arg->syncdata.inventory.items, arg->syncdata.inventory.capacity);
+				if(!invman.HasEmptySlot())
+				{
+					Log::log(LOG_ERR,"DBPShopPlayerBuy,inventory full roleid=%d )",arg->roleid);
+					throw DbException(DB_VERIFY_BAD);//背包满
+				}
+				if(!invman.IsItemExist(WANMEI_YINPIAO_ID, arg->yp_cost))
+				{
+					Log::log(LOG_ERR,"DBPShopPlayerBuy, not enough yinpiao%d  roleid=%d )",arg->yp_cost, arg->roleid);
+					throw DbException(DB_VERIFY_BAD);//银票不足
+				}
+				if(arg->syncdata.inventory.money < arg->money_cost)
+				{
+					Log::log(LOG_ERR,"DBPShopPlayerBuy, not enough money%lld  roleid=%d )",arg->money_cost, arg->roleid);
+					throw DbException(DB_VERIFY_BAD);//金钱不足
+				}
+
+				Log::formatlog("dbpshopplayerbuy", "timestamp=%u:roleid=%d:shopowner=%d:item=%d:pos=%d:count=%d:money_cost=%lld:yp_cost=%d",
+					arg->syncdata.inventory.timestamp,arg->roleid,arg->master,arg->item_id,arg->item_pos,arg->item_count,arg->money_cost,arg->yp_cost);
+
+
+				/**** 第三阶段:交易执行  ****/
+				//从这里开始理论上不会抛出异常了
+				//更新卖方数据
+				//1)删除待售栏物品
+				PShopItem itemdel;
+				shopinvman.Remove(item_id, item_pos, item_count, itemdel);
+				//2)仓库获得金钱或银票
+				shop.money += money_gain;
+				InvMan yp_man(shop.yinpiao, PSHOP_YP_LIST_CAP);
+				while(yp_gain > 0)
+				{
+					GRoleInventory yp;
+					yp.id = WANMEI_YINPIAO_ID;
+					yp.max_count = WANMEI_YINPIAO_PILELIMIT;
+					if(yp_gain > WANMEI_YINPIAO_PILELIMIT)
+						yp.count = WANMEI_YINPIAO_PILELIMIT;
+					else
+						yp.count = yp_gain;
+
+					yp_gain -= yp.count;
+					GRoleInventoryVector list;
+					yp_man.Push(yp, list);
+				};
+
+				//更新买方数据
+				//1)物品进入背包
+				GRoleInventory itemgain = itemdel.item;
+				itemgain.count = item_count;
+				invman.PushInEmpty(itemgain);
+				res->syncdata.inventory.items.push_back(itemgain);
+				//2)扣除背包金钱
+				arg->syncdata.inventory.money -= arg->money_cost;
+				invman.Remove(WANMEI_YINPIAO_ID, arg->yp_cost, res->syncdata.inventory.items);
+
+
+				//更新DB
+				pshop->insert(key_shop, Marshal::OctetsStream()<<shop,txn);
+				pinventory->insert(key, Marshal::OctetsStream()<<arg->syncdata.inventory,txn);
+				pequipment->insert(key, Marshal::OctetsStream()<<arg->syncdata.equipment,txn);
+				WriteRestSyncData(pstorehouse, plog, arg->roleid, arg->syncdata, money_delta, txn);
+
+				res->money = shop.money;
+				res->yinpiao = shop.yinpiao;
+				res->itemchange = itemdel;
+				res->syncdata.inventory.money = arg->syncdata.inventory.money;
+				res->syncdata.data_mask = arg->syncdata.data_mask;
+				res->retcode = ERR_SUCCESS;
+			}
+			catch(DbException e) { throw; }
+			catch(...)
+			{
+				DbException ee(DB_OLD_VERSION);
+				txn.abort(ee);
+				throw ee;
+			}
+		}
+		catch(DbException e)
+		{
+			Log::log(LOG_ERR, "DBPShopPlayerBuy, roleid=%d, what=%s\n", arg->roleid, e.what());
+			res->retcode = ERR_VERIFYFAILED;
+			res->syncdata.inventory.money = orignal_money;
+			res->syncdata.inventory.items.clear();
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBPShopPlayerBuyArg *arg = (DBPShopPlayerBuyArg *)argument;
+		// DBPShopPlayerBuyRes *res = (DBPShopPlayerBuyRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

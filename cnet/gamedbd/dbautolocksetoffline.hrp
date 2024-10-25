@@ -1,0 +1,97 @@
+
+#ifndef __GNET_DBAUTOLOCKSETOFFLINE_HPP
+#define __GNET_DBAUTOLOCKSETOFFLINE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbautolocksetofflinearg"
+#include "dbautolocksetofflineres"
+
+namespace GNET
+{
+
+class DBAutolockSetOffline : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbautolocksetoffline"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBAutolockSetOfflineArg *arg = (DBAutolockSetOfflineArg *)argument;
+		DBAutolockSetOfflineRes *res = (DBAutolockSetOfflineRes *)result;
+		Marshal::OctetsStream key, value;
+		LOG_TRACE( "DBAutolockSetOffline, userid=%d.\n", arg->userid);
+
+		try
+		{
+			StorageEnv::Storage * puser = StorageEnv::GetStorage("user");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				key << arg->userid;
+				User user;
+				if( !puser->find( key, value, txn ) )
+				{
+					res->retcode = ERR_DATANOTFIND;
+					return;
+				}
+				value >> user;
+
+				for (size_t i = 0; i < arg->autolockdiff.size(); i++)
+				{
+					GPair& aldiff = arg->autolockdiff[i];
+					bool found = false;
+					for (size_t j = 0; j < user.autolock.size(); j++)
+					{
+						GPair& al = user.autolock[j];
+						if (al.key == aldiff.key)
+						{
+							al.value = aldiff.value;
+							found = true;
+							break;
+						}
+					}
+					if (!found)
+					{
+						user.autolock.push_back(aldiff);
+					}
+				}
+				puser->insert( key, Marshal::OctetsStream() << user, txn );
+
+				res->autolock.swap(user.autolock);
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBAutolockSetOffline, userid=%d, what=%s\n", arg->userid, e.what() );
+			res->retcode = -1;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBAutolockSetOfflineArg *arg = (DBAutolockSetOfflineArg *)argument;
+		// DBAutolockSetOfflineRes *res = (DBAutolockSetOfflineRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

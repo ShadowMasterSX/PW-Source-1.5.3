@@ -1,0 +1,80 @@
+
+#ifndef __GNET_GETROLEDATA_HPP
+#define __GNET_GETROLEDATA_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "roleid"
+#include "roledatares"
+
+namespace GNET
+{
+
+class GetRoleData : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getroledata"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		RoleId *arg = (RoleId *)argument;
+		RoleDataRes *res = (RoleDataRes *)result;
+		LOG_TRACE( "GetRoleData, roleid=%d,sid=%d\n", arg->id, sid);
+
+		try
+		{
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::Storage * pstatus = StorageEnv::GetStorage("status");
+			StorageEnv::Storage * pinventory = StorageEnv::GetStorage("inventory");
+			StorageEnv::Storage * pstorehouse = StorageEnv::GetStorage("storehouse");
+			StorageEnv::Storage * ptask = StorageEnv::GetStorage("task");
+			StorageEnv::Storage * pequipment = StorageEnv::GetStorage("equipment");
+			StorageEnv::CommonTransaction txn;
+			Marshal::OctetsStream key;
+			try
+			{
+				key << *arg;
+				Marshal::OctetsStream(pbase->find(key,txn)) >> res->value.base;
+				Marshal::OctetsStream(pstatus->find(key,txn)) >> res->value.status;
+				Marshal::OctetsStream(pinventory->find(key,txn)) >> res->value.pocket;
+				Marshal::OctetsStream(pstorehouse->find(key,txn)) >> res->value.storehouse;
+				Marshal::OctetsStream(pequipment->find(key,txn)) >> res->value.equipment;
+				Marshal::OctetsStream(ptask->find(key,txn)) >> res->value.task;
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "GetRoleData, roleid=%d, sid=%d, what=%s\n", arg->id, sid, e.what() );
+			res->retcode = ERR_DATANOTFIND;
+			return;
+		}
+		unsigned int money = res->value.pocket.money + res->value.storehouse.money;
+		Log::formatlog("getroledata","sid=%d:roleid=%d:timestamp=%d:level=%d:exp=%d:money=%u", 
+			sid, arg->id, res->value.pocket.timestamp, res->value.status.level, res->value.status.exp, money);
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// RoleId *arg = (RoleId *)argument;
+		// RoleDataRes *res = (RoleDataRes *)result;
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,147 @@
+
+#ifndef __GNET_DBBATTLEEND_HPP
+#define __GNET_DBBATTLEEND_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbbattleendarg"
+#include "dbbattleendres"
+#include "gterritorystore"
+
+namespace GNET
+{
+
+class DBBattleEnd : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbbattleend"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBBattleEndArg *arg = (DBBattleEndArg *)argument;
+		DBBattleEndRes *res = (DBBattleEndRes *)result;
+
+		Marshal::OctetsStream key, value;
+
+		LOG_TRACE( "DBBattleEnd: cityid=%d color=%d.\n", arg->battle_id, arg->color);
+		try
+		{
+			GTerritoryStore store;
+			StorageEnv::Storage * pcity = StorageEnv::GetStorage("city");
+			StorageEnv::Storage * pmailbox = StorageEnv::GetStorage("mailbox");
+			StorageEnv::Storage * pinfo = StorageEnv::GetStorage("factioninfo");
+			StorageEnv::CommonTransaction txn;
+			try{
+				key << 0;
+				Marshal::OctetsStream(pcity->find(key,txn)) >> store;
+
+				res->inform_winner.receiver  = _ROLE_INVALID;
+				res->inform_winner.sndr_type = _MST_BATTLE;
+				res->inform_winner.attribute |= 1<<_MA_ATTACH_MONEY;
+				std::vector<GTerritoryDetail>::iterator it=store.cities.begin(),ie=store.cities.end();
+				for(;it!=ie;++it)
+				{
+					if(it->id==(short)arg->battle_id)
+						break;
+				}
+				if(it==ie)
+				{
+					Log::log( LOG_ERR, "DBBattleEnd, cityid=%d not found.",arg->battle_id);
+					res->retcode = ERR_NOTFOUND;
+					return;
+				}
+				if(it->challenger!=arg->attacker)
+				{
+					Log::log( LOG_ERR, 
+						"DBBattleEnd, cityid=%d challenger=%d is not equal to attacker=%d.",
+						arg->battle_id, it->challenger, arg->attacker);
+					res->retcode = ERR_EXCEPTION;
+					return;
+				}
+				time_t now = Timer::GetTime();
+				Log::formatlog("dbbattleend",
+					"cityid=%d:result=%d:time=%d:owner=%d:attacker=%d:deposit=%d:maxbonus=%d",
+					it->id, arg->result, now, it->owner, arg->attacker, it->deposit, it->maxbonus);
+				int bonus = (int)(0.9*it->deposit);
+				if(bonus>it->maxbonus) 
+					bonus = it->maxbonus;
+				switch(arg->result)
+				{
+					case _BATTLE_ATTACKER_WIN:
+						it->owner = arg->attacker;
+						it->color = arg->color;
+						res->inform_winner.sender = _BATTLE_WIN_PRIZE;
+					//	MailSender::SendMaster(pmailbox, pinfo, res->inform_winner, it->owner, bonus, txn);
+						break;
+					case _BATTLE_DEFENDER_WIN:
+						if(it->owner)
+						{
+							res->inform_winner.sender = _BATTLE_WIN_PRIZE;
+					//		MailSender::SendMaster(pmailbox, pinfo, res->inform_winner, it->owner, bonus, txn);
+						}
+						break;
+					case _BATTLE_TIMEOUT:
+						if(it->owner)
+						{
+							res->inform_winner.sender = _BATTLE_WIN_PRIZE;
+					//		MailSender::SendMaster(pmailbox, pinfo, res->inform_winner, it->owner, bonus, txn);
+						}
+						break;
+					case _BATTLE_CANCEL:
+					
+						res->inform_winner.sender = _BATTLE_BID_WITHDRAW;
+						//MailSender::SendMaster(pmailbox, pinfo, res->inform_winner, it->challenger, it->deposit, txn);
+						GChallengerInfoList gci;
+						GChallengerInfo info;
+						if(it->challengerdetails.size())
+							Marshal::OctetsStream(it->challengerdetails)>>gci;
+						std::vector<GChallengerInfo>::iterator ig=gci.challengerlist.begin();
+						for(;ig!=gci.challengerlist.end();++ig)
+						{
+							MailSender::SendMaster(pmailbox,pinfo,res->inform_winner,ig->faction,ig->deposit,txn);
+						}
+						break;
+				}
+				it->challenger = 0;
+				it->battle_time = 0;
+				it->deposit = 0;
+				it->challengerdetails.clear();
+				pcity->insert(key,Marshal::OctetsStream()<<store,txn);
+			}
+			catch ( DbException e ) 
+			{ 
+				throw; 
+			}
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBBattleEnd, cityid=%d what=%s.\n",arg->battle_id, e.what() );
+			res->inform_winner.receiver  = _ROLE_INVALID;
+			if(e.get_errno()==DB_LOCK_DEADLOCK)
+				res->retcode = ERR_AGAIN;
+			else
+				res->retcode = ERR_EXCEPTION;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

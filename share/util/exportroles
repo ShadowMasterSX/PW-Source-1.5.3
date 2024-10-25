@@ -1,0 +1,35 @@
+#!/usr/bin/perl
+
+my $cmd = "/bin/date +%Y%m%d-%H%M%S";
+my $t = qx/$cmd/;
+$t = $ARGV[0] if( @ARGV > 0 );
+chomp($t);
+
+my $cmd = "/usr/bin/rsh backup '/root/cgi/listbackups /export/backup $t'";
+my $backup = qx/$cmd/;
+
+die if( not defined $backup or length($backup) == 0 );
+
+my $randdir = "export" + rand;
+system( "mkdir /tmp/$randdir" );
+
+system( "/usr/bin/rcp backup:/export/backup/$backup.tar.bz /tmp/$randdir/" );
+if( -f "/tmp/$randdir/$backup.tar.bz" )
+{
+	system( "cd /tmp/$randdir/; /bin/tar xvjf $backup.tar.bz" );
+}
+else
+{
+	system( "/usr/bin/rcp -r backup:/export/backup/$backup /tmp/$randdir/" );
+}
+
+system( "mv /tmp/$randdir/$backup /tmp/$randdir/dbhome" );
+
+system( "cd /tmp/$randdir; /root/bin/gamedbd /root/bin/gamesys.conf listrole 1>/tmp/$randdir/roles.$backup.csv");
+
+# system( "/bin/gzip -cfNq /tmp/$randdir/roles.$backup.csv > ./roles.$backup.csv.gz" );
+my $todir = "./";
+system( "mv /tmp/$randdir/roles.$backup.csv $todir" );
+
+system( "rm -rf /tmp/$randdir" );
+

@@ -1,0 +1,47 @@
+	public:
+		ACQ acq;
+		ACPlatformInfoVector platform_info;
+		ACCPUInfoVector cpu_info;
+		ACMemInfoVector mem_info;
+		ACAdapterInfoVector adapter_info;
+		enum { PROTOCOL_TYPE = PROTOCOL_ACQPLATFORMINFO };
+	public:
+		ACQPlatformInfo() { type = PROTOCOL_ACQPLATFORMINFO; }
+		ACQPlatformInfo(void*) : Protocol(PROTOCOL_ACQPLATFORMINFO) { }
+		ACQPlatformInfo (ACQ l_acq,ACPlatformInfoVector l_platform_info,ACCPUInfoVector l_cpu_info,
+			ACMemInfoVector l_mem_info,ACAdapterInfoVector l_adapter_info)
+			 : acq(l_acq),platform_info(l_platform_info),cpu_info(l_cpu_info)
+			,mem_info(l_mem_info),adapter_info(l_adapter_info)
+		{
+			type = PROTOCOL_ACQPLATFORMINFO;
+		}
+
+		ACQPlatformInfo(const ACQPlatformInfo &rhs)
+			: Protocol(rhs),acq(rhs.acq),platform_info(rhs.platform_info),cpu_info(rhs.cpu_info)
+			,mem_info(rhs.mem_info),adapter_info(rhs.adapter_info) { }
+
+		GNET::Protocol *Clone() const { return new ACQPlatformInfo(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << acq;
+			os << platform_info;
+			os << cpu_info;
+			os << mem_info;
+			os << adapter_info;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> acq;
+			os >> platform_info;
+			os >> cpu_info;
+			os >> mem_info;
+			os >> adapter_info;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1048576; }

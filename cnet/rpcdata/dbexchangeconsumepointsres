@@ -1,0 +1,59 @@
+#ifndef __GNET_DBEXCHANGECONSUMEPOINTSRES_RPCDATA
+#define __GNET_DBEXCHANGECONSUMEPOINTSRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBExchangeConsumePointsRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+
+	public:
+		DBExchangeConsumePointsRes (int l_retcode = 0)
+			: retcode(l_retcode)
+		{
+		}
+
+		DBExchangeConsumePointsRes(const DBExchangeConsumePointsRes &rhs)
+			: retcode(rhs.retcode) { }
+
+		Rpc::Data *Clone() const { return new DBExchangeConsumePointsRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBExchangeConsumePointsRes *r = dynamic_cast<const DBExchangeConsumePointsRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		DBExchangeConsumePointsRes& operator = (const DBExchangeConsumePointsRes &rhs)
+		{
+			const DBExchangeConsumePointsRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			return os;
+		}
+
+	};
+};
+#endif

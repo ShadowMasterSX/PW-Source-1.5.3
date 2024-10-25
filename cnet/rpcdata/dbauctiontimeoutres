@@ -1,0 +1,78 @@
+#ifndef __GNET_DBAUCTIONTIMEOUTRES_RPCDATA
+#define __GNET_DBAUCTIONTIMEOUTRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailheader"
+
+namespace GNET
+{
+	class DBAuctionTimeoutRes : public GNET::Rpc::Data
+	{
+	public:
+		unsigned char retcode;
+		unsigned int auctionid;
+		GMailHeader inform_seller;
+		GMailHeader inform_bidder;
+
+	public:
+		DBAuctionTimeoutRes (unsigned char l_retcode = 0,unsigned int l_auctionid = 0,const GMailHeader& l_inform_seller = GMailHeader()
+			,const GMailHeader& l_inform_bidder = GMailHeader())
+			: retcode(l_retcode),auctionid(l_auctionid),inform_seller(l_inform_seller)
+			,inform_bidder(l_inform_bidder)
+		{
+		}
+
+		DBAuctionTimeoutRes(const DBAuctionTimeoutRes &rhs)
+			: retcode(rhs.retcode),auctionid(rhs.auctionid),inform_seller(rhs.inform_seller),
+			inform_bidder(rhs.inform_bidder) { }
+
+		Rpc::Data *Clone() const { return new DBAuctionTimeoutRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBAuctionTimeoutRes *r = dynamic_cast<const DBAuctionTimeoutRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				auctionid = r->auctionid;
+				inform_seller = r->inform_seller;
+				inform_bidder = r->inform_bidder;
+			}
+			return *this;
+		}
+
+		DBAuctionTimeoutRes& operator = (const DBAuctionTimeoutRes &rhs)
+		{
+			const DBAuctionTimeoutRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				auctionid = r->auctionid;
+				inform_seller = r->inform_seller;
+				inform_bidder = r->inform_bidder;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << auctionid;
+			os << inform_seller;
+			os << inform_bidder;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> auctionid;
+			os >> inform_seller;
+			os >> inform_bidder;
+			return os;
+		}
+
+	};
+};
+#endif

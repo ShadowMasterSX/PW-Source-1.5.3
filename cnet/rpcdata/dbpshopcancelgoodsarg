@@ -1,0 +1,69 @@
+#ifndef __GNET_DBPSHOPCANCELGOODSARG_RPCDATA
+#define __GNET_DBPSHOPCANCELGOODSARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBPShopCancelGoodsArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		int canceltype;
+		int item_pos;
+
+	public:
+		DBPShopCancelGoodsArg (int l_roleid = 0,int l_canceltype = 0,int l_item_pos = 0)
+			: roleid(l_roleid),canceltype(l_canceltype),item_pos(l_item_pos)
+		{
+		}
+
+		DBPShopCancelGoodsArg(const DBPShopCancelGoodsArg &rhs)
+			: roleid(rhs.roleid),canceltype(rhs.canceltype),item_pos(rhs.item_pos) { }
+
+		Rpc::Data *Clone() const { return new DBPShopCancelGoodsArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPShopCancelGoodsArg *r = dynamic_cast<const DBPShopCancelGoodsArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				canceltype = r->canceltype;
+				item_pos = r->item_pos;
+			}
+			return *this;
+		}
+
+		DBPShopCancelGoodsArg& operator = (const DBPShopCancelGoodsArg &rhs)
+		{
+			const DBPShopCancelGoodsArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				canceltype = r->canceltype;
+				item_pos = r->item_pos;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << canceltype;
+			os << item_pos;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> canceltype;
+			os >> item_pos;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,70 @@
+#ifndef __GNET_DBSETMAILATTRARG_RPCDATA
+#define __GNET_DBSETMAILATTRARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailid"
+
+namespace GNET
+{
+	class DBSetMailAttrArg : public GNET::Rpc::Data
+	{
+	public:
+		GMailID mail_id;
+		unsigned char attrib_type;
+		unsigned char attrib_value;
+
+	public:
+		DBSetMailAttrArg (const GMailID& l_mail_id = GMailID(),unsigned char l_attrib_type = 0,unsigned char l_attrib_value = 0)
+			: mail_id(l_mail_id),attrib_type(l_attrib_type),attrib_value(l_attrib_value)
+		{
+		}
+
+		DBSetMailAttrArg(const DBSetMailAttrArg &rhs)
+			: mail_id(rhs.mail_id),attrib_type(rhs.attrib_type),attrib_value(rhs.attrib_value) { }
+
+		Rpc::Data *Clone() const { return new DBSetMailAttrArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBSetMailAttrArg *r = dynamic_cast<const DBSetMailAttrArg *>(&rhs);
+			if (r && r != this)
+			{
+				mail_id = r->mail_id;
+				attrib_type = r->attrib_type;
+				attrib_value = r->attrib_value;
+			}
+			return *this;
+		}
+
+		DBSetMailAttrArg& operator = (const DBSetMailAttrArg &rhs)
+		{
+			const DBSetMailAttrArg *r = &rhs;
+			if (r && r != this)
+			{
+				mail_id = r->mail_id;
+				attrib_type = r->attrib_type;
+				attrib_value = r->attrib_value;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << mail_id;
+			os << attrib_type;
+			os << attrib_value;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> mail_id;
+			os >> attrib_type;
+			os >> attrib_value;
+			return os;
+		}
+
+	};
+};
+#endif

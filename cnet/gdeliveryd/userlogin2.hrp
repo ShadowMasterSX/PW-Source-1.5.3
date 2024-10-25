@@ -1,0 +1,197 @@
+
+#ifndef __GNET_USERLOGIN2_HPP
+#define __GNET_USERLOGIN2_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "userlogin2arg"
+#include "userlogin2res"
+
+#include "kickoutuser.hpp"
+#include "queryuserprivilege_re.hpp"
+#include "gdeliveryserver.hpp"
+#include "gauthclient.hpp"
+#include "mapforbid.h"
+#include "mapuser.h"
+#include "maplinkserver.h"
+
+namespace GNET
+{
+
+class UserLogin2 : public ProxyRpc
+{
+	GNET::Protocol *Clone() const {  return new UserLogin2(*this); }
+public:
+	enum { PROTOCOL_TYPE = RPC_USERLOGIN2 };
+	UserLogin2(Type type, Rpc::Data *argument, Rpc::Data *result)
+		: ProxyRpc(type, argument, result ) { }
+	UserLogin2(const UserLogin2 &rhs) : ProxyRpc(rhs) { }
+	int  PriorPolicy( ) const { return 101; }
+	bool SizePolicy(size_t size) const { return size <= 512; }
+	bool TimePolicy(int timeout) const { return timeout <= 30; }
+
+	void TryLogin(UserLogin2Arg& arg)
+	{
+		//if GAuth is not available, let the user login directly
+		//step1. check out whether kickout user
+		bool useronline=false;
+		unsigned int _localsid=0;
+		{
+			Thread::RWLock::RDScoped l(UserContainer::GetInstance().GetLocker());
+			UserInfo * pinfo = UserContainer::GetInstance().FindUser(arg.userid);
+			useronline = ( NULL!=pinfo );
+			if (useronline) _localsid = pinfo->localsid;
+		}
+		if (useronline)
+		{
+			if (arg.blkickuser) 
+			{
+				KickoutUser ku(arg.userid,_localsid);
+				ku.Process(NULL,0); //Process中还会对gdsm->locker_map加锁，因此不能放在Thread::RWLock::WRScoped中
+			}
+			else
+			{
+				SetResult(UserLogin2Res(ERR_MULTILOGIN));
+				SendToSponsor();
+				return;
+			}
+		}
+		UserContainer::GetInstance().UserLogin(arg.userid, arg.account, proxy_sid, arg.localsid,false, 0, 0, arg.loginip, arg.iseckey, arg.oseckey);
+		SetResult(UserLogin2Res(ERR_SUCCESS,0));
+		SendToSponsor();
+	}
+
+	bool CheckLoginCondition(Manager::Session::ID proxy_sid, UserLogin2Arg& arg)
+	{
+		/* if game master forbid user login, login failed */
+		if (!ForbidLogin::GetInstance().IsLoginAllowedGlobal())
+		{
+			SetResult(UserLogin2Res(ERR_SRVMAINTAIN));
+			SendToSponsor();
+			return false;	
+		}
+		{
+			GRoleForbid	forbid;
+			if( ForbidLogin::GetInstance().GetForbidLogin( arg.userid, forbid ) )
+			{
+				GDeliveryServer::GetInstance()->Send(proxy_sid,AnnounceForbidInfo(arg.userid,arg.localsid,forbid));
+				SetResult(UserLogin2Res(ERR_ACCOUNTFORBID));
+				SendToSponsor();
+				return false;	
+			}
+		}
+		/* if game server is handling user, login is forbidden */
+		if (ForbiddenUsers::GetInstance().IsExist(arg.userid))
+		{
+			SetResult(UserLogin2Res(ERR_ACCOUNTLOCKED));
+			SendToSponsor();
+			return false;
+		}
+		
+		if (RemoteLoggingUsers::GetInstance().IsExist(arg.userid))
+		{
+			SetResult(UserLogin2Res(ERR_ACCOUNTLOCKED));
+			SendToSponsor();
+			return false;
+		}
+
+		/* if online user exceed max player number, refuse new connection */
+		UserContainer& container = UserContainer::GetInstance();
+		if ( (!container.IsLanIp(arg.loginip)) && (container.Size() >= container.GetPlayerLimit()) )
+		{
+			SetResult(UserLogin2Res(ERR_SERVEROVERLOAD));
+			SendToSponsor();
+			return false;
+		}	   
+		return true;
+	}
+
+	bool Delivery(Manager::Session::ID proxy_sid, const OctetsStream& osArg)
+	{
+		UserLogin2Arg arg;
+		osArg >> arg;
+		{
+			Thread::RWLock::RDScoped l(UserContainer::GetInstance().GetLocker());
+			UserInfo * pinfo = UserContainer::GetInstance().FindUser(arg.userid);
+			if(pinfo && !arg.blkickuser)
+			{
+				SetResult(UserLogin2Res(ERR_MULTILOGIN));
+				SendToSponsor();
+				return false;
+			}
+		}
+		if (!CheckLoginCondition(proxy_sid,arg))
+			return false;
+		
+		if( GAuthClient::GetInstance()->SendProtocol( *this ) )
+		{
+			return true;
+		}
+		else
+		{
+			TryLogin(arg);			
+			return false;
+		}
+	}
+
+	void PostProcess(Manager::Session::ID proxy_sid,const OctetsStream& osArg, const OctetsStream& osRes)
+	{
+		UserLogin2Arg arg;
+		osArg >> arg;
+		UserLogin2Res res;
+		osRes >> res;
+		DEBUG_PRINT("gdelivery::userlogin2.received.userid=%d,proxy_sid=%d,localsid=%d,retcode=%d,blIsGM=%d,func=%d,funcparam=%d,creatime=%d\n",
+			arg.userid,proxy_sid,arg.localsid,res.retcode,res.blIsGM,res.func,res.funcparm,res.creatime);
+		if (res.retcode!=ERR_SUCCESS)
+			return;
+
+		//if user still in usermap, run KickoutUser
+		bool useronline=false;
+		unsigned int _localsid=0;
+		{
+			Thread::RWLock::RDScoped l(UserContainer::GetInstance().GetLocker());
+			UserInfo * pinfo = UserContainer::GetInstance().FindUser(arg.userid);
+			useronline = ( NULL!=pinfo );
+			if (useronline) _localsid = pinfo->localsid;
+		}
+		if ( useronline )
+		{
+			KickoutUser ku(arg.userid,_localsid);
+			ku.Process(NULL,0); //Process中还会对gdsm->locker_map加锁，因此不能放在Thread::RWLock::WRScoped中
+		}
+		UserContainer::GetInstance().UserLogin(arg.userid, arg.account, proxy_sid, arg.localsid,res.blIsGM, res.func, res.funcparm, arg.loginip, arg.iseckey, arg.oseckey);
+		if (res.blIsGM != 0)
+		{
+			ProcessUserPrivilege(arg.userid, res.auth);
+		}
+	}
+	
+	void ProcessUserPrivilege(int userid, ByteVector& auth)
+	{
+		int roleid;
+		int status;
+		{
+			Thread::RWLock::RDScoped l(UserContainer::GetInstance().GetLocker());
+			UserInfo * pinfo = UserContainer::GetInstance().FindUser(userid);
+			if (NULL==pinfo) return;
+			roleid=pinfo->roleid;
+			status=pinfo->status;
+			pinfo->privileges = auth;
+		}
+
+		//send user's privilege to all linkserver
+		LinkServer::GetInstance().BroadcastProtocol(QueryUserPrivilege_Re(userid,auth));
+	}
+
+	void OnTimeout( const OctetsStream & osArg )
+	{
+		UserLogin2Arg arg;
+		osArg >> arg;
+		TryLogin(arg);
+	}
+
+};
+
+};
+#endif

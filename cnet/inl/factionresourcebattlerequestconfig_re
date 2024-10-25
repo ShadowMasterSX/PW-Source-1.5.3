@@ -1,0 +1,35 @@
+	public:
+		std::vector<GFactionResourceBattleConfig> config_list;
+		std::vector<int> controller_list;
+		enum { PROTOCOL_TYPE = PROTOCOL_FACTIONRESOURCEBATTLEREQUESTCONFIG_RE };
+	public:
+		FactionResourceBattleRequestConfig_Re() { type = PROTOCOL_FACTIONRESOURCEBATTLEREQUESTCONFIG_RE; }
+		FactionResourceBattleRequestConfig_Re(void*) : Protocol(PROTOCOL_FACTIONRESOURCEBATTLEREQUESTCONFIG_RE) { }
+		FactionResourceBattleRequestConfig_Re (const std::vector<GFactionResourceBattleConfig>& l_config_list,const std::vector<int>& l_controller_list)
+			 : config_list(l_config_list),controller_list(l_controller_list)
+		{
+			type = PROTOCOL_FACTIONRESOURCEBATTLEREQUESTCONFIG_RE;
+		}
+
+		FactionResourceBattleRequestConfig_Re(const FactionResourceBattleRequestConfig_Re &rhs)
+			: Protocol(rhs),config_list(rhs.config_list),controller_list(rhs.controller_list) { }
+
+		GNET::Protocol *Clone() const { return new FactionResourceBattleRequestConfig_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << config_list;
+			os << controller_list;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> config_list;
+			os >> controller_list;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 65536; }

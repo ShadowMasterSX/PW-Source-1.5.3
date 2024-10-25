@@ -1,0 +1,83 @@
+#ifndef __GNET_GETMONEYINVENTORYRES_RPCDATA
+#define __GNET_GETMONEYINVENTORYRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "groleinventory"
+
+namespace GNET
+{
+	class GetMoneyInventoryRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		int timestamp;
+		unsigned int money;
+		GRoleInventoryVector goods;
+		int data_mask;
+
+	public:
+		GetMoneyInventoryRes (int l_retcode = -1,int l_timestamp = -1,unsigned int l_money = 0
+			,int l_data_mask = 0)
+			: retcode(l_retcode),timestamp(l_timestamp),money(l_money)
+			,data_mask(l_data_mask)
+		{
+		}
+
+		GetMoneyInventoryRes(const GetMoneyInventoryRes &rhs)
+			: retcode(rhs.retcode),timestamp(rhs.timestamp),money(rhs.money),
+			goods(rhs.goods),data_mask(rhs.data_mask) { }
+
+		Rpc::Data *Clone() const { return new GetMoneyInventoryRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GetMoneyInventoryRes *r = dynamic_cast<const GetMoneyInventoryRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				timestamp = r->timestamp;
+				money = r->money;
+				goods = r->goods;
+				data_mask = r->data_mask;
+			}
+			return *this;
+		}
+
+		GetMoneyInventoryRes& operator = (const GetMoneyInventoryRes &rhs)
+		{
+			const GetMoneyInventoryRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				timestamp = r->timestamp;
+				money = r->money;
+				goods = r->goods;
+				data_mask = r->data_mask;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << timestamp;
+			os << money;
+			os << goods;
+			os << data_mask;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> timestamp;
+			os >> money;
+			os >> goods;
+			os >> data_mask;
+			return os;
+		}
+
+	};
+};
+#endif

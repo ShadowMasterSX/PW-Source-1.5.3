@@ -1,0 +1,65 @@
+#ifndef __GNET_DBGETMAILRES_RPCDATA
+#define __GNET_DBGETMAILRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmail"
+
+namespace GNET
+{
+	class DBGetMailRes : public GNET::Rpc::Data
+	{
+	public:
+		unsigned char retcode;
+		GMail mail;
+
+	public:
+		DBGetMailRes (unsigned char l_retcode = 0,GMail l_mail = GMail())
+			: retcode(l_retcode),mail(l_mail)
+		{
+		}
+
+		DBGetMailRes(const DBGetMailRes &rhs)
+			: retcode(rhs.retcode),mail(rhs.mail) { }
+
+		Rpc::Data *Clone() const { return new DBGetMailRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBGetMailRes *r = dynamic_cast<const DBGetMailRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				mail = r->mail;
+			}
+			return *this;
+		}
+
+		DBGetMailRes& operator = (const DBGetMailRes &rhs)
+		{
+			const DBGetMailRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				mail = r->mail;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << mail;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> mail;
+			return os;
+		}
+
+	};
+};
+#endif

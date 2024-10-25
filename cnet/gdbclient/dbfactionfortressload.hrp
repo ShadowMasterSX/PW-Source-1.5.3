@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBFACTIONFORTRESSLOAD_HPP
+#define __GNET_DBFACTIONFORTRESSLOAD_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbfactionfortressloadarg"
+#include "dbfactionfortressloadres"
+
+namespace GNET
+{
+
+class DBFactionFortressLoad : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbfactionfortressload"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBFactionFortressLoadArg *arg = (DBFactionFortressLoadArg *)argument;
+		// DBFactionFortressLoadRes *res = (DBFactionFortressLoadRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBFactionFortressLoadArg *arg = (DBFactionFortressLoadArg *)argument;
+		// DBFactionFortressLoadRes *res = (DBFactionFortressLoadRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,65 @@
+#ifndef __GNET_PUTFACTIONFORTRESSARG_RPCDATA
+#define __GNET_PUTFACTIONFORTRESSARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gfactionfortressinfo"
+
+namespace GNET
+{
+	class PutFactionFortressArg : public GNET::Rpc::Data
+	{
+	public:
+		int factionid;
+		GFactionFortressInfo info;
+
+	public:
+		PutFactionFortressArg (int l_factionid = 0,const GFactionFortressInfo& l_info = GFactionFortressInfo())
+			: factionid(l_factionid),info(l_info)
+		{
+		}
+
+		PutFactionFortressArg(const PutFactionFortressArg &rhs)
+			: factionid(rhs.factionid),info(rhs.info) { }
+
+		Rpc::Data *Clone() const { return new PutFactionFortressArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const PutFactionFortressArg *r = dynamic_cast<const PutFactionFortressArg *>(&rhs);
+			if (r && r != this)
+			{
+				factionid = r->factionid;
+				info = r->info;
+			}
+			return *this;
+		}
+
+		PutFactionFortressArg& operator = (const PutFactionFortressArg &rhs)
+		{
+			const PutFactionFortressArg *r = &rhs;
+			if (r && r != this)
+			{
+				factionid = r->factionid;
+				info = r->info;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << factionid;
+			os << info;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> factionid;
+			os >> info;
+			return os;
+		}
+
+	};
+};
+#endif

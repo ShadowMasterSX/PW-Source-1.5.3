@@ -1,0 +1,35 @@
+	public:
+		int dtype;
+		int64_t id;
+		enum { PROTOCOL_TYPE = PROTOCOL_GAMEDATAREQ };
+	public:
+		GameDataReq() { type = PROTOCOL_GAMEDATAREQ; }
+		GameDataReq(void*) : Protocol(PROTOCOL_GAMEDATAREQ) { }
+		GameDataReq (int l_dtype,int64_t l_id)
+			 : dtype(l_dtype),id(l_id)
+		{
+			type = PROTOCOL_GAMEDATAREQ;
+		}
+
+		GameDataReq(const GameDataReq &rhs)
+			: Protocol(rhs),dtype(rhs.dtype),id(rhs.id) { }
+
+		GNET::Protocol *Clone() const { return new GameDataReq(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << dtype;
+			os << id;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> dtype;
+			os >> id;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1024; }

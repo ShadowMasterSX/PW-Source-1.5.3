@@ -1,0 +1,32 @@
+	public:
+		int roleid;
+		enum { PROTOCOL_TYPE = PROTOCOL_TOUCHPOINTQUERY };
+	public:
+		TouchPointQuery() { type = PROTOCOL_TOUCHPOINTQUERY; }
+		TouchPointQuery(void*) : Protocol(PROTOCOL_TOUCHPOINTQUERY) { }
+		TouchPointQuery (int l_roleid)
+			 : roleid(l_roleid)
+		{
+			type = PROTOCOL_TOUCHPOINTQUERY;
+		}
+
+		TouchPointQuery(const TouchPointQuery &rhs)
+			: Protocol(rhs),roleid(rhs.roleid) { }
+
+		GNET::Protocol *Clone() const { return new TouchPointQuery(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 32; }

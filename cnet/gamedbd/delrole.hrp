@@ -1,0 +1,82 @@
+
+#ifndef __GNET_DELROLE_HPP
+#define __GNET_DELROLE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "dbbuffer.h"
+#include "roleid"
+#include "grolebase"
+
+#include "timer.h"
+
+namespace GNET
+{
+
+class DelRole : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "delrole"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		RoleId *arg = (RoleId *)argument;
+		RpcRetcode *res = (RpcRetcode *)result;
+		Marshal::OctetsStream key;
+
+		Log::log( LOG_INFO, "DelRole, roleid=%d.\n", arg->id );
+
+		try
+		{
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::Storage * pwaitdel = StorageEnv::GetStorage("waitdel");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				key << *arg;
+				GRoleBase base;
+				Marshal::OctetsStream( pbase->find( key, txn ) ) >> base;
+				if(base.spouse)
+					res->retcode = ERR_UNAVAILABLE;
+				else
+				{
+					base.delete_time = Timer::GetTime();
+					base.status = _ROLE_STATUS_READYDEL;
+					pbase->insert( key, Marshal::OctetsStream() << base, txn );
+					pwaitdel->insert( key, Marshal::OctetsStream() << base.delete_time, txn );
+					res->retcode = ERR_SUCCESS;
+				}
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DelRole, roleid=%d, what=%s\n", arg->id, e.what() );
+			res->retcode = -1;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// RoleId *arg = (RoleId *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

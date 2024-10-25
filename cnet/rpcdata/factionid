@@ -1,0 +1,59 @@
+#ifndef __GNET_FACTIONID_RPCDATA
+#define __GNET_FACTIONID_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class FactionId : public GNET::Rpc::Data
+	{
+	public:
+		unsigned int fid;
+
+	public:
+		FactionId (unsigned int l_fid = 0)
+			: fid(l_fid)
+		{
+		}
+
+		FactionId(const FactionId &rhs)
+			: fid(rhs.fid) { }
+
+		Rpc::Data *Clone() const { return new FactionId(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const FactionId *r = dynamic_cast<const FactionId *>(&rhs);
+			if (r && r != this)
+			{
+				fid = r->fid;
+			}
+			return *this;
+		}
+
+		FactionId& operator = (const FactionId &rhs)
+		{
+			const FactionId *r = &rhs;
+			if (r && r != this)
+			{
+				fid = r->fid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << fid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> fid;
+			return os;
+		}
+
+	};
+};
+#endif

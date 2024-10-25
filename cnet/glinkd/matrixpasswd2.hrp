@@ -1,0 +1,185 @@
+
+#ifndef __GNET_MATRIXPASSWD2_HPP
+#define __GNET_MATRIXPASSWD2_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "matrixpasswdarg"
+#include "matrixpasswd2res"
+#include "matrixchallenge.hpp"
+#include "cardchecker.h"
+#include "mobilechecker.h"
+#include "localmacro.h"
+#include "usbkey.h"
+#include "phonetokenchecker.h"
+
+namespace GNET
+{
+
+class MatrixPasswd2 : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "matrixpasswd2"
+#undef	RPC_BASECLASS
+
+	Manager::Session::ID save_sid;
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// MatrixPasswdArg *arg = (MatrixPasswdArg *)argument;
+		// MatrixPasswd2Res *res = (MatrixPasswd2Res *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		MatrixPasswdArg *arg = (MatrixPasswdArg *)argument;
+		MatrixPasswd2Res *res = (MatrixPasswd2Res *)result;
+		GLinkServer *lsm=GLinkServer::GetInstance();
+		DEBUG_PRINT ("glinkd::receive matrixpasswd2. retcode=%d,userid=%d,algorithm=%x,matrix=%d\n", 
+				res->retcode, res->userid, res->algorithm, res->matrix.size());
+
+		if (!lsm->ValidSid(save_sid)) 
+			return;
+		if(res->retcode)
+		{
+			if(res->retcode==ERR_INVALID_ACCOUNT)
+				res->retcode = ERR_INVALID_PASSWORD;
+			lsm->SessionError(save_sid, res->retcode, "Server error.");
+			return;
+		}
+		SessionInfo * sinfo = NULL;
+		sinfo = lsm->GetSessionInfo(save_sid);
+		if (!sinfo) 
+			return;
+
+		char algo = lsm->challenge_algo;
+		switch (algo)
+		{
+			case ALGO_MD5:
+				if (res->response != sinfo->response)
+				{
+					//如密码验证失败,则试图进行二代神盾验证
+					if( (res->algorithm & ALGORITHM_MASK_HIGH) != ALGORITHM_USBKEY2
+							|| !CheckUsbPasswd(sinfo->response, arg, res, sinfo->used_elec_number) )
+					{
+						lsm->SessionError(save_sid, ERR_INVALID_PASSWORD, "Invalid Login.");
+						return;
+					}
+				}
+				break;
+			case ALGO_SHA:
+				if (res->retcode != ERR_SUCCESS)
+				{
+					lsm->SessionError(save_sid, res->retcode, "Login Error.");
+					return;
+				}
+				break;
+			default:	
+				return;
+		}
+		sinfo->userid = res->userid;
+		sinfo->login_time = time(NULL);
+		//判断用户是否需要更新密码或密保卡
+		if(res->algorithm & ALGORITHM_PASSWORD_OBSOLETE)
+			sinfo->passwd_flag |= 0x01;
+		if(res->algorithm & ALGORITHM_CARD_OBSOLETE)
+			sinfo->passwd_flag |= 0x02;
+		if(res->algorithm & ALGORITHM_MISSING_ACCOUNTINFO1)
+			sinfo->accountinfo_flag |= 0x01;
+		if(res->algorithm & ALGORITHM_MISSING_ACCOUNTINFO2)
+			sinfo->accountinfo_flag |= 0x02;
+
+		switch(res->algorithm & ALGORITHM_MASK_HIGH)
+		{
+			case ALGORITHM_CARD:
+			{
+				lsm->ChangeState(save_sid,&state_GVerifyMatrix);
+				CardChecker* checker = new CardChecker(
+					res->userid, 
+					byteorder_32(sinfo->GetPeerAddr().s_addr),
+					(unsigned char*)res->matrix.begin()
+					);
+
+				MatrixChallenge mc(res->algorithm,checker->Challenge());
+				lsm->Send(save_sid, mc);
+				lsm->AddChecker(save_sid, checker);
+				break;
+			}
+			case ALGORITHM_HANDSET:
+			{
+				lsm->ChangeState(save_sid,&state_GVerifyMatrix);
+				MatrixChecker * checker = MobileCheckerFactory::Instance().Create(
+					res->userid,
+					byteorder_32(sinfo->GetPeerAddr().s_addr),
+					res->algorithm, res->matrix
+					);
+
+				MatrixChallenge mc(res->algorithm, checker->Challenge());
+				lsm->Send(save_sid, mc);
+				lsm->AddChecker(save_sid, checker);
+				break;
+			}
+			case ALGORITHM_PHONETOKEN:
+			{
+				lsm->ChangeState(save_sid,&state_GVerifyMatrix);
+				PhoneTokenChecker * checker = new PhoneTokenChecker(
+						res->userid,
+						byteorder_32(sinfo->GetPeerAddr().s_addr),
+						res->seed,
+						((int)time(NULL) - res->rtime) / 32
+						);
+				MatrixChallenge mc(res->algorithm, checker->Challenge());
+				lsm->Send(save_sid, mc);
+				lsm->AddChecker(save_sid, checker);
+				break;
+			}
+			default:
+			{
+				//change state to keyexchgsend
+				lsm->ChangeState(save_sid,&state_GKeyExchgSend);
+				//send keyexchange protocol
+				KeyExchange keyexchange(PROTOCOL_KEYEXCHANGE);
+				keyexchange.Setup(sinfo->identity, sinfo->response, lsm, save_sid);
+				lsm->Send(save_sid, keyexchange);
+				//log user's login information
+				Octets& username = sinfo->identity;
+				Log::login(username, res->userid, save_sid, inet_ntoa(sinfo->GetPeerAddr()));
+				break;
+			}
+		}
+	}
+
+	bool CheckUsbPasswd(Octets& sinfo_response, MatrixPasswdArg * arg, MatrixPasswd2Res * res, Octets& used_elec_number/*output*/)
+	{
+		int _rtime = ((int)time(NULL) - res->rtime) / 32;
+		UsbKey usb(res->seed,res->pin,_rtime);
+		Octets usb_response;
+		usb.CalcResponse(arg->account,arg->challenge,usb_response,used_elec_number);
+		if(usb_response.size() == 0)
+			return false;
+		if(usb_response != sinfo_response)
+		{
+			UsbKey usb2(res->seed,res->pin,_rtime-1);
+			usb2.CalcResponse(arg->account,arg->challenge,usb_response,used_elec_number);
+			if(usb_response != sinfo_response)
+			{
+				UsbKey usb3(res->seed,res->pin,_rtime+1);
+				usb3.CalcResponse(arg->account,arg->challenge,usb_response,used_elec_number);
+				if(usb_response != sinfo_response)
+					return false;
+			}
+		}
+		return true;
+	}
+			
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

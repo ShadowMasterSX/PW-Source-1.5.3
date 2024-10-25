@@ -1,0 +1,38 @@
+	public:
+		char zoneid;
+		char aid;
+		char blreset;
+		enum { PROTOCOL_TYPE = PROTOCOL_ANNOUNCEZONEID };
+	public:
+		AnnounceZoneid() { type = PROTOCOL_ANNOUNCEZONEID; }
+		AnnounceZoneid(void*) : Protocol(PROTOCOL_ANNOUNCEZONEID) { }
+		AnnounceZoneid (char l_zoneid,char l_aid = -1,char l_blreset = 0)
+			 : zoneid(l_zoneid),aid(l_aid),blreset(l_blreset)
+		{
+			type = PROTOCOL_ANNOUNCEZONEID;
+		}
+
+		AnnounceZoneid(const AnnounceZoneid &rhs)
+			: Protocol(rhs),zoneid(rhs.zoneid),aid(rhs.aid),blreset(rhs.blreset) { }
+
+		GNET::Protocol *Clone() const { return new AnnounceZoneid(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << zoneid;
+			os << aid;
+			os << blreset;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> zoneid;
+			os >> aid;
+			os >> blreset;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 101; }
+
+		bool SizePolicy(size_t size) const { return size <= 32; }

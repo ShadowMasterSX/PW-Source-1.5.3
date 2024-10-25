@@ -1,0 +1,42 @@
+
+#ifndef __GNET_GETROLEEQUIPMENT_HPP
+#define __GNET_GETROLEEQUIPMENT_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "roleid"
+#include "roleequipmentres"
+
+namespace GNET
+{
+
+class GetRoleEquipment : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getroleequipment"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// RoleId *arg = (RoleId *)argument;
+		// RoleEquipmentRes *res = (RoleEquipmentRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// RoleId *arg = (RoleId *)argument;
+		// RoleEquipmentRes *res = (RoleEquipmentRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,74 @@
+#ifndef __GNET_DBPSHOPCLEARGOODS_HPP
+#define __GNET_DBPSHOPCLEARGOODS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbpshopcleargoodsarg"
+#include "dbpshopcleargoodsres"
+#include "dbpshopget.hrp"
+#include "pshopcleargoods_re.hpp"
+
+namespace GNET
+{
+
+class DBPShopClearGoods : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbpshopcleargoods"
+#undef	RPC_BASECLASS
+
+	unsigned int save_linksid;
+	unsigned int save_localsid;
+
+	void SendResult(int retcode, const PShopItemVector &slist, const GRoleInventoryVector &store)
+	{
+		GDeliveryServer::GetInstance()->Send(save_linksid, PShopClearGoods_Re(retcode, save_localsid, slist, store));
+	}
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid) {} 
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBPShopClearGoodsArg *arg = (DBPShopClearGoodsArg *)argument;
+		DBPShopClearGoodsRes *res = (DBPShopClearGoodsRes *)result;
+		LOG_TRACE("DBPShopClearGoods: RPC return, roleid=%d retcode=%d", arg->roleid, res->retcode);
+		if(res->retcode == ERR_SUCCESS || res->retcode == ERR_PLAYERSHOP_STORE_FULL)
+		{
+			//返回值为ERR_SUCCESS时,表示出售栏物品全部转移到店铺仓库
+			//返回值为ERR_PLAYERSHOP_STORE_FULL时,表示店铺仓库满,出售栏被部分清空
+
+			//注意:这里GDELIVERY可能未缓存店铺数据
+			//因为店铺过期状态也可以进行取消操作
+
+			PShopObj *obj = PShopMarket::GetInstance().GetShop(arg->roleid);
+			if(obj)
+			{
+				PShopMarket::GetInstance().OnRemoveListBuy(obj);
+				PShopMarket::GetInstance().OnRemoveListSale(obj);
+				obj->ClearStore();
+				obj->ClearBuyList();
+				obj->ClearSaleList();
+				obj->SetStore(res->store);
+				for(size_t i=0; i<res->slist.size(); ++i)
+				{
+					//出售栏部分清空,加载出售栏剩余物品
+					PShopMarket::GetInstance().OnAddItemSale(arg->roleid, res->slist[i]);
+				}
+				obj->Trace();
+			}
+		}
+
+		SendResult(res->retcode, res->slist, res->store);
+	}
+
+	void OnTimeout()
+	{
+		DBPShopClearGoodsArg *arg = (DBPShopClearGoodsArg *)argument;
+		Log::log(LOG_ERR,"DBPShopClearGoods: Timeout. roleid=%d.", arg->roleid);
+		SendResult(ERR_TIMEOUT, PShopItemVector(), GRoleInventoryVector());
+		DBPShopGet::QueryShop(arg->roleid, save_linksid, save_localsid, 3/*retry*/, DBPShopGet::REASON_DB_TIMEOUT);
+	}
+};
+
+};
+#endif

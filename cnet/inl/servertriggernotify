@@ -1,0 +1,32 @@
+	public:
+		std::vector<int> trigger_ctrl_list;
+		enum { PROTOCOL_TYPE = PROTOCOL_SERVERTRIGGERNOTIFY };
+	public:
+		ServerTriggerNotify() { type = PROTOCOL_SERVERTRIGGERNOTIFY; }
+		ServerTriggerNotify(void*) : Protocol(PROTOCOL_SERVERTRIGGERNOTIFY) { }
+		ServerTriggerNotify (const std::vector<int>& l_trigger_ctrl_list)
+			 : trigger_ctrl_list(l_trigger_ctrl_list)
+		{
+			type = PROTOCOL_SERVERTRIGGERNOTIFY;
+		}
+
+		ServerTriggerNotify(const ServerTriggerNotify &rhs)
+			: Protocol(rhs),trigger_ctrl_list(rhs.trigger_ctrl_list) { }
+
+		GNET::Protocol *Clone() const { return new ServerTriggerNotify(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << trigger_ctrl_list;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> trigger_ctrl_list;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1024; }

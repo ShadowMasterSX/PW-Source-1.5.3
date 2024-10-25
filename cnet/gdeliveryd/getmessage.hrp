@@ -1,0 +1,89 @@
+
+#ifndef __GNET_GETMESSAGE_HPP
+#define __GNET_GETMESSAGE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "roleid"
+#include "message"
+#include "getmessageres"
+#include "getsavedmsg_re.hpp"
+#include "roleofflinemessages.hpp"
+#include "gametalkclient.hpp"
+#include "gametalkmanager.h"
+#include "namemanager.h"
+
+namespace GNET
+{
+
+class GetMessage : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getmessage"
+#undef	RPC_BASECLASS
+	unsigned int linksid;
+	unsigned int localsid;
+	bool toGT;
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// RoleId *arg = (RoleId *)argument;
+		// GetMessageRes *res = (GetMessageRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		RoleId *arg = (RoleId *)argument;
+		GetMessageRes *res = (GetMessageRes *)result;
+
+		if(toGT) {
+			if(res->retcode != ERR_SUCCESS || res->messages.size() == 0) return;
+
+			RoleOfflineMessages msgs;
+			msgs.receiver = (int64_t)arg->id;
+			Octets name;
+			MessageVector::iterator it = res->messages.begin();
+			MessageVector::iterator end = res->messages.end();
+			for(; it != end; ++it) {
+				RoleMsgBean msg;
+				msg.sender = it->srcroleid;
+				msg.sendername.swap(it->src_name);
+				msg.content.swap(it->msg);
+				//如果发送者已经改名字了，重新查找一下
+				if (NameManager::GetInstance()->FindName(it->srcroleid, name))
+					msg.sendername = name;
+				msgs.messages.push_back(msg);
+			}
+			GameTalkClient::GetInstance()->SendProtocol(msgs);
+		} else {
+			GetSavedMsg_Re re;
+			re.retcode = res->retcode;
+			re.roleid = arg->id;
+			re.localsid = localsid;
+			re.messages.swap(res->messages);
+			Octets name;
+			MessageVector::iterator it = re.messages.begin();
+			MessageVector::iterator end = re.messages.end();
+			for ( ; it != end; ++it)
+			{
+				if (NameManager::GetInstance()->FindName(it->srcroleid, name))
+					it->src_name = name;
+				if (NameManager::GetInstance()->FindName(it->dstroleid, name))
+					it->dst_name = name;
+			}
+			GDeliveryServer::GetInstance()->Send(linksid, re);
+		}
+
+		GameTalkManager::GetInstance()->ClearOfflineMessage(arg->id);
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

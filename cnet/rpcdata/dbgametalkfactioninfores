@@ -1,0 +1,80 @@
+#ifndef __GNET_DBGAMETALKFACTIONINFORES_RPCDATA
+#define __GNET_DBGAMETALKFACTIONINFORES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "dbfactionmember"
+
+namespace GNET
+{
+	class DBGameTalkFactionInfoRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		Octets name;
+		Octets announce;
+		Octets exinfo;
+		DBFactionMemberVector members;
+
+	public:
+		DBGameTalkFactionInfoRes ()
+		{
+		}
+
+		DBGameTalkFactionInfoRes(const DBGameTalkFactionInfoRes &rhs)
+			: retcode(rhs.retcode),name(rhs.name),announce(rhs.announce),
+			exinfo(rhs.exinfo),members(rhs.members) { }
+
+		Rpc::Data *Clone() const { return new DBGameTalkFactionInfoRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBGameTalkFactionInfoRes *r = dynamic_cast<const DBGameTalkFactionInfoRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				name = r->name;
+				announce = r->announce;
+				exinfo = r->exinfo;
+				members = r->members;
+			}
+			return *this;
+		}
+
+		DBGameTalkFactionInfoRes& operator = (const DBGameTalkFactionInfoRes &rhs)
+		{
+			const DBGameTalkFactionInfoRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				name = r->name;
+				announce = r->announce;
+				exinfo = r->exinfo;
+				members = r->members;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << name;
+			os << announce;
+			os << exinfo;
+			os << members;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> name;
+			os >> announce;
+			os >> exinfo;
+			os >> members;
+			return os;
+		}
+
+	};
+};
+#endif

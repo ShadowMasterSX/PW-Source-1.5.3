@@ -1,0 +1,77 @@
+#ifndef __GNET_DBSTOCKCANCELARG_RPCDATA
+#define __GNET_DBSTOCKCANCELARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBStockCancelArg : public GNET::Rpc::Data
+	{
+	public:
+		int userid;
+		unsigned int tid;
+		int volume;
+		short result;
+
+	public:
+		DBStockCancelArg (int l_userid = 0,unsigned int l_tid = 0,int l_volume = 0
+			,short l_result = 0)
+			: userid(l_userid),tid(l_tid),volume(l_volume)
+			,result(l_result)
+		{
+		}
+
+		DBStockCancelArg(const DBStockCancelArg &rhs)
+			: userid(rhs.userid),tid(rhs.tid),volume(rhs.volume),
+			result(rhs.result) { }
+
+		Rpc::Data *Clone() const { return new DBStockCancelArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBStockCancelArg *r = dynamic_cast<const DBStockCancelArg *>(&rhs);
+			if (r && r != this)
+			{
+				userid = r->userid;
+				tid = r->tid;
+				volume = r->volume;
+				result = r->result;
+			}
+			return *this;
+		}
+
+		DBStockCancelArg& operator = (const DBStockCancelArg &rhs)
+		{
+			const DBStockCancelArg *r = &rhs;
+			if (r && r != this)
+			{
+				userid = r->userid;
+				tid = r->tid;
+				volume = r->volume;
+				result = r->result;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			os << tid;
+			os << volume;
+			os << result;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			os >> tid;
+			os >> volume;
+			os >> result;
+			return os;
+		}
+
+	};
+};
+#endif

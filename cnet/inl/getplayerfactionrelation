@@ -1,0 +1,35 @@
+	public:
+		int factionid;
+		int roleid;
+		enum { PROTOCOL_TYPE = PROTOCOL_GETPLAYERFACTIONRELATION };
+	public:
+		GetPlayerFactionRelation() { type = PROTOCOL_GETPLAYERFACTIONRELATION; }
+		GetPlayerFactionRelation(void*) : Protocol(PROTOCOL_GETPLAYERFACTIONRELATION) { }
+		GetPlayerFactionRelation (int l_factionid,int l_roleid)
+			 : factionid(l_factionid),roleid(l_roleid)
+		{
+			type = PROTOCOL_GETPLAYERFACTIONRELATION;
+		}
+
+		GetPlayerFactionRelation(const GetPlayerFactionRelation &rhs)
+			: Protocol(rhs),factionid(rhs.factionid),roleid(rhs.roleid) { }
+
+		GNET::Protocol *Clone() const { return new GetPlayerFactionRelation(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << factionid;
+			os << roleid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> factionid;
+			os >> roleid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 32; }

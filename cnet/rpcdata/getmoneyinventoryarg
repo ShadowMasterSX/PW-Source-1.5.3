@@ -1,0 +1,64 @@
+#ifndef __GNET_GETMONEYINVENTORYARG_RPCDATA
+#define __GNET_GETMONEYINVENTORYARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GetMoneyInventoryArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		int data_mask;
+
+	public:
+		GetMoneyInventoryArg (int l_roleid = -1,int l_data_mask = 0)
+			: roleid(l_roleid),data_mask(l_data_mask)
+		{
+		}
+
+		GetMoneyInventoryArg(const GetMoneyInventoryArg &rhs)
+			: roleid(rhs.roleid),data_mask(rhs.data_mask) { }
+
+		Rpc::Data *Clone() const { return new GetMoneyInventoryArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GetMoneyInventoryArg *r = dynamic_cast<const GetMoneyInventoryArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				data_mask = r->data_mask;
+			}
+			return *this;
+		}
+
+		GetMoneyInventoryArg& operator = (const GetMoneyInventoryArg &rhs)
+		{
+			const GetMoneyInventoryArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				data_mask = r->data_mask;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << data_mask;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> data_mask;
+			return os;
+		}
+
+	};
+};
+#endif

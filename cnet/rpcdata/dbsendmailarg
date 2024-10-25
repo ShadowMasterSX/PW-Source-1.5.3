@@ -1,0 +1,66 @@
+#ifndef __GNET_DBSENDMAILARG_RPCDATA
+#define __GNET_DBSENDMAILARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmail"
+#include "gmailsyncdata"
+
+namespace GNET
+{
+	class DBSendMailArg : public GNET::Rpc::Data
+	{
+	public:
+		GMail mail;
+		GMailSyncData syncdata;
+
+	public:
+		DBSendMailArg (const GMail& l_mail = GMail(),const GMailSyncData& l_syncdata = GMailSyncData())
+			: mail(l_mail),syncdata(l_syncdata)
+		{
+		}
+
+		DBSendMailArg(const DBSendMailArg &rhs)
+			: mail(rhs.mail),syncdata(rhs.syncdata) { }
+
+		Rpc::Data *Clone() const { return new DBSendMailArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBSendMailArg *r = dynamic_cast<const DBSendMailArg *>(&rhs);
+			if (r && r != this)
+			{
+				mail = r->mail;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		DBSendMailArg& operator = (const DBSendMailArg &rhs)
+		{
+			const DBSendMailArg *r = &rhs;
+			if (r && r != this)
+			{
+				mail = r->mail;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << mail;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> mail;
+			os >> syncdata;
+			return os;
+		}
+
+	};
+};
+#endif

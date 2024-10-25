@@ -1,0 +1,60 @@
+
+#ifndef __GNET_DBUNDODELETEROLE_HPP
+#define __GNET_DBUNDODELETEROLE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbundodeleterolearg"
+#include "dbundodeleteroleres"
+
+#include "undodeleterole_re.hpp"
+#include "gproviderserver.hpp"
+#include "gametalkmanager.h"
+#include "mapuser.h"
+namespace GNET
+{
+
+class DBUndoDeleteRole : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbundodeleterole"
+#undef	RPC_BASECLASS
+	int userid;
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBUndoDeleteRoleArg *arg = (DBUndoDeleteRoleArg *)argument;
+		// DBUndoDeleteRoleRes *res = (DBUndoDeleteRoleRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBUndoDeleteRoleArg *arg = (DBUndoDeleteRoleArg *)argument;
+		DBUndoDeleteRoleRes *res = (DBUndoDeleteRoleRes *)result;
+		
+		GDeliveryServer* dsm=GDeliveryServer::GetInstance();
+		UserInfo* user = UserContainer::GetInstance().FindUser(userid);
+		if (NULL==user) 
+			return;
+
+		if (res->retcode == ERR_SUCCESS)
+		{
+			user->role_status[arg->roleid % MAX_ROLE_COUNT] = _ROLE_STATUS_NORMAL;
+			dsm->Send(user->linksid,UndoDeleteRole_Re(ERR_SUCCESS,arg->roleid,user->localsid));
+			GameTalkManager::GetInstance()->NotifyUndoRemoveRole(arg->roleid);
+		}
+		else
+		{
+			dsm->Send(user->linksid,UndoDeleteRole_Re(ERR_UNDODELROLE,arg->roleid,user->localsid));
+		}
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+	}
+
+};
+
+};
+#endif

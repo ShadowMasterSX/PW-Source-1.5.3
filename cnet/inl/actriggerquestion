@@ -1,0 +1,35 @@
+	public:
+		int roleid;
+		int reserved;
+		enum { PROTOCOL_TYPE = PROTOCOL_ACTRIGGERQUESTION };
+	public:
+		ACTriggerQuestion() { type = PROTOCOL_ACTRIGGERQUESTION; }
+		ACTriggerQuestion(void*) : Protocol(PROTOCOL_ACTRIGGERQUESTION) { }
+		ACTriggerQuestion (int l_roleid,int l_reserved)
+			 : roleid(l_roleid),reserved(l_reserved)
+		{
+			type = PROTOCOL_ACTRIGGERQUESTION;
+		}
+
+		ACTriggerQuestion(const ACTriggerQuestion &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),reserved(rhs.reserved) { }
+
+		GNET::Protocol *Clone() const { return new ACTriggerQuestion(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << reserved;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> reserved;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 8192; }

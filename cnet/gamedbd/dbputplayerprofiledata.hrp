@@ -1,0 +1,70 @@
+
+#ifndef __GNET_DBPUTPLAYERPROFILEDATA_HPP
+#define __GNET_DBPUTPLAYERPROFILEDATA_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbputplayerprofiledataarg"
+#include "dbputplayerprofiledatares"
+
+namespace GNET
+{
+
+class DBPutPlayerProfileData : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbputplayerprofiledata"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBPutPlayerProfileDataArg *arg = (DBPutPlayerProfileDataArg *)argument;
+		DBPutPlayerProfileDataRes *res = (DBPutPlayerProfileDataRes *)result;
+
+		LOG_TRACE( "DBPutPlayerProfileData, roleid=%d.\n", arg->roleid );
+		
+		try {
+			StorageEnv::Storage* pprofile = StorageEnv::GetStorage("playerprofile");
+			
+			StorageEnv::AtomTransaction txn;
+			try {
+				Marshal::OctetsStream key, value_profile;
+
+				key << arg->roleid;
+				value_profile << arg->data;	
+								
+				pprofile->insert(key, value_profile,txn);	
+				
+				res->retcode = ERR_SUCCESS;
+			} catch(DbException e) { 
+				throw; 
+			} catch(...) {
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		} catch ( DbException e ) {
+			Log::log( LOG_ERR, "DBPutPlayerProfileData, roleid=%d, what=%s\n", arg->roleid, e.what() );
+			res->retcode = ERR_EXCEPTION;
+		}
+
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBPutPlayerProfileDataArg *arg = (DBPutPlayerProfileDataArg *)argument;
+		// DBPutPlayerProfileDataRes *res = (DBPutPlayerProfileDataRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,8 @@
+		GNET::Protocol *Clone() const {  return new GetAddCashSN(*this); }
+	public:
+		enum { PROTOCOL_TYPE = RPC_GETADDCASHSN };
+		GetAddCashSN(Type type, Rpc::Data *argument, Rpc::Data *result)
+			: RPC_BASECLASS(type, argument, result ) { }
+		GetAddCashSN(const GetAddCashSN &rhs) : RPC_BASECLASS(rhs) { }
+		bool SizePolicy(size_t size) const { return size <= 128; }
+		bool TimePolicy(int timeout) const { return timeout <= 60; }

@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBAUTOLOCKGET_HPP
+#define __GNET_DBAUTOLOCKGET_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbautolockgetarg"
+#include "dbautolockgetres"
+
+namespace GNET
+{
+
+class DBAutolockGet : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbautolockget"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBAutolockGetArg *arg = (DBAutolockGetArg *)argument;
+		// DBAutolockGetRes *res = (DBAutolockGetRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBAutolockGetArg *arg = (DBAutolockGetArg *)argument;
+		// DBAutolockGetRes *res = (DBAutolockGetRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

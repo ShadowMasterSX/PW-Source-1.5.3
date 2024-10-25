@@ -1,0 +1,62 @@
+
+#ifndef __GNET_GETFACTIONINFO_HPP
+#define __GNET_GETFACTIONINFO_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "dbbuffer.h"
+#include "factionid"
+#include "factioninfores"
+
+namespace GNET
+{
+
+class GetFactionInfo : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getfactioninfo"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		FactionId *arg = (FactionId *)argument;
+		FactionInfoRes *res = (FactionInfoRes *)result;
+
+		LOG_TRACE( "GetFactionInfo, fid=%d.\n", arg->fid );
+
+		try
+		{
+			StorageEnv::Storage * pfactioninfo = StorageEnv::GetStorage("factioninfo");
+			StorageEnv::AtomTransaction txn;
+			try{
+				Marshal::OctetsStream(pfactioninfo->find( Marshal::OctetsStream() << *arg,txn)) >> res->value;
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "GetFactionInfo, roleid=%d, what=%s\n", arg->fid, e.what() );
+			res->retcode = -1;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

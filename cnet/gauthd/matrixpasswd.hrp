@@ -1,0 +1,55 @@
+
+#ifndef __GNET_MATRIXPASSWD_HPP
+#define __GNET_MATRIXPASSWD_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "matrixpasswdarg"
+#include "matrixpasswdres"
+
+namespace GNET
+{
+
+class MatrixPasswd : public ProxyRpc
+{
+#define	RPC_BASECLASS	ProxyRpc
+	#include "matrixpasswd"
+#undef	RPC_BASECLASS
+
+	bool Delivery(Manager::Session::ID proxy_sid, const OctetsStream& osArg)
+	{
+		// TODO
+		// MatrixPasswdArg arg;
+		// osArg >> arg;
+		if( GAuthClient::GetInstance()->SendProtocol( *this ) )
+		{
+			return true;
+		}
+		else
+		{
+			SetResult(MatrixPasswdRes(ERR_DELIVER_SEND));
+			SendToSponsor();
+			return false;
+		}
+	}
+
+	void PostProcess(Manager::Session::ID proxy_sid,const OctetsStream& osArg, const OctetsStream& osRes)
+	{
+		// TODO
+		// MatrixPasswdArg arg;
+		// osArg >> arg;
+		// MatrixPasswdRes res;
+		// osRes >> res;
+		// SetResult( &res ); // if you modified res, do not forget to call this. 
+	}
+
+	void OnTimeout( )
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

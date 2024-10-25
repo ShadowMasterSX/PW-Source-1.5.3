@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBREFUPDATEREFERRAL_HPP
+#define __GNET_DBREFUPDATEREFERRAL_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbrefupdatereferralarg"
+
+
+namespace GNET
+{
+
+class DBRefUpdateReferral : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbrefupdatereferral"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBRefUpdateReferralArg *arg = (DBRefUpdateReferralArg *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBRefUpdateReferralArg *arg = (DBRefUpdateReferralArg *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

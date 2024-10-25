@@ -1,0 +1,77 @@
+
+#ifndef __GNET_DBCREATEFACTIONFORTRESS_HPP
+#define __GNET_DBCREATEFACTIONFORTRESS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbcreatefactionfortressarg"
+#include "dbcreatefactionfortressres"
+
+#include "gmailendsync.hpp"
+#include "createfactionfortress_re.hpp"
+#include "factionfortressmanager.h"
+
+namespace GNET
+{
+
+class DBCreateFactionFortress : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbcreatefactionfortress"
+#undef	RPC_BASECLASS
+	unsigned int save_linksid;
+	unsigned int save_localsid;
+	int          save_gsid;
+	void SyncGameServer( int roleid,GMailSyncData& syncdata, int retcode )
+	{
+		GProviderServer::GetInstance()->DispatchProtocol( save_gsid, GMailEndSync(0,retcode,roleid,syncdata));
+	}
+	void SendResult( int retcode,const GFactionFortressBriefInfo & brief)
+	{
+		GDeliveryServer::GetInstance()->Send(
+				save_linksid,
+				CreateFactionFortress_Re(retcode,brief,save_localsid)
+			);
+	}
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBCreateFactionFortressArg *arg = (DBCreateFactionFortressArg *)argument;
+		// DBCreateFactionFortressRes *res = (DBCreateFactionFortressRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		DBCreateFactionFortressArg *arg = (DBCreateFactionFortressArg *)argument;
+		DBCreateFactionFortressRes *res = (DBCreateFactionFortressRes *)result;
+		DEBUG_PRINT("dbcreatefactionfortress: rpc return. retcode=%d roleid=%d factionid=%d", res->retcode,arg->roleid,arg->detail.factionid);
+
+		if(res->retcode ==ERR_SUCCESS)
+		{
+			if(!FactionFortressMan::GetInstance().OnDBCreateFortress(arg->detail))	
+			{
+				Log::log(LOG_WARNING,"dbcreatefactionfortress: OnDBCreateFortress failed. factionid=%d", arg->detail.factionid);
+			}
+		}
+		GFactionFortressBriefInfo brief;
+		FactionFortressDetailToBrief(arg->detail,brief);
+		SendResult( res->retcode,brief);
+		SyncGameServer(arg->roleid,res->syncdata,res->retcode);
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+		DBCreateFactionFortressArg *arg = (DBCreateFactionFortressArg *)argument;
+		Log::log(LOG_ERR,"dbcreatefactionfortress: timeout. roleid=%d factionid=%d", arg->roleid,arg->detail.factionid);
+		SendResult(ERR_TIMEOUT,GFactionFortressBriefInfo());
+		//do not sync gameserver, because gameserver will timeout and disconnect this player
+	}
+
+};
+
+};
+#endif

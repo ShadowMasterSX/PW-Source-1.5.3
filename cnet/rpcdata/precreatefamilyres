@@ -1,0 +1,64 @@
+#ifndef __GNET_PRECREATEFAMILYRES_RPCDATA
+#define __GNET_PRECREATEFAMILYRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class PreCreateFamilyRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		int familyid;
+
+	public:
+		PreCreateFamilyRes (int l_retcode = -1,int l_familyid = -1)
+			: retcode(l_retcode),familyid(l_familyid)
+		{
+		}
+
+		PreCreateFamilyRes(const PreCreateFamilyRes &rhs)
+			: retcode(rhs.retcode),familyid(rhs.familyid) { }
+
+		Rpc::Data *Clone() const { return new PreCreateFamilyRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const PreCreateFamilyRes *r = dynamic_cast<const PreCreateFamilyRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				familyid = r->familyid;
+			}
+			return *this;
+		}
+
+		PreCreateFamilyRes& operator = (const PreCreateFamilyRes &rhs)
+		{
+			const PreCreateFamilyRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				familyid = r->familyid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << familyid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> familyid;
+			return os;
+		}
+
+	};
+};
+#endif

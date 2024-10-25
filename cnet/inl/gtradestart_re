@@ -1,0 +1,44 @@
+	public:
+		int retcode;
+		unsigned int tid;
+		int roleid;
+		unsigned int localsid;
+		enum { PROTOCOL_TYPE = PROTOCOL_GTRADESTART_RE };
+	public:
+		GTradeStart_Re() { type = PROTOCOL_GTRADESTART_RE; }
+		GTradeStart_Re(void*) : Protocol(PROTOCOL_GTRADESTART_RE) { }
+		GTradeStart_Re (int l_retcode,unsigned int l_tid,int l_roleid,
+			unsigned int l_localsid)
+			 : retcode(l_retcode),tid(l_tid),roleid(l_roleid)
+			,localsid(l_localsid)
+		{
+			type = PROTOCOL_GTRADESTART_RE;
+		}
+
+		GTradeStart_Re(const GTradeStart_Re &rhs)
+			: Protocol(rhs),retcode(rhs.retcode),tid(rhs.tid),roleid(rhs.roleid)
+			,localsid(rhs.localsid) { }
+
+		GNET::Protocol *Clone() const { return new GTradeStart_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << tid;
+			os << roleid;
+			os << localsid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> tid;
+			os >> roleid;
+			os >> localsid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 32; }

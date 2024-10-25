@@ -1,0 +1,83 @@
+#ifndef __GNET_DBSYSAUCTIONCASHSPENDARG_RPCDATA
+#define __GNET_DBSYSAUCTIONCASHSPENDARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "groleinventory"
+
+namespace GNET
+{
+	class DBSysAuctionCashSpendArg : public GNET::Rpc::Data
+	{
+	public:
+		int userid;
+		int roleid;
+		unsigned int cash_spend;
+		unsigned int sa_id;
+		GRoleInventory item;
+
+	public:
+		DBSysAuctionCashSpendArg (int l_userid = 0,int l_roleid = 0,unsigned int l_cash_spend = 0
+			,unsigned int l_sa_id = 0,GRoleInventory l_item = GRoleInventory())
+			: userid(l_userid),roleid(l_roleid),cash_spend(l_cash_spend)
+			,sa_id(l_sa_id),item(l_item)
+		{
+		}
+
+		DBSysAuctionCashSpendArg(const DBSysAuctionCashSpendArg &rhs)
+			: userid(rhs.userid),roleid(rhs.roleid),cash_spend(rhs.cash_spend),
+			sa_id(rhs.sa_id),item(rhs.item) { }
+
+		Rpc::Data *Clone() const { return new DBSysAuctionCashSpendArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBSysAuctionCashSpendArg *r = dynamic_cast<const DBSysAuctionCashSpendArg *>(&rhs);
+			if (r && r != this)
+			{
+				userid = r->userid;
+				roleid = r->roleid;
+				cash_spend = r->cash_spend;
+				sa_id = r->sa_id;
+				item = r->item;
+			}
+			return *this;
+		}
+
+		DBSysAuctionCashSpendArg& operator = (const DBSysAuctionCashSpendArg &rhs)
+		{
+			const DBSysAuctionCashSpendArg *r = &rhs;
+			if (r && r != this)
+			{
+				userid = r->userid;
+				roleid = r->roleid;
+				cash_spend = r->cash_spend;
+				sa_id = r->sa_id;
+				item = r->item;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			os << roleid;
+			os << cash_spend;
+			os << sa_id;
+			os << item;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			os >> roleid;
+			os >> cash_spend;
+			os >> sa_id;
+			os >> item;
+			return os;
+		}
+
+	};
+};
+#endif

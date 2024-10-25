@@ -1,0 +1,69 @@
+#ifndef __GNET_POSTDELETEFAMILYARG_RPCDATA
+#define __GNET_POSTDELETEFAMILYARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class PostDeleteFamilyArg : public GNET::Rpc::Data
+	{
+	public:
+		int zoneid;
+		int familyid;
+		Octets familyname;
+
+	public:
+		PostDeleteFamilyArg (int l_zoneid = -1,int l_familyid = -1,const Octets& l_familyname = Octets(0))
+			: zoneid(l_zoneid),familyid(l_familyid),familyname(l_familyname)
+		{
+		}
+
+		PostDeleteFamilyArg(const PostDeleteFamilyArg &rhs)
+			: zoneid(rhs.zoneid),familyid(rhs.familyid),familyname(rhs.familyname) { }
+
+		Rpc::Data *Clone() const { return new PostDeleteFamilyArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const PostDeleteFamilyArg *r = dynamic_cast<const PostDeleteFamilyArg *>(&rhs);
+			if (r && r != this)
+			{
+				zoneid = r->zoneid;
+				familyid = r->familyid;
+				familyname = r->familyname;
+			}
+			return *this;
+		}
+
+		PostDeleteFamilyArg& operator = (const PostDeleteFamilyArg &rhs)
+		{
+			const PostDeleteFamilyArg *r = &rhs;
+			if (r && r != this)
+			{
+				zoneid = r->zoneid;
+				familyid = r->familyid;
+				familyname = r->familyname;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << zoneid;
+			os << familyid;
+			os << familyname;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> zoneid;
+			os >> familyid;
+			os >> familyname;
+			return os;
+		}
+
+	};
+};
+#endif

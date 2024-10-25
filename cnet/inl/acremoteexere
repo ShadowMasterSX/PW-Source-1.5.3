@@ -1,0 +1,32 @@
+	public:
+		int rescode;
+		enum { PROTOCOL_TYPE = PROTOCOL_ACREMOTEEXERE };
+	public:
+		ACRemoteExeRe() { type = PROTOCOL_ACREMOTEEXERE; }
+		ACRemoteExeRe(void*) : Protocol(PROTOCOL_ACREMOTEEXERE) { }
+		ACRemoteExeRe (int l_rescode)
+			 : rescode(l_rescode)
+		{
+			type = PROTOCOL_ACREMOTEEXERE;
+		}
+
+		ACRemoteExeRe(const ACRemoteExeRe &rhs)
+			: Protocol(rhs),rescode(rhs.rescode) { }
+
+		GNET::Protocol *Clone() const { return new ACRemoteExeRe(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << rescode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> rescode;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

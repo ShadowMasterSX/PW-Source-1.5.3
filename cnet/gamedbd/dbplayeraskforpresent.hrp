@@ -1,0 +1,140 @@
+
+#ifndef __GNET_DBPLAYERASKFORPRESENT_HPP
+#define __GNET_DBPLAYERASKFORPRESENT_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbplayeraskforpresentarg"
+#include "dbplayeraskforpresentres"
+
+namespace GNET
+{
+
+class DBPlayerAskForPresent : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbplayeraskforpresent"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBPlayerAskForPresentArg *arg = (DBPlayerAskForPresentArg *)argument;
+		DBPlayerAskForPresentRes *res = (DBPlayerAskForPresentRes *)result;
+		
+		LOG_TRACE("DBPlayerAskForPresent, roleid=%d targetroleid=%d goods_id=%d doods_index=%d goods_slot=%d", arg->roleid, arg->target_roleid, arg->goods_id, arg->goods_index, arg->goods_slot);
+
+		Marshal::OctetsStream key, title;
+		try
+		{
+			StorageEnv::Storage * pmailbox = StorageEnv::GetStorage("mailbox");
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				key << arg->target_roleid;
+
+				//先验证索取对象是否存在，索取对象roleid是客户端从服务器查询过的，所以理论上不会有问题
+				Marshal::OctetsStream base_value;
+				if (!pbase->find(key, base_value, txn))
+					throw DbException(DB_VERIFY_BAD);
+				
+				time_t now = Timer::GetTime();
+				Marshal::OctetsStream mailvalue;
+				GMailBox box;
+				if(pmailbox->find(key,mailvalue,txn))
+					mailvalue >> box;
+				else
+				{
+					box.timestamp = now;
+					box.mails.clear();
+				}
+				
+				int size = box.mails.size();
+				if (size >= SYS_MAIL_LIMIT)	//索取对象邮箱满了
+					res->retcode = ERR_GP_ASK_TARGET_MAILBOX_FULL;
+				else if (now-box.timestamp > 2592000)	//索取对象角色被冻结
+				{
+					res->retcode = ERR_MS_ACCOUNTFROZEN;
+					bool changed = false;
+					for(GMailVector::iterator i=box.mails.begin();i!=box.mails.end();)
+					{
+						bool todelete = false;
+						if((i->header.attribute&MAIL_RESERVED)==0)
+						{
+							if(now - i->header.receiver > 2592000)
+								todelete = true;
+						}
+						if(todelete)
+						{
+							changed = true;
+							i = box.mails.erase(i);
+						}else
+							i++;
+					}
+					if(changed)
+						pmailbox->insert( key, Marshal::OctetsStream()<<box, txn );
+				}
+				else
+				{
+					//检测索取对象的邮箱里收到几封自己的索取邮件了
+					size_t count = 0;
+					for(GMailVector::iterator i=box.mails.begin();i!=box.mails.end();i++)
+					{
+						if (i->header.sndr_type == _MST_PLAYERPRESENT && i->header.sender == PLAYERPRESENT_ASK)
+						{
+							Marshal::OctetsStream os(i->header.title);
+							int troleid = 0;
+							os >> troleid;
+							if (troleid == arg->roleid)
+								count++;
+						}
+					}
+					if (count >= 3)
+						res->retcode = ERR_GP_ASK_TARGET_TOO_MUCH;
+					else
+					{
+						title << arg->roleid << arg->goods_id << arg->goods_index << arg->goods_slot;
+						res->inform_target.receiver = arg->target_roleid;
+						res->inform_target.sndr_type = _MST_PLAYERPRESENT;
+						res->inform_target.sender = PLAYERPRESENT_ASK;
+						res->inform_target.sender_name = arg->rolename;
+						res->inform_target.title = title;
+						MailSender::Send(pmailbox, res->inform_target, 0, txn);
+						
+						res->retcode = ERR_SUCCESS;
+						LOG_TRACE( "DBPlayerAskForPresent OK, roleid=%d, target_roleid=%d\n", arg->roleid, arg->target_roleid );
+					}
+				}
+			}
+			catch( DbException e ) { throw; }
+			catch( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch( DbException e )
+		{
+			Log::log( LOG_ERR, "DBPlayerAskForPresent, roleid=%d, what=%s\n", arg->roleid, e.what() );
+			res->retcode = ERR_VERIFYFAILED;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBPlayerAskForPresentArg *arg = (DBPlayerAskForPresentArg *)argument;
+		// DBPlayerAskForPresentRes *res = (DBPlayerAskForPresentRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

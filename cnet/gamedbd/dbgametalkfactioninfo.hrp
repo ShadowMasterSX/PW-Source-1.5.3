@@ -1,0 +1,89 @@
+
+#ifndef __GNET_DBGAMETALKFACTIONINFO_HPP
+#define __GNET_DBGAMETALKFACTIONINFO_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbgametalkfactioninfoarg"
+#include "dbgametalkfactioninfores"
+#include "factionid"
+#include "gfactioninfo"
+#include "gmember"
+
+namespace GNET
+{
+
+class DBGameTalkFactionInfo : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbgametalkfactioninfo"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBGameTalkFactionInfoArg *arg = (DBGameTalkFactionInfoArg *)argument;
+		DBGameTalkFactionInfoRes *res = (DBGameTalkFactionInfoRes *)result;
+		LOG_TRACE("DBGameTalkFactionInfo, fid=%u.\n", arg->factionid);
+
+		try {
+			StorageEnv::Storage * pinfo = StorageEnv::GetStorage("factioninfo");
+			StorageEnv::Storage * puser = StorageEnv::GetStorage("userfaction");
+			StorageEnv::CommonTransaction txn;
+
+			FactionId fid(arg->factionid);
+			GFactionInfo info;
+			GUserFaction user;
+			try {
+				Marshal::OctetsStream(pinfo->find(Marshal::OctetsStream() << fid, txn)) >> info;
+				res->name.swap(info.name);
+				res->announce.swap(info.announce);
+				res->exinfo = (Marshal::OctetsStream() << info.level);
+
+				GMemberVector::iterator it = info.member.begin();
+				GMemberVector::iterator end = info.member.end();
+				for(; it != end ; ++it) {
+					Marshal::OctetsStream suser;
+					if(puser->find(Marshal::OctetsStream() << it->rid, suser, txn)) {
+						suser >> user;
+						DBFactionMember member;
+						member.title = (int)it->role;
+						member.info.roleid = (int)it->rid;
+						member.info.name.swap(user.name);
+						res->members.push_back(member);
+					}
+				}
+			}
+			catch (DbException e) { throw; }
+			catch (...)
+			{
+				DbException e(DB_OLD_VERSION);
+				txn.abort(e);
+				throw e;
+			}
+			res->retcode = ERR_SUCCESS;
+		}
+		catch ( DbException e )
+		{
+			Log::log(LOG_ERR, "DBGameTalkFactionInfo error, fid=%u, what=%s\n", arg->factionid, e.what());
+			res->retcode = ERR_DATANOTFIND;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBGameTalkFactionInfoArg *arg = (DBGameTalkFactionInfoArg *)argument;
+		// DBGameTalkFactionInfoRes *res = (DBGameTalkFactionInfoRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

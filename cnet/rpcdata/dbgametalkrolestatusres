@@ -1,0 +1,68 @@
+#ifndef __GNET_DBGAMETALKROLESTATUSRES_RPCDATA
+#define __GNET_DBGAMETALKROLESTATUSRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBGameTalkRoleStatusRes : public GNET::Rpc::Data
+	{
+	public:
+		int status;
+		int64_t forbid_time;
+		unsigned int userid;
+
+	public:
+		DBGameTalkRoleStatusRes ()
+		{
+		}
+
+		DBGameTalkRoleStatusRes(const DBGameTalkRoleStatusRes &rhs)
+			: status(rhs.status),forbid_time(rhs.forbid_time),userid(rhs.userid) { }
+
+		Rpc::Data *Clone() const { return new DBGameTalkRoleStatusRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBGameTalkRoleStatusRes *r = dynamic_cast<const DBGameTalkRoleStatusRes *>(&rhs);
+			if (r && r != this)
+			{
+				status = r->status;
+				forbid_time = r->forbid_time;
+				userid = r->userid;
+			}
+			return *this;
+		}
+
+		DBGameTalkRoleStatusRes& operator = (const DBGameTalkRoleStatusRes &rhs)
+		{
+			const DBGameTalkRoleStatusRes *r = &rhs;
+			if (r && r != this)
+			{
+				status = r->status;
+				forbid_time = r->forbid_time;
+				userid = r->userid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << status;
+			os << forbid_time;
+			os << userid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> status;
+			os >> forbid_time;
+			os >> userid;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,70 @@
+#ifndef __GNET_ROLEDATAPAIR_RPCDATA
+#define __GNET_ROLEDATAPAIR_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "roleid"
+#include "groledata"
+
+namespace GNET
+{
+	class RoleDataPair : public GNET::Rpc::Data
+	{
+	public:
+		RoleId key;
+		char overwrite;
+		GRoleData value;
+
+	public:
+		RoleDataPair ()
+		{
+		}
+
+		RoleDataPair(const RoleDataPair &rhs)
+			: key(rhs.key),overwrite(rhs.overwrite),value(rhs.value) { }
+
+		Rpc::Data *Clone() const { return new RoleDataPair(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const RoleDataPair *r = dynamic_cast<const RoleDataPair *>(&rhs);
+			if (r && r != this)
+			{
+				key = r->key;
+				overwrite = r->overwrite;
+				value = r->value;
+			}
+			return *this;
+		}
+
+		RoleDataPair& operator = (const RoleDataPair &rhs)
+		{
+			const RoleDataPair *r = &rhs;
+			if (r && r != this)
+			{
+				key = r->key;
+				overwrite = r->overwrite;
+				value = r->value;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << key;
+			os << overwrite;
+			os << value;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> key;
+			os >> overwrite;
+			os >> value;
+			return os;
+		}
+
+	};
+};
+#endif

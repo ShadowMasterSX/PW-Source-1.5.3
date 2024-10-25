@@ -1,0 +1,149 @@
+#ifndef __GNET_USERLOGIN2RES_RPCDATA
+#define __GNET_USERLOGIN2RES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class UserLogin2Res : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		int remain_playtime;
+		int func;
+		int funcparm;
+		char blIsGM;
+		int free_time_left;
+		int free_time_end;
+		int creatime;
+		int adduppoint;
+		int soldpoint;
+		ByteVector auth;
+		unsigned char gender;
+		int remain_coupon;
+		int today_exchange_coupon;
+		int today_remain_coupon;
+		Octets nickname;
+
+	public:
+		UserLogin2Res (int l_retcode = -1,int l_remain_playtime = 0,int l_func = 0
+			,int l_funcparm = 0,char l_blIsGM = 0,int l_free_time_left = 0
+			,int l_free_time_end = 0,int l_creatime = 0,int l_adduppoint = 0
+			,int l_soldpoint = 0,const ByteVector& l_auth = ByteVector(),unsigned char l_gender = 0
+			,int l_remain_coupon = 0,int l_today_exchange_coupon = 0,int l_today_remain_coupon = 0
+			,const Octets& l_nickname = Octets())
+			: retcode(l_retcode),remain_playtime(l_remain_playtime),func(l_func)
+			,funcparm(l_funcparm),blIsGM(l_blIsGM),free_time_left(l_free_time_left)
+			,free_time_end(l_free_time_end),creatime(l_creatime),adduppoint(l_adduppoint)
+			,soldpoint(l_soldpoint),auth(l_auth),gender(l_gender)
+			,remain_coupon(l_remain_coupon),today_exchange_coupon(l_today_exchange_coupon),today_remain_coupon(l_today_remain_coupon)
+			,nickname(l_nickname)
+		{
+		}
+
+		UserLogin2Res(const UserLogin2Res &rhs)
+			: retcode(rhs.retcode),remain_playtime(rhs.remain_playtime),func(rhs.func),
+			funcparm(rhs.funcparm),blIsGM(rhs.blIsGM),free_time_left(rhs.free_time_left),
+			free_time_end(rhs.free_time_end),creatime(rhs.creatime),adduppoint(rhs.adduppoint),
+			soldpoint(rhs.soldpoint),auth(rhs.auth),gender(rhs.gender),
+			remain_coupon(rhs.remain_coupon),today_exchange_coupon(rhs.today_exchange_coupon),today_remain_coupon(rhs.today_remain_coupon),
+			nickname(rhs.nickname) { }
+
+		Rpc::Data *Clone() const { return new UserLogin2Res(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const UserLogin2Res *r = dynamic_cast<const UserLogin2Res *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				remain_playtime = r->remain_playtime;
+				func = r->func;
+				funcparm = r->funcparm;
+				blIsGM = r->blIsGM;
+				free_time_left = r->free_time_left;
+				free_time_end = r->free_time_end;
+				creatime = r->creatime;
+				adduppoint = r->adduppoint;
+				soldpoint = r->soldpoint;
+				auth = r->auth;
+				gender = r->gender;
+				remain_coupon = r->remain_coupon;
+				today_exchange_coupon = r->today_exchange_coupon;
+				today_remain_coupon = r->today_remain_coupon;
+				nickname = r->nickname;
+			}
+			return *this;
+		}
+
+		UserLogin2Res& operator = (const UserLogin2Res &rhs)
+		{
+			const UserLogin2Res *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				remain_playtime = r->remain_playtime;
+				func = r->func;
+				funcparm = r->funcparm;
+				blIsGM = r->blIsGM;
+				free_time_left = r->free_time_left;
+				free_time_end = r->free_time_end;
+				creatime = r->creatime;
+				adduppoint = r->adduppoint;
+				soldpoint = r->soldpoint;
+				auth = r->auth;
+				gender = r->gender;
+				remain_coupon = r->remain_coupon;
+				today_exchange_coupon = r->today_exchange_coupon;
+				today_remain_coupon = r->today_remain_coupon;
+				nickname = r->nickname;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << remain_playtime;
+			os << func;
+			os << funcparm;
+			os << blIsGM;
+			os << free_time_left;
+			os << free_time_end;
+			os << creatime;
+			os << adduppoint;
+			os << soldpoint;
+			os << auth;
+			os << gender;
+			os << remain_coupon;
+			os << today_exchange_coupon;
+			os << today_remain_coupon;
+			os << nickname;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> remain_playtime;
+			os >> func;
+			os >> funcparm;
+			os >> blIsGM;
+			os >> free_time_left;
+			os >> free_time_end;
+			os >> creatime;
+			os >> adduppoint;
+			os >> soldpoint;
+			os >> auth;
+			os >> gender;
+			os >> remain_coupon;
+			os >> today_exchange_coupon;
+			os >> today_remain_coupon;
+			os >> nickname;
+			return os;
+		}
+
+	};
+};
+#endif

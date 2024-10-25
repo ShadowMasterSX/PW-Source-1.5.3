@@ -1,0 +1,45 @@
+
+#ifndef __GNET_GMGETGAMEATTRI_HPP
+#define __GNET_GMGETGAMEATTRI_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "gmgetgameattriarg"
+#include "gmgetgameattrires"
+
+#include "mapgameattr.h"
+
+namespace GNET
+{
+
+class GMGetGameAttri : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "gmgetgameattri"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		GMGetGameAttriArg *arg = (GMGetGameAttriArg *)argument;
+		GMGetGameAttriRes *res = (GMGetGameAttriRes *)result;    
+		res->value=GameAttrMap::Get(arg->attribute);
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// GMGetGameAttriArg *arg = (GMGetGameAttriArg *)argument;
+		// GMGetGameAttriRes *res = (GMGetGameAttriRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

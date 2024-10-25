@@ -1,0 +1,59 @@
+#ifndef __GNET_POSTDELETEROLERES_RPCDATA
+#define __GNET_POSTDELETEROLERES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class PostDeleteRoleRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+
+	public:
+		PostDeleteRoleRes (int l_retcode = -1)
+			: retcode(l_retcode)
+		{
+		}
+
+		PostDeleteRoleRes(const PostDeleteRoleRes &rhs)
+			: retcode(rhs.retcode) { }
+
+		Rpc::Data *Clone() const { return new PostDeleteRoleRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const PostDeleteRoleRes *r = dynamic_cast<const PostDeleteRoleRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		PostDeleteRoleRes& operator = (const PostDeleteRoleRes &rhs)
+		{
+			const PostDeleteRoleRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			return os;
+		}
+
+	};
+};
+#endif

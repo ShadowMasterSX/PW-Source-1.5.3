@@ -1,0 +1,59 @@
+#ifndef __GNET_ADDFACTIONRES_RPCDATA
+#define __GNET_ADDFACTIONRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class AddFactionRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+
+	public:
+		AddFactionRes (int l_retcode = -1)
+			: retcode(l_retcode)
+		{
+		}
+
+		AddFactionRes(const AddFactionRes &rhs)
+			: retcode(rhs.retcode) { }
+
+		Rpc::Data *Clone() const { return new AddFactionRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const AddFactionRes *r = dynamic_cast<const AddFactionRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		AddFactionRes& operator = (const AddFactionRes &rhs)
+		{
+			const AddFactionRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			return os;
+		}
+
+	};
+};
+#endif

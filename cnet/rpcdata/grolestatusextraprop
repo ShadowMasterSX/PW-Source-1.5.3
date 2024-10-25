@@ -1,0 +1,58 @@
+#ifndef __GNET_GROLESTATUSEXTRAPROP_RPCDATA
+#define __GNET_GROLESTATUSEXTRAPROP_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GRoleStatusExtraProp : public GNET::Rpc::Data
+	{
+	public:
+		std::map<int,Octets> data;
+
+	public:
+		GRoleStatusExtraProp ()
+		{
+		}
+
+		GRoleStatusExtraProp(const GRoleStatusExtraProp &rhs)
+			: data(rhs.data) { }
+
+		Rpc::Data *Clone() const { return new GRoleStatusExtraProp(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GRoleStatusExtraProp *r = dynamic_cast<const GRoleStatusExtraProp *>(&rhs);
+			if (r && r != this)
+			{
+				data = r->data;
+			}
+			return *this;
+		}
+
+		GRoleStatusExtraProp& operator = (const GRoleStatusExtraProp &rhs)
+		{
+			const GRoleStatusExtraProp *r = &rhs;
+			if (r && r != this)
+			{
+				data = r->data;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << data;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> data;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,39 @@
+
+#ifndef __GNET_PUTMESSAGE_HPP
+#define __GNET_PUTMESSAGE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "message"
+namespace GNET
+{
+
+class PutMessage : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "putmessage"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// PrivateChat *arg = (PrivateChat *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// PrivateChat *arg = (PrivateChat *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

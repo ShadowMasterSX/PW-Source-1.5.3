@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBDELFACTIONFORTRESS_HPP
+#define __GNET_DBDELFACTIONFORTRESS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbdelfactionfortressarg"
+#include "dbdelfactionfortressres"
+
+namespace GNET
+{
+
+class DBDelFactionFortress : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbdelfactionfortress"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBDelFactionFortressArg *arg = (DBDelFactionFortressArg *)argument;
+		// DBDelFactionFortressRes *res = (DBDelFactionFortressRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBDelFactionFortressArg *arg = (DBDelFactionFortressArg *)argument;
+		// DBDelFactionFortressRes *res = (DBDelFactionFortressRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

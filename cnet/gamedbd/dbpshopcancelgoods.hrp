@@ -1,0 +1,122 @@
+#ifndef __GNET_DBPSHOPCANCELGOODS_HPP
+#define __GNET_DBPSHOPCANCELGOODS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbpshopcancelgoodsarg"
+#include "dbpshopcancelgoodsres"
+#include "utilfunction.h"
+
+namespace GNET
+{
+
+class DBPShopCancelGoods : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbpshopcancelgoods"
+#undef	RPC_BASECLASS
+
+    enum PSHOP_CANCEL_TYPE
+    {
+		TYPE_CANCEL_SALE,
+		TYPE_CANCEL_BUY,
+	};
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBPShopCancelGoodsArg *arg = (DBPShopCancelGoodsArg *)argument;
+		DBPShopCancelGoodsRes *res = (DBPShopCancelGoodsRes *)result;
+		try
+		{
+			StorageEnv::Storage * pshop = StorageEnv::GetStorage("playershop");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				PShopDetail shop;
+				Marshal::OctetsStream key;
+				key << arg->roleid;
+				Marshal::OctetsStream(pshop->find(key, txn)) >> shop;
+				if(!PShopFunc::OptionPolicy(shop, PShopFunc::PSHOP_OP_CANCEL_TRADE))
+				{
+					Log::log(LOG_ERR,"DBPShopCancelGoods, cancel invalid roleid=%d )",arg->roleid);
+					throw DbException(DB_VERIFY_BAD);
+				}
+
+				PShopItem itemdel;
+				if(arg->canceltype == TYPE_CANCEL_BUY)
+				{
+					//从收购栏删除
+					ShopInvMan invman(shop.blist, PSHOP_BLIST_CAP);
+					if(!invman.Remove(arg->item_pos, itemdel))
+					{
+						Log::log(LOG_ERR,"DBPShopCancelGoods, buyitem remove fail roleid=%d pos%d)",arg->roleid,arg->item_pos);
+						throw DbException(DB_VERIFY_BAD);
+					}
+				}
+				else if(arg->canceltype == TYPE_CANCEL_SALE)
+				{
+					//取消出售需要占用仓库栏位
+					//这里需要保证店铺收购不受影响
+					//即剩余仓库栏位满足收购栏要求
+					if(PSHOP_STORE_CAP - shop.store.size() <= shop.blist.size())
+					{
+						Log::log(LOG_ERR,"DBPShopCancelGoods, store full roleid=%d )",arg->roleid);
+						throw DbException(DB_VERIFY_BAD);
+					}
+
+					//从出售栏删除
+					ShopInvMan invman(shop.slist, PSHOP_SLIST_CAP);
+					if(!invman.Remove(arg->item_pos, itemdel))
+					{
+						Log::log(LOG_ERR,"DBPShopCancelGoods, remove item from slist fail roleid=%d pos=%d)",arg->roleid,arg->item_pos);
+						throw DbException(DB_VERIFY_BAD);
+					}
+
+					//放入店铺仓库
+					GRoleInventory item = itemdel.item;
+					InvMan storeman(shop.store, PSHOP_STORE_CAP);
+					if(!storeman.PushInHeap(item))
+					{
+						Log::log(LOG_ERR,"DBPShopCancelGoods, push item to store fail roleid=%d )",arg->roleid);
+						throw DbException(DB_VERIFY_BAD);
+					}
+					res->itemstore = item;
+				}
+
+				Log::formatlog("dbpshopcancelgoods", "dbpshopcancelgoods, roleid=%d,canceltype=%d,item_pos=%d,item_type=%d", arg->roleid, arg->canceltype, arg->item_pos, itemdel.item.id);
+				pshop->insert(key, Marshal::OctetsStream()<<shop,txn);
+				res->retcode = ERR_SUCCESS;
+			}
+			catch(DbException e) { throw; }
+			catch(...)
+			{
+				DbException ee(DB_OLD_VERSION);
+				txn.abort(ee);
+				throw ee;
+			}
+		}
+		catch(DbException e)
+		{
+			Log::log(LOG_ERR, "DBPShopCancelGoods, roleid=%d, what=%s\n", arg->roleid, e.what());
+			res->retcode = ERR_VERIFYFAILED;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBPShopCancelGoodsArg *arg = (DBPShopCancelGoodsArg *)argument;
+		// DBPShopCancelGoodsRes *res = (DBPShopCancelGoodsRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

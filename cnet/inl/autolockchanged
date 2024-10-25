@@ -1,0 +1,44 @@
+	public:
+		int roleid;
+		int locktime;
+		int timeout;
+		int settime;
+		enum { PROTOCOL_TYPE = PROTOCOL_AUTOLOCKCHANGED };
+	public:
+		AutolockChanged() { type = PROTOCOL_AUTOLOCKCHANGED; }
+		AutolockChanged(void*) : Protocol(PROTOCOL_AUTOLOCKCHANGED) { }
+		AutolockChanged (int l_roleid,int l_locktime,int l_timeout,
+			int l_settime)
+			 : roleid(l_roleid),locktime(l_locktime),timeout(l_timeout)
+			,settime(l_settime)
+		{
+			type = PROTOCOL_AUTOLOCKCHANGED;
+		}
+
+		AutolockChanged(const AutolockChanged &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),locktime(rhs.locktime),timeout(rhs.timeout)
+			,settime(rhs.settime) { }
+
+		GNET::Protocol *Clone() const { return new AutolockChanged(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << locktime;
+			os << timeout;
+			os << settime;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> locktime;
+			os >> timeout;
+			os >> settime;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 32; }

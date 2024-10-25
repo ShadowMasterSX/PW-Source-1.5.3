@@ -1,0 +1,59 @@
+#ifndef __GNET_DBKECANDIDATECONFIRMARG_RPCDATA
+#define __GNET_DBKECANDIDATECONFIRMARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBKECandidateConfirmArg : public GNET::Rpc::Data
+	{
+	public:
+		IntVector candidate_list;
+
+	public:
+		DBKECandidateConfirmArg (const IntVector& l_candidate_list = IntVector())
+			: candidate_list(l_candidate_list)
+		{
+		}
+
+		DBKECandidateConfirmArg(const DBKECandidateConfirmArg &rhs)
+			: candidate_list(rhs.candidate_list) { }
+
+		Rpc::Data *Clone() const { return new DBKECandidateConfirmArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBKECandidateConfirmArg *r = dynamic_cast<const DBKECandidateConfirmArg *>(&rhs);
+			if (r && r != this)
+			{
+				candidate_list = r->candidate_list;
+			}
+			return *this;
+		}
+
+		DBKECandidateConfirmArg& operator = (const DBKECandidateConfirmArg &rhs)
+		{
+			const DBKECandidateConfirmArg *r = &rhs;
+			if (r && r != this)
+			{
+				candidate_list = r->candidate_list;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << candidate_list;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> candidate_list;
+			return os;
+		}
+
+	};
+};
+#endif

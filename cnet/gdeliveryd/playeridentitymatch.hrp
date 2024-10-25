@@ -1,0 +1,277 @@
+
+#ifndef __GNET_PLAYERIDENTITYMATCH_HPP
+#define __GNET_PLAYERIDENTITYMATCH_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "playeridentitymatcharg"
+#include "playeridentitymatchres"
+#include "gamedbclient.hpp"
+#include "gmshutuprole.hpp"
+#include "grefstore"
+#include "gsysauctioncash"
+#include "sysauctionmanager.h"
+
+namespace GNET
+{
+
+class PlayerIdentityMatch : public ProxyRpc
+{
+#define	RPC_BASECLASS	ProxyRpc
+	#include "playeridentitymatch"
+#undef	RPC_BASECLASS
+	void HandleRoleForbid(GRoleInfo & roleinfo)
+	{
+		GRoleForbidVector& forbid = roleinfo.forbid;
+		int time_left = 0;
+		for(size_t i = 0;i < forbid.size(); ++i) {
+			//与GetRoleInfo保持一致
+			time_left = forbid[i].createtime + forbid[i].time - time(NULL);
+			if (time_left <= 0) continue;
+			
+			switch (forbid[i].type)
+			{
+				case Forbid::FBD_FORBID_TALK:
+					LinkServer::GetInstance().BroadcastProtocol(GMShutupRole(_ROLE_INVALID,_SID_INVALID, roleinfo.id,time_left,forbid[i].reason));
+					break;
+				case Forbid::FBD_FORBID_TRADE:
+				{
+					forbid[i].time = time_left;
+					ForbidTrade::GetInstance().SetForbidTrade( roleinfo.id, forbid[i] );
+					break;
+				}
+				case Forbid::FBD_FORBID_SELL:
+					//send to game? or game get this by itself
+					break;
+				case Forbid::FBD_FORBID_LOGIN: //add to forbid map
+				{
+					forbid[i].time = time_left;
+					ForbidRoleLogin::GetInstance().SetForbidRoleLogin(roleinfo.id, forbid[i]);
+				}
+				break;	
+			}
+		}
+	}
+
+	bool Delivery(Manager::Session::ID proxy_sid, const OctetsStream& osArg)
+	{
+		PlayerIdentityMatchArg arg;
+		osArg >> arg;
+
+		LOG_TRACE("CrossRelated PlayerIdentityMatch roleid %d userid %d flag %d localsid %d", arg.roleid, arg.userid, arg.flag, arg.localsid);
+		
+		bool central = GDeliveryServer::GetInstance()->IsCentralDS();
+		if(! (((arg.flag == DS_TO_CENTRALDS || arg.flag == DIRECT_TO_CENTRALDS) && central) || (arg.flag == CENTRALDS_TO_DS && !central))) {
+			Log::log(LOG_ERR, "CrossRelated PlayerIdentityMatch roleid %d userid %d, flag %d error", arg.roleid, arg.userid, arg.flag);
+			SetResult(PlayerIdentityMatchRes(-1));
+			SendToSponsor();
+			return false;
+		}
+		
+		//与UserLogin.hrp保持一致
+		UserInfo* pinfo = UserContainer::GetInstance().FindUser(arg.userid);
+		if(pinfo) {
+			SetResult(PlayerIdentityMatchRes(ERR_MULTILOGIN));
+			SendToSponsor();
+			return false;
+		}
+		
+		if (!ForbidLogin::GetInstance().IsLoginAllowedGlobal()) {
+			SetResult(PlayerIdentityMatchRes(ERR_SRVMAINTAIN));
+			SendToSponsor();
+			return false;	
+		}
+		
+		/*
+		//此处不再判断服务器人数上限 以TryChangeDS和TryRemoteLogin为准
+		if( UserContainer::GetInstance().Size() >= UserContainer::GetInstance().GetPlayerLimit() ) {
+			SetResult(PlayerIdentityMatchRes(ERR_SERVEROVERLOAD));
+			SendToSponsor();
+			return false;
+		}	
+		*/
+		
+		UserIdentityCache::Identity iden;
+		if(!UserIdentityCache::GetInstance()->Find(arg.userid, iden)) {
+			Log::log(LOG_ERR, "CrossRelated PlayerIdentityMatch roleid %d userid %d identity timeout", arg.roleid, arg.userid);
+			SetResult(PlayerIdentityMatchRes(ERR_IDENTITY_TIMEOUT));
+			SendToSponsor();
+			return false;
+		}
+		
+		if(iden.roleid != arg.roleid || iden.src_zoneid != arg.src_zoneid
+			/*|| iden.ip != arg.ip 不再验证 ip 玩家出口 IP 可能变化*/ || iden.rand_key != arg.random) {
+			Log::log(LOG_ERR, "CrossRelated PlayerIdentityMatch userid %d identity(roleid-src_zoneid-ip-randkey.size) Client(%d-%d-%d-%d) does not match Server(%d-%d-%d-%d)", arg.userid, arg.roleid, arg.src_zoneid, arg.ip, arg.random.size(), iden.roleid, iden.src_zoneid, iden.ip, iden.rand_key.size());
+			SetResult(PlayerIdentityMatchRes(ERR_IDENTITY_NOTMATCH));
+			SendToSponsor();
+			return false;
+		}
+		LOG_TRACE("CrossRelated PlayerIdentityMatch userid %d roleid %d match success", arg.userid, arg.roleid);
+		
+		//AU传来的全游戏封禁玩家列表 跨服上可能不存在 通过在原服封禁 让玩家在原服上就不能登录成功
+		/*
+		GRoleForbid	forbid;
+		if( ForbidLogin::GetInstance().GetForbidLogin( arg.userid, forbid ) )
+		{
+			GDeliveryServer::GetInstance()->Send(proxy_sid,AnnounceForbidInfo(arg.userid,arg.localsid,forbid));
+			SetResult(PlayerIdentityMatchRes(ERR_ACCOUNTFORBID));
+			SendToSponsor();
+			return false;	
+		}
+		*/
+		
+		if(ForbiddenUsers::GetInstance().IsExist(arg.userid)) {
+			SetResult(PlayerIdentityMatchRes(ERR_ACCOUNTLOCKED));
+			SendToSponsor();
+			return false;
+		}
+		
+		if(RemoteLoggingUsers::GetInstance().IsExist(arg.userid)) {
+			SetResult(PlayerIdentityMatchRes(ERR_ACCOUNTLOCKED));
+			SendToSponsor();
+			return false;
+		}
+
+		if( GameDBClient::GetInstance()->SendProtocol( *this ) ) {
+			return true;
+		} else {
+			SetResult(PlayerIdentityMatchRes(ERR_DELIVER_SEND));
+			SendToSponsor();
+			return false;
+		}
+	}
+
+	void PostProcess(Manager::Session::ID proxy_sid,const OctetsStream& osArg, const OctetsStream& osRes)
+	{
+		PlayerIdentityMatchArg arg;
+		osArg >> arg;
+		PlayerIdentityMatchRes res;
+		osRes >> res;
+		
+		LOG_TRACE("CrossRelated PlayerIdentityMatch roleid %d userid %d, retcode=%d", arg.roleid, arg.userid, res.retcode);
+		if (res.retcode != ERR_SUCCESS) {
+			SetResult(&res);
+			return;
+		}
+	
+		if(res.user.cash < 0 || res.user.money < 0) {
+			Log::log(LOG_ERR, "CrossRelated PlayerIdentityMatch, invalid account, userid %d cash %d money %d", arg.userid, res.user.cash, res.user.money);
+			res.retcode = -2;
+			SetResult(&res);
+			return;
+		}
+		
+		UserIdentityCache::Identity iden;
+		if(!UserIdentityCache::GetInstance()->Find(arg.userid, iden)) {
+			Log::log(LOG_ERR, "CrossRelated PlayerIdentityMatch(res) roleid %d userid %d identity timeout", arg.roleid, arg.userid);
+			res.retcode = ERR_IDENTITY_TIMEOUT;
+			SetResult(&res);
+			return;
+		}
+		UserIdentityCache::GetInstance()->Remove(arg.userid); //Clear Cache
+		
+		HandleRoleForbid(res.roleinfo);
+		
+		GDeliveryServer* gdm = GDeliveryServer::GetInstance();
+		bool is_central = GDeliveryServer::GetInstance()->IsCentralDS();
+		if(is_central) {
+			if(iden.usbbind) Passwd::GetInstance().SetUsbUser(arg.userid);
+			Passwd::GetInstance().InsertUserReward(arg.userid, iden.reward_mask);
+		}
+
+		UserContainer::GetInstance().UserLogin(arg.userid, iden.account, proxy_sid, arg.localsid, iden.au_isgm, iden.au_func, iden.au_funcparm, arg.ip, iden.iseckey, iden.oseckey, false);
+		
+		res.iseckey = iden.iseckey;
+		res.oseckey = iden.oseckey;
+		res.account = iden.account;
+		
+		res.zoneid = gdm->GetZoneid();
+		res.district_id = gdm->district_id;
+
+		UserInfo* userinfo = UserContainer::GetInstance().FindUser(arg.userid);
+		if(NULL == userinfo)  return;
+		
+		//增加超时以保证与原服 userinfo 状态的同步 解决玩家被永久卡在跨服的情况
+		if(arg.flag == DS_TO_CENTRALDS || arg.flag == DIRECT_TO_CENTRALDS) {
+			RemoteLoggingUsers::GetInstance().Push(arg.userid, arg.roleid, userinfo->status);
+		}
+		
+		/*******与GetUser保持一致*********/
+		if(!is_central) { //StockExchange在跨服服务器上根本没有开启，所有不需要OnLogin操作。这里是跨服->原服时，重新Onlogin的过程
+			StockExchange::Instance()->OnLogin(arg.userid, res.user.cash, res.user.money, res.user.cash_buy, res.user.cash_sell, res.user.exg_log, res.user.cash_password);
+
+			GSysAuctionCash sa_cash;
+			if(res.user.cash_sysauction.size()) {
+				Marshal::OctetsStream(res.user.cash_sysauction) >> sa_cash;
+			}
+			
+			SysAuctionManager::GetInstance().OnLogin(arg.userid, sa_cash.cash_2, sa_cash.cash_used_2);
+		}
+		
+		userinfo->rolelist = UserInfo::RoleList(res.user.rolelist);
+		userinfo->rolelist.SeekToBegin();
+		userinfo->logicuid = res.user.logicuid;
+		userinfo->logintime = iden.logintime;
+		
+		if(!is_central) {
+			//TODO lj autolock是否带到跨服目前尚不确定，先按不带处理
+			userinfo->autolock = res.user.autolock;
+		
+			//ReferenceManager在跨服服务器上根本没有开启，所以不需要相应的数据。这里是从跨服回到原服的操作
+			if(res.user.reference.size()) {
+				Marshal::OctetsStream os_ref(res.user.reference);
+				GRefStore ref_store;
+				os_ref >> ref_store;
+				if(ref_store.referrer) {
+					userinfo->real_referrer = ref_store.referrer;
+				}
+			}
+		}
+		
+		userinfo->privileges = iden.auth;	
+		userinfo->src_zoneid = res.roleinfo.cross_data.src_zoneid;
+			
+		if(iden.au_isgm != 0 && iden.auth.size() > 0) {
+			LinkServer::GetInstance().BroadcastProtocol(QueryUserPrivilege_Re(arg.userid, iden.auth));
+		}
+			
+		if(iden.forbid_talk.time > 0) {
+			LinkServer::GetInstance().BroadcastProtocol(GMShutup(_ROLE_INVALID, _SID_INVALID, arg.userid, iden.forbid_talk.time, iden.forbid_talk.reason));
+		}
+			
+		UidConverter::Instance().Insert(arg.userid, userinfo->logicuid);
+		/*********************************/
+		
+		//清除rbcache中的内容，避免由于多次跨服后，读取cache中的数据，而不是跨服带来的最新数据
+		gdm->rbcache.remove(arg.roleid);
+		//更新角色的跨服信息
+		userinfo->UpdateCrossInfoData(arg.roleid, res.roleinfo.cross_data);
+		
+		GRoleInfo& role = res.roleinfo;
+		if(role.worldtag == 0) role.worldtag = 1;
+
+		userinfo->role_pos[role.id % MAX_ROLE_COUNT] = UserInfo::point_t(role.posx,role.posy,role.posz);
+		userinfo->worldtag[role.id % MAX_ROLE_COUNT] = role.worldtag;
+		userinfo->create_time[role.id % MAX_ROLE_COUNT] = role.create_time;
+		userinfo->role_status[role.id % MAX_ROLE_COUNT] = role.status;
+
+		if(role.lastlogin_time > userinfo->lastlogin) {//获得帐号下所有角色最后登录时间
+			userinfo->lastlogin = role.lastlogin_time;
+		}
+
+		SetResult( &res ); // if you modified res, do not forget to call this. 
+		STAT_MIN5("Login", 1);
+	}
+
+	void OnTimeout( const OctetsStream & osArg )
+	{
+		PlayerIdentityMatchArg arg;
+		osArg >> arg;
+		LOG_TRACE("CrossRelated PlayerIdentityMatch timeout, userid %d roleid %d", arg.userid, arg.roleid);
+	}
+
+};
+
+};
+#endif

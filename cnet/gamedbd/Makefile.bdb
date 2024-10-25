@@ -1,0 +1,26 @@
+
+TOP_SRCDIR = ..
+
+SINGLE_THREAD = false
+DEBUG_VERSION = true
+
+include ../mk/gcc.defs.mk
+
+INCLUDES += -I$(TOP_SRCDIR)/storage -I/usr/include/db4  -I$(TOP_SRCDIR)/include
+LDFLAGS  += -ldb_cxx-4.2 -lz
+DEFINES  += -DUSE_DB -DUSE_BDB -DUSE_LOGCLIENT -DMPPC_4WAY -DUSE_TRANSACTION# -DTAIWAN# -DDEADLOCK_DETECT=\"/tmp/gamedbd.deadlock\" 
+
+OBJS = $(LOGOBJS) ../storage/storage.o ../storage/storagetool.o gamedbserver.o state.o stubs.o gamedbd.o gamedbmanager.o accessdb.o mergedb.o mergedb2.o selldataimage.o tranlog.o transman.o domaincmd.o
+CLEAN += *.o
+
+all : gamedbd 
+
+gamedbd : $(OBJS) $(SHAREOBJ) $(SHARE_SOBJ) $(LOGSTUB) $(LOGOBJ)
+	$(LD) $(LDFLAGS) -o $@ $(OBJS) $(SHAREOBJ) $(SHARE_SOBJ)  $(LOGSTUB) $(LOGOBJ) -lcrypto
+
+test_trans: trans_test.o tranlog.o transman.o $(LOGOBJS) $(SHAREOBJ) $(SHARE_SOBJ) ../storage/storage.o gamedbserver.o state.o
+	$(LD) $(LDFLAGS) -o $@ $^ 
+trans_clean:
+	rm -rf trans_test.o tranlog.o transman.o
+include ../mk/gcc.rules.mk
+

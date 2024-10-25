@@ -1,0 +1,56 @@
+
+#ifndef __GNET_DBBATTLEMAIL_HPP
+#define __GNET_DBBATTLEMAIL_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbbattlemailarg"
+#include "dbbattlemailres"
+
+#include "gmailheader"
+#include "gmail"
+#include "gmailbox"
+
+#include "postoffice.h"
+#include "battlemanager.h"
+
+namespace GNET
+{
+
+class DBBattleMail : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbbattlemail"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBBattleMailArg *arg = (DBBattleMailArg *)argument;
+		// DBBattleMailRes *res = (DBBattleMailRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBBattleMailArg *arg = (DBBattleMailArg *)argument;
+		DBBattleMailRes *res = (DBBattleMailRes *)result;
+		DEBUG_PRINT("dbbattlemail. retcode=%d, factionid=%d, roleid=%d\n", res->retcode, arg->factionid, res->roleid);
+		if ( res->retcode==ERR_SUCCESS )
+		{
+			arg->mail.header.id = res->mailid;
+			arg->mail.header.receiver = res->roleid;
+			PostOffice::GetInstance().AddNewMail( res->roleid,arg->mail.header ); 
+
+			//BattleManager::GetInstance()->OnSendBonus(res);
+		}
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

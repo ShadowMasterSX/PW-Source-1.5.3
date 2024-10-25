@@ -1,0 +1,68 @@
+
+#ifndef __GNET_PUTROLEPOCKET_HPP
+#define __GNET_PUTROLEPOCKET_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "rolepocketpair"
+
+
+namespace GNET
+{
+
+class PutRolePocket : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "putrolepocket"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		RolePocketPair *arg = (RolePocketPair *)argument;
+		Log::formatlog("putpocket","roleid=%d:sid=%d", arg->key.id, sid);
+		/*
+		RpcRetcode *res = (RpcRetcode *)result;
+		try
+		{
+			StorageEnv::Storage * pinventory = StorageEnv::GetStorage("inventory");
+			StorageEnv::AtomTransaction txn;
+			try
+			{
+				pinventory->insert( Marshal::OctetsStream() << arg->key, Marshal::OctetsStream() 
+					<< arg->value, txn );
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "PutRolePocket, roleid=%d, what=%s\n", arg->key.id, e.what() );
+			res->retcode = -1;
+		}
+		*/
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// RolePocketPair *arg = (RolePocketPair *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

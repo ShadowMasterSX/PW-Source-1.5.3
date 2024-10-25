@@ -1,0 +1,38 @@
+	public:
+		FactionIDBean factionid;
+		FactionInfoBean factioninfo;
+		int updateflag;
+		enum { PROTOCOL_TYPE = PROTOCOL_FACTIONINFOUPDATE };
+	public:
+		FactionInfoUpdate() { type = PROTOCOL_FACTIONINFOUPDATE; }
+		FactionInfoUpdate(void*) : Protocol(PROTOCOL_FACTIONINFOUPDATE) { }
+		FactionInfoUpdate (const FactionIDBean& l_factionid,const FactionInfoBean& l_factioninfo = FactionInfoBean(),int l_updateflag = 0)
+			 : factionid(l_factionid),factioninfo(l_factioninfo),updateflag(l_updateflag)
+		{
+			type = PROTOCOL_FACTIONINFOUPDATE;
+		}
+
+		FactionInfoUpdate(const FactionInfoUpdate &rhs)
+			: Protocol(rhs),factionid(rhs.factionid),factioninfo(rhs.factioninfo),updateflag(rhs.updateflag) { }
+
+		GNET::Protocol *Clone() const { return new FactionInfoUpdate(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << factionid;
+			os << factioninfo;
+			os << updateflag;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> factionid;
+			os >> factioninfo;
+			os >> updateflag;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1024; }

@@ -1,0 +1,35 @@
+	public:
+		int force_id;
+		char is_join;
+		enum { PROTOCOL_TYPE = PROTOCOL_NOTIFYPLAYERJOINORLEAVEFORCE };
+	public:
+		NotifyPlayerJoinOrLeaveForce() { type = PROTOCOL_NOTIFYPLAYERJOINORLEAVEFORCE; }
+		NotifyPlayerJoinOrLeaveForce(void*) : Protocol(PROTOCOL_NOTIFYPLAYERJOINORLEAVEFORCE) { }
+		NotifyPlayerJoinOrLeaveForce (int l_force_id,char l_is_join)
+			 : force_id(l_force_id),is_join(l_is_join)
+		{
+			type = PROTOCOL_NOTIFYPLAYERJOINORLEAVEFORCE;
+		}
+
+		NotifyPlayerJoinOrLeaveForce(const NotifyPlayerJoinOrLeaveForce &rhs)
+			: Protocol(rhs),force_id(rhs.force_id),is_join(rhs.is_join) { }
+
+		GNET::Protocol *Clone() const { return new NotifyPlayerJoinOrLeaveForce(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << force_id;
+			os << is_join;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> force_id;
+			os >> is_join;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 16; }

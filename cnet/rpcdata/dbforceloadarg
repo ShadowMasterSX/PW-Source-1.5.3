@@ -1,0 +1,59 @@
+#ifndef __GNET_DBFORCELOADARG_RPCDATA
+#define __GNET_DBFORCELOADARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBForceLoadArg : public GNET::Rpc::Data
+	{
+	public:
+		int nouse;
+
+	public:
+		DBForceLoadArg (int l_nouse = 0)
+			: nouse(l_nouse)
+		{
+		}
+
+		DBForceLoadArg(const DBForceLoadArg &rhs)
+			: nouse(rhs.nouse) { }
+
+		Rpc::Data *Clone() const { return new DBForceLoadArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBForceLoadArg *r = dynamic_cast<const DBForceLoadArg *>(&rhs);
+			if (r && r != this)
+			{
+				nouse = r->nouse;
+			}
+			return *this;
+		}
+
+		DBForceLoadArg& operator = (const DBForceLoadArg &rhs)
+		{
+			const DBForceLoadArg *r = &rhs;
+			if (r && r != this)
+			{
+				nouse = r->nouse;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << nouse;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> nouse;
+			return os;
+		}
+
+	};
+};
+#endif

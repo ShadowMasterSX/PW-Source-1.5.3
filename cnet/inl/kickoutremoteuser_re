@@ -1,0 +1,35 @@
+	public:
+		int retcode;
+		int userid;
+		enum { PROTOCOL_TYPE = PROTOCOL_KICKOUTREMOTEUSER_RE };
+	public:
+		KickoutRemoteUser_Re() { type = PROTOCOL_KICKOUTREMOTEUSER_RE; }
+		KickoutRemoteUser_Re(void*) : Protocol(PROTOCOL_KICKOUTREMOTEUSER_RE) { }
+		KickoutRemoteUser_Re (int l_retcode,int l_userid = 0)
+			 : retcode(l_retcode),userid(l_userid)
+		{
+			type = PROTOCOL_KICKOUTREMOTEUSER_RE;
+		}
+
+		KickoutRemoteUser_Re(const KickoutRemoteUser_Re &rhs)
+			: Protocol(rhs),retcode(rhs.retcode),userid(rhs.userid) { }
+
+		GNET::Protocol *Clone() const { return new KickoutRemoteUser_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << userid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> userid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 32; }

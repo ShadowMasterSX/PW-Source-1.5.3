@@ -1,0 +1,76 @@
+
+#ifndef __GNET_PUTSPOUSE_HPP
+#define __GNET_PUTSPOUSE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "putspousearg"
+
+
+namespace GNET
+{
+
+class PutSpouse : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "putspouse"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		PutSpouseArg *arg = (PutSpouseArg *)argument;
+		RpcRetcode *res = (RpcRetcode *)result;
+		Log::formatlog("putspouse","rid1=%d,rid2=%d,oper=%d",arg->rid1, arg->rid2, arg->oper);
+		try
+		{
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::CommonTransaction txn;
+			Marshal::OctetsStream key1,key2;
+			try
+			{
+				GRoleBase	base;
+				key1 << arg->rid1;
+				key2 << arg->rid2;
+				Marshal::OctetsStream(pbase->find( key1, txn )) >> base;
+				base.spouse = arg->oper?arg->rid2:0;
+				pbase->insert( key1, Marshal::OctetsStream() << base, txn );
+
+				Marshal::OctetsStream(pbase->find( key2, txn )) >> base;
+				base.spouse = arg->oper?arg->rid1:0;
+				pbase->insert( key2, Marshal::OctetsStream() << base, txn );
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "PutSpouse, rid1=%d, rid2=%d, what=%s\n", arg->rid1, arg->rid2, e.what() );
+			if(e.get_errno()==DB_LOCK_DEADLOCK)
+				res->retcode = ERR_AGAIN;
+			else
+				res->retcode = ERR_FAILED;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// PutSpouseArg *arg = (PutSpouseArg *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

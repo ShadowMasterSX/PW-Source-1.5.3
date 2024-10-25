@@ -1,0 +1,64 @@
+
+#ifndef __GNET_UPDATEFACTION_HPP
+#define __GNET_UPDATEFACTION_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "updatefactionarg"
+#include "deffactionres"
+#include "log.h"
+#include "gfactionserver.hpp"
+#include "factioninfoupdate.hpp"
+
+namespace GNET
+{
+
+class UpdateFaction : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "updatefaction"
+#undef	RPC_BASECLASS
+	OperWrapper::wref_t oper;
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// UpdateFactionArg *arg = (UpdateFactionArg *)argument;
+		// DefFactionRes *res = (DefFactionRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		UpdateFactionArg *arg = (UpdateFactionArg *)argument;
+		DefFactionRes *res = (DefFactionRes *)result;
+		OperWrapper::href_t ref(oper);
+		if(ref)
+		{
+			ref->SetResult(result);
+			ref->Execute();
+		}
+		if(res->retcode==ERR_SUCCESS) {
+			Factiondb::GetInstance()->UpdateFactionCache(arg);
+
+			FactionInfoUpdate update;
+			update.updateflag = GT_FACTION_UPDATE_ANNOUNCE;
+			update.factionid.ftype = GT_FACTION_TYPE;
+			update.factionid.factionid = (int64_t)arg->fid;
+			update.factioninfo.announcement = arg->announce;
+			GFactionServer *server = GFactionServer::GetInstance();
+			if(!server->DispatchProtocol(0, update)) {
+				Log::log(LOG_ERR, "PostCreateFaction Send FactionInfoUpdate failed.");
+			}
+
+		}
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

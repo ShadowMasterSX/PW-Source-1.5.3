@@ -1,0 +1,82 @@
+
+#ifndef __GNET_COUPONEXCHANGE_HPP
+#define __GNET_COUPONEXCHANGE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "couponexchangearg"
+#include "couponexchangeres"
+#include "usercouponexchange_re.hpp"
+#include "gdeliveryserver.hpp"
+
+namespace GNET
+{
+
+class CouponExchange : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "couponexchange"
+#undef	RPC_BASECLASS
+	unsigned int save_linksid;
+	unsigned int save_localsid;
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// CouponExchangeArg *arg = (CouponExchangeArg *)argument;
+		// CouponExchangeRes *res = (CouponExchangeRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		CouponExchangeArg *arg = (CouponExchangeArg *)argument;
+		CouponExchangeRes *res = (CouponExchangeRes *)result;
+		DEBUG_PRINT("couponexchange: rpc return. retcode=%d,userid=%d,coupon_number=%d,cash_number=%d,timestamp=%lld", 
+				res->retcode, arg->userid, arg->coupon_number, arg->cash_number, arg->timestamp);
+/*0.兑换成功；
+  1.点券服务器分配订单号错误，兑换失败；
+  2. 账户点券余额小于请求兑换的数量，兑换失败；
+  3. 用户已有点券在等待兑换，请稍候再试，兑换失败；
+  4. 已达到当日兑换点券上限，兑换失败；
+  5. 点券服务器内部错误，兑换失败；
+  6. 帐号已被封禁，禁止兑换；
+  7.服务器非法，禁止兑换；
+  8.网络通信错误，兑换失败；
+  9.服务器超时未返回结果，请登录完美通行证官网查询（RPC超时时使用）；
+  10.计时收费类游戏禁止在游戏内兑换点券；
+  11.该服务器暂时禁止兑换，兑换失败；
+  12.帐号尚未激活兑换点券的功能；
+  13.userid不存在；
+  14.请求兑换的点券数量不符合要求
+  15.兑换请求过于频繁，请稍后再试
+ */
+		//retcode转换
+		int retcode = res->retcode;
+		if(retcode != 0)
+		{
+			if(retcode == 2) retcode = ERR_COUPON_NOT_ENOUGH;
+			else if(retcode == 3) retcode = ERR_COUPON_EXCHANGE_ONGOING;
+			else if(retcode == 4) retcode = ERR_COUPON_EXCHANGE_DAYLIMIT;
+			else if(retcode == 6) retcode = ERR_ACCOUNTFORBID;
+			else if(retcode == 11) retcode = ERR_COUPON_EXCHANGE_SERVER_FORBID;
+			else if(retcode == 12) retcode = ERR_COUPON_EXCHANGE_NOT_ACTIVE;
+			else if(retcode == 15) retcode = ERR_COUPON_EXCHANGE_TOO_OFTEN;
+			else retcode = -1;
+		}
+		GDeliveryServer::GetInstance()->Send(save_linksid,UserCouponExchange_Re(retcode,res->remain_coupon,res->today_exchange_coupon,res->today_remain_coupon,save_localsid));
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+		CouponExchangeArg *arg = (CouponExchangeArg *)argument;
+		DEBUG_PRINT("couponexchange: rpc timeout. userid=%d", arg->userid);
+		GDeliveryServer::GetInstance()->Send(save_linksid,UserCouponExchange_Re(ERR_TIMEOUT,0,0,0,save_localsid));
+	}
+
+};
+
+};
+#endif

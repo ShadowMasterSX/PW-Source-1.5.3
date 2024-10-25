@@ -1,0 +1,76 @@
+
+#ifndef __GNET_PUTMESSAGE_HPP
+#define __GNET_PUTMESSAGE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "message"
+
+
+namespace GNET
+{
+
+class PutMessage : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "putmessage"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		Message *arg = (Message *)argument;
+		RpcRetcode *res = (RpcRetcode *)result;
+		Marshal::OctetsStream key, value;
+
+		LOG_TRACE( "PutMessage, channel=%d, srcroleid=%d, dstroleid=%d.\n", arg->channel, arg->srcroleid, arg->dstroleid );
+		try
+		{
+			StorageEnv::Storage * pmessage = StorageEnv::GetStorage("messages");
+			StorageEnv::AtomTransaction txn;
+			try{
+				MessageVector v;
+				key << arg->dstroleid;
+				if(pmessage->find(key,value,txn))
+				{
+					try {
+						value >> v;
+					} catch ( Marshal::Exception & ) {
+						Log::log( LOG_ERR, "PutMessage, unmarshal error, roleid=%d.", arg->dstroleid );
+						v.clear();
+					}
+				}
+				if(v.size()>20)
+					v.erase(v.begin());
+				v.push_back(*arg);
+				pmessage->insert( key, Marshal::OctetsStream()<<v, txn );
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "PutMessage, srcroleid=%d, what=%s\n", arg->srcroleid, e.what() );
+			res->retcode = -1;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

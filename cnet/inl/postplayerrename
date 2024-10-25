@@ -1,0 +1,47 @@
+	public:
+		int roleid;
+		int zoneid;
+		int retcode;
+		Octets newname;
+		Octets oldname;
+		enum { PROTOCOL_TYPE = PROTOCOL_POSTPLAYERRENAME };
+	public:
+		PostPlayerRename() { type = PROTOCOL_POSTPLAYERRENAME; }
+		PostPlayerRename(void*) : Protocol(PROTOCOL_POSTPLAYERRENAME) { }
+		PostPlayerRename (int l_roleid = -1,int l_zoneid = -1,int l_retcode = -1,
+			const Octets& l_newname = Octets(),const Octets& l_oldname = Octets())
+			 : roleid(l_roleid),zoneid(l_zoneid),retcode(l_retcode)
+			,newname(l_newname),oldname(l_oldname)
+		{
+			type = PROTOCOL_POSTPLAYERRENAME;
+		}
+
+		PostPlayerRename(const PostPlayerRename &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),zoneid(rhs.zoneid),retcode(rhs.retcode)
+			,newname(rhs.newname),oldname(rhs.oldname) { }
+
+		GNET::Protocol *Clone() const { return new PostPlayerRename(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << zoneid;
+			os << retcode;
+			os << newname;
+			os << oldname;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> zoneid;
+			os >> retcode;
+			os >> newname;
+			os >> oldname;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 128; }

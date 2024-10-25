@@ -1,0 +1,51 @@
+
+#ifndef __GNET_DBBATTLEEND_HPP
+#define __GNET_DBBATTLEEND_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbbattleendarg"
+#include "dbbattleendres"
+
+namespace GNET
+{
+
+class DBBattleEnd : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbbattleend"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBBattleEndArg *arg = (DBBattleEndArg *)argument;
+		// DBBattleEndRes *res = (DBBattleEndRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBBattleEndArg *arg = (DBBattleEndArg *)argument;
+		DBBattleEndRes *res = (DBBattleEndRes *)result;
+
+		if( res->retcode==ERR_AGAIN )
+		{
+			Log::log(LOG_ERR, "dbbattleend failed, resend cityid=%d", arg->battle_id);
+			GameDBClient::GetInstance()->SendProtocol(Rpc::Call(RPC_DBBATTLEEND,arg));
+		}
+		else if(res->inform_winner.receiver!=_ROLE_INVALID)
+			PostOffice::GetInstance().AddNewMail( res->inform_winner.receiver,res->inform_winner);
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		DBBattleEndArg *arg = (DBBattleEndArg *)argument;
+		Log::log(LOG_ERR, "dbbattleend timeout, cityid=%d", arg->battle_id);
+		GameDBClient::GetInstance()->SendProtocol(Rpc::Call(RPC_DBBATTLEEND,arg));
+	}
+
+};
+
+};
+#endif

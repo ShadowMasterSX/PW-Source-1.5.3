@@ -1,0 +1,64 @@
+#ifndef __GNET_DELFACTIONRES_RPCDATA
+#define __GNET_DELFACTIONRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DelFactionRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		Octets fname;
+
+	public:
+		DelFactionRes (int l_retcode = -1,const Octets& l_fname = Octets())
+			: retcode(l_retcode),fname(l_fname)
+		{
+		}
+
+		DelFactionRes(const DelFactionRes &rhs)
+			: retcode(rhs.retcode),fname(rhs.fname) { }
+
+		Rpc::Data *Clone() const { return new DelFactionRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DelFactionRes *r = dynamic_cast<const DelFactionRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				fname = r->fname;
+			}
+			return *this;
+		}
+
+		DelFactionRes& operator = (const DelFactionRes &rhs)
+		{
+			const DelFactionRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				fname = r->fname;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << fname;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> fname;
+			return os;
+		}
+
+	};
+};
+#endif

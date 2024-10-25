@@ -1,0 +1,38 @@
+	public:
+		int retcode;
+		int battle_id;
+		int world_tag;
+		enum { PROTOCOL_TYPE = PROTOCOL_TANKBATTLESTART_RE };
+	public:
+		TankBattleStart_Re() { type = PROTOCOL_TANKBATTLESTART_RE; }
+		TankBattleStart_Re(void*) : Protocol(PROTOCOL_TANKBATTLESTART_RE) { }
+		TankBattleStart_Re (int l_retcode,int l_battle_id,int l_world_tag)
+			 : retcode(l_retcode),battle_id(l_battle_id),world_tag(l_world_tag)
+		{
+			type = PROTOCOL_TANKBATTLESTART_RE;
+		}
+
+		TankBattleStart_Re(const TankBattleStart_Re &rhs)
+			: Protocol(rhs),retcode(rhs.retcode),battle_id(rhs.battle_id),world_tag(rhs.world_tag) { }
+
+		GNET::Protocol *Clone() const { return new TankBattleStart_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << battle_id;
+			os << world_tag;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> battle_id;
+			os >> world_tag;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

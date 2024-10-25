@@ -1,0 +1,59 @@
+#ifndef __GNET_GETCASHTOTALARG_RPCDATA
+#define __GNET_GETCASHTOTALARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GetCashTotalArg : public GNET::Rpc::Data
+	{
+	public:
+		int userid;
+
+	public:
+		GetCashTotalArg (int l_userid = -1)
+			: userid(l_userid)
+		{
+		}
+
+		GetCashTotalArg(const GetCashTotalArg &rhs)
+			: userid(rhs.userid) { }
+
+		Rpc::Data *Clone() const { return new GetCashTotalArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GetCashTotalArg *r = dynamic_cast<const GetCashTotalArg *>(&rhs);
+			if (r && r != this)
+			{
+				userid = r->userid;
+			}
+			return *this;
+		}
+
+		GetCashTotalArg& operator = (const GetCashTotalArg &rhs)
+		{
+			const GetCashTotalArg *r = &rhs;
+			if (r && r != this)
+			{
+				userid = r->userid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			return os;
+		}
+
+	};
+};
+#endif

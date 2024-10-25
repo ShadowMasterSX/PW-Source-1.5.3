@@ -1,0 +1,69 @@
+#ifndef __GNET_DBFACTIONRELATIONRETCODE_RPCDATA
+#define __GNET_DBFACTIONRELATIONRETCODE_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBFactionRelationRetcode : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		Octets fname1;
+		Octets fname2;
+
+	public:
+		DBFactionRelationRetcode (int l_retcode = -1,const Octets& l_fname1 = Octets(),const Octets& l_fname2 = Octets())
+			: retcode(l_retcode),fname1(l_fname1),fname2(l_fname2)
+		{
+		}
+
+		DBFactionRelationRetcode(const DBFactionRelationRetcode &rhs)
+			: retcode(rhs.retcode),fname1(rhs.fname1),fname2(rhs.fname2) { }
+
+		Rpc::Data *Clone() const { return new DBFactionRelationRetcode(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBFactionRelationRetcode *r = dynamic_cast<const DBFactionRelationRetcode *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				fname1 = r->fname1;
+				fname2 = r->fname2;
+			}
+			return *this;
+		}
+
+		DBFactionRelationRetcode& operator = (const DBFactionRelationRetcode &rhs)
+		{
+			const DBFactionRelationRetcode *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				fname1 = r->fname1;
+				fname2 = r->fname2;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << fname1;
+			os << fname2;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> fname1;
+			os >> fname2;
+			return os;
+		}
+
+	};
+};
+#endif

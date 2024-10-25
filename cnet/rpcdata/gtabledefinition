@@ -1,0 +1,307 @@
+#ifndef __GNET_GTABLEDEFINITION_RPCDATA
+#define __GNET_GTABLEDEFINITION_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "user"
+#include "grolebase"
+#include "grolestatus"
+#include "groletask"
+#include "grolepocket"
+#include "groleequipment"
+#include "grolestorehouse"
+#include "gmailbox"
+#include "gfriendlist"
+#include "message"
+#include "gfactioninfo"
+#include "stockorder"
+#include "gsyslog"
+#include "groletableclsconfig"
+#include "gauctiondetail"
+#include "guserfaction"
+#include "gterritorystore"
+#include "guserstorehouse"
+#include "gwebtradedetail"
+#include "gserverdata"
+#include "gfactionfortressdetail"
+#include "gfactionrelation"
+#include "gforceglobaldatalist"
+#include "gfriendextra"
+#include "gglobalcontroldata"
+#include "kingelectiondetail"
+#include "pshopdetail"
+#include "weborderitemdetail"
+#include "playerprofiledata"
+#include "guniquedataelem"
+#include "mappassworddata"
+
+namespace GNET
+{
+	class GTableDefinition : public GNET::Rpc::Data
+	{
+	public:
+		User user;
+		GRoleBase base;
+		GRoleStatus status;
+		GRoleTask task;
+		GRolePocket inventory;
+		GRoleEquipment equipment;
+		GRoleStorehouse storehouse;
+		GMailBox mailbox;
+		GFriendList friends;
+		MessageVector messages;
+		GFactionInfo factioninfo;
+		StockOrder order;
+		GSysLog syslog;
+		Octets config;
+		int factionname;
+		int waitdel;
+		GRoleTableClsconfig clsconfig;
+		int rolename;
+		char shoplog;
+		GAuctionDetail auction;
+		GUserFaction userfaction;
+		char sellpoint;
+		char translog;
+		GTerritoryStore city;
+		Octets gtask;
+		GUserStorehouse userstore;
+		GWebTradeDetail webtrade;
+		GWebTradeDetail webtradesold;
+		GServerData serverdata;
+		GFactionFortressDetail factionfortress;
+		GFactionRelation factionrelation;
+		GForceGlobalDataList force;
+		GFriendExtra friendext;
+		GGlobalControlData globalcontrol;
+		Octets rolenamehis;
+		KingElectionDetail kingelection;
+		PShopDetail playershop;
+		WebOrderItemDetail weborderitem;
+		PlayerProfileData playerprofile;
+		GUniqueDataElem uniquedata;
+		char recalluser;
+		MapPasswordData mappassword;
+
+	public:
+		GTableDefinition ()
+		{
+		}
+
+		GTableDefinition(const GTableDefinition &rhs)
+			: user(rhs.user),base(rhs.base),status(rhs.status),
+			task(rhs.task),inventory(rhs.inventory),equipment(rhs.equipment),
+			storehouse(rhs.storehouse),mailbox(rhs.mailbox),friends(rhs.friends),
+			messages(rhs.messages),factioninfo(rhs.factioninfo),order(rhs.order),
+			syslog(rhs.syslog),config(rhs.config),factionname(rhs.factionname),
+			waitdel(rhs.waitdel),clsconfig(rhs.clsconfig),rolename(rhs.rolename),
+			shoplog(rhs.shoplog),auction(rhs.auction),userfaction(rhs.userfaction),
+			sellpoint(rhs.sellpoint),translog(rhs.translog),city(rhs.city),
+			gtask(rhs.gtask),userstore(rhs.userstore),webtrade(rhs.webtrade),
+			webtradesold(rhs.webtradesold),serverdata(rhs.serverdata),factionfortress(rhs.factionfortress),
+			factionrelation(rhs.factionrelation),force(rhs.force),friendext(rhs.friendext),
+			globalcontrol(rhs.globalcontrol),rolenamehis(rhs.rolenamehis),kingelection(rhs.kingelection),
+			playershop(rhs.playershop),weborderitem(rhs.weborderitem),playerprofile(rhs.playerprofile),
+			uniquedata(rhs.uniquedata),recalluser(rhs.recalluser),mappassword(rhs.mappassword) { }
+
+		Rpc::Data *Clone() const { return new GTableDefinition(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GTableDefinition *r = dynamic_cast<const GTableDefinition *>(&rhs);
+			if (r && r != this)
+			{
+				user = r->user;
+				base = r->base;
+				status = r->status;
+				task = r->task;
+				inventory = r->inventory;
+				equipment = r->equipment;
+				storehouse = r->storehouse;
+				mailbox = r->mailbox;
+				friends = r->friends;
+				messages = r->messages;
+				factioninfo = r->factioninfo;
+				order = r->order;
+				syslog = r->syslog;
+				config = r->config;
+				factionname = r->factionname;
+				waitdel = r->waitdel;
+				clsconfig = r->clsconfig;
+				rolename = r->rolename;
+				shoplog = r->shoplog;
+				auction = r->auction;
+				userfaction = r->userfaction;
+				sellpoint = r->sellpoint;
+				translog = r->translog;
+				city = r->city;
+				gtask = r->gtask;
+				userstore = r->userstore;
+				webtrade = r->webtrade;
+				webtradesold = r->webtradesold;
+				serverdata = r->serverdata;
+				factionfortress = r->factionfortress;
+				factionrelation = r->factionrelation;
+				force = r->force;
+				friendext = r->friendext;
+				globalcontrol = r->globalcontrol;
+				rolenamehis = r->rolenamehis;
+				kingelection = r->kingelection;
+				playershop = r->playershop;
+				weborderitem = r->weborderitem;
+				playerprofile = r->playerprofile;
+				uniquedata = r->uniquedata;
+				recalluser = r->recalluser;
+				mappassword = r->mappassword;
+			}
+			return *this;
+		}
+
+		GTableDefinition& operator = (const GTableDefinition &rhs)
+		{
+			const GTableDefinition *r = &rhs;
+			if (r && r != this)
+			{
+				user = r->user;
+				base = r->base;
+				status = r->status;
+				task = r->task;
+				inventory = r->inventory;
+				equipment = r->equipment;
+				storehouse = r->storehouse;
+				mailbox = r->mailbox;
+				friends = r->friends;
+				messages = r->messages;
+				factioninfo = r->factioninfo;
+				order = r->order;
+				syslog = r->syslog;
+				config = r->config;
+				factionname = r->factionname;
+				waitdel = r->waitdel;
+				clsconfig = r->clsconfig;
+				rolename = r->rolename;
+				shoplog = r->shoplog;
+				auction = r->auction;
+				userfaction = r->userfaction;
+				sellpoint = r->sellpoint;
+				translog = r->translog;
+				city = r->city;
+				gtask = r->gtask;
+				userstore = r->userstore;
+				webtrade = r->webtrade;
+				webtradesold = r->webtradesold;
+				serverdata = r->serverdata;
+				factionfortress = r->factionfortress;
+				factionrelation = r->factionrelation;
+				force = r->force;
+				friendext = r->friendext;
+				globalcontrol = r->globalcontrol;
+				rolenamehis = r->rolenamehis;
+				kingelection = r->kingelection;
+				playershop = r->playershop;
+				weborderitem = r->weborderitem;
+				playerprofile = r->playerprofile;
+				uniquedata = r->uniquedata;
+				recalluser = r->recalluser;
+				mappassword = r->mappassword;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << user;
+			os << base;
+			os << status;
+			os << task;
+			os << inventory;
+			os << equipment;
+			os << storehouse;
+			os << mailbox;
+			os << friends;
+			os << messages;
+			os << factioninfo;
+			os << order;
+			os << syslog;
+			os << config;
+			os << factionname;
+			os << waitdel;
+			os << clsconfig;
+			os << rolename;
+			os << shoplog;
+			os << auction;
+			os << userfaction;
+			os << sellpoint;
+			os << translog;
+			os << city;
+			os << gtask;
+			os << userstore;
+			os << webtrade;
+			os << webtradesold;
+			os << serverdata;
+			os << factionfortress;
+			os << factionrelation;
+			os << force;
+			os << friendext;
+			os << globalcontrol;
+			os << rolenamehis;
+			os << kingelection;
+			os << playershop;
+			os << weborderitem;
+			os << playerprofile;
+			os << uniquedata;
+			os << recalluser;
+			os << mappassword;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> user;
+			os >> base;
+			os >> status;
+			os >> task;
+			os >> inventory;
+			os >> equipment;
+			os >> storehouse;
+			os >> mailbox;
+			os >> friends;
+			os >> messages;
+			os >> factioninfo;
+			os >> order;
+			os >> syslog;
+			os >> config;
+			os >> factionname;
+			os >> waitdel;
+			os >> clsconfig;
+			os >> rolename;
+			os >> shoplog;
+			os >> auction;
+			os >> userfaction;
+			os >> sellpoint;
+			os >> translog;
+			os >> city;
+			os >> gtask;
+			os >> userstore;
+			os >> webtrade;
+			os >> webtradesold;
+			os >> serverdata;
+			os >> factionfortress;
+			os >> factionrelation;
+			os >> force;
+			os >> friendext;
+			os >> globalcontrol;
+			os >> rolenamehis;
+			os >> kingelection;
+			os >> playershop;
+			os >> weborderitem;
+			os >> playerprofile;
+			os >> uniquedata;
+			os >> recalluser;
+			os >> mappassword;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,44 @@
+	public:
+		unsigned int tid;
+		int retcode;
+		int roleid;
+		GMailSyncData syncdata;
+		enum { PROTOCOL_TYPE = PROTOCOL_GMAILENDSYNC };
+	public:
+		GMailEndSync() { type = PROTOCOL_GMAILENDSYNC; }
+		GMailEndSync(void*) : Protocol(PROTOCOL_GMAILENDSYNC) { }
+		GMailEndSync (unsigned int l_tid,int l_retcode,int l_roleid,
+			const GMailSyncData& l_syncdata)
+			 : tid(l_tid),retcode(l_retcode),roleid(l_roleid)
+			,syncdata(l_syncdata)
+		{
+			type = PROTOCOL_GMAILENDSYNC;
+		}
+
+		GMailEndSync(const GMailEndSync &rhs)
+			: Protocol(rhs),tid(rhs.tid),retcode(rhs.retcode),roleid(rhs.roleid)
+			,syncdata(rhs.syncdata) { }
+
+		GNET::Protocol *Clone() const { return new GMailEndSync(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << tid;
+			os << retcode;
+			os << roleid;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> tid;
+			os >> retcode;
+			os >> roleid;
+			os >> syncdata;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 131072; }

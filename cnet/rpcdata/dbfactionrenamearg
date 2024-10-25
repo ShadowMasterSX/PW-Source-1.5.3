@@ -1,0 +1,96 @@
+#ifndef __GNET_DBFACTIONRENAMEARG_RPCDATA
+#define __GNET_DBFACTIONRENAMEARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailsyncdata"
+
+namespace GNET
+{
+	class DBFactionRenameArg : public GNET::Rpc::Data
+	{
+	public:
+		int rid;
+		unsigned int fid;
+		int item_id;
+		int item_num;
+		int item_pos;
+		Octets newname;
+		GMailSyncData syncdata;
+
+	public:
+		DBFactionRenameArg (int l_rid = -1,unsigned int l_fid = 0,int l_item_id = -1
+			,int l_item_num = 0,int l_item_pos = -1,const Octets& l_newname = Octets()
+			,const GMailSyncData& l_syncdata = GMailSyncData())
+			: rid(l_rid),fid(l_fid),item_id(l_item_id)
+			,item_num(l_item_num),item_pos(l_item_pos),newname(l_newname)
+			,syncdata(l_syncdata)
+		{
+		}
+
+		DBFactionRenameArg(const DBFactionRenameArg &rhs)
+			: rid(rhs.rid),fid(rhs.fid),item_id(rhs.item_id),
+			item_num(rhs.item_num),item_pos(rhs.item_pos),newname(rhs.newname),
+			syncdata(rhs.syncdata) { }
+
+		Rpc::Data *Clone() const { return new DBFactionRenameArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBFactionRenameArg *r = dynamic_cast<const DBFactionRenameArg *>(&rhs);
+			if (r && r != this)
+			{
+				rid = r->rid;
+				fid = r->fid;
+				item_id = r->item_id;
+				item_num = r->item_num;
+				item_pos = r->item_pos;
+				newname = r->newname;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		DBFactionRenameArg& operator = (const DBFactionRenameArg &rhs)
+		{
+			const DBFactionRenameArg *r = &rhs;
+			if (r && r != this)
+			{
+				rid = r->rid;
+				fid = r->fid;
+				item_id = r->item_id;
+				item_num = r->item_num;
+				item_pos = r->item_pos;
+				newname = r->newname;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << rid;
+			os << fid;
+			os << item_id;
+			os << item_num;
+			os << item_pos;
+			os << newname;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> rid;
+			os >> fid;
+			os >> item_id;
+			os >> item_num;
+			os >> item_pos;
+			os >> newname;
+			os >> syncdata;
+			return os;
+		}
+
+	};
+};
+#endif

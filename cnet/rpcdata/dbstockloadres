@@ -1,0 +1,70 @@
+#ifndef __GNET_DBSTOCKLOADRES_RPCDATA
+#define __GNET_DBSTOCKLOADRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "stockorder"
+
+namespace GNET
+{
+	class DBStockLoadRes : public GNET::Rpc::Data
+	{
+	public:
+		short retcode;
+		std::vector<StockOrder> orders;
+		Octets handle;
+
+	public:
+		DBStockLoadRes (const Octets& l_handle = Octets())
+			: handle(l_handle)
+		{
+		}
+
+		DBStockLoadRes(const DBStockLoadRes &rhs)
+			: retcode(rhs.retcode),orders(rhs.orders),handle(rhs.handle) { }
+
+		Rpc::Data *Clone() const { return new DBStockLoadRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBStockLoadRes *r = dynamic_cast<const DBStockLoadRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				orders = r->orders;
+				handle = r->handle;
+			}
+			return *this;
+		}
+
+		DBStockLoadRes& operator = (const DBStockLoadRes &rhs)
+		{
+			const DBStockLoadRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				orders = r->orders;
+				handle = r->handle;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << orders;
+			os << handle;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> orders;
+			os >> handle;
+			return os;
+		}
+
+	};
+};
+#endif

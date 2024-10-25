@@ -1,0 +1,60 @@
+
+#ifndef __GNET_DBUNIQUEDATALOAD_HPP
+#define __GNET_DBUNIQUEDATALOAD_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbuniquedataloadarg"
+#include "dbuniquedataloadres"
+#include "uniquedataserver.h"
+#include "gamedbclient.hpp"
+
+namespace GNET
+{
+
+class DBUniqueDataLoad : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbuniquedataload"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBUniqueLoadArg *arg = (DBUniqueLoadArg *)argument;
+		// DBUniqueLoadRes *res = (DBUniqueLoadRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		DBUniqueDataLoadArg *arg = (DBUniqueDataLoadArg *)argument;
+		DBUniqueDataLoadRes *res = (DBUniqueDataLoadRes *)result;
+		DEBUG_PRINT("DBUniqueDataLoad: Rpc return. res->values.size()=%d,res->handle.size()=%d, retcode=%d\n", res->values.size(), res->handle.size(), res->retcode);
+		if(res->retcode == ERR_SUCCESS)
+		{
+			bool bfinish = res->values.size() == 0 || res->handle.size() == 0;
+			UniqueDataServer::GetInstance()->OnDBLoad(res->values, bfinish);
+			
+			if(res->handle.size()!=0)
+				GameDBClient::GetInstance()->SendProtocol(Rpc::Call(RPC_DBUNIQUEDATALOAD, DBUniqueDataLoadArg(res->handle)));
+		}
+		else if(res->retcode == ERR_AGAIN)
+		{
+			GameDBClient::GetInstance()->SendProtocol(Rpc::Call(RPC_DBUNIQUEDATALOAD, arg) );
+		}
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+		DBUniqueDataLoadArg *arg = (DBUniqueDataLoadArg *)argument;
+		Log::log(LOG_WARNING,"DBUniqueDataLoad: RPC timeout. Resend request.\n");
+		GameDBClient::GetInstance()->SendProtocol(Rpc::Call(RPC_DBUNIQUEDATALOAD, arg));
+	}
+
+};
+
+};
+#endif

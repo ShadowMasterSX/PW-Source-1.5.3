@@ -1,0 +1,35 @@
+	public:
+		ACQ acq;
+		ACMouseInfoVector mouse_info;
+		enum { PROTOCOL_TYPE = PROTOCOL_ACQMOUSEINFO };
+	public:
+		ACQMouseInfo() { type = PROTOCOL_ACQMOUSEINFO; }
+		ACQMouseInfo(void*) : Protocol(PROTOCOL_ACQMOUSEINFO) { }
+		ACQMouseInfo (ACQ l_acq,ACMouseInfoVector l_mouse_info)
+			 : acq(l_acq),mouse_info(l_mouse_info)
+		{
+			type = PROTOCOL_ACQMOUSEINFO;
+		}
+
+		ACQMouseInfo(const ACQMouseInfo &rhs)
+			: Protocol(rhs),acq(rhs.acq),mouse_info(rhs.mouse_info) { }
+
+		GNET::Protocol *Clone() const { return new ACQMouseInfo(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << acq;
+			os << mouse_info;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> acq;
+			os >> mouse_info;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1048576; }

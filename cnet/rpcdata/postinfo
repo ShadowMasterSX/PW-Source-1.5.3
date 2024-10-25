@@ -1,0 +1,58 @@
+#ifndef __GNET_POSTINFO_RPCDATA
+#define __GNET_POSTINFO_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class PostInfo : public GNET::Rpc::Data
+	{
+	public:
+		Octets detail;
+
+	public:
+		PostInfo ()
+		{
+		}
+
+		PostInfo(const PostInfo &rhs)
+			: detail(rhs.detail) { }
+
+		Rpc::Data *Clone() const { return new PostInfo(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const PostInfo *r = dynamic_cast<const PostInfo *>(&rhs);
+			if (r && r != this)
+			{
+				detail = r->detail;
+			}
+			return *this;
+		}
+
+		PostInfo& operator = (const PostInfo &rhs)
+		{
+			const PostInfo *r = &rhs;
+			if (r && r != this)
+			{
+				detail = r->detail;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << detail;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> detail;
+			return os;
+		}
+
+	};
+};
+#endif

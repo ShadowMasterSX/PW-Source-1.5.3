@@ -1,0 +1,65 @@
+
+#ifndef __GNET_DBPUTGLOBALCONTROL_HPP
+#define __GNET_DBPUTGLOBALCONTROL_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbputglobalcontrolarg"
+#include "dbputglobalcontrolres"
+
+namespace GNET
+{
+
+class DBPutGlobalControl : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbputglobalcontrol"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBPutGlobalControlArg *arg = (DBPutGlobalControlArg *)argument;
+		DBPutGlobalControlRes *res = (DBPutGlobalControlRes *)result;
+		LOG_TRACE("DBPutGlobalControl, cme_open=%d cme_rate=%d.", arg->data.cash_money_exchange_open, arg->data.cash_money_exchange_rate); 
+		try
+		{
+			StorageEnv::Storage * pcontrol = StorageEnv::GetStorage("globalcontrol");
+			StorageEnv::AtomTransaction txn;
+			try
+			{
+				pcontrol->insert(Marshal::OctetsStream()<<(int)0,Marshal::OctetsStream()<<arg->data,txn);
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBPutGlobalControl, what=%s\n", e.what() );
+			res->retcode = ERR_EXCEPTION;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBPutGlobalControlArg *arg = (DBPutGlobalControlArg *)argument;
+		// DBPutGlobalControlRes *res = (DBPutGlobalControlRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

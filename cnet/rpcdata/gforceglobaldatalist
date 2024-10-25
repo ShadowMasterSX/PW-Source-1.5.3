@@ -1,0 +1,114 @@
+#ifndef __GNET_GFORCEGLOBALDATALIST_RPCDATA
+#define __GNET_GFORCEGLOBALDATALIST_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gforceglobaldata"
+
+namespace GNET
+{
+	class GForceGlobalDataList : public GNET::Rpc::Data
+	{
+	public:
+		std::vector<GForceGlobalData> list;
+		int update_time;
+		int reserved1;
+		int reserved2;
+		int reserved3;
+		int reserved4;
+		int reserved5;
+		int reserved6;
+		int reserved7;
+		int reserved8;
+
+	public:
+		GForceGlobalDataList (const std::vector<GForceGlobalData>& l_list = std::vector<GForceGlobalData>(),int l_update_time = 0,int l_reserved1 = 0
+			,int l_reserved2 = 0,int l_reserved3 = 0,int l_reserved4 = 0
+			,int l_reserved5 = 0,int l_reserved6 = 0,int l_reserved7 = 0
+			,int l_reserved8 = 0)
+			: list(l_list),update_time(l_update_time),reserved1(l_reserved1)
+			,reserved2(l_reserved2),reserved3(l_reserved3),reserved4(l_reserved4)
+			,reserved5(l_reserved5),reserved6(l_reserved6),reserved7(l_reserved7)
+			,reserved8(l_reserved8)
+		{
+		}
+
+		GForceGlobalDataList(const GForceGlobalDataList &rhs)
+			: list(rhs.list),update_time(rhs.update_time),reserved1(rhs.reserved1),
+			reserved2(rhs.reserved2),reserved3(rhs.reserved3),reserved4(rhs.reserved4),
+			reserved5(rhs.reserved5),reserved6(rhs.reserved6),reserved7(rhs.reserved7),
+			reserved8(rhs.reserved8) { }
+
+		Rpc::Data *Clone() const { return new GForceGlobalDataList(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GForceGlobalDataList *r = dynamic_cast<const GForceGlobalDataList *>(&rhs);
+			if (r && r != this)
+			{
+				list = r->list;
+				update_time = r->update_time;
+				reserved1 = r->reserved1;
+				reserved2 = r->reserved2;
+				reserved3 = r->reserved3;
+				reserved4 = r->reserved4;
+				reserved5 = r->reserved5;
+				reserved6 = r->reserved6;
+				reserved7 = r->reserved7;
+				reserved8 = r->reserved8;
+			}
+			return *this;
+		}
+
+		GForceGlobalDataList& operator = (const GForceGlobalDataList &rhs)
+		{
+			const GForceGlobalDataList *r = &rhs;
+			if (r && r != this)
+			{
+				list = r->list;
+				update_time = r->update_time;
+				reserved1 = r->reserved1;
+				reserved2 = r->reserved2;
+				reserved3 = r->reserved3;
+				reserved4 = r->reserved4;
+				reserved5 = r->reserved5;
+				reserved6 = r->reserved6;
+				reserved7 = r->reserved7;
+				reserved8 = r->reserved8;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << list;
+			os << update_time;
+			os << reserved1;
+			os << reserved2;
+			os << reserved3;
+			os << reserved4;
+			os << reserved5;
+			os << reserved6;
+			os << reserved7;
+			os << reserved8;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> list;
+			os >> update_time;
+			os >> reserved1;
+			os >> reserved2;
+			os >> reserved3;
+			os >> reserved4;
+			os >> reserved5;
+			os >> reserved6;
+			os >> reserved7;
+			os >> reserved8;
+			return os;
+		}
+
+	};
+};
+#endif

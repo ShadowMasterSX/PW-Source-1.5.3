@@ -1,0 +1,104 @@
+
+#ifndef __GNET_DBAUTOLOCKSET_HPP
+#define __GNET_DBAUTOLOCKSET_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbautolocksetarg"
+#include "integer"
+#include "autolockset_re.hpp"
+#include "gmsettimelessautolock_re.hpp"
+#include "iwebautolockset_re.hpp"
+#include "autolockchanged.hpp"
+
+namespace GNET
+{
+
+class DBAutolockSet : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbautolockset"
+#undef	RPC_BASECLASS
+	enum{
+		REASON_PLAYER,
+		REASON_GM,
+		REASON_IWEB,
+	};
+	int reason;
+	int save_timeout;
+	int save_dstroleid;
+	int save_sid;
+	int save_localsid;
+	int save_tid; // iweb用
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBAutolockSetArg *arg = (DBAutolockSetArg *)argument;
+		// Integer *res = (Integer *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBAutolockSetArg *arg = (DBAutolockSetArg *)argument;
+		Integer *res = (Integer *)result;
+		GDeliveryServer* dsm=GDeliveryServer::GetInstance();
+		if(res->value==0)
+		{
+			if(reason == REASON_PLAYER)
+				dsm->Send(save_sid, AutolockSet_Re(0,save_timeout,save_localsid));
+			else if(reason == REASON_GM || reason == REASON_IWEB)
+			{
+				if (reason == REASON_GM)
+				{
+					dsm->Send(save_sid, GMSetTimelessAutoLock_Re(0,save_localsid,save_dstroleid));
+				}
+				else
+				{
+					dsm->Send(save_sid, IWebAutolockSet_Re(save_tid, ERR_SUCCESS, arg->userid));
+				}
+				//立即生效
+				Thread::RWLock::RDScoped l(UserContainer::GetInstance().GetLocker());
+				PlayerInfo * pinfo = UserContainer::GetInstance().FindRole(save_dstroleid);
+				if(pinfo && pinfo->roleid==save_dstroleid && pinfo->user->status==_STATUS_ONGAME)
+				{
+					int locktime,timeout,settime;
+					pinfo->user->GetLocktime(locktime,timeout,settime);
+					GProviderServer::GetInstance()->DispatchProtocol(pinfo->gameid,AutolockChanged(save_dstroleid,locktime,timeout,settime));
+				}
+				
+			}
+		}
+		else
+		{
+			if(reason == REASON_GM)
+			{
+				dsm->Send(save_sid, GMSetTimelessAutoLock_Re(-1,save_localsid,save_dstroleid));
+			}
+			else if (reason == REASON_IWEB)
+			{
+				if (res->value == -2) res->value = ERR_DATANOTFIND;
+				dsm->Send(save_sid, IWebAutolockSet_Re(save_tid, res->value, arg->userid));
+			}
+		}
+	}
+
+	void OnTimeout()
+	{
+		GDeliveryServer* dsm=GDeliveryServer::GetInstance();
+		if(reason == REASON_GM)
+		{
+			dsm->Send(save_sid, GMSetTimelessAutoLock_Re(-1,save_localsid,save_dstroleid));
+		}
+		else if (reason == REASON_IWEB)
+		{
+			DBAutolockSetArg *arg = (DBAutolockSetArg *)argument;
+			dsm->Send(save_sid, IWebAutolockSet_Re(save_tid, ERR_DATABASE_TIMEOUT, arg->userid));
+		}
+	}
+
+};
+
+};
+#endif

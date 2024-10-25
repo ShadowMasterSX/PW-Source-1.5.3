@@ -1,0 +1,59 @@
+#ifndef __GNET_GROLETABLEFRIENDLIST_RPCDATA
+#define __GNET_GROLETABLEFRIENDLIST_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gfriendlist"
+
+namespace GNET
+{
+	class GRoleTableFriendlist : public GNET::Rpc::Data
+	{
+	public:
+		GFriendList friendlist;
+
+	public:
+		GRoleTableFriendlist ()
+		{
+		}
+
+		GRoleTableFriendlist(const GRoleTableFriendlist &rhs)
+			: friendlist(rhs.friendlist) { }
+
+		Rpc::Data *Clone() const { return new GRoleTableFriendlist(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GRoleTableFriendlist *r = dynamic_cast<const GRoleTableFriendlist *>(&rhs);
+			if (r && r != this)
+			{
+				friendlist = r->friendlist;
+			}
+			return *this;
+		}
+
+		GRoleTableFriendlist& operator = (const GRoleTableFriendlist &rhs)
+		{
+			const GRoleTableFriendlist *r = &rhs;
+			if (r && r != this)
+			{
+				friendlist = r->friendlist;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << friendlist;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> friendlist;
+			return os;
+		}
+
+	};
+};
+#endif

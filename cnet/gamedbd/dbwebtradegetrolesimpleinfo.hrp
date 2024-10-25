@@ -1,0 +1,103 @@
+
+#ifndef __GNET_DBWEBTRADEGETROLESIMPLEINFO_HPP
+#define __GNET_DBWEBTRADEGETROLESIMPLEINFO_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbwebtradegetrolesimpleinfoarg"
+#include "dbwebtradegetrolesimpleinfores"
+#include "greincarnationdata"
+
+namespace GNET
+{
+
+class DBWebTradeGetRoleSimpleInfo : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbwebtradegetrolesimpleinfo"
+#undef	RPC_BASECLASS
+
+	int GetRoleReincarnationTimes(const Octets & odata)
+	{
+		if(!odata.size()) return 0;
+		GReincarnationData data;
+		try{
+			Marshal::OctetsStream(odata) >> data;
+			return data.records.size();
+		}
+		catch(Marshal::Exception)
+		{
+			return 0;
+		}
+	}
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBWebTradeGetRoleSimpleInfoArg *arg = (DBWebTradeGetRoleSimpleInfoArg *)argument;
+		DBWebTradeGetRoleSimpleInfoRes *res = (DBWebTradeGetRoleSimpleInfoRes *)result;
+		
+		LOG_TRACE( "dbwebtradegetrolesimpleinfo, userid=%d.\n", arg->userid );
+
+		try
+		{
+			StorageEnv::Storage * puser = StorageEnv::GetStorage("user");
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::Storage * pstatus = StorageEnv::GetStorage("status");
+			StorageEnv::AtomTransaction txn;
+			try
+			{
+				User user;
+				Marshal::OctetsStream(puser->find( Marshal::OctetsStream()<<arg->userid, txn )) >> user;
+				if( 0 != user.logicuid )
+				{
+					RoleList	rolelist(user.rolelist);
+					int roleid;
+					while( (roleid = rolelist.GetNextRole()) >= 0 )
+					{
+						GRoleBase base;
+						int r = user.logicuid+roleid;
+						Marshal::OctetsStream(pbase->find( Marshal::OctetsStream() << r, txn )) >> base;
+						GRoleStatus status;
+						Marshal::OctetsStream(pstatus->find( Marshal::OctetsStream() << r, txn )) >> status;
+						if(base.status == _ROLE_STATUS_NORMAL)
+						{
+							int reincarnation_times = GetRoleReincarnationTimes(status.reincarnation_data);
+							res->roles.push_back(RoleSimpleInfo(base.id, status.level, base.cls, base.gender, base.name, reincarnation_times));
+						}
+					}
+				}
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBWebTradeGetRoleSimpleInfo, userid=%d, what=%s\n", arg->userid, e.what() );
+			res->retcode = ERR_DATANOTFIND;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBWebTradeGetRoleSimpleInfoArg *arg = (DBWebTradeGetRoleSimpleInfoArg *)argument;
+		// DBWebTradeGetRoleSimpleInfoRes *res = (DBWebTradeGetRoleSimpleInfoRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,69 @@
+#ifndef __GNET_PUTSPOUSEARG_RPCDATA
+#define __GNET_PUTSPOUSEARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class PutSpouseArg : public GNET::Rpc::Data
+	{
+	public:
+		int oper;
+		int rid1;
+		int rid2;
+
+	public:
+		PutSpouseArg (int l_oper = 0,int l_rid1 = 0,int l_rid2 = 0)
+			: oper(l_oper),rid1(l_rid1),rid2(l_rid2)
+		{
+		}
+
+		PutSpouseArg(const PutSpouseArg &rhs)
+			: oper(rhs.oper),rid1(rhs.rid1),rid2(rhs.rid2) { }
+
+		Rpc::Data *Clone() const { return new PutSpouseArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const PutSpouseArg *r = dynamic_cast<const PutSpouseArg *>(&rhs);
+			if (r && r != this)
+			{
+				oper = r->oper;
+				rid1 = r->rid1;
+				rid2 = r->rid2;
+			}
+			return *this;
+		}
+
+		PutSpouseArg& operator = (const PutSpouseArg &rhs)
+		{
+			const PutSpouseArg *r = &rhs;
+			if (r && r != this)
+			{
+				oper = r->oper;
+				rid1 = r->rid1;
+				rid2 = r->rid2;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << oper;
+			os << rid1;
+			os << rid2;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> oper;
+			os >> rid1;
+			os >> rid2;
+			return os;
+		}
+
+	};
+};
+#endif

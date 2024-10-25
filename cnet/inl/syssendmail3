@@ -1,0 +1,59 @@
+	public:
+		int64_t orderid;
+		int userid;
+		int64_t roleid;
+		Octets rolename;
+		Octets mail_title;
+		Octets mail_context;
+		unsigned int attach_money;
+		MailGoodsInventory attach_goods;
+		enum { PROTOCOL_TYPE = PROTOCOL_SYSSENDMAIL3 };
+	public:
+		SysSendMail3() { type = PROTOCOL_SYSSENDMAIL3; }
+		SysSendMail3(void*) : Protocol(PROTOCOL_SYSSENDMAIL3) { }
+		SysSendMail3 (int64_t l_orderid,int l_userid,int64_t l_roleid,
+			Octets l_rolename,Octets l_mail_title,Octets l_mail_context,
+			unsigned int l_attach_money,const MailGoodsInventory& l_attach_goods)
+			 : orderid(l_orderid),userid(l_userid),roleid(l_roleid)
+			,rolename(l_rolename),mail_title(l_mail_title),mail_context(l_mail_context)
+			,attach_money(l_attach_money),attach_goods(l_attach_goods)
+		{
+			type = PROTOCOL_SYSSENDMAIL3;
+		}
+
+		SysSendMail3(const SysSendMail3 &rhs)
+			: Protocol(rhs),orderid(rhs.orderid),userid(rhs.userid),roleid(rhs.roleid)
+			,rolename(rhs.rolename),mail_title(rhs.mail_title),mail_context(rhs.mail_context)
+			,attach_money(rhs.attach_money),attach_goods(rhs.attach_goods) { }
+
+		GNET::Protocol *Clone() const { return new SysSendMail3(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << orderid;
+			os << userid;
+			os << roleid;
+			os << rolename;
+			os << mail_title;
+			os << mail_context;
+			os << attach_money;
+			os << attach_goods;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> orderid;
+			os >> userid;
+			os >> roleid;
+			os >> rolename;
+			os >> mail_title;
+			os >> mail_context;
+			os >> attach_money;
+			os >> attach_goods;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 3; }
+
+		bool SizePolicy(size_t size) const { return size <= 4096; }

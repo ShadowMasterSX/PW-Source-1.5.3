@@ -1,0 +1,77 @@
+#ifndef __GNET_CASHSERIALRES_RPCDATA
+#define __GNET_CASHSERIALRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class CashSerialRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		int userid;
+		int zoneid;
+		int sn;
+
+	public:
+		CashSerialRes (int l_retcode = -1,int l_userid = -1,int l_zoneid = -1
+			,int l_sn = 0)
+			: retcode(l_retcode),userid(l_userid),zoneid(l_zoneid)
+			,sn(l_sn)
+		{
+		}
+
+		CashSerialRes(const CashSerialRes &rhs)
+			: retcode(rhs.retcode),userid(rhs.userid),zoneid(rhs.zoneid),
+			sn(rhs.sn) { }
+
+		Rpc::Data *Clone() const { return new CashSerialRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const CashSerialRes *r = dynamic_cast<const CashSerialRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				userid = r->userid;
+				zoneid = r->zoneid;
+				sn = r->sn;
+			}
+			return *this;
+		}
+
+		CashSerialRes& operator = (const CashSerialRes &rhs)
+		{
+			const CashSerialRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				userid = r->userid;
+				zoneid = r->zoneid;
+				sn = r->sn;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << userid;
+			os << zoneid;
+			os << sn;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> userid;
+			os >> zoneid;
+			os >> sn;
+			return os;
+		}
+
+	};
+};
+#endif

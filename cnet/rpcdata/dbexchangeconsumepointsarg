@@ -1,0 +1,78 @@
+#ifndef __GNET_DBEXCHANGECONSUMEPOINTSARG_RPCDATA
+#define __GNET_DBEXCHANGECONSUMEPOINTSARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "grewarditem"
+
+namespace GNET
+{
+	class DBExchangeConsumePointsArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		int userid;
+		int consume_points;
+		GRewardItemVector rewardlist;
+
+	public:
+		DBExchangeConsumePointsArg (int l_roleid = 0,int l_userid = 0,int l_consume_points = 0
+			,const GRewardItemVector& l_rewardlist = GRewardItemVector())
+			: roleid(l_roleid),userid(l_userid),consume_points(l_consume_points)
+			,rewardlist(l_rewardlist)
+		{
+		}
+
+		DBExchangeConsumePointsArg(const DBExchangeConsumePointsArg &rhs)
+			: roleid(rhs.roleid),userid(rhs.userid),consume_points(rhs.consume_points),
+			rewardlist(rhs.rewardlist) { }
+
+		Rpc::Data *Clone() const { return new DBExchangeConsumePointsArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBExchangeConsumePointsArg *r = dynamic_cast<const DBExchangeConsumePointsArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				userid = r->userid;
+				consume_points = r->consume_points;
+				rewardlist = r->rewardlist;
+			}
+			return *this;
+		}
+
+		DBExchangeConsumePointsArg& operator = (const DBExchangeConsumePointsArg &rhs)
+		{
+			const DBExchangeConsumePointsArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				userid = r->userid;
+				consume_points = r->consume_points;
+				rewardlist = r->rewardlist;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << userid;
+			os << consume_points;
+			os << rewardlist;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> userid;
+			os >> consume_points;
+			os >> rewardlist;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<application name="Test">
+
+<!--
+	Note 1: The table's primary variable must be first.
+	Note 2: The array is not supported except type char.
+	Note 3: There must be default value for every variable, argument or result of table and rpc.
+	Note 4: state must have timeout attribute.
+
+	Use namespace:
+		To change namespace of the auto generated codes, just modified the "name" value of
+	the "application" node in file rpcalls.xml. You should also modifiey the "NAMESPACE"
+	value in the Makefile.
+
+	Generated Files:
+		*.hh				should be modified and rpcgen.pl only appends to it.
+		*.hxx,*.cxx,*.inl	cannot be modified and rpcgen.pl will overwrite it.
+-->
+
+<rpcdata name="OneInteger">
+	<variable name="i1" type="int"/>
+</rpcdata>
+
+<rpcdata name="TwoInteger">
+	<variable name="i1" type="int"/>
+	<variable name="i2" type="int"/>
+</rpcdata>
+
+<rpc name="RpcSum" type="100" argument="TwoInteger" result="OneInteger" maxsize="256" prior="1" timeout="5"/>
+
+<state name="null" timeout="5" attr="null">
+</state>
+
+<state name="rpc" timeout="5">
+	<proto name="RpcSum"/>
+</state>
+
+<manager name="ClientManager" initstate="rpc" identification="Client">
+</manager>
+
+<manager name="ServerManager" initstate="rpc" identification="Server">
+</manager>
+
+</application>
+

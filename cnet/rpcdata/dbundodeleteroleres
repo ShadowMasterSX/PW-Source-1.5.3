@@ -1,0 +1,82 @@
+#ifndef __GNET_DBUNDODELETEROLERES_RPCDATA
+#define __GNET_DBUNDODELETEROLERES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBUndoDeleteRoleRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		char gameserver_id;
+		float posx;
+		float posy;
+		float posz;
+
+	public:
+		DBUndoDeleteRoleRes (int l_retcode = -1,char l_gameserver_id = -1,float l_posx = 0.0
+			,float l_posy = 0.0,float l_posz = 0.0)
+			: retcode(l_retcode),gameserver_id(l_gameserver_id),posx(l_posx)
+			,posy(l_posy),posz(l_posz)
+		{
+		}
+
+		DBUndoDeleteRoleRes(const DBUndoDeleteRoleRes &rhs)
+			: retcode(rhs.retcode),gameserver_id(rhs.gameserver_id),posx(rhs.posx),
+			posy(rhs.posy),posz(rhs.posz) { }
+
+		Rpc::Data *Clone() const { return new DBUndoDeleteRoleRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBUndoDeleteRoleRes *r = dynamic_cast<const DBUndoDeleteRoleRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				gameserver_id = r->gameserver_id;
+				posx = r->posx;
+				posy = r->posy;
+				posz = r->posz;
+			}
+			return *this;
+		}
+
+		DBUndoDeleteRoleRes& operator = (const DBUndoDeleteRoleRes &rhs)
+		{
+			const DBUndoDeleteRoleRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				gameserver_id = r->gameserver_id;
+				posx = r->posx;
+				posy = r->posy;
+				posz = r->posz;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << gameserver_id;
+			os << posx;
+			os << posy;
+			os << posz;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> gameserver_id;
+			os >> posx;
+			os >> posy;
+			os >> posz;
+			return os;
+		}
+
+	};
+};
+#endif

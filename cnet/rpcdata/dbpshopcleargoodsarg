@@ -1,0 +1,59 @@
+#ifndef __GNET_DBPSHOPCLEARGOODSARG_RPCDATA
+#define __GNET_DBPSHOPCLEARGOODSARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBPShopClearGoodsArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+
+	public:
+		DBPShopClearGoodsArg (int l_roleid = 0)
+			: roleid(l_roleid)
+		{
+		}
+
+		DBPShopClearGoodsArg(const DBPShopClearGoodsArg &rhs)
+			: roleid(rhs.roleid) { }
+
+		Rpc::Data *Clone() const { return new DBPShopClearGoodsArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPShopClearGoodsArg *r = dynamic_cast<const DBPShopClearGoodsArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+			}
+			return *this;
+		}
+
+		DBPShopClearGoodsArg& operator = (const DBPShopClearGoodsArg &rhs)
+		{
+			const DBPShopClearGoodsArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,64 @@
+#ifndef __GNET_DBCONFIG2_RPCDATA
+#define __GNET_DBCONFIG2_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBConfig2 : public GNET::Rpc::Data
+	{
+	public:
+		unsigned int is_central_db;
+		unsigned int reserve;
+
+	public:
+		DBConfig2 (unsigned int l_is_central_db = 0,unsigned int l_reserve = 0)
+			: is_central_db(l_is_central_db),reserve(l_reserve)
+		{
+		}
+
+		DBConfig2(const DBConfig2 &rhs)
+			: is_central_db(rhs.is_central_db),reserve(rhs.reserve) { }
+
+		Rpc::Data *Clone() const { return new DBConfig2(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBConfig2 *r = dynamic_cast<const DBConfig2 *>(&rhs);
+			if (r && r != this)
+			{
+				is_central_db = r->is_central_db;
+				reserve = r->reserve;
+			}
+			return *this;
+		}
+
+		DBConfig2& operator = (const DBConfig2 &rhs)
+		{
+			const DBConfig2 *r = &rhs;
+			if (r && r != this)
+			{
+				is_central_db = r->is_central_db;
+				reserve = r->reserve;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << is_central_db;
+			os << reserve;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> is_central_db;
+			os >> reserve;
+			return os;
+		}
+
+	};
+};
+#endif

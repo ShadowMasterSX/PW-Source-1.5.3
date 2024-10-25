@@ -1,0 +1,65 @@
+#ifndef __GNET_SYSAUCTIONPREPAREITEMRES_RPCDATA
+#define __GNET_SYSAUCTIONPREPAREITEMRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "groleinventory"
+
+namespace GNET
+{
+	class SysAuctionPrepareItemRes : public GNET::Rpc::Data
+	{
+	public:
+		std::vector<int> indexes;
+		GRoleInventoryVector items;
+
+	public:
+		SysAuctionPrepareItemRes (const std::vector<int>& l_indexes = std::vector<int>(),const GRoleInventoryVector& l_items = GRoleInventoryVector())
+			: indexes(l_indexes),items(l_items)
+		{
+		}
+
+		SysAuctionPrepareItemRes(const SysAuctionPrepareItemRes &rhs)
+			: indexes(rhs.indexes),items(rhs.items) { }
+
+		Rpc::Data *Clone() const { return new SysAuctionPrepareItemRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const SysAuctionPrepareItemRes *r = dynamic_cast<const SysAuctionPrepareItemRes *>(&rhs);
+			if (r && r != this)
+			{
+				indexes = r->indexes;
+				items = r->items;
+			}
+			return *this;
+		}
+
+		SysAuctionPrepareItemRes& operator = (const SysAuctionPrepareItemRes &rhs)
+		{
+			const SysAuctionPrepareItemRes *r = &rhs;
+			if (r && r != this)
+			{
+				indexes = r->indexes;
+				items = r->items;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << indexes;
+			os << items;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> indexes;
+			os >> items;
+			return os;
+		}
+
+	};
+};
+#endif

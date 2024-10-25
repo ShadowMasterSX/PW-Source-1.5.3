@@ -1,0 +1,116 @@
+
+#ifndef __GNET_GETFRIENDLIST_HPP
+#define __GNET_GETFRIENDLIST_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#ifdef USE_BDB
+#include "dbbuffer.h"
+#endif
+#include "roleid"
+#include "ggroupinfo"
+#include "gfriendinfo"
+#include "friendlistres"
+#include "friendstatus.hpp"
+#include "getfriends_re.hpp"
+#include "mapuser.h"
+#include "gametalkmanager.h"
+#include "friendextinfomanager.h"
+#include "namemanager.h"
+
+namespace GNET
+{
+
+class GetFriendList : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getfriendlist"
+#undef	RPC_BASECLASS
+	int roleid;
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+#ifdef USE_BDB
+		RoleId *arg = (RoleId *)argument;
+		RoleBaseRes *res = (RoleBaseRes *)result;
+		Marshal::OctetsStream key, value;
+		key << *arg;
+		res->retcode = DBBuffer::buf_find( "friends", key, value );
+		if( 0 == res->retcode )
+			value >> res->value;
+#endif
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		RoleId *arg = (RoleId *)argument;
+		FriendListRes *res = (FriendListRes *)result;
+
+		GDeliveryServer* dsm = GDeliveryServer::GetInstance();
+		PlayerInfo * pinfo = UserContainer::GetInstance().FindRoleOnline((arg->id));
+		if (NULL == pinfo )
+			return;
+		pinfo->friend_ver = 0;
+		pinfo->groups.swap(res->value.groups);
+		pinfo->friends.swap(res->value.friends);
+		pinfo->friendextinfo.swap(res->extra_info);
+		pinfo->sendaumailinfo.swap(res->sendmail_info);
+
+		GameTalkManager *gtm = GameTalkManager::GetInstance();
+		gtm->GameRoleOnline((int)arg->id);
+
+		FriendStatus stat(arg->id, gtm->GetRoleStatus((int)arg->id), 0);
+		GetFriends_Re re;
+		re.roleid = arg->id;
+
+		GFriendInfoVector* plist = &(pinfo->friends);
+		char counter = 0;
+		Octets name;
+		for(GFriendInfoVector::iterator i = plist->begin();i!=plist->end();i++)
+		{
+			//玩家的好友可能已经改过名字了，在修改记录里查找一下
+			if (NameManager::GetInstance()->FindName(i->rid, name))
+			{
+				i->name = name;
+			}
+			PlayerInfo * ruser = UserContainer::GetInstance().FindRoleOnline((i->rid));
+			if(NULL != ruser)
+			{
+				for(GFriendInfoVector::iterator k=ruser->friends.begin(),ke=ruser->friends.end();k!=ke;++k)
+				{
+					if(k->rid==(int)(arg->id))
+					{
+						stat.localsid = ruser->localsid;
+						re.status.push_back(counter);
+						re.status.push_back(gtm->GetRoleStatus(i->rid));
+						dsm->Send(ruser->linksid,stat);
+						break;
+					}
+				}
+			} else {
+				char s = gtm->GetRoleStatus(i->rid);
+				if(s != RoleStatusManager::GT_OFFLINE) {
+					re.status.push_back(counter);
+					re.status.push_back(s);
+				}
+			}
+			counter++;
+		}
+
+		re.groups = pinfo->groups;
+		re.friends = pinfo->friends;
+		re.localsid = pinfo->localsid;
+		dsm->Send(pinfo->linksid, re);
+		FriendextinfoManager::GetInstance()->SearchAllExt(pinfo);
+	}
+
+	void OnTimeout()
+	{
+		DEBUG_PRINT("gdelivery::getfriends: timeout roleid=%d.\n", roleid);
+	}
+
+};
+
+};
+#endif

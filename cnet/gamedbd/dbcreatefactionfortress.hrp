@@ -1,0 +1,134 @@
+
+#ifndef __GNET_DBCREATEFACTIONFORTRESS_HPP
+#define __GNET_DBCREATEFACTIONFORTRESS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbcreatefactionfortressarg"
+#include "dbcreatefactionfortressres"
+
+namespace GNET
+{
+
+class DBCreateFactionFortress : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbcreatefactionfortress"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBCreateFactionFortressArg *arg = (DBCreateFactionFortressArg *)argument;
+		DBCreateFactionFortressRes *res = (DBCreateFactionFortressRes *)result;
+
+		try
+		{
+			StorageEnv::Storage * pfortress = StorageEnv::GetStorage("factionfortress");
+			StorageEnv::Storage * pinventory = StorageEnv::GetStorage("inventory");
+			StorageEnv::Storage * pequipment = StorageEnv::GetStorage("equipment");
+			StorageEnv::Storage * pstorehouse = StorageEnv::GetStorage("storehouse");
+			StorageEnv::Storage * plog = arg->syncdata.logs.size()?StorageEnv::GetStorage("shoplog"):NULL;
+			StorageEnv::CommonTransaction txn;
+		
+			Marshal::OctetsStream krole;
+			krole << arg->roleid;
+			Log::formatlog("factionfortress","create:timestamp=%u:mask=%d:roleid=%d:factionid=%d",
+				arg->syncdata.inventory.timestamp,arg->syncdata.data_mask, arg->roleid, arg->detail.factionid);
+			
+			try
+			{
+				//检查inventory时戳，计算金钱变化
+				GRolePocket pocket;
+				Marshal::OctetsStream(pinventory->find(krole, txn)) >> pocket;
+				if(arg->syncdata.inventory.timestamp <= pocket.timestamp)
+				{
+					Log::log(LOG_ERR,"DBCreateFactionFortress, timestamp mismatch. %d<%d",
+						arg->syncdata.inventory.timestamp, pocket.timestamp);
+					throw DbException(DB_VERIFY_BAD);
+				}
+				int delta = arg->syncdata.inventory.money - pocket.money;
+				//消耗物品，生成syncdata
+				GRoleInventoryVector& v = arg->syncdata.inventory.items;
+				int * cost = (int*)arg->item_cost.begin();
+				size_t size = arg->item_cost.size();
+				if(size%8 != 0) 
+					throw DbException(DB_VERIFY_BAD);
+				size = size/4;
+				for(size_t i=0; i<size; i+=2)
+				{
+					int id = cost[i];
+					int count = cost[i+1];
+					if(id <= 0 || count <= 0)
+						throw DbException(DB_VERIFY_BAD);
+					for(GRoleInventoryVector::iterator it = v.begin(); it != v.end(); )
+					{
+						if((int)it->id != id || it->count <= 0)
+						{
+							++it;
+							continue;
+						}
+						if(it->count >= count)
+						{
+							it->count -= count;
+							count = 0;
+							res->syncdata.inventory.items.push_back(*it);
+							if(it->count==0)
+								v.erase(it);
+							break;
+						}
+						else
+						{
+							count -= it->count;	
+							it->count = 0;
+							res->syncdata.inventory.items.push_back(*it);
+							it = v.erase(it);						
+							continue;
+						}
+					}
+					if(count > 0)
+						throw DbException(DB_VERIFY_BAD);
+				}
+				//存盘
+				pfortress->insert(Marshal::OctetsStream()<<arg->detail.factionid, Marshal::OctetsStream()<<arg->detail, txn, DB_NOOVERWRITE);
+				pinventory->insert(krole, Marshal::OctetsStream()<<arg->syncdata.inventory, txn);
+				pequipment->insert(krole, Marshal::OctetsStream()<<arg->syncdata.equipment, txn);
+				WriteRestSyncData(pstorehouse, plog, arg->roleid, arg->syncdata, delta, txn);
+				res->syncdata.inventory.money = arg->syncdata.inventory.money;
+				res->syncdata.data_mask = arg->syncdata.data_mask;
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log(LOG_ERR, "DBCreateFactionFortress, roleid=%d, factionid=%d, what=%s.", arg->roleid, arg->detail.factionid, e.what());
+			res->retcode = ERR_EXCEPTION;
+			res->syncdata.inventory.money = arg->syncdata.inventory.money;
+			res->syncdata.inventory.items.clear();
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBCreateFactionFortressArg *arg = (DBCreateFactionFortressArg *)argument;
+		// DBCreateFactionFortressRes *res = (DBCreateFactionFortressRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

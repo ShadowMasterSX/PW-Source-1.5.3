@@ -1,0 +1,79 @@
+
+#ifndef __GNET_DBAUTOLOCKSET_HPP
+#define __GNET_DBAUTOLOCKSET_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbautolocksetarg"
+#include "integer"
+
+namespace GNET
+{
+
+class DBAutolockSet : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbautolockset"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBAutolockSetArg *arg = (DBAutolockSetArg *)argument;
+		Integer *res = (Integer *)result;
+                Marshal::OctetsStream key, value;
+                LOG_TRACE( "DBAutolockSet, userid=%d.\n", arg->userid);
+
+                try
+                {
+                        StorageEnv::Storage * puser = StorageEnv::GetStorage("user");
+                        StorageEnv::CommonTransaction txn;
+                        try
+			{
+				if( arg->userid > 0 )
+				{
+					key << arg->userid;
+					User     user;
+					if( !puser->find( key, value, txn ) )
+					{
+						res->value = -2;
+						return;
+					}
+					value >> user;
+					user.autolock.swap(arg->autolock);
+					puser->insert( key, Marshal::OctetsStream() << user, txn );
+					res->value = ERR_SUCCESS;
+				}
+			}
+                        catch ( DbException e ) { throw; }
+                        catch ( ... )
+                        {
+                                DbException ee( DB_OLD_VERSION );
+                                txn.abort( ee );
+                                throw ee;
+                        }
+                }
+                catch ( DbException e )
+                {
+                        Log::log( LOG_ERR, "DBAutolockSet, userid=%d, what=%s\n", arg->userid, e.what() );
+                        res->value = -1;
+                }
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBAutolockSetArg *arg = (DBAutolockSetArg *)argument;
+		// Integer *res = (Integer *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

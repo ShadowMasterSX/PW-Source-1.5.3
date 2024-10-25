@@ -1,0 +1,35 @@
+	public:
+		char is_central;
+		std::vector<int> accepted_zone_list;
+		enum { PROTOCOL_TYPE = PROTOCOL_ANNOUNCECENTRALDELIVERY };
+	public:
+		AnnounceCentralDelivery() { type = PROTOCOL_ANNOUNCECENTRALDELIVERY; }
+		AnnounceCentralDelivery(void*) : Protocol(PROTOCOL_ANNOUNCECENTRALDELIVERY) { }
+		AnnounceCentralDelivery (char l_is_central,std::vector<int> l_accepted_zone_list)
+			 : is_central(l_is_central),accepted_zone_list(l_accepted_zone_list)
+		{
+			type = PROTOCOL_ANNOUNCECENTRALDELIVERY;
+		}
+
+		AnnounceCentralDelivery(const AnnounceCentralDelivery &rhs)
+			: Protocol(rhs),is_central(rhs.is_central),accepted_zone_list(rhs.accepted_zone_list) { }
+
+		GNET::Protocol *Clone() const { return new AnnounceCentralDelivery(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << is_central;
+			os << accepted_zone_list;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> is_central;
+			os >> accepted_zone_list;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 101; }
+
+		bool SizePolicy(size_t size) const { return size <= 512; }

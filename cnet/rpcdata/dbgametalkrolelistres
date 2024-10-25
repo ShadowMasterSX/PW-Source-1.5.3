@@ -1,0 +1,64 @@
+#ifndef __GNET_DBGAMETALKROLELISTRES_RPCDATA
+#define __GNET_DBGAMETALKROLELISTRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "dbroledetail"
+
+namespace GNET
+{
+	class DBGameTalkRoleListRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		DBRoleDetailVector rolelist;
+
+	public:
+		DBGameTalkRoleListRes ()
+		{
+		}
+
+		DBGameTalkRoleListRes(const DBGameTalkRoleListRes &rhs)
+			: retcode(rhs.retcode),rolelist(rhs.rolelist) { }
+
+		Rpc::Data *Clone() const { return new DBGameTalkRoleListRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBGameTalkRoleListRes *r = dynamic_cast<const DBGameTalkRoleListRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				rolelist = r->rolelist;
+			}
+			return *this;
+		}
+
+		DBGameTalkRoleListRes& operator = (const DBGameTalkRoleListRes &rhs)
+		{
+			const DBGameTalkRoleListRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				rolelist = r->rolelist;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << rolelist;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> rolelist;
+			return os;
+		}
+
+	};
+};
+#endif

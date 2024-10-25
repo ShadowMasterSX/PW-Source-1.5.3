@@ -1,0 +1,88 @@
+#ifndef __GNET_DBCREATEROLERES_RPCDATA
+#define __GNET_DBCREATEROLERES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "roleinfo"
+
+namespace GNET
+{
+	class DBCreateRoleRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		int roleid;
+		unsigned int rolelist;
+		RoleInfo roleinfo;
+		int real_referrer;
+		int refretcode;
+
+	public:
+		DBCreateRoleRes (int l_retcode = -1,int l_roleid = -1,unsigned int l_rolelist = 0
+			,int l_real_referrer = 0,int l_refretcode = 0)
+			: retcode(l_retcode),roleid(l_roleid),rolelist(l_rolelist)
+			,real_referrer(l_real_referrer),refretcode(l_refretcode)
+		{
+		}
+
+		DBCreateRoleRes(const DBCreateRoleRes &rhs)
+			: retcode(rhs.retcode),roleid(rhs.roleid),rolelist(rhs.rolelist),
+			roleinfo(rhs.roleinfo),real_referrer(rhs.real_referrer),refretcode(rhs.refretcode) { }
+
+		Rpc::Data *Clone() const { return new DBCreateRoleRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBCreateRoleRes *r = dynamic_cast<const DBCreateRoleRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				roleid = r->roleid;
+				rolelist = r->rolelist;
+				roleinfo = r->roleinfo;
+				real_referrer = r->real_referrer;
+				refretcode = r->refretcode;
+			}
+			return *this;
+		}
+
+		DBCreateRoleRes& operator = (const DBCreateRoleRes &rhs)
+		{
+			const DBCreateRoleRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				roleid = r->roleid;
+				rolelist = r->rolelist;
+				roleinfo = r->roleinfo;
+				real_referrer = r->real_referrer;
+				refretcode = r->refretcode;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << roleid;
+			os << rolelist;
+			os << roleinfo;
+			os << real_referrer;
+			os << refretcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> roleid;
+			os >> rolelist;
+			os >> roleinfo;
+			os >> real_referrer;
+			os >> refretcode;
+			return os;
+		}
+
+	};
+};
+#endif

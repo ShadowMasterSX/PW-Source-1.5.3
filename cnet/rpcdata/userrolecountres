@@ -1,0 +1,69 @@
+#ifndef __GNET_USERROLECOUNTRES_RPCDATA
+#define __GNET_USERROLECOUNTRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class UserRoleCountRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		int count;
+		unsigned int rolelist;
+
+	public:
+		UserRoleCountRes (int l_retcode = -1,int l_count = 0,unsigned int l_rolelist = 0)
+			: retcode(l_retcode),count(l_count),rolelist(l_rolelist)
+		{
+		}
+
+		UserRoleCountRes(const UserRoleCountRes &rhs)
+			: retcode(rhs.retcode),count(rhs.count),rolelist(rhs.rolelist) { }
+
+		Rpc::Data *Clone() const { return new UserRoleCountRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const UserRoleCountRes *r = dynamic_cast<const UserRoleCountRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				count = r->count;
+				rolelist = r->rolelist;
+			}
+			return *this;
+		}
+
+		UserRoleCountRes& operator = (const UserRoleCountRes &rhs)
+		{
+			const UserRoleCountRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				count = r->count;
+				rolelist = r->rolelist;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << count;
+			os << rolelist;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> count;
+			os >> rolelist;
+			return os;
+		}
+
+	};
+};
+#endif

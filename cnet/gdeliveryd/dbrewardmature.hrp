@@ -1,0 +1,48 @@
+
+#ifndef __GNET_DBREWARDMATURE_HPP
+#define __GNET_DBREWARDMATURE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbrewardmaturearg"
+#include "dbrewardmatureres"
+#include "rewardmanager.h"
+
+namespace GNET
+{
+
+class DBRewardMature : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbrewardmature"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBRewardMatureArg *arg = (DBRewardMatureArg *)argument;
+		// DBRewardMatureRes *res = (DBRewardMatureRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBRewardMatureArg *arg = (DBRewardMatureArg *)argument;
+		DBRewardMatureRes *res = (DBRewardMatureRes *)result;
+		if (res->retcode != ERR_SUCCESS)
+			Log::log(LOG_ERR, "dbrewardmature error %d roleid %d", res->retcode, arg->roleid);
+		RewardManager::GetInstance()->OnRewardListUpdate(res->retcode, arg->userid);
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		DBRewardMatureArg *arg = (DBRewardMatureArg *)argument;
+		Log::log(LOG_ERR, "dbrewardmature time out  roleid %d", arg->roleid);
+		GameDBClient::GetInstance()->SendProtocol( Rpc::Call(RPC_DBREWARDMATURE, arg) ); 
+//		RewardManager::GetInstance()->OnRewardListUpdate(ERR_TIMEOUT, arg->roleid, 0);
+	}
+
+};
+
+};
+#endif

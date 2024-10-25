@@ -1,0 +1,69 @@
+#ifndef __GNET_DBCLEARCONSUMABLEARG_RPCDATA
+#define __GNET_DBCLEARCONSUMABLEARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBClearConsumableArg : public GNET::Rpc::Data
+	{
+	public:
+		int userid;
+		int logintime;
+		char dryrun;
+
+	public:
+		DBClearConsumableArg (int l_userid = 0,int l_logintime = 0,char l_dryrun = 0)
+			: userid(l_userid),logintime(l_logintime),dryrun(l_dryrun)
+		{
+		}
+
+		DBClearConsumableArg(const DBClearConsumableArg &rhs)
+			: userid(rhs.userid),logintime(rhs.logintime),dryrun(rhs.dryrun) { }
+
+		Rpc::Data *Clone() const { return new DBClearConsumableArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBClearConsumableArg *r = dynamic_cast<const DBClearConsumableArg *>(&rhs);
+			if (r && r != this)
+			{
+				userid = r->userid;
+				logintime = r->logintime;
+				dryrun = r->dryrun;
+			}
+			return *this;
+		}
+
+		DBClearConsumableArg& operator = (const DBClearConsumableArg &rhs)
+		{
+			const DBClearConsumableArg *r = &rhs;
+			if (r && r != this)
+			{
+				userid = r->userid;
+				logintime = r->logintime;
+				dryrun = r->dryrun;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			os << logintime;
+			os << dryrun;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			os >> logintime;
+			os >> dryrun;
+			return os;
+		}
+
+	};
+};
+#endif

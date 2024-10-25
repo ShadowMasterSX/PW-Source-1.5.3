@@ -1,0 +1,137 @@
+
+#ifndef __GNET_DBWEBTRADECANCELPOST_HPP
+#define __GNET_DBWEBTRADECANCELPOST_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbwebtradecancelpostarg"
+#include "dbwebtradecancelpostres"
+
+#include "postoffice.h"
+#include "gwebtradeclient.hpp"
+#include "webpostcancel_re.hpp"
+
+namespace GNET
+{
+
+class DBWebTradeCancelPost : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbwebtradecancelpost"
+#undef	RPC_BASECLASS
+	bool web_op;
+	int64_t messageid;
+	int64_t timestamp;
+	int userid;
+	bool userid_mismatch;
+	bool roleid_mismatch;
+	int posttype;
+/*
+WebPostCancel_Re
+0.成功；
+1.sn不存在（平台认为该单子错误，删除该单子，不再重发）； 
+2.重复取消寄售（平台认为成功，不再重发）； 
+3.其他错误（重发）；
+4.向游戏服务器发送数据失败（重发）； 
+5.游戏端根据sn查到的roleid不存在（可能是角色已被GM删除或回档等原因，gs和平台忽略该错误，平台认为成功，不重发）；
+6.物品在游戏内处于“与平台同步中”的状态（即游戏内物品处于“与平台同步中”的状态时，不再处理平台发来的逻辑，直接返回本错误码，直到收到平台返回的Re，平台收到该错误码后不作任何处理，重发）；
+7．游戏根据sn查到的userid与平台指定的userid不一致（gs和平台忽略该错误，平台认为成功，不重发）；
+8．游戏根据sn查到的roleid与平台指定的roleid不一致（gs和平台忽略该错误，平台认为成功，不重发）；
+-1.游戏服务器处理失败（重发）；
+*/
+	void SendResult(int retcode,int roleid, int64_t sn)
+	{
+		GWebTradeClient::GetInstance()->SendProtocol(WebPostCancel_Re(userid,roleid,sn,retcode,messageid));	
+	}
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBWebTradeCancelPostArg *arg = (DBWebTradeCancelPostArg *)argument;
+		// DBWebTradeCancelPostRes *res = (DBWebTradeCancelPostRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		DBWebTradeCancelPostArg *arg = (DBWebTradeCancelPostArg *)argument;
+		DBWebTradeCancelPostRes *res = (DBWebTradeCancelPostRes *)result;
+		DEBUG_PRINT("dbwebtradecancelpost: rpc return. retcode=%d,sn=%lld,roleid=%d,web_op=%d", res->retcode, arg->sn, arg->roleid, web_op);
+
+		if(res->retcode == ERR_SUCCESS)
+		{
+			if(!WebTradeMarket::GetInstance().OnDBCancelPost(arg->roleid, arg->sn))
+			{
+				WebTradeMarket::GetInstance().ClearBusy(arg->sn);
+				Log::log(LOG_WARNING,"dbwebtradecancelpost: OnDBCancelPost failed. sn=%lld,roleid=%d", arg->sn,arg->roleid);
+			}
+			else	// 试图通知客户端
+			{
+				Thread::RWLock::RDScoped l(UserContainer::GetInstance().GetLocker());
+				PlayerInfo * pinfo = UserContainer::GetInstance().FindRoleOnline(arg->roleid );
+				if ( NULL!=pinfo)
+				{
+					WebTradeUpdate_Re re;
+					re.retcode = ERR_WT_ENTRY_NOT_FOUND;
+					re.sn = arg->sn;
+					re.localsid = pinfo->localsid;
+					GDeliveryServer::GetInstance()->Send( pinfo->linksid,re );
+				}
+			}
+			//取消寄售角色时要对角色解除锁定
+			if(posttype == 4)
+			{
+				Thread::RWLock::WRScoped l(UserContainer::GetInstance().GetLocker());
+				UserInfo* userinfo=UserContainer::GetInstance().FindUser(userid);
+				if(userinfo)
+					userinfo->role_status[arg->roleid % MAX_ROLE_COUNT] = _ROLE_STATUS_NORMAL;		
+			}
+			PostOffice::GetInstance().AddNewMail( res->inform_seller.receiver,res->inform_seller );
+			if(web_op)
+			{
+				if(userid_mismatch)
+					SendResult(7,arg->roleid,arg->sn);	//通知Tradeserver成功
+				else if(roleid_mismatch)
+					SendResult(8,arg->roleid,arg->sn);	//通知Tradeserver成功
+				else
+					SendResult(0,arg->roleid,arg->sn);	//通知Tradeserver成功
+			}
+		}
+		else
+		{
+			WebTradeMarket::GetInstance().ClearBusy(arg->sn);
+			Log::log(LOG_WARNING,"dbwebtradecancelpost: failed. sn=%lld,roleid=%d", arg->sn,arg->roleid);
+			if(web_op)
+				SendResult(-1,arg->roleid,arg->sn);	//通知Tradeserver重发
+		}
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+		DBWebTradeCancelPostArg *arg = (DBWebTradeCancelPostArg *)argument;
+		Log::log(LOG_ERR,"dbwebtradecancelpost: timeout. sn=%lld,roleid=%d", arg->sn,arg->roleid);
+		if(web_op)
+		{
+			WebTradeMarket::GetInstance().ClearBusy(arg->sn);
+			SendResult(-1,arg->roleid,arg->sn);	//通知Tradeserver重发
+		}
+		else
+		{
+			DBWebTradeCancelPost * rpc = (DBWebTradeCancelPost *)Rpc::Call(RPC_DBWEBTRADECANCELPOST,arg);
+			rpc->web_op = this->web_op;
+			rpc->messageid = this->messageid;
+			rpc->timestamp = this->timestamp;
+			rpc->userid = this->userid;
+			rpc->userid_mismatch = this->userid_mismatch;
+			rpc->roleid_mismatch = this->roleid_mismatch;
+			rpc->posttype = this->posttype;
+			GameDBClient::GetInstance()->SendProtocol(rpc);
+		}
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,64 @@
+#ifndef __GNET_GETTASKDATARES_RPCDATA
+#define __GNET_GETTASKDATARES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GetTaskDataRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		Octets taskdata;
+
+	public:
+		GetTaskDataRes (int l_retcode = -1,const Octets& l_taskdata = Octets(0))
+			: retcode(l_retcode),taskdata(l_taskdata)
+		{
+		}
+
+		GetTaskDataRes(const GetTaskDataRes &rhs)
+			: retcode(rhs.retcode),taskdata(rhs.taskdata) { }
+
+		Rpc::Data *Clone() const { return new GetTaskDataRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GetTaskDataRes *r = dynamic_cast<const GetTaskDataRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				taskdata = r->taskdata;
+			}
+			return *this;
+		}
+
+		GetTaskDataRes& operator = (const GetTaskDataRes &rhs)
+		{
+			const GetTaskDataRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				taskdata = r->taskdata;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << taskdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> taskdata;
+			return os;
+		}
+
+	};
+};
+#endif

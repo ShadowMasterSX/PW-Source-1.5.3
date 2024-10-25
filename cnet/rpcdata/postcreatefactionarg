@@ -1,0 +1,77 @@
+#ifndef __GNET_POSTCREATEFACTIONARG_RPCDATA
+#define __GNET_POSTCREATEFACTIONARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class PostCreateFactionArg : public GNET::Rpc::Data
+	{
+	public:
+		char success;
+		int zoneid;
+		int factionid;
+		Octets factionname;
+
+	public:
+		PostCreateFactionArg (char l_success = 1,int l_zoneid = -1,int l_factionid = -1
+			,const Octets& l_factionname = Octets(0))
+			: success(l_success),zoneid(l_zoneid),factionid(l_factionid)
+			,factionname(l_factionname)
+		{
+		}
+
+		PostCreateFactionArg(const PostCreateFactionArg &rhs)
+			: success(rhs.success),zoneid(rhs.zoneid),factionid(rhs.factionid),
+			factionname(rhs.factionname) { }
+
+		Rpc::Data *Clone() const { return new PostCreateFactionArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const PostCreateFactionArg *r = dynamic_cast<const PostCreateFactionArg *>(&rhs);
+			if (r && r != this)
+			{
+				success = r->success;
+				zoneid = r->zoneid;
+				factionid = r->factionid;
+				factionname = r->factionname;
+			}
+			return *this;
+		}
+
+		PostCreateFactionArg& operator = (const PostCreateFactionArg &rhs)
+		{
+			const PostCreateFactionArg *r = &rhs;
+			if (r && r != this)
+			{
+				success = r->success;
+				zoneid = r->zoneid;
+				factionid = r->factionid;
+				factionname = r->factionname;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << success;
+			os << zoneid;
+			os << factionid;
+			os << factionname;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> success;
+			os >> zoneid;
+			os >> factionid;
+			os >> factionname;
+			return os;
+		}
+
+	};
+};
+#endif

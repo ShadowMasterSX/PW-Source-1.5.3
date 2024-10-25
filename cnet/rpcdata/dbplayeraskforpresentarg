@@ -1,0 +1,87 @@
+#ifndef __GNET_DBPLAYERASKFORPRESENTARG_RPCDATA
+#define __GNET_DBPLAYERASKFORPRESENTARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBPlayerAskForPresentArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		int target_roleid;
+		int goods_id;
+		int goods_index;
+		int goods_slot;
+		Octets rolename;
+
+	public:
+		DBPlayerAskForPresentArg (int l_roleid = -1,int l_target_roleid = -1,int l_goods_id = -1
+			,int l_goods_index = -1,int l_goods_slot = -1,const Octets& l_rolename = Octets())
+			: roleid(l_roleid),target_roleid(l_target_roleid),goods_id(l_goods_id)
+			,goods_index(l_goods_index),goods_slot(l_goods_slot),rolename(l_rolename)
+		{
+		}
+
+		DBPlayerAskForPresentArg(const DBPlayerAskForPresentArg &rhs)
+			: roleid(rhs.roleid),target_roleid(rhs.target_roleid),goods_id(rhs.goods_id),
+			goods_index(rhs.goods_index),goods_slot(rhs.goods_slot),rolename(rhs.rolename) { }
+
+		Rpc::Data *Clone() const { return new DBPlayerAskForPresentArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPlayerAskForPresentArg *r = dynamic_cast<const DBPlayerAskForPresentArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				target_roleid = r->target_roleid;
+				goods_id = r->goods_id;
+				goods_index = r->goods_index;
+				goods_slot = r->goods_slot;
+				rolename = r->rolename;
+			}
+			return *this;
+		}
+
+		DBPlayerAskForPresentArg& operator = (const DBPlayerAskForPresentArg &rhs)
+		{
+			const DBPlayerAskForPresentArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				target_roleid = r->target_roleid;
+				goods_id = r->goods_id;
+				goods_index = r->goods_index;
+				goods_slot = r->goods_slot;
+				rolename = r->rolename;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << target_roleid;
+			os << goods_id;
+			os << goods_index;
+			os << goods_slot;
+			os << rolename;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> target_roleid;
+			os >> goods_id;
+			os >> goods_index;
+			os >> goods_slot;
+			os >> rolename;
+			return os;
+		}
+
+	};
+};
+#endif

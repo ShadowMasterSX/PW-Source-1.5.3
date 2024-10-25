@@ -1,0 +1,72 @@
+
+#ifndef __GNET_GETMESSAGE_HPP
+#define __GNET_GETMESSAGE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "roleid"
+#include "getmessageres"
+
+namespace GNET
+{
+
+class GetMessage : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getmessage"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		RoleId *arg = (RoleId *)argument;
+		GetMessageRes *res = (GetMessageRes *)result;
+		Marshal::OctetsStream key, value;
+
+		LOG_TRACE( "GetMessage, roleid=%d.\n", arg->id );
+
+		try
+		{
+			StorageEnv::Storage * pmessages = StorageEnv::GetStorage("messages");
+			StorageEnv::AtomTransaction txn;
+			try{
+				key << arg->id;
+				if(pmessages->find(key, value, txn))
+				{
+					value >> res->messages;
+					pmessages->del( key, txn );
+					res->retcode = ERR_SUCCESS;
+				}
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "GetMessage, roleid=%d, what=%s\n", arg->id, e.what() );
+			res->retcode = ERR_DATANOTFIND;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// RoleId *arg = (RoleId *)argument;
+		// GetMessageRes *res = (GetMessageRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

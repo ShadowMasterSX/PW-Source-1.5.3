@@ -1,0 +1,35 @@
+	public:
+		int64_t userid;
+		int64_t roleid;
+		enum { PROTOCOL_TYPE = PROTOCOL_ROLERELATIONREQ };
+	public:
+		RoleRelationReq() { type = PROTOCOL_ROLERELATIONREQ; }
+		RoleRelationReq(void*) : Protocol(PROTOCOL_ROLERELATIONREQ) { }
+		RoleRelationReq (int64_t l_userid,int64_t l_roleid = 0)
+			 : userid(l_userid),roleid(l_roleid)
+		{
+			type = PROTOCOL_ROLERELATIONREQ;
+		}
+
+		RoleRelationReq(const RoleRelationReq &rhs)
+			: Protocol(rhs),userid(rhs.userid),roleid(rhs.roleid) { }
+
+		GNET::Protocol *Clone() const { return new RoleRelationReq(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			os << roleid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			os >> roleid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 32; }

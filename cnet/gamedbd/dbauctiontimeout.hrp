@@ -1,0 +1,101 @@
+
+#ifndef __GNET_DBAUCTIONTIMEOUT_HPP
+#define __GNET_DBAUCTIONTIMEOUT_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "utilfunction.h"
+
+#include "auctionid"
+#include "dbauctiontimeoutres"
+
+namespace GNET
+{
+
+class DBAuctionTimeout : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbauctiontimeout"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		AuctionId *arg = (AuctionId *)argument;
+		DBAuctionTimeoutRes *res = (DBAuctionTimeoutRes *)result;
+
+		Marshal::OctetsStream key, value;
+		try
+		{
+			StorageEnv::Storage * pauction = StorageEnv::GetStorage("auction");
+			StorageEnv::Storage * pmailbox = StorageEnv::GetStorage("mailbox");
+			StorageEnv::CommonTransaction txn;
+			try{
+				GAuctionDetail detail;
+				UintVector list;
+
+				key << arg->id;
+				Marshal::OctetsStream(pauction->find(key,txn)) >> detail;
+				value << (unsigned int)arg->id << (unsigned int)detail.item.id 
+					<< (unsigned int)detail.item.count;
+				Log::formatlog("auction",
+					"type=timeout:aid=%d:item=%d:count=%d:bidprice=%d:seller=%d:bidder=%d",
+					arg->id, detail.item.id, detail.item.count, detail.info.bidprice, 
+					detail.info.seller, detail.info.bidder);
+
+				if(detail.info.bidder==0)
+				{
+					res->inform_bidder.receiver = _ROLE_INVALID;
+					res->inform_seller.receiver = detail.info.seller;
+					res->inform_seller.sndr_type = _MST_AUCTION;
+					res->inform_seller.sender = _AUCTION_BID_TIMEOUT;
+					res->inform_seller.title = value;
+					MailSender::Send(pmailbox, res->inform_seller, detail.item, detail.deposit/2, txn); 
+				}
+				else
+				{
+					res->inform_bidder.receiver = detail.info.bidder;
+					res->inform_bidder.sndr_type = _MST_AUCTION;
+					res->inform_bidder.sender = _AUCTION_BID_WIN;
+					res->inform_bidder.title = value;
+					MailSender::Send(pmailbox, res->inform_bidder, detail.item, 0,  txn); 
+
+					res->inform_seller.receiver = detail.info.seller;
+					res->inform_seller.sndr_type = _MST_AUCTION;
+					res->inform_seller.sender = _AUCTION_ITEM_SOLD;
+					res->inform_seller.title = value;
+					MailSender::Send(pmailbox,res->inform_seller, (int)(detail.info.bidprice*0.95+0.5), txn); 
+				}
+				pauction->del(key,txn);
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBAuctionTimeout, auctionid=%d, what=%s.\n",arg->id,e.what());
+			if(e.get_errno()==DB_LOCK_DEADLOCK)
+				res->retcode = ERR_AGAIN;
+			else
+				res->retcode = ERR_DATANOTFIND;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

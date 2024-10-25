@@ -1,0 +1,116 @@
+
+#ifndef __GNET_MATRIXTOKEN_HPP
+#define __GNET_MATRIXTOKEN_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "matrixtokenarg"
+#include "matrixtokenres"
+#include "matrixchallenge.hpp"
+#include "cardchecker.h"
+#include "mobilechecker.h"
+#include "localmacro.h"
+
+namespace GNET
+{
+
+class MatrixToken : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "matrixtoken"
+#undef	RPC_BASECLASS
+
+	Manager::Session::ID save_sid;
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// MatrixTokenArg *arg = (MatrixTokenArg *)argument;
+		// MatrixTokenRes *res = (MatrixTokenRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		MatrixTokenRes *res = (MatrixTokenRes *)result;
+		GLinkServer *lsm=GLinkServer::GetInstance();
+		DEBUG_PRINT ("glinkd::receive matrixtoken. retcode=%d,userid=%d,algorithm=%x,matrix=%d\n", 
+				res->retcode, res->userid, res->algorithm, res->matrix.size());
+
+		if (!lsm->ValidSid(save_sid)) 
+			return;
+		if(res->retcode)
+		{
+			if(res->retcode==ERR_INVALID_ACCOUNT)
+				res->retcode = ERR_INVALID_PASSWORD;
+			lsm->SessionError(save_sid, res->retcode, "Server error.");
+			return;
+		}
+		SessionInfo * sinfo = NULL;
+		sinfo = lsm->GetSessionInfo(save_sid);
+		if (!sinfo) 
+			return;
+
+		sinfo->userid = res->userid;
+		sinfo->login_time = time(NULL);
+		//判断用户是否需要更新密码或密保卡
+		if(res->algorithm & ALGORITHM_PASSWORD_OBSOLETE)
+			sinfo->passwd_flag |= 0x01;
+		if(res->algorithm & ALGORITHM_CARD_OBSOLETE)
+			sinfo->passwd_flag |= 0x02;
+
+		switch(res->algorithm & ALGORITHM_MASK_HIGH)
+		{
+			case ALGORITHM_CARD:
+			{
+				lsm->ChangeState(save_sid,&state_GVerifyMatrix);
+				CardChecker* checker = new CardChecker(
+					res->userid, 
+					byteorder_32(sinfo->GetPeerAddr().s_addr),
+					(unsigned char*)res->matrix.begin()
+					);
+
+				MatrixChallenge mc(res->algorithm,checker->Challenge());
+				lsm->Send(save_sid, mc);
+				lsm->AddChecker(save_sid, checker);
+				break;
+			}
+			case ALGORITHM_HANDSET:
+			{
+				lsm->ChangeState(save_sid,&state_GVerifyMatrix);
+				MatrixChecker * checker = MobileCheckerFactory::Instance().Create(
+					res->userid,
+					byteorder_32(sinfo->GetPeerAddr().s_addr),
+					res->algorithm, res->matrix
+					);
+
+				MatrixChallenge mc(res->algorithm, checker->Challenge());
+				lsm->Send(save_sid, mc);
+				lsm->AddChecker(save_sid, checker);
+				break;
+			}
+			default:
+			{
+				//change state to keyexchgsend
+				lsm->ChangeState(save_sid,&state_GKeyExchgSend);
+				//send keyexchange protocol
+				KeyExchange keyexchange(PROTOCOL_KEYEXCHANGE);
+				keyexchange.Setup(sinfo->identity, sinfo->response, lsm, save_sid);
+				lsm->Send(save_sid, keyexchange);
+				//log user's login information
+				Octets& username = sinfo->identity;
+				Log::login(username, res->userid, save_sid, inet_ntoa(sinfo->GetPeerAddr()));
+				break;
+			}
+		}
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

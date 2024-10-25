@@ -1,0 +1,64 @@
+#ifndef __GNET_SYSAUCTIONPREPAREITEMARG_RPCDATA
+#define __GNET_SYSAUCTIONPREPAREITEMARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class SysAuctionPrepareItemArg : public GNET::Rpc::Data
+	{
+	public:
+		std::vector<int> indexes;
+		std::vector<int> item_ids;
+
+	public:
+		SysAuctionPrepareItemArg (const std::vector<int>& l_indexes = std::vector<int>(),const std::vector<int>& l_item_ids = std::vector<int>())
+			: indexes(l_indexes),item_ids(l_item_ids)
+		{
+		}
+
+		SysAuctionPrepareItemArg(const SysAuctionPrepareItemArg &rhs)
+			: indexes(rhs.indexes),item_ids(rhs.item_ids) { }
+
+		Rpc::Data *Clone() const { return new SysAuctionPrepareItemArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const SysAuctionPrepareItemArg *r = dynamic_cast<const SysAuctionPrepareItemArg *>(&rhs);
+			if (r && r != this)
+			{
+				indexes = r->indexes;
+				item_ids = r->item_ids;
+			}
+			return *this;
+		}
+
+		SysAuctionPrepareItemArg& operator = (const SysAuctionPrepareItemArg &rhs)
+		{
+			const SysAuctionPrepareItemArg *r = &rhs;
+			if (r && r != this)
+			{
+				indexes = r->indexes;
+				item_ids = r->item_ids;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << indexes;
+			os << item_ids;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> indexes;
+			os >> item_ids;
+			return os;
+		}
+
+	};
+};
+#endif

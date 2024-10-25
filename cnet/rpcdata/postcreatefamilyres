@@ -1,0 +1,59 @@
+#ifndef __GNET_POSTCREATEFAMILYRES_RPCDATA
+#define __GNET_POSTCREATEFAMILYRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class PostCreateFamilyRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+
+	public:
+		PostCreateFamilyRes (int l_retcode = -1)
+			: retcode(l_retcode)
+		{
+		}
+
+		PostCreateFamilyRes(const PostCreateFamilyRes &rhs)
+			: retcode(rhs.retcode) { }
+
+		Rpc::Data *Clone() const { return new PostCreateFamilyRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const PostCreateFamilyRes *r = dynamic_cast<const PostCreateFamilyRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		PostCreateFamilyRes& operator = (const PostCreateFamilyRes &rhs)
+		{
+			const PostCreateFamilyRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			return os;
+		}
+
+	};
+};
+#endif

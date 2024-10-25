@@ -1,0 +1,70 @@
+
+#ifndef __GNET_GETROLEEQUIPMENT_HPP
+#define __GNET_GETROLEEQUIPMENT_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "dbbuffer.h"
+#include "roleid"
+#include "groleinventory"
+#include "roleequipmentres"
+
+namespace GNET
+{
+
+class GetRoleEquipment : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getroleequipment"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		RoleId *arg = (RoleId *)argument;
+		RoleEquipmentRes *res = (RoleEquipmentRes *)result;
+		Marshal::OctetsStream key;
+
+		LOG_TRACE( "GetRoleEquipment, roleid=%d.\n", arg->id );
+
+		try
+		{
+			StorageEnv::Storage * pequipment = StorageEnv::GetStorage("equipment");
+			StorageEnv::AtomTransaction txn;
+			try
+			{
+				key << *arg;
+				Marshal::OctetsStream(pequipment->find( key, txn )) >> res->equipment;
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "GetRoleEquipment, roleid=%d, what=%s\n", arg->id, e.what() );
+			res->retcode = ERR_DATANOTFIND;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// RoleId *arg = (RoleId *)argument;
+		// RoleEquipmentRes *res = (RoleEquipmentRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

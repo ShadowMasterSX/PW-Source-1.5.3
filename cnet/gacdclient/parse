@@ -1,0 +1,265 @@
+#!/usr/bin/perl -w
+
+use IO::File;
+use XML::DOM;
+use Data::Dumper;
+
+my $sym_table;
+my $run_table;
+
+sub ParseCoff
+{
+	my ($id, $filename) = @_;
+
+	my $f = new IO::File('objfile/' . $filename) || die "ObjFile '$filename' NOT FOUND\n";
+	local $/ = undef;
+	my $data = <$f>;
+
+	my ($sym_offset, $sym_count) = unpack("LL", substr( $data, 8, 8 ));
+	my $string_table_offset = $sym_offset + $sym_count * 18;
+	for ( my $i = 0; $i < $sym_count; $i++ )
+	{
+		my $name = substr( $data, $sym_offset + $i * 18, 8 );
+		$name = pack('A*', unpack('Z*', unpack('L', $name) ? $name : substr( $data, $string_table_offset + unpack('L',substr($name,4)))));
+		next if ( $name !~ /^[\?_]/ );
+		my $section_number = unpack('S', substr($data, $sym_offset + $i * 18 + 12, 2));
+		if ( $section_number )
+		{
+			my ( $size, $data_ptr, $reloc_ptr, undef, $reloc_count ) 
+				= unpack('LLLLS', substr($data, 20 + ($section_number - 1) * 40 + 16, 18));
+			$sym_table->{$name}{code} = unpack('H*', substr( $data, $data_ptr, $size ));
+			$sym_table->{$name}{id}   = $id;
+			$sym_table->{$name}{type} = 'objfile';
+			for ( my $j = 0; $j < $reloc_count; $j++ )
+			{
+				my ( $reloc_addr, $reloc_id ) = unpack ('LL', substr( $data, $reloc_ptr + $j * 10, 8 ));
+				my $reloc_name = substr( $data, $sym_offset + $reloc_id * 18, 8 );
+				$reloc_name = pack('A*', unpack('Z*', 
+					unpack('L', $reloc_name) ? $name : substr( $data, $string_table_offset + unpack('L',substr($reloc_name,4)))));
+				push( @{$sym_table->{$name}{reloc}}, [ $reloc_name, $reloc_addr ] );
+			}
+		}
+		$i += unpack('C', substr( $data, $sym_offset + $i * 18 + 17, 1 ) );
+	}
+}
+
+sub Parse
+{
+	my $filename = shift;
+	my $parser = new XML::DOM::Parser;
+	my $doc = $parser->parsefile($filename);
+	my $dll  = $doc->getElementsByTagName('application')->item(0)->getElementsByTagName('NetDLL')->item(0);
+
+	my @string_node;
+	my @dllapi_node;
+	my @run_node;
+	my @objfile_node;
+
+	my $compile_element;
+
+	for ($dll->getChildNodes)
+	{
+		next unless $_->getNodeType == ELEMENT_NODE;
+		my $name   = $_->getNodeName;
+		push ( @string_node,  $_ ) if $name eq 'string';
+		push ( @dllapi_node,  $_ ) if $name eq 'dllapi';
+		push ( @run_node,     $_ ) if $name eq 'run';
+		push ( @objfile_node, $_ ) if $name eq 'objfile';
+		$dll->removeChild($_)      if $name eq 'Compile';
+	}
+
+	ParseString ($_) for ( @string_node );
+	ParseDllapi ($_) for ( @dllapi_node );
+	ParseRun    ($_) for ( @run_node    );
+	ParseObjfile($_) for ( @objfile_node);
+	Relocation();
+	$doc;
+}
+
+sub ParseString
+{
+	my $element = shift;
+	my $value  = $element->getAttribute('value');
+	my $symbol = $element->getAttribute('symbol') || $value;
+	my $id     = $element->getAttribute('id');
+	my $sid    = $element->getAttribute('sid') || "0";
+	$sym_table->{$symbol}{id} = $id;
+	$sym_table->{$symbol}{code}{$sid} = unpack('H*', pack('SSSC*', length($value) + 7, $id, 0, unpack('C*', $value), 0));
+	$sym_table->{$symbol}{type} = 'string';
+}
+
+sub ParseDllapi
+{
+	my $element = shift;
+	my $id     = $element->getAttribute('id');
+	my $lib    = $element->getAttribute('lib');
+	my $fid    = $element->getAttribute('fid');
+	my $symbol = $element->getAttribute('symbol');
+	$sym_table->{$symbol}{id} = $id;
+	$sym_table->{$symbol}{code} = unpack('H*', pack('SSSSS', 10, $id, 1, $lib, $fid ));
+	$sym_table->{$symbol}{type} = 'dllapi';
+}
+
+sub ParseRun
+{
+	my $element = shift;
+	my $id     = $element->getAttribute('id');
+	my $param0 = $element->getAttribute('param0');
+	my $param1 = $element->getAttribute('param1');
+	my $param2 = $element->getAttribute('param2');
+	$run_table->{$id}{type} = 'run';
+
+	my $sid;
+	if ( $param2 ne '')
+	{
+		$param1 = '0' if $param1 eq '';
+		$param0 = '0' if $param0 eq '';
+		$sid = $param0 . '_' . $param1 . '_' . $param2;
+		$run_table->{$id}{code}{$sid} = unpack('H*', pack ('SSSLLL', 18, $id, 2, $param0, $param1, $param2 ));
+	}
+	elsif ( $param1 ne '')
+	{
+		$param0 = '0' if $param0 eq '';
+		$sid = $param0 . '_' . $param1;
+		$run_table->{$id}{code}{$sid} = unpack('H*', pack ('SSSLL', 14, $id, 2, $param0, $param1 ));
+	}
+	elsif ( $param0 ne '')
+	{
+		$run_table->{$id}{code}{$param0} = unpack('H*', pack ('SSSL', 10, $id, 2, $param0 ));
+	}
+	else
+	{
+		$run_table->{$id}{code} = unpack('H*', pack ('SSS', 6, $id, 2 ));
+	}
+}
+
+sub ParseObjfile
+{
+	my $element = shift;
+	my $id     = $element->getAttribute('id');
+	my $value  = $element->getAttribute('value');
+	ParseCoff( $id, $value);
+}
+
+sub Relocation
+{
+	my $error = 0;
+	while ( my ($k, $v) = each %$sym_table )
+	{
+		next if ( $v->{type} ne 'objfile' );
+		my $head;
+		if ( exists $v->{reloc} )
+		{
+			my $reloc_size = @{ $v->{reloc} };
+			my $head_size  = 8 + $reloc_size * 4;
+			$head = unpack('H*', pack ('SSSS', $head_size + length($v->{code}) / 2, $v->{id}, $head_size, $reloc_size));
+			for ( @{$v->{reloc}} )
+			{
+				my $reloc_sym = $_->[0];
+				if ( exists $sym_table->{$reloc_sym} )
+				{
+					$head .= unpack('H*', pack('SS', $_->[1] + $head_size, $sym_table->{$reloc_sym}{id} ));
+				}
+				else
+				{
+					print "Error: Code '$k', Symbol '$reloc_sym' Not Found\n";
+					$error = 1;
+				}
+			}
+		}
+		else
+		{
+			$head = unpack('H*', pack ('SSS', 6 + length($v->{code}) / 2, $v->{id}, 6 ));
+		}
+		$v->{code} = $head . $v->{code};
+	}
+	if ( $error )
+	{
+		print "Error Abort\n";
+		exit 0;
+	}
+}
+
+sub Generate
+{
+	my ($doc, $filename)  = @_;
+	my $root = $doc->createElement('Compile');
+	my $dll  = $doc->getElementsByTagName('application')->item(0)->getElementsByTagName('NetDLL')->item(0);
+	$dll->appendChild($root);
+	$root->appendChild($doc->createTextNode("\n"));
+
+	while  ( my ($k, $v) = each %$sym_table )
+	{
+		my $element = $doc->createElement('code');
+		$element->setAttribute('id', $v->{id} );
+		if ( exists $v->{reloc} )
+		{
+			my @sym_ref;
+			for ( @{$v->{reloc}} )
+			{
+				push(@sym_ref, $_->[0]);
+			}
+			$element->setAttribute('reference', join(',', @sym_ref));
+		}
+		my $codes = $v->{code};
+		if ( ref($codes) ne "HASH" )
+		{
+			$element->setAttribute('value', $codes );
+			$element->setAttribute('symbol', $k );
+			$root->appendChild($element);
+			$root->appendChild($doc->createTextNode("\n"));
+		}
+		elsif ( keys %$codes == 1 )
+		{
+			$element->setAttribute('value', $codes->{0} );
+			$element->setAttribute('symbol', $k );
+			$root->appendChild($element);
+			$root->appendChild($doc->createTextNode("\n"));
+		}
+		else
+		{
+			while( my($k1, $v1) = each %$codes )
+			{
+				my $newelement = $doc->createElement('code');
+				$newelement->setAttribute('id', $v->{id} );
+				$newelement->setAttribute('value', $v1);
+				$newelement->setAttribute('symbol', $v->{id} . '_' . $k1 );
+				$root->appendChild($newelement);
+				$root->appendChild($doc->createTextNode("\n"));
+			}
+		}
+	}
+	while  ( my ($k, $v) = each %$run_table )
+	{
+		my $element = $doc->createElement('code');
+		$element->setAttribute('id', $k );
+
+		my $codes = $v->{code};
+		if( ref($codes) ne "HASH" )
+		{
+			$element->setAttribute('value', $codes );
+			$element->setAttribute('symbol', 'run' . $k );
+			$root->appendChild($element);
+			$root->appendChild($doc->createTextNode("\n"));
+		}
+		else
+		{
+			while( my($k1, $v1) = each %$codes )
+			{
+				my $newelement = $doc->createElement('code');
+				$newelement->setAttribute('id', $k );
+				$newelement->setAttribute('value', $v1 );
+				$newelement->setAttribute('symbol', 'run' . $k . '_' . $k1 );
+				$root->appendChild($newelement);
+				$root->appendChild($doc->createTextNode("\n"));
+			}
+		}
+	}
+	$doc->printToFile( $filename );
+	$doc->dispose();
+}
+
+Generate( Parse($ARGV[0]), $ARGV[0]);
+
+#print Dumper(\$sym_table);
+

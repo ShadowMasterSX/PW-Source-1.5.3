@@ -1,0 +1,79 @@
+#ifndef __GNET_DBCREATEFACTIONFORTRESSARG_RPCDATA
+#define __GNET_DBCREATEFACTIONFORTRESSARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gfactionfortressdetail"
+#include "gmailsyncdata"
+
+namespace GNET
+{
+	class DBCreateFactionFortressArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		Octets item_cost;
+		GFactionFortressDetail detail;
+		GMailSyncData syncdata;
+
+	public:
+		DBCreateFactionFortressArg (int l_roleid = 0,const Octets& l_item_cost = Octets(),const GFactionFortressDetail& l_detail = GFactionFortressDetail()
+			,const GMailSyncData& l_syncdata = GMailSyncData())
+			: roleid(l_roleid),item_cost(l_item_cost),detail(l_detail)
+			,syncdata(l_syncdata)
+		{
+		}
+
+		DBCreateFactionFortressArg(const DBCreateFactionFortressArg &rhs)
+			: roleid(rhs.roleid),item_cost(rhs.item_cost),detail(rhs.detail),
+			syncdata(rhs.syncdata) { }
+
+		Rpc::Data *Clone() const { return new DBCreateFactionFortressArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBCreateFactionFortressArg *r = dynamic_cast<const DBCreateFactionFortressArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				item_cost = r->item_cost;
+				detail = r->detail;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		DBCreateFactionFortressArg& operator = (const DBCreateFactionFortressArg &rhs)
+		{
+			const DBCreateFactionFortressArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				item_cost = r->item_cost;
+				detail = r->detail;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << item_cost;
+			os << detail;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> item_cost;
+			os >> detail;
+			os >> syncdata;
+			return os;
+		}
+
+	};
+};
+#endif

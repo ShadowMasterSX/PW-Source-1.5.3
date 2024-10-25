@@ -1,0 +1,65 @@
+#ifndef __GNET_DBPSHOPBUYRES_RPCDATA
+#define __GNET_DBPSHOPBUYRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "pshopitem"
+
+namespace GNET
+{
+	class DBPShopBuyRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		PShopItem itembuy;
+
+	public:
+		DBPShopBuyRes (int l_retcode = 0,const PShopItem& l_itembuy = PShopItem())
+			: retcode(l_retcode),itembuy(l_itembuy)
+		{
+		}
+
+		DBPShopBuyRes(const DBPShopBuyRes &rhs)
+			: retcode(rhs.retcode),itembuy(rhs.itembuy) { }
+
+		Rpc::Data *Clone() const { return new DBPShopBuyRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPShopBuyRes *r = dynamic_cast<const DBPShopBuyRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				itembuy = r->itembuy;
+			}
+			return *this;
+		}
+
+		DBPShopBuyRes& operator = (const DBPShopBuyRes &rhs)
+		{
+			const DBPShopBuyRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				itembuy = r->itembuy;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << itembuy;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> itembuy;
+			return os;
+		}
+
+	};
+};
+#endif

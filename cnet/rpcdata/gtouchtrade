@@ -1,0 +1,95 @@
+#ifndef __GNET_GTOUCHTRADE_RPCDATA
+#define __GNET_GTOUCHTRADE_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GTouchTrade : public GNET::Rpc::Data
+	{
+	public:
+		int64_t sn;
+		char state;
+		unsigned int cost;
+		unsigned int itemid;
+		unsigned int count;
+		unsigned int lots;
+		int expiretime;
+
+	public:
+		GTouchTrade (int64_t l_sn = 0,char l_state = 0,unsigned int l_cost = 0
+			,unsigned int l_itemid = 0,unsigned int l_count = 0,unsigned int l_lots = 0
+			,int l_expiretime = 0)
+			: sn(l_sn),state(l_state),cost(l_cost)
+			,itemid(l_itemid),count(l_count),lots(l_lots)
+			,expiretime(l_expiretime)
+		{
+		}
+
+		GTouchTrade(const GTouchTrade &rhs)
+			: sn(rhs.sn),state(rhs.state),cost(rhs.cost),
+			itemid(rhs.itemid),count(rhs.count),lots(rhs.lots),
+			expiretime(rhs.expiretime) { }
+
+		Rpc::Data *Clone() const { return new GTouchTrade(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GTouchTrade *r = dynamic_cast<const GTouchTrade *>(&rhs);
+			if (r && r != this)
+			{
+				sn = r->sn;
+				state = r->state;
+				cost = r->cost;
+				itemid = r->itemid;
+				count = r->count;
+				lots = r->lots;
+				expiretime = r->expiretime;
+			}
+			return *this;
+		}
+
+		GTouchTrade& operator = (const GTouchTrade &rhs)
+		{
+			const GTouchTrade *r = &rhs;
+			if (r && r != this)
+			{
+				sn = r->sn;
+				state = r->state;
+				cost = r->cost;
+				itemid = r->itemid;
+				count = r->count;
+				lots = r->lots;
+				expiretime = r->expiretime;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << sn;
+			os << state;
+			os << cost;
+			os << itemid;
+			os << count;
+			os << lots;
+			os << expiretime;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> sn;
+			os >> state;
+			os >> cost;
+			os >> itemid;
+			os >> count;
+			os >> lots;
+			os >> expiretime;
+			return os;
+		}
+
+	};
+};
+#endif

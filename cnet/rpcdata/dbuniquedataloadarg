@@ -1,0 +1,59 @@
+#ifndef __GNET_DBUNIQUEDATALOADARG_RPCDATA
+#define __GNET_DBUNIQUEDATALOADARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBUniqueDataLoadArg : public GNET::Rpc::Data
+	{
+	public:
+		Octets handle;
+
+	public:
+		DBUniqueDataLoadArg (const Octets& l_handle = Octets())
+			: handle(l_handle)
+		{
+		}
+
+		DBUniqueDataLoadArg(const DBUniqueDataLoadArg &rhs)
+			: handle(rhs.handle) { }
+
+		Rpc::Data *Clone() const { return new DBUniqueDataLoadArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBUniqueDataLoadArg *r = dynamic_cast<const DBUniqueDataLoadArg *>(&rhs);
+			if (r && r != this)
+			{
+				handle = r->handle;
+			}
+			return *this;
+		}
+
+		DBUniqueDataLoadArg& operator = (const DBUniqueDataLoadArg &rhs)
+		{
+			const DBUniqueDataLoadArg *r = &rhs;
+			if (r && r != this)
+			{
+				handle = r->handle;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << handle;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> handle;
+			return os;
+		}
+
+	};
+};
+#endif

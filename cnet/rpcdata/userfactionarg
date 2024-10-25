@@ -1,0 +1,64 @@
+#ifndef __GNET_USERFACTIONARG_RPCDATA
+#define __GNET_USERFACTIONARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class UserFactionArg : public GNET::Rpc::Data
+	{
+	public:
+		int reason;
+		unsigned int rid;
+
+	public:
+		UserFactionArg (int l_reason = -1,unsigned int l_rid = 0)
+			: reason(l_reason),rid(l_rid)
+		{
+		}
+
+		UserFactionArg(const UserFactionArg &rhs)
+			: reason(rhs.reason),rid(rhs.rid) { }
+
+		Rpc::Data *Clone() const { return new UserFactionArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const UserFactionArg *r = dynamic_cast<const UserFactionArg *>(&rhs);
+			if (r && r != this)
+			{
+				reason = r->reason;
+				rid = r->rid;
+			}
+			return *this;
+		}
+
+		UserFactionArg& operator = (const UserFactionArg &rhs)
+		{
+			const UserFactionArg *r = &rhs;
+			if (r && r != this)
+			{
+				reason = r->reason;
+				rid = r->rid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << reason;
+			os << rid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> reason;
+			os >> rid;
+			return os;
+		}
+
+	};
+};
+#endif

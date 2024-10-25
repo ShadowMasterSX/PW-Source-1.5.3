@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBFACTIONFORTRESSCHALLENGE_HPP
+#define __GNET_DBFACTIONFORTRESSCHALLENGE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbfactionfortresschallengearg"
+#include "dbfactionfortresschallengeres"
+
+namespace GNET
+{
+
+class DBFactionFortressChallenge : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbfactionfortresschallenge"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBFactionFortressChallengeArg *arg = (DBFactionFortressChallengeArg *)argument;
+		// DBFactionFortressChallengeRes *res = (DBFactionFortressChallengeRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBFactionFortressChallengeArg *arg = (DBFactionFortressChallengeArg *)argument;
+		// DBFactionFortressChallengeRes *res = (DBFactionFortressChallengeRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

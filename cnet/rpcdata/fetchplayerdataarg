@@ -1,0 +1,69 @@
+#ifndef __GNET_FETCHPLAYERDATAARG_RPCDATA
+#define __GNET_FETCHPLAYERDATAARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class FetchPlayerDataArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		int userid;
+		char flag;
+
+	public:
+		FetchPlayerDataArg (int l_roleid = 0,int l_userid = 0,char l_flag = 0)
+			: roleid(l_roleid),userid(l_userid),flag(l_flag)
+		{
+		}
+
+		FetchPlayerDataArg(const FetchPlayerDataArg &rhs)
+			: roleid(rhs.roleid),userid(rhs.userid),flag(rhs.flag) { }
+
+		Rpc::Data *Clone() const { return new FetchPlayerDataArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const FetchPlayerDataArg *r = dynamic_cast<const FetchPlayerDataArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				userid = r->userid;
+				flag = r->flag;
+			}
+			return *this;
+		}
+
+		FetchPlayerDataArg& operator = (const FetchPlayerDataArg &rhs)
+		{
+			const FetchPlayerDataArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				userid = r->userid;
+				flag = r->flag;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << userid;
+			os << flag;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> userid;
+			os >> flag;
+			return os;
+		}
+
+	};
+};
+#endif

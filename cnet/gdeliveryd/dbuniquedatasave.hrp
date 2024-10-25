@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBUNIQUEDATASAVE_HPP
+#define __GNET_DBUNIQUEDATASAVE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbuniquedatasavearg"
+#include "dbuniquedatasaveres"
+
+namespace GNET
+{
+
+class DBUniqueDataSave : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbuniquedatasave"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBUniqueSaveArg *arg = (DBUniqueSaveArg *)argument;
+		// DBUniqueSaveRes *res = (DBUniqueSaveRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		//DBUniqueDataSaveArg *arg = (DBUniqueDataSaveArg *)argument;
+		//DBUniqueDataSaveRes *res = (DBUniqueDataSaveRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

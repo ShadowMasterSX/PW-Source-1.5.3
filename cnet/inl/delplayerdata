@@ -1,0 +1,9 @@
+		GNET::Protocol *Clone() const {  return new DelPlayerData(*this); }
+	public:
+		enum { PROTOCOL_TYPE = RPC_DELPLAYERDATA };
+		DelPlayerData(Type type, Rpc::Data *argument, Rpc::Data *result)
+			: RPC_BASECLASS(type, argument, result ) { }
+		DelPlayerData(const DelPlayerData &rhs) : RPC_BASECLASS(rhs) { }
+		int  PriorPolicy( ) const { return 1; }
+		bool SizePolicy(size_t size) const { return size <= 32; }
+		bool TimePolicy(int timeout) const { return timeout <= 20; }

@@ -1,0 +1,44 @@
+	public:
+		int retcode;
+		unsigned int tid;
+		int roleid;
+		FactionOPSyncInfo syncdata;
+		enum { PROTOCOL_TYPE = PROTOCOL_FACTIONBEGINSYNC_RE };
+	public:
+		FactionBeginSync_Re() { type = PROTOCOL_FACTIONBEGINSYNC_RE; }
+		FactionBeginSync_Re(void*) : Protocol(PROTOCOL_FACTIONBEGINSYNC_RE) { }
+		FactionBeginSync_Re (int l_retcode,unsigned int l_tid,int l_roleid,
+			FactionOPSyncInfo l_syncdata)
+			 : retcode(l_retcode),tid(l_tid),roleid(l_roleid)
+			,syncdata(l_syncdata)
+		{
+			type = PROTOCOL_FACTIONBEGINSYNC_RE;
+		}
+
+		FactionBeginSync_Re(const FactionBeginSync_Re &rhs)
+			: Protocol(rhs),retcode(rhs.retcode),tid(rhs.tid),roleid(rhs.roleid)
+			,syncdata(rhs.syncdata) { }
+
+		GNET::Protocol *Clone() const { return new FactionBeginSync_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << tid;
+			os << roleid;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> tid;
+			os >> roleid;
+			os >> syncdata;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 256; }

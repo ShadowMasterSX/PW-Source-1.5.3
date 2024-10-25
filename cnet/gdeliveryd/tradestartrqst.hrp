@@ -1,0 +1,123 @@
+
+#ifndef __GNET_TRADESTARTRQST_HPP
+#define __GNET_TRADESTARTRQST_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "tradestartrqstarg"
+#include "tradestartrqstres"
+
+#include "gproviderserver.hpp"
+#include "gdeliveryserver.hpp"
+#include "tradestart_re.hpp"
+#include "gtradestart.hpp"
+#include "mapuser.h"
+namespace GNET
+{
+
+class TradeStartRqst : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "tradestartrqst"
+#undef	RPC_BASECLASS
+	unsigned int starter_localsid;
+	unsigned int partner_localsid;
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TradeStartRqstArg *arg = (TradeStartRqstArg *)argument;
+		// TradeStartRqstRes *res = (TradeStartRqstRes *)result;
+	}
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		TradeStartRqstArg *arg = (TradeStartRqstArg *)argument;
+		TradeStartRqstRes *res = (TradeStartRqstRes *)result;
+		
+		GDeliveryServer* dsm=GDeliveryServer::GetInstance();
+		Thread::RWLock::RDScoped l(UserContainer::GetInstance().GetLocker());
+		if (res->retcode == ERR_TRADE_REFUSE)
+		{
+			DEBUG_PRINT("gdelivery::tradeStart_rqst:transaction refused.start_roleid=%d,roleid=%d\n",
+					arg->start_roleid,arg->roleid);
+			//announce to starter
+			PlayerInfo * pinfo = UserContainer::GetInstance().FindRoleOnline(arg->start_roleid);
+			if (NULL!=pinfo)
+				dsm->Send(pinfo->linksid,TradeStart_Re(res->retcode,_TRADE_ID_INVALID,arg->roleid,
+					arg->start_roleid,starter_localsid));
+
+		}
+		else if (res->retcode == ERR_TRADE_AGREE)
+		{
+			DEBUG_PRINT("gdelivery::tradeStart_rqst:Traders agree to transact.start_roleid=%d,roleid=%d\n",
+					arg->start_roleid,arg->roleid);
+			//chech whether traders is online
+			PlayerInfo * pinfo1 = UserContainer::GetInstance().FindRoleOnline(arg->start_roleid);
+			PlayerInfo * pinfo2 = UserContainer::GetInstance().FindRoleOnline(arg->roleid);
+			if (NULL==pinfo1 || NULL==pinfo2)
+			{
+				if (NULL!=pinfo1)
+					dsm->Send(pinfo1->linksid,TradeStart_Re(ERR_TRADE_PARTNER_OFFLINE,_TRADE_ID_INVALID,
+						arg->roleid,arg->start_roleid,starter_localsid));
+				if (NULL!=pinfo2)
+					dsm->Send(pinfo2->linksid,TradeStart_Re(ERR_TRADE_PARTNER_OFFLINE,_TRADE_ID_INVALID,
+						arg->start_roleid,arg->roleid,partner_localsid));
+				return;
+			}
+			//announce to game server
+			else
+			{
+				//check whether ONE is already in a trade
+				if  ( !GNET::Transaction::VerityTraders(arg->start_roleid,arg->roleid) )
+				{
+					dsm->Send(pinfo2->linksid,TradeStart_Re(ERR_TRADE_REFUSE,_TRADE_ID_INVALID,
+						arg->start_roleid,pinfo2->roleid,partner_localsid));
+					return;
+				}
+				//check whether traders is on the same gameserver 
+				if (pinfo1->gameid != pinfo2->gameid)
+				{
+
+					dsm->Send(pinfo1->linksid,TradeStart_Re(ERR_TRADE_REFUSE,_TRADE_ID_INVALID,
+						arg->roleid,arg->start_roleid,starter_localsid));
+					dsm->Send(pinfo2->linksid,TradeStart_Re(ERR_TRADE_REFUSE,_TRADE_ID_INVALID,
+						arg->start_roleid,pinfo2->roleid,partner_localsid));
+					return;
+				}
+				
+				//create new transaction object
+				GNET::Transaction* trans = GNET::Transaction::Create(arg->start_roleid,pinfo1->linksid,
+					pinfo1->localsid,arg->roleid,pinfo2->linksid, pinfo2->localsid);
+				trans->OnDestroy = NULL;  //set callback function, when gameserver agree(gtradestart_re)
+				trans->gs_id = pinfo1->gameid;
+				DEBUG_PRINT("gtradestartrqst::create transaction.tid=%d(%p),start_roleid=%d,roleid=%d\n",
+					trans->GetTid(),trans,arg->start_roleid,arg->roleid);
+				if (!GProviderServer::GetInstance()->DispatchProtocol(trans->gs_id,
+					GTradeStart(trans->GetTid(),arg->start_roleid,pinfo1->localsid,arg->roleid,
+					pinfo2->localsid)))
+				{
+					dsm->Send(pinfo1->linksid,TradeStart_Re(ERR_TRADE_REFUSE,_TRADE_ID_INVALID,arg->roleid,
+							arg->start_roleid,starter_localsid));
+					dsm->Send(pinfo2->linksid,TradeStart_Re(ERR_TRADE_REFUSE,_TRADE_ID_INVALID,
+							arg->start_roleid,arg->roleid,partner_localsid));
+					trans->Destroy();
+				}
+			}
+		}
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		TradeStartRqstArg *arg = (TradeStartRqstArg *)argument;
+		GDeliveryServer* dsm=GDeliveryServer::GetInstance();
+		Thread::RWLock::RDScoped l(UserContainer::GetInstance().GetLocker());
+		PlayerInfo * pinfo = UserContainer::GetInstance().FindRoleOnline((arg->start_roleid));
+		if (NULL!=pinfo)
+			dsm->Send(pinfo->linksid,TradeStart_Re(ERR_TIMEOUT,_TRADE_ID_INVALID,arg->roleid,arg->start_roleid,
+				starter_localsid));
+	}
+
+};
+
+};
+#endif

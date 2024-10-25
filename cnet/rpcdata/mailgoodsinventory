@@ -1,0 +1,95 @@
+#ifndef __GNET_MAILGOODSINVENTORY_RPCDATA
+#define __GNET_MAILGOODSINVENTORY_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class MailGoodsInventory : public GNET::Rpc::Data
+	{
+	public:
+		int goods_id;
+		int count;
+		int proctype;
+		int goods_flag;
+		int goods_price;
+		int goods_price_before_discount;
+		int paytype;
+		Octets reserved2;
+
+	public:
+		MailGoodsInventory ()
+		{
+		}
+
+		MailGoodsInventory(const MailGoodsInventory &rhs)
+			: goods_id(rhs.goods_id),count(rhs.count),proctype(rhs.proctype),
+			goods_flag(rhs.goods_flag),goods_price(rhs.goods_price),goods_price_before_discount(rhs.goods_price_before_discount),
+			paytype(rhs.paytype),reserved2(rhs.reserved2) { }
+
+		Rpc::Data *Clone() const { return new MailGoodsInventory(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const MailGoodsInventory *r = dynamic_cast<const MailGoodsInventory *>(&rhs);
+			if (r && r != this)
+			{
+				goods_id = r->goods_id;
+				count = r->count;
+				proctype = r->proctype;
+				goods_flag = r->goods_flag;
+				goods_price = r->goods_price;
+				goods_price_before_discount = r->goods_price_before_discount;
+				paytype = r->paytype;
+				reserved2 = r->reserved2;
+			}
+			return *this;
+		}
+
+		MailGoodsInventory& operator = (const MailGoodsInventory &rhs)
+		{
+			const MailGoodsInventory *r = &rhs;
+			if (r && r != this)
+			{
+				goods_id = r->goods_id;
+				count = r->count;
+				proctype = r->proctype;
+				goods_flag = r->goods_flag;
+				goods_price = r->goods_price;
+				goods_price_before_discount = r->goods_price_before_discount;
+				paytype = r->paytype;
+				reserved2 = r->reserved2;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << goods_id;
+			os << count;
+			os << proctype;
+			os << goods_flag;
+			os << goods_price;
+			os << goods_price_before_discount;
+			os << paytype;
+			os << reserved2;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> goods_id;
+			os >> count;
+			os >> proctype;
+			os >> goods_flag;
+			os >> goods_price;
+			os >> goods_price_before_discount;
+			os >> paytype;
+			os >> reserved2;
+			return os;
+		}
+
+	};
+};
+#endif

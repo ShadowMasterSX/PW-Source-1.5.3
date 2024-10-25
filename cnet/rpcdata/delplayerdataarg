@@ -1,0 +1,64 @@
+#ifndef __GNET_DELPLAYERDATAARG_RPCDATA
+#define __GNET_DELPLAYERDATAARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DelPlayerDataArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		int userid;
+
+	public:
+		DelPlayerDataArg (int l_roleid = 0,int l_userid = 0)
+			: roleid(l_roleid),userid(l_userid)
+		{
+		}
+
+		DelPlayerDataArg(const DelPlayerDataArg &rhs)
+			: roleid(rhs.roleid),userid(rhs.userid) { }
+
+		Rpc::Data *Clone() const { return new DelPlayerDataArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DelPlayerDataArg *r = dynamic_cast<const DelPlayerDataArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				userid = r->userid;
+			}
+			return *this;
+		}
+
+		DelPlayerDataArg& operator = (const DelPlayerDataArg &rhs)
+		{
+			const DelPlayerDataArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				userid = r->userid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << userid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> userid;
+			return os;
+		}
+
+	};
+};
+#endif

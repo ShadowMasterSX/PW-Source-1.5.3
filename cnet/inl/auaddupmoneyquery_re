@@ -1,0 +1,35 @@
+	public:
+		int roleid;
+		int64_t addupmoney;
+		enum { PROTOCOL_TYPE = PROTOCOL_AUADDUPMONEYQUERY_RE };
+	public:
+		AuAddupMoneyQuery_Re() { type = PROTOCOL_AUADDUPMONEYQUERY_RE; }
+		AuAddupMoneyQuery_Re(void*) : Protocol(PROTOCOL_AUADDUPMONEYQUERY_RE) { }
+		AuAddupMoneyQuery_Re (int l_roleid,int64_t l_addupmoney)
+			 : roleid(l_roleid),addupmoney(l_addupmoney)
+		{
+			type = PROTOCOL_AUADDUPMONEYQUERY_RE;
+		}
+
+		AuAddupMoneyQuery_Re(const AuAddupMoneyQuery_Re &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),addupmoney(rhs.addupmoney) { }
+
+		GNET::Protocol *Clone() const { return new AuAddupMoneyQuery_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << addupmoney;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> addupmoney;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

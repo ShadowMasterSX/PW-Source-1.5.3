@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBSYSMAIL3_HPP
+#define __GNET_DBSYSMAIL3_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbsysmail3arg"
+#include "dbsysmail3res"
+
+namespace GNET
+{
+
+class DBSysMail3 : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbsysmail3"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBSysMail3Arg *arg = (DBSysMail3Arg *)argument;
+		// DBSysMail3Res *res = (DBSysMail3Res *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBSysMail3Arg *arg = (DBSysMail3Arg *)argument;
+		// DBSysMail3Res *res = (DBSysMail3Res *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

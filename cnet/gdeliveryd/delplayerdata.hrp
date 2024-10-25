@@ -1,0 +1,45 @@
+
+#ifndef __GNET_DELPLAYERDATA_HPP
+#define __GNET_DELPLAYERDATA_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "delplayerdataarg"
+#include "delplayerdatares"
+
+namespace GNET
+{
+
+class DelPlayerData : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "delplayerdata"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DelPlayerDataArg *arg = (DelPlayerDataArg *)argument;
+		// DelPlayerDataRes *res = (DelPlayerDataRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DelPlayerDataArg *arg = (DelPlayerDataArg *)argument;
+		DelPlayerDataRes *res = (DelPlayerDataRes *)result;
+
+		if(res->retcode != ERR_SUCCESS) {
+			Log::log(LOG_ERR, "DelPlayerData errno %d roleid %d userid %d", res->retcode, arg->roleid, arg->userid);
+		}
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBLOADGLOBALCONTROL_HPP
+#define __GNET_DBLOADGLOBALCONTROL_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbloadglobalcontrolarg"
+#include "dbloadglobalcontrolres"
+
+namespace GNET
+{
+
+class DBLoadGlobalControl : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbloadglobalcontrol"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBLoadGlobalControlArg *arg = (DBLoadGlobalControlArg *)argument;
+		// DBLoadGlobalControlRes *res = (DBLoadGlobalControlRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBLoadGlobalControlArg *arg = (DBLoadGlobalControlArg *)argument;
+		// DBLoadGlobalControlRes *res = (DBLoadGlobalControlRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

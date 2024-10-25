@@ -1,0 +1,38 @@
+	public:
+		int tid;
+		int retcode;
+		int userid;
+		enum { PROTOCOL_TYPE = PROTOCOL_IWEBAUTOLOCKSET_RE };
+	public:
+		IWebAutolockSet_Re() { type = PROTOCOL_IWEBAUTOLOCKSET_RE; }
+		IWebAutolockSet_Re(void*) : Protocol(PROTOCOL_IWEBAUTOLOCKSET_RE) { }
+		IWebAutolockSet_Re (int l_tid,int l_retcode,int l_userid)
+			 : tid(l_tid),retcode(l_retcode),userid(l_userid)
+		{
+			type = PROTOCOL_IWEBAUTOLOCKSET_RE;
+		}
+
+		IWebAutolockSet_Re(const IWebAutolockSet_Re &rhs)
+			: Protocol(rhs),tid(rhs.tid),retcode(rhs.retcode),userid(rhs.userid) { }
+
+		GNET::Protocol *Clone() const { return new IWebAutolockSet_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << tid;
+			os << retcode;
+			os << userid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> tid;
+			os >> retcode;
+			os >> userid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 128; }

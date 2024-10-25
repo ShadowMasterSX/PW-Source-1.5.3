@@ -1,0 +1,141 @@
+
+#ifndef __GNET_CASHSERIAL_HPP
+#define __GNET_CASHSERIAL_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "cashserialarg"
+#include "cashserialres"
+#include "getuser.hrp"
+#include "localmacro.h"
+
+#include "gsysauctioncash"
+
+namespace GNET
+{
+
+class CashSerial : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "cashserial"
+#undef	RPC_BASECLASS
+
+	static bool IsRoleListEmpty(unsigned int rolelist)
+	{
+		return (rolelist & 0xFFFF) == 0;
+	}
+	
+	static bool IsForbidden(const User& user)
+	{
+		time_t now = Timer::GetTime();
+		for (GRoleForbidVector::const_iterator it = user.forbid.begin(); it != user.forbid.end(); ++it)
+		{
+			if ((it->type == FORBID_USER_LOGIN || it->type == FORBID_CHEATER_LOGIN) &&
+				(it->createtime + it->time > now))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		CashSerialArg *arg = (CashSerialArg *)argument;
+		CashSerialRes *res = (CashSerialRes *)result;
+
+		try
+		{
+			StorageEnv::Storage * puser = StorageEnv::GetStorage("user");
+			StorageEnv::CommonTransaction txn;
+			Marshal::OctetsStream key, value;
+			try
+			{
+				res->zoneid = arg->zoneid;
+				res->userid = arg->userid;
+				User user;
+				GSysAuctionCash sa_cash;
+				key << (unsigned int)arg->userid;
+				if(puser->find(key,value,txn))
+					value >> user;
+				else if(arg->force || GameDBManager::GetInstance()->IsFreshServer())
+				{
+					Log::formatlog("cashserial","Add user[%d] while charging", arg->userid);
+					user.logicuid = 0;
+					user.rolelist = ROLELIST_DEFAULT;
+					puser->insert( key, Marshal::OctetsStream() << user, txn );
+				}
+				else
+				{
+					Log::log(LOG_ERR, "CashSerial, userid=%d, errcode=%d\n", arg->userid, -19);
+					res->retcode = -19;
+					return;
+				}
+				if(user.cash_sysauction.size())
+					Marshal::OctetsStream(user.cash_sysauction)>>sa_cash;
+				unsigned int delta = GetUser::BalanceCash(user);
+				if(delta)
+				{
+					/*
+					   由于Balance操作会改变cash_used, 此时玩家有可能在gs上已登陆,
+					   如果出现balance和gs putrole同时修改cash_used，则cash_used就不正确了。
+					   所以这里不能进行Balance操作.				 
+					 */
+					Log::log( LOG_ERR, "CashSerial,userid=%d,need balance first!!!", arg->userid);
+					res->retcode = -19;
+					return;
+					/*if(user.cash_sysauction.size())
+						Marshal::OctetsStream(user.cash_sysauction)>>sa_cash;
+					puser->insert( key, Marshal::OctetsStream() << user, txn );
+					Log::formatlog("balancecash","userid=%d:add=%d:used=%d:buy=%d:sell=%d:used_2=%d:delta=%d",
+							arg->userid, user.cash_add, user.cash_used, user.cash_buy, user.cash_sell, sa_cash.cash_used_2, delta);*/
+				}
+				int total = user.cash_add + user.cash_buy - user.cash_used - user.cash_sell - sa_cash.cash_used_2;
+				if(user.cash_add>MAX_USER_CASH || total<0 || total>MAX_USER_CASH)
+				{
+					// 防止整数溢出
+					Log::log( LOG_ERR, "CashSerial,userid=%d,maxinum cash_add exceeded,cash_add=%d,cash_total=%d", 
+							arg->userid, user.cash_add,total);
+					res->retcode = -19;
+				}
+				else if( (IsRoleListEmpty(user.rolelist) || IsForbidden(user)) && !arg->force)
+				{
+					Log::log( LOG_ERR, "CashSerial, userid=%d, but he/she is forbidden.", arg->userid );
+					res->retcode = -19;
+				}
+				else
+				{
+					Log::formatlog("cashserial","userid=%d:cash_add=%d:serail=%d", arg->userid,user.cash_add, user.add_serial);
+					res->sn = user.add_serial+1;
+					res->retcode = ERR_SUCCESS;
+				}
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "CashSerial, userid=%d, what=%s\n", arg->userid, e.what() );
+			res->retcode = CASH_GETSERIAL_FAILED;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

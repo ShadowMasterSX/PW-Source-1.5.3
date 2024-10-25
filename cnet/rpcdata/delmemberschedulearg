@@ -1,0 +1,77 @@
+#ifndef __GNET_DELMEMBERSCHEDULEARG_RPCDATA
+#define __GNET_DELMEMBERSCHEDULEARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DelMemberScheduleArg : public GNET::Rpc::Data
+	{
+	public:
+		unsigned int fid;
+		unsigned int rid;
+		char operation;
+		int time;
+
+	public:
+		DelMemberScheduleArg (unsigned int l_fid = 0,unsigned int l_rid = 0,char l_operation = 0
+			,int l_time = -1)
+			: fid(l_fid),rid(l_rid),operation(l_operation)
+			,time(l_time)
+		{
+		}
+
+		DelMemberScheduleArg(const DelMemberScheduleArg &rhs)
+			: fid(rhs.fid),rid(rhs.rid),operation(rhs.operation),
+			time(rhs.time) { }
+
+		Rpc::Data *Clone() const { return new DelMemberScheduleArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DelMemberScheduleArg *r = dynamic_cast<const DelMemberScheduleArg *>(&rhs);
+			if (r && r != this)
+			{
+				fid = r->fid;
+				rid = r->rid;
+				operation = r->operation;
+				time = r->time;
+			}
+			return *this;
+		}
+
+		DelMemberScheduleArg& operator = (const DelMemberScheduleArg &rhs)
+		{
+			const DelMemberScheduleArg *r = &rhs;
+			if (r && r != this)
+			{
+				fid = r->fid;
+				rid = r->rid;
+				operation = r->operation;
+				time = r->time;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << fid;
+			os << rid;
+			os << operation;
+			os << time;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> fid;
+			os >> rid;
+			os >> operation;
+			os >> time;
+			return os;
+		}
+
+	};
+};
+#endif

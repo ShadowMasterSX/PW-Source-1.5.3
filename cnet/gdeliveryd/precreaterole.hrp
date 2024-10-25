@@ -1,0 +1,113 @@
+
+#ifndef __GNET_PRECREATEROLE_HPP
+#define __GNET_PRECREATEROLE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#ifdef USE_BDB
+#include "dbbuffer.h"
+#endif
+#include "precreaterolearg"
+#include "precreateroleres"
+
+#include "roleinfo"
+#include "dbcreaterole.hrp"
+#include "gamedbclient.hpp"
+
+#include "createrole_re.hpp"
+#include "gdeliveryserver.hpp"
+
+#include "postcreaterole.hrp"
+#include "uniquenameclient.hpp"
+#include "mapuser.h"
+
+namespace GNET
+{
+
+class PreCreateRole : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "precreaterole"
+#undef	RPC_BASECLASS
+	unsigned int save_linksid;
+	unsigned int save_localsid;
+	RoleInfo roleinfo;
+	int player_suggest_referrer;
+	void SendErr( int userid, int retcode )
+	{
+		if(retcode!=ERR_DUPLICATRECORD && retcode!=ERR_NOFREESPACE)
+			Log::log(LOG_ERR,"gdelivery::createrole: userid=%d, retcode=%d.", userid, retcode);
+		GDeliveryServer::GetInstance()->Send( save_linksid, CreateRole_Re(retcode,_ROLE_INVALID,save_localsid));
+	}
+	void NotifyUniqueNameSvr(int roleid,PreCreateRoleArg& arg)
+	{
+		UniqueNameClient::GetInstance()->SendProtocol(
+				Rpc::Call( RPC_POSTCREATEROLE,PostCreateRoleArg((char)false,arg.userid,arg.zoneid,roleid,arg.rolename) )
+			);
+	}
+	void QueryDB(int logicuid, int roleid, PreCreateRoleArg& arg)
+	{
+		int /*real_referrer = 0, referrer_role = 0,*/ au_suggest_referrer = 0;
+		UserInfo *user = UserContainer::GetInstance().FindUser(arg.userid);
+		if (user != NULL)
+		{
+//			real_referrer = user->real_referrer;
+//			referrer_role = user->referrer_roleid;
+			//用户创建第一个角色才接受AU传来的推广人
+			if (user->rolelist.GetRoleCount()==0)
+			{
+				if (user->au_suggest_districtid != 0)
+				{
+					//这里的410应该是310  liuguichen 20121210
+					if (user->au_suggest_districtid-410==GDeliveryServer::GetInstance()->district_id)
+						au_suggest_referrer = user->au_suggest_referrer;
+					else
+						au_suggest_referrer = -1;
+				}
+			}
+		}
+
+//		DBCreateRole* rpc=(DBCreateRole*) Rpc::Call( RPC_DBCREATEROLE,DBCreateRoleArg(arg.userid, logicuid, roleid, roleinfo) );
+		DBCreateRole* rpc=(DBCreateRole*) Rpc::Call( RPC_DBCREATEROLE,DBCreateRoleArg(arg.userid, logicuid, roleid,roleinfo,/* real_referrer, referrer_role,*/ au_suggest_referrer,player_suggest_referrer) );
+		rpc->save_localsid=save_localsid;
+		rpc->save_link_sid=save_linksid;
+		rpc->nRexmitTime=0;
+		if (!GameDBClient::GetInstance()->SendProtocol(rpc))
+		{
+			SendErr(arg.userid, ERR_COMMUNICATION);
+			//NotifyUniqueNameSvr( roleid,arg );
+		}
+	}
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+	
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		PreCreateRoleArg *arg = (PreCreateRoleArg *)argument;
+		PreCreateRoleRes *res = (PreCreateRoleRes *)result;
+		DEBUG_PRINT("gdelivery:precreaterole. retcode=%d. zoneid=%d,userid=%d,localsid=%d\n",res->retcode,
+				arg->zoneid,arg->userid,save_localsid);
+		if ( res->retcode==ERR_SUCCESS )
+		{
+			QueryDB( res->logicuid, res->roleid,*arg );
+		}
+		else
+		{
+			if ( res->retcode==-1 ) res->retcode=ERR_CREATEROLE;
+			SendErr( arg->userid, res->retcode );
+		}
+	}
+
+        void OnTimeout(Rpc::Data *argument)
+	{
+		PreCreateRoleArg *arg = (PreCreateRoleArg *)argument;
+		SendErr(arg->userid, ERR_TIMEOUT);
+	}
+
+
+};
+
+};
+#endif

@@ -1,0 +1,153 @@
+
+#ifndef __GNET_DBGAMETALKROLERELATION_HPP
+#define __GNET_DBGAMETALKROLERELATION_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbgametalkrolerelationarg"
+#include "dbgametalkrolerelationres"
+#include "grolebase"
+#include "grolestatus"
+#include "guserfaction"
+#include "gfriendlist"
+#include "gfriendinfo"
+#include "ggroupinfo"
+#include "factionidbean"
+#include "roleid"
+#include <map>
+#include <vector>
+#include "gametalkdefs.h"
+
+namespace GNET
+{
+
+class DBGameTalkRoleRelation : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbgametalkrolerelation"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBGameTalkRoleRelationArg *arg = (DBGameTalkRoleRelationArg *)argument;
+		DBGameTalkRoleRelationRes *res = (DBGameTalkRoleRelationRes *)result;
+
+		LOG_TRACE("dbgametalkrolerelation, roleid=%d.\n", arg->roleid);
+
+		try {
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::Storage * pstatus = StorageEnv::GetStorage("status");
+			StorageEnv::Storage * pfaction = StorageEnv::GetStorage("userfaction");
+			StorageEnv::Storage * pfriend = StorageEnv::GetStorage("friends");
+			StorageEnv::AtomTransaction txn;
+			try {
+				GRoleBase base;
+				RoleId id((unsigned int)arg->roleid);
+				Marshal::OctetsStream(pbase->find(Marshal::OctetsStream() << id, txn)) >> base;
+				if(base.status == _ROLE_STATUS_MUSTDEL) {
+					res->retcode = ERR_DATANOTFIND;
+					return;
+				}
+
+				GRoleStatus status;
+				Marshal::OctetsStream(pstatus->find(Marshal::OctetsStream() << id, txn)) >> status;
+				res->info.info.roleid = (int64_t)arg->roleid;
+				res->info.info.rolename.swap(base.name);
+				res->info.info.gender = base.gender;
+				res->info.info.occupation = base.cls;
+				res->info.info.level = status.level;
+
+				GUserFaction faction;
+				Marshal::OctetsStream sfaction;
+				if(pfaction->find(Marshal::OctetsStream() << arg->roleid, sfaction, txn)) {
+					sfaction >> faction;
+					if(faction.fid != 0) {
+						FactionIDBean bean;
+						bean.ftype = 0;
+						bean.factionid = (int64_t)faction.fid;
+						res->factions.push_back(bean);
+					}
+				}
+
+				GFriendList list;
+				Marshal::OctetsStream slist;
+				if(pfriend->find(Marshal::OctetsStream() << id, slist, txn)) {
+					slist >> list;
+					std::map<char, int> gmap;	//map group id to index
+					std::vector<GGroupInfo>::iterator git = list.groups.begin();
+					std::vector<GGroupInfo>::iterator gend = list.groups.end();
+					int index = 0;
+
+					DBRoleGroup group;
+					group.gtype = GT_GROUP_NORMAL;
+					group.id = 0;
+					gmap[0] = index++;
+					res->groups.push_back(group);
+
+					for(; git != gend; ++git) {
+						DBRoleGroup group;
+						group.gtype = GT_GROUP_NORMAL;
+						group.id = git->gid;
+						group.name.swap(git->name);
+						gmap[git->gid] = index++;
+						res->groups.push_back(group);
+					}
+
+					std::vector<GFriendInfo>::iterator fit = list.friends.begin();
+					std::vector<GFriendInfo>::iterator fend = list.friends.end();
+					for(; fit != fend; ++fit) {
+						DBRoleBase role;
+						role.roleid = fit->rid;
+						role.name.swap(fit->name);
+						res->groups[gmap[fit->gid]].friends.push_back(role);
+					}
+				}
+
+				if(base.spouse) {
+					GRoleBase spouse;
+					Marshal::OctetsStream sspouse;
+					if(pbase->find(Marshal::OctetsStream() << RoleId(base.spouse), sspouse, txn)) {
+						sspouse >> spouse;
+						DBRoleGroup group;
+						group.gtype = GT_GROUP_SPOUSE;
+						DBRoleBase role;
+						role.roleid = base.spouse;
+						role.name.swap(spouse.name);
+						group.friends.push_back(role);
+						res->groups.push_back(group);
+					}
+				}
+				res->retcode = ERR_SUCCESS;
+			}
+			catch (DbException e) { throw; }
+			catch (...) {
+				DbException ee(DB_OLD_VERSION);
+				txn.abort(ee);
+				throw ee;
+			}
+		}
+		catch (DbException e)
+		{
+			Log::log(LOG_ERR, "DBGameTalkRoleRelation, roleid=%d, what=%s\n", arg->roleid, e.what());
+			res->retcode = ERR_DATANOTFIND;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBGameTalkRoleRelationArg *arg = (DBGameTalkRoleRelationArg *)argument;
+		// DBGameTalkRoleRelationRes *res = (DBGameTalkRoleRelationRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

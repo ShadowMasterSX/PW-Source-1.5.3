@@ -1,0 +1,38 @@
+	public:
+		int userid;
+		unsigned int localsid;
+		int cause;
+		enum { PROTOCOL_TYPE = PROTOCOL_KICKOUTUSER2 };
+	public:
+		KickoutUser2() { type = PROTOCOL_KICKOUTUSER2; }
+		KickoutUser2(void*) : Protocol(PROTOCOL_KICKOUTUSER2) { }
+		KickoutUser2 (int l_userid,unsigned int l_localsid,int l_cause = ERR_KICKOUT)
+			 : userid(l_userid),localsid(l_localsid),cause(l_cause)
+		{
+			type = PROTOCOL_KICKOUTUSER2;
+		}
+
+		KickoutUser2(const KickoutUser2 &rhs)
+			: Protocol(rhs),userid(rhs.userid),localsid(rhs.localsid),cause(rhs.cause) { }
+
+		GNET::Protocol *Clone() const { return new KickoutUser2(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			os << localsid;
+			os << cause;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			os >> localsid;
+			os >> cause;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 101; }
+
+		bool SizePolicy(size_t size) const { return size <= 32; }

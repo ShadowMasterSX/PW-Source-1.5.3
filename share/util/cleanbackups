@@ -1,0 +1,175 @@
+#!/usr/bin/perl
+
+use strict;
+use Time::Local 'timelocal_nocheck';
+use FileHandle;
+
+	my $backup_dir = "/dbf/backup";
+	$backup_dir = $ARGV[0] if( @ARGV > 0 );
+	my $hold_hours = 256;
+	$hold_hours = $ARGV[1] if( @ARGV > 1 );
+
+	my %backups;
+
+	cleanupbackups();
+
+sub cleanupbackups
+{
+	my @dirorfiles = glob( "$backup_dir/*" );
+	foreach( @dirorfiles )
+	{
+		my $time_string;
+		if( -d $_ )
+		{
+			($time_string) = $_=~m/.*\/(.+)$/g;
+		}
+		elsif( -f $_ )
+		{
+			($time_string) = $_=~m/.*\/(.+)\.tar.bz$/g;
+		}
+		else
+		{
+			next;
+		}
+
+		my $year = substr($time_string,0,4);
+		my $mon = substr($time_string,4,2);
+		my $mday = substr($time_string,6,2);
+		my $hour = substr($time_string,9,2);
+		my $min = substr($time_string,11,2);
+		my $sec = substr($time_string,13,2);
+		my $time = timelocal_nocheck($sec,$min,$hour,$mday,$mon,$year);
+		$backups{$_} = $time;
+	}
+
+	my @keys_sort = sort { $backups{$b} <=> $backups{$a} } keys(%backups);
+
+	my $time_latest = time;
+	$time_latest = $backups{$keys_sort[0]} if( @keys_sort > 0 );
+
+
+	my $interval = 2;
+	my $k = 1+$interval;
+	my @keys_sub;
+	foreach( @keys_sort )
+	{
+		if( $time_latest - $backups{$_} > $hold_hours*3600 )
+		{
+			print( "removing $_, at " . scalar localtime time );
+			print( "\n" );
+			system( "rm -rf $_" );
+			next;
+		}
+		next if( $time_latest - $backups{$_} < 1*3600 );
+
+		if( $time_latest - $backups{$_} < $k*3600 )
+		{
+			push( @keys_sub, $_ );
+		}
+		else
+		{
+			remove_redundant( \@keys_sub, $interval*3600 );
+			$interval = 2*$interval;
+			$k += $interval;
+			@keys_sub = ();
+			push( @keys_sub, $_ );
+		}
+	}
+	remove_redundant( \@keys_sub, $interval*3600 );
+
+#	my @keys_1hour;
+#	my @keys_2hour;
+#	my @keys_4hour;
+#	my @keys_8hour;
+#	my @keys_16hour;
+#	my @keys_32hour;
+#	my @keys_64hour;
+#	my @keys_128hour;
+#	my @keys_256hour;
+#	foreach( @keys_sort )
+#	{
+#		if( $time_latest - $backups{$_} < 3600 )
+#		{
+#			push( @keys_1hour, $_ );
+#		}
+#		elsif( $time_latest - $backups{$_} < 3*3600 )
+#		{
+#			push( @keys_2hour, $_ );
+#		}
+#		elsif( $time_latest - $backups{$_} < 7*3600 )
+#		{
+#			push( @keys_4hour, $_ );
+#   	}
+#   	elsif( $time_latest - $backups{$_} < 15*3600 )
+#   	{
+#   		push( @keys_8hour, $_ );
+#   	}
+#   	elsif( $time_latest - $backups{$_} < 31*3600 )
+#   	{
+#   		push( @keys_16hour, $_ );
+#   	}
+#   	elsif( $time_latest - $backups{$_} < 63*3600 )
+#   	{
+#   		push( @keys_32hour, $_ );
+#   	}
+#   	elsif( $time_latest - $backups{$_} < 127*3600 )
+#   	{
+#   		push( @keys_64hour, $_ );
+#   	}
+#   	elsif( $time_latest - $backups{$_} < 255*3600 )
+#   	{
+#   		push( @keys_128hour, $_ );
+#   	}
+#		elsif( $time_latest - $backups{$_} < 511*3600 )
+#		{
+#			push( @keys_256hour, $_ );
+#		}
+#		else
+#		{
+#			print( "removing $_, at " . scalar localtime time );
+#			print( "\n" );
+#			system( "rm -rf $_" );
+#		}
+#	}
+#
+#	remove_redundant( \@keys_2hour, 2*3600 );
+#	remove_redundant( \@keys_4hour, 4*3600 );
+#	remove_redundant( \@keys_8hour, 5*3600 );
+#	remove_redundant( \@keys_16hour, 16*3600 );
+#	remove_redundant( \@keys_32hour, 32*3600 );
+#	remove_redundant( \@keys_64hour, 64*3600 );
+#	remove_redundant( \@keys_128hour, 128*3600 );
+#	remove_redundant( \@keys_256hour, 256*3600 );
+}
+
+sub remove_redundant
+{
+	my ($keys_interval, $time_total) = @_;
+
+	my $time_interval = $time_total / 12;
+
+	return if( @$keys_interval < 12 );
+	my @keys_asc = sort { $backups{$a} <=> $backups{$b} } @$keys_interval;
+
+	my $count = 0;
+	my $time_cur;
+	foreach( @keys_asc )
+	{
+		if( not defined $time_cur or $backups{$_} - $time_cur >= $time_interval )
+		{
+			$time_cur = $backups{$_};
+		}
+		else
+		{
+			print( "removing $_, at " . scalar localtime time );
+			my $t = $backups{$_} - $time_cur;
+			print( "\t$t\n" );
+			system( "rm -rf $_" );
+
+			$count ++;
+			return if( @$keys_interval-$count < 12 );
+		}
+	}
+}
+
+

@@ -1,0 +1,38 @@
+	public:
+		int roleid;
+		int cash_used;
+		int level;
+		enum { PROTOCOL_TYPE = PROTOCOL_SENDREFCASHUSED };
+	public:
+		SendRefCashUsed() { type = PROTOCOL_SENDREFCASHUSED; }
+		SendRefCashUsed(void*) : Protocol(PROTOCOL_SENDREFCASHUSED) { }
+		SendRefCashUsed (int l_roleid,int l_cash_used = 0,int l_level = 0)
+			 : roleid(l_roleid),cash_used(l_cash_used),level(l_level)
+		{
+			type = PROTOCOL_SENDREFCASHUSED;
+		}
+
+		SendRefCashUsed(const SendRefCashUsed &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),cash_used(rhs.cash_used),level(rhs.level) { }
+
+		GNET::Protocol *Clone() const { return new SendRefCashUsed(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << cash_used;
+			os << level;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> cash_used;
+			os >> level;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 32; }

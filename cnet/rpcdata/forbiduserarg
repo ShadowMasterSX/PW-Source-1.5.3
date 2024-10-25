@@ -1,0 +1,87 @@
+#ifndef __GNET_FORBIDUSERARG_RPCDATA
+#define __GNET_FORBIDUSERARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class ForbidUserArg : public GNET::Rpc::Data
+	{
+	public:
+		char operation;
+		int gmuserid;
+		int source;
+		int userid;
+		int time;
+		Octets reason;
+
+	public:
+		ForbidUserArg (char l_operation = 0,int l_gmuserid = -1,int l_source = 0
+			,int l_userid = -1,int l_time = 0,const Octets& l_reason = Octets())
+			: operation(l_operation),gmuserid(l_gmuserid),source(l_source)
+			,userid(l_userid),time(l_time),reason(l_reason)
+		{
+		}
+
+		ForbidUserArg(const ForbidUserArg &rhs)
+			: operation(rhs.operation),gmuserid(rhs.gmuserid),source(rhs.source),
+			userid(rhs.userid),time(rhs.time),reason(rhs.reason) { }
+
+		Rpc::Data *Clone() const { return new ForbidUserArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const ForbidUserArg *r = dynamic_cast<const ForbidUserArg *>(&rhs);
+			if (r && r != this)
+			{
+				operation = r->operation;
+				gmuserid = r->gmuserid;
+				source = r->source;
+				userid = r->userid;
+				time = r->time;
+				reason = r->reason;
+			}
+			return *this;
+		}
+
+		ForbidUserArg& operator = (const ForbidUserArg &rhs)
+		{
+			const ForbidUserArg *r = &rhs;
+			if (r && r != this)
+			{
+				operation = r->operation;
+				gmuserid = r->gmuserid;
+				source = r->source;
+				userid = r->userid;
+				time = r->time;
+				reason = r->reason;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << operation;
+			os << gmuserid;
+			os << source;
+			os << userid;
+			os << time;
+			os << reason;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> operation;
+			os >> gmuserid;
+			os >> source;
+			os >> userid;
+			os >> time;
+			os >> reason;
+			return os;
+		}
+
+	};
+};
+#endif

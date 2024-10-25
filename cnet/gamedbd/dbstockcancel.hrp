@@ -1,0 +1,111 @@
+
+#ifndef __GNET_DBSTOCKCANCEL_HPP
+#define __GNET_DBSTOCKCANCEL_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbstockcancelarg"
+#include "dbstockcancelres"
+
+namespace GNET
+{
+
+class DBStockCancel : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbstockcancel"
+#undef	RPC_BASECLASS
+	void InsertLog(User& user, unsigned int tid, int volume_left, int price, short result)
+	{
+		StockLog log;
+		log.tid = tid;
+		log.time = Timer::GetTime();
+		log.volume = volume_left;
+		log.cost = price;
+		log.result = result;
+		user.exg_log.push_back(log);
+		if(user.exg_log.size()>80)
+			user.exg_log.erase(user.exg_log.begin());
+	}
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBStockCancelArg *arg = (DBStockCancelArg *)argument;
+		DBStockCancelRes *res = (DBStockCancelRes *)result;
+		Marshal::OctetsStream key, value, keyu;
+		try
+		{
+			StorageEnv::Storage * porder = StorageEnv::GetStorage("order");
+			StorageEnv::Storage * puser = StorageEnv::GetStorage("user");
+			StorageEnv::CommonTransaction txn;
+
+
+			try{
+				StockOrder order;
+				User user;
+				key << arg->tid;
+				if(!porder->find(key,value,txn))
+				{
+					res->retcode = ERR_NOTFOUND;
+					return;
+				}
+				value >> order;
+				if(arg->userid!=order.userid)
+					throw DbException(DB_VERIFY_BAD);
+				if(order.volume != arg->volume)
+					Log::log( LOG_ERR,"DBStockCancel, critical, volume out of sync,tid=%d,volume=%d,arg=%d",
+						arg->tid,order.volume,arg->volume);
+
+				keyu << arg->userid;
+				Marshal::OctetsStream(puser->find(keyu,txn)) >> user;
+				if(order.price>0)
+				{
+					user.cash -= (int)((STOCK_TAX_RATE-1)*100*order.volume);
+					user.cash_sell += (int)((STOCK_TAX_RATE-1)*100*order.volume);
+				}
+				else
+					user.money += (int)((STOCK_TAX_RATE-1)*order.price*order.volume);
+
+				if(user.cash<0 || user.money<0)
+					throw DbException(DB_VERIFY_BAD);
+
+				InsertLog(user, arg->tid, order.volume, order.price, arg->result);
+				puser->insert(keyu,Marshal::OctetsStream()<<user,txn);
+
+				porder->del(key,txn);
+				res->cash = user.cash;
+				res->money = user.money;
+				res->retcode = ERR_SUCCESS;
+
+				Log::formatlog("stockcancel","userid=%d:tid=%d:volume=%d:result=%d:cash=%d:money=%d:cash_sell=%d",
+					arg->userid,arg->tid,arg->volume,arg->result,user.cash,user.money,user.cash_sell);
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBStockCancel, userid=%d,tid=%d,what=%s", arg->userid,arg->tid,e.what());
+			res->retcode = ERR_EXCEPTION;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

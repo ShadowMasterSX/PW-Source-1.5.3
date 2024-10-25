@@ -1,0 +1,60 @@
+#ifndef __GNET_DBUNIQUEDATASAVEARG_RPCDATA
+#define __GNET_DBUNIQUEDATASAVEARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "guniquedataelemnode"
+
+namespace GNET
+{
+	class DBUniqueDataSaveArg : public GNET::Rpc::Data
+	{
+	public:
+		GUniqueDataElemNodeVector values;
+
+	public:
+		DBUniqueDataSaveArg (const GUniqueDataElemNodeVector& l_values = GUniqueDataElemNodeVector())
+			: values(l_values)
+		{
+		}
+
+		DBUniqueDataSaveArg(const DBUniqueDataSaveArg &rhs)
+			: values(rhs.values) { }
+
+		Rpc::Data *Clone() const { return new DBUniqueDataSaveArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBUniqueDataSaveArg *r = dynamic_cast<const DBUniqueDataSaveArg *>(&rhs);
+			if (r && r != this)
+			{
+				values = r->values;
+			}
+			return *this;
+		}
+
+		DBUniqueDataSaveArg& operator = (const DBUniqueDataSaveArg &rhs)
+		{
+			const DBUniqueDataSaveArg *r = &rhs;
+			if (r && r != this)
+			{
+				values = r->values;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << values;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> values;
+			return os;
+		}
+
+	};
+};
+#endif

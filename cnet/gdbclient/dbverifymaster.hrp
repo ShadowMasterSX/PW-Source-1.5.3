@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBVERIFYMASTER_HPP
+#define __GNET_DBVERIFYMASTER_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbverifymasterarg"
+#include "deffactionres"
+
+namespace GNET
+{
+
+class DBVerifyMaster : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbverifymaster"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBVerifyMasterArg *arg = (DBVerifyMasterArg *)argument;
+		// DefFactionRes *res = (DefFactionRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBVerifyMasterArg *arg = (DBVerifyMasterArg *)argument;
+		// DefFactionRes *res = (DefFactionRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

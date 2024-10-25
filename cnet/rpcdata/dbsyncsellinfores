@@ -1,0 +1,65 @@
+#ifndef __GNET_DBSYNCSELLINFORES_RPCDATA
+#define __GNET_DBSYNCSELLINFORES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "sellpointinfo"
+
+namespace GNET
+{
+	class DBSyncSellInfoRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		std::vector<SellPointInfo> list;
+
+	public:
+		DBSyncSellInfoRes (int l_retcode = 0,const std::vector<SellPointInfo>& l_list = std::vector<SellPointInfo>())
+			: retcode(l_retcode),list(l_list)
+		{
+		}
+
+		DBSyncSellInfoRes(const DBSyncSellInfoRes &rhs)
+			: retcode(rhs.retcode),list(rhs.list) { }
+
+		Rpc::Data *Clone() const { return new DBSyncSellInfoRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBSyncSellInfoRes *r = dynamic_cast<const DBSyncSellInfoRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				list = r->list;
+			}
+			return *this;
+		}
+
+		DBSyncSellInfoRes& operator = (const DBSyncSellInfoRes &rhs)
+		{
+			const DBSyncSellInfoRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				list = r->list;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << list;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> list;
+			return os;
+		}
+
+	};
+};
+#endif

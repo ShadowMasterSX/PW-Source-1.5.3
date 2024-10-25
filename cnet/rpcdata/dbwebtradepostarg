@@ -1,0 +1,95 @@
+#ifndef __GNET_DBWEBTRADEPOSTARG_RPCDATA
+#define __GNET_DBWEBTRADEPOSTARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBWebTradePostArg : public GNET::Rpc::Data
+	{
+	public:
+		int64_t sn;
+		int roleid;
+		int state;
+		int post_endtime;
+		int show_endtime;
+		int sell_endtime;
+		int commodity_id;
+
+	public:
+		DBWebTradePostArg (int64_t l_sn = 0,int l_roleid = 0,int l_state = 0
+			,int l_post_endtime = 0,int l_show_endtime = 0,int l_sell_endtime = 0
+			,int l_commodity_id = 0)
+			: sn(l_sn),roleid(l_roleid),state(l_state)
+			,post_endtime(l_post_endtime),show_endtime(l_show_endtime),sell_endtime(l_sell_endtime)
+			,commodity_id(l_commodity_id)
+		{
+		}
+
+		DBWebTradePostArg(const DBWebTradePostArg &rhs)
+			: sn(rhs.sn),roleid(rhs.roleid),state(rhs.state),
+			post_endtime(rhs.post_endtime),show_endtime(rhs.show_endtime),sell_endtime(rhs.sell_endtime),
+			commodity_id(rhs.commodity_id) { }
+
+		Rpc::Data *Clone() const { return new DBWebTradePostArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBWebTradePostArg *r = dynamic_cast<const DBWebTradePostArg *>(&rhs);
+			if (r && r != this)
+			{
+				sn = r->sn;
+				roleid = r->roleid;
+				state = r->state;
+				post_endtime = r->post_endtime;
+				show_endtime = r->show_endtime;
+				sell_endtime = r->sell_endtime;
+				commodity_id = r->commodity_id;
+			}
+			return *this;
+		}
+
+		DBWebTradePostArg& operator = (const DBWebTradePostArg &rhs)
+		{
+			const DBWebTradePostArg *r = &rhs;
+			if (r && r != this)
+			{
+				sn = r->sn;
+				roleid = r->roleid;
+				state = r->state;
+				post_endtime = r->post_endtime;
+				show_endtime = r->show_endtime;
+				sell_endtime = r->sell_endtime;
+				commodity_id = r->commodity_id;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << sn;
+			os << roleid;
+			os << state;
+			os << post_endtime;
+			os << show_endtime;
+			os << sell_endtime;
+			os << commodity_id;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> sn;
+			os >> roleid;
+			os >> state;
+			os >> post_endtime;
+			os >> show_endtime;
+			os >> sell_endtime;
+			os >> commodity_id;
+			return os;
+		}
+
+	};
+};
+#endif

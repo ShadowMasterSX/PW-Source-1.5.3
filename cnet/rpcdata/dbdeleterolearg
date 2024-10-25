@@ -1,0 +1,64 @@
+#ifndef __GNET_DBDELETEROLEARG_RPCDATA
+#define __GNET_DBDELETEROLEARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBDeleteRoleArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		char create_rollback;
+
+	public:
+		DBDeleteRoleArg (int l_roleid = -1,char l_create_rollback = 0)
+			: roleid(l_roleid),create_rollback(l_create_rollback)
+		{
+		}
+
+		DBDeleteRoleArg(const DBDeleteRoleArg &rhs)
+			: roleid(rhs.roleid),create_rollback(rhs.create_rollback) { }
+
+		Rpc::Data *Clone() const { return new DBDeleteRoleArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBDeleteRoleArg *r = dynamic_cast<const DBDeleteRoleArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				create_rollback = r->create_rollback;
+			}
+			return *this;
+		}
+
+		DBDeleteRoleArg& operator = (const DBDeleteRoleArg &rhs)
+		{
+			const DBDeleteRoleArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				create_rollback = r->create_rollback;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << create_rollback;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> create_rollback;
+			return os;
+		}
+
+	};
+};
+#endif

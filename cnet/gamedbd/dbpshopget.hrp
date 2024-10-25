@@ -1,0 +1,100 @@
+#ifndef __GNET_DBPSHOPGET_HPP
+#define __GNET_DBPSHOPGET_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbpshopgetarg"
+#include "dbpshopgetres"
+#include "utilfunction.h"
+
+namespace GNET
+{
+
+class DBPShopGet : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbpshopget"
+#undef	RPC_BASECLASS
+
+	enum REASON_QUERY_DB
+	{
+		REASON_SELF_GET,	//店主QUERY店铺
+		REASON_DB_TIMEOUT,	//店主操作店铺超时
+		REASON_DB_TIMEOUT2,	//玩家操作店铺超时
+	};
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBPShopGetArg *arg = (DBPShopGetArg *)argument;
+		DBPShopGetRes *res = (DBPShopGetRes *)result;
+		try
+		{
+			StorageEnv::Storage * pshop = StorageEnv::GetStorage("playershop");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				Marshal::OctetsStream key, value;
+				key << arg->roleid;
+				if(!pshop->find(key, value, txn))
+				{
+					Log::log(LOG_ERR,"DBPShopGet, invalid roleid=%d )",arg->roleid);
+					throw DbException(DB_NOTFOUND);					
+				}
+				PShopDetail shop;
+				value >> shop;
+
+				//DB超时请求时arg->roleid不一定为店主ROLEID
+				if((arg->reason == REASON_DB_TIMEOUT || arg->reason == REASON_SELF_GET) && shop.roleid != arg->roleid)
+				{
+					Log::log(LOG_ERR,"DBPShopGet, invalid id masterid=%d roleid=%d )",shop.roleid, arg->roleid);
+					throw DbException(DB_VERIFY_BAD);
+				}
+				if(!PShopFunc::OptionPolicy(shop, PShopFunc::PSHOP_OP_SELF_GET))
+				{
+					Log::log(LOG_ERR,"DBPShopBuy, selfget opt invalid roleid=%d )",arg->roleid);
+					throw DbException(DB_VERIFY_BAD);
+				}
+
+				LOG_TRACE("DBPShopGet, roleid=%d", arg->roleid);
+
+				res->shop = shop;
+				res->retcode = ERR_SUCCESS;
+			}
+			catch(DbException e) { throw; }
+			catch(...)
+			{
+				DbException ee(DB_OLD_VERSION);
+				txn.abort(ee);
+				throw ee;
+			}
+		}
+		catch(DbException e)
+		{
+			Log::log(LOG_ERR, "DBPShopGet, roleid=%d, what=%s\n", arg->roleid, e.what());
+			if(e.get_errno()==DB_LOCK_DEADLOCK)
+				res->retcode = ERR_AGAIN;
+			else if(e.get_errno()==DB_NOTFOUND)
+				res->retcode = ERR_PLAYERSHOP_NOTFIND;
+			else
+				res->retcode = ERR_EXCEPTION;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBPShopGetArg *arg = (DBPShopGetArg *)argument;
+		// DBPShopGetRes *res = (DBPShopGetRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

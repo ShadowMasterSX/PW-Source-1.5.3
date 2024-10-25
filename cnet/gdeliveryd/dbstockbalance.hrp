@@ -1,0 +1,56 @@
+
+#ifndef __GNET_DBSTOCKBALANCE_HPP
+#define __GNET_DBSTOCKBALANCE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbstockbalancearg"
+#include "dbstockbalanceres"
+#include "stockorder"
+
+namespace GNET
+{
+
+class DBStockBalance : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbstockbalance"
+#undef	RPC_BASECLASS
+	StockOrder* porder;
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBStockBalanceArg *arg = (DBStockBalanceArg *)argument;
+		// DBStockBalanceRes *res = (DBStockBalanceRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBStockBalanceArg *arg = (DBStockBalanceArg *)argument;
+		DBStockBalanceRes *res = (DBStockBalanceRes *)result;
+		DEBUG_PRINT("DBStockBalance:: tid=%d, retcode=%d", arg->tid, res->retcode);
+		if(res->retcode==ERR_SUCCESS)
+			StockExchange::Instance()->OnBalance(arg->userid,arg->tid,arg->ack_volume,res->volume_left,
+					res->cash, res->money);
+		else if(res->retcode==ERR_AGAIN)
+			manager->Send(sid,Rpc::Call(RPC_DBSTOCKBALANCE,arg));
+		else
+		{
+			// 相关订单将以BALANCE_WAIT状态一直保留在pending队列中
+			Log::log( LOG_ERR, "DBStockBalance, critical error, userid=%d, tid=%d, retcode=%d",
+					arg->userid, arg->tid, res->retcode );
+		}
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		DBStockBalanceArg *arg = (DBStockBalanceArg *)argument;
+		Log::log( LOG_ERR,"dbstockbalance: timeout. tid=%d", arg->tid);
+	}
+
+};
+
+};
+#endif

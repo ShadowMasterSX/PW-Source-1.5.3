@@ -1,0 +1,65 @@
+#ifndef __GNET_RAWKEYVALUE_RPCDATA
+#define __GNET_RAWKEYVALUE_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class RawKeyValue : public GNET::Rpc::Data
+	{
+	public:
+		Octets key;
+		Octets value;
+
+	public:
+		RawKeyValue (Octets l_key = Octets(0),Octets l_value = Octets(0))
+			: key(l_key),value(l_value)
+		{
+		}
+
+		RawKeyValue(const RawKeyValue &rhs)
+			: key(rhs.key),value(rhs.value) { }
+
+		Rpc::Data *Clone() const { return new RawKeyValue(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const RawKeyValue *r = dynamic_cast<const RawKeyValue *>(&rhs);
+			if (r && r != this)
+			{
+				key = r->key;
+				value = r->value;
+			}
+			return *this;
+		}
+
+		RawKeyValue& operator = (const RawKeyValue &rhs)
+		{
+			const RawKeyValue *r = &rhs;
+			if (r && r != this)
+			{
+				key = r->key;
+				value = r->value;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << key;
+			os << value;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> key;
+			os >> value;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<RawKeyValue>	RawKeyValueVector;
+};
+#endif

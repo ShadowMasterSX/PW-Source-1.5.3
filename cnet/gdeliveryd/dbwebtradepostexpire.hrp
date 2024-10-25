@@ -1,0 +1,94 @@
+
+#ifndef __GNET_DBWEBTRADEPOSTEXPIRE_HPP
+#define __GNET_DBWEBTRADEPOSTEXPIRE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbwebtradepostexpirearg"
+#include "dbwebtradepostexpireres"
+
+#include "postexpire_re.hpp"
+
+namespace GNET
+{
+
+class DBWebTradePostExpire : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbwebtradepostexpire"
+#undef	RPC_BASECLASS
+	int64_t messageid;
+	int64_t timestamp;
+	int userid;
+	bool userid_mismatch;
+	bool roleid_mismatch;
+/*
+PostExpire_Re
+0.成功； 
+1.sn不存在（平台认为该单子错误，删除该单子，不再重发）； 
+2.重复通知寄售过期 （平台认为成功，不再重发）；
+3.其他错误（重发）； 
+4. 向游戏服务器发送数据失败（重发）； 
+5. 游戏端根据sn查到的roleid不存在（可能是角色已被GM删除或回档等原因，gs和平台忽略该错误，平台认为成功，不重发）；
+6.物品在游戏内处于“与平台同步中”的状态 （即游戏内物品处于“与平台同步中”的状态时，不再处理平台发来的逻辑，直接返回本错误码，直到收到平台返回的Re，平台收到该错误码后不作任何处理，重发）；
+7．游戏根据sn查到的userid与平台指定的userid不一致（暂时忽略该错误，gs和平台忽略该错误，平台认为成功，不重发）；
+8．游戏根据sn查到的roleid与平台指定的roleid不一致（暂时忽略该错误，gs和平台忽略该错误，平台认为成功，不重发）；
+-1. 游戏服务器处理失败（重发）；
+*/
+
+	void SendResult(int retcode,int roleid, int64_t sn)
+	{
+		GWebTradeClient::GetInstance()->SendProtocol(PostExpire_Re(userid,roleid,sn,retcode,messageid));	
+	}
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBWebTradePostExpireArg *arg = (DBWebTradePostExpireArg *)argument;
+		// DBWebTradePostExpireRes *res = (DBWebTradePostExpireRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		DBWebTradePostExpireArg *arg = (DBWebTradePostExpireArg *)argument;
+		DBWebTradePostExpireRes *res = (DBWebTradePostExpireRes *)result;
+		DEBUG_PRINT("dbwebtradepostexpire: rpc return. retcode=%d,sn=%lld,roleid=%d", res->retcode, arg->sn, arg->roleid);
+
+		if(res->retcode == ERR_SUCCESS)
+		{
+			if(!WebTradeMarket::GetInstance().OnDBPostExpire(arg->roleid, arg->sn))
+			{
+				WebTradeMarket::GetInstance().ClearBusy(arg->sn);
+				Log::log(LOG_WARNING,"dbwebtradepostexpire: OnDBPostExpire failed. sn=%lld,roleid=%d", arg->sn,arg->roleid);
+			}
+			PostOffice::GetInstance().AddNewMail( res->inform_seller.receiver,res->inform_seller );
+			if(userid_mismatch)
+				SendResult(7,arg->roleid,arg->sn);	//通知Tradeserver成功
+			else if(roleid_mismatch)
+				SendResult(8,arg->roleid,arg->sn);	//通知Tradeserver成功
+			else
+				SendResult(0,arg->roleid,arg->sn);	//通知Tradeserver成功
+		}
+		else
+		{
+			WebTradeMarket::GetInstance().ClearBusy(arg->sn);
+			Log::log(LOG_WARNING,"dbwebtradepostexpire: failed. sn=%lld,roleid=%d", arg->sn,arg->roleid);
+			SendResult(-1,arg->roleid,arg->sn);	//通知Tradeserver重发
+		}
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+		DBWebTradePostExpireArg *arg = (DBWebTradePostExpireArg *)argument;
+		Log::log(LOG_ERR,"dbwebtradepostexpire: timeout. sn=%lld,roleid=%d", arg->sn,arg->roleid);
+		WebTradeMarket::GetInstance().ClearBusy(arg->sn);
+		SendResult(-1,arg->roleid,arg->sn);	//通知Tradeserver重发
+	}
+
+};
+
+};
+#endif

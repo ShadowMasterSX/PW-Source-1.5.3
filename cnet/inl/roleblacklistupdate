@@ -1,0 +1,38 @@
+	public:
+		int64_t roleid;
+		RoleInfoBean target;
+		char operation;
+		enum { PROTOCOL_TYPE = PROTOCOL_ROLEBLACKLISTUPDATE };
+	public:
+		RoleBlacklistUpdate() { type = PROTOCOL_ROLEBLACKLISTUPDATE; }
+		RoleBlacklistUpdate(void*) : Protocol(PROTOCOL_ROLEBLACKLISTUPDATE) { }
+		RoleBlacklistUpdate (int64_t l_roleid,const RoleInfoBean& l_target,char l_operation)
+			 : roleid(l_roleid),target(l_target),operation(l_operation)
+		{
+			type = PROTOCOL_ROLEBLACKLISTUPDATE;
+		}
+
+		RoleBlacklistUpdate(const RoleBlacklistUpdate &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),target(rhs.target),operation(rhs.operation) { }
+
+		GNET::Protocol *Clone() const { return new RoleBlacklistUpdate(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << target;
+			os << operation;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> target;
+			os >> operation;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1024; }

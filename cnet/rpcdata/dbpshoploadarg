@@ -1,0 +1,59 @@
+#ifndef __GNET_DBPSHOPLOADARG_RPCDATA
+#define __GNET_DBPSHOPLOADARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBPShopLoadArg : public GNET::Rpc::Data
+	{
+	public:
+		Octets handle;
+
+	public:
+		DBPShopLoadArg (const Octets& l_handle = Octets())
+			: handle(l_handle)
+		{
+		}
+
+		DBPShopLoadArg(const DBPShopLoadArg &rhs)
+			: handle(rhs.handle) { }
+
+		Rpc::Data *Clone() const { return new DBPShopLoadArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPShopLoadArg *r = dynamic_cast<const DBPShopLoadArg *>(&rhs);
+			if (r && r != this)
+			{
+				handle = r->handle;
+			}
+			return *this;
+		}
+
+		DBPShopLoadArg& operator = (const DBPShopLoadArg &rhs)
+		{
+			const DBPShopLoadArg *r = &rhs;
+			if (r && r != this)
+			{
+				handle = r->handle;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << handle;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> handle;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,132 @@
+
+#ifndef __GNET_DBCREATEROLE_HPP
+#define __GNET_DBCREATEROLE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "groleinventory"
+#include "dbcreaterolearg"
+#include "dbcreateroleres"
+#include "gamedbclient.hpp"
+#include "gdeliveryserver.hpp"
+#include "createrole_re.hpp"
+#include "mapuser.h"
+#include "dbdeleterole.hrp"
+#include "gamedbclient.hpp"
+
+#include "postcreaterole.hrp"
+#include "uniquenameclient.hpp"
+
+#define MAX_REXMIT_TIME	3
+namespace GNET
+{
+
+class DBCreateRole : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbcreaterole"
+#undef	RPC_BASECLASS
+	unsigned int save_localsid;
+	unsigned int save_link_sid;
+	unsigned int nRexmitTime;
+	
+	void NotifyUniqueNameSrv(bool blSuccess,GDeliveryServer* dsm,int userid,int roleid,const Octets& rolename)
+	{
+		PostCreateRole* rpc=(PostCreateRole*) Rpc::Call(
+			RPC_POSTCREATEROLE,
+			PostCreateRoleArg((char)blSuccess,userid,dsm->zoneid,roleid,rolename)
+		);
+		DEBUG_PRINT("dbcreaterole::send PostCreateRole to uniqueserver. roleid=%d,zoneid=%d,rolename(sz:%d)\n",
+				roleid,dsm->zoneid,rolename.size());
+		UniqueNameClient::GetInstance()->SendProtocol(rpc);
+	}
+	void SendErr2Client( int retcode )
+	{
+		GDeliveryServer* dsm=GDeliveryServer::GetInstance();
+		dsm->Send( save_link_sid, CreateRole_Re(retcode,_ROLE_INVALID,save_localsid));		
+	}
+	void CreateRollBack(DBCreateRoleArg *arg)
+	{
+		GameDBClient::GetInstance()->SendProtocol( Rpc::Call(RPC_DBDELETEROLE,DBDeleteRoleArg(arg->roleid,true)));
+	}
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBCreateRoleArg *arg = (DBCreateRoleArg *)argument;
+		// DBCreateRoleRes *res = (DBCreateRoleRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBCreateRoleArg *arg = (DBCreateRoleArg *)argument;
+		DBCreateRoleRes *res = (DBCreateRoleRes *)result;
+		
+		GDeliveryServer* dsm=GDeliveryServer::GetInstance();
+		Thread::RWLock::WRScoped l(UserContainer::GetInstance().GetLocker());
+		
+		NotifyUniqueNameSrv(
+				(res->retcode==ERR_SUCCESS) || (res->retcode==ERR_DUPLICATE_ROLEID), //FOR synchronization with gamedbd
+				dsm,
+				arg->userid,
+				arg->roleid,
+				(res->retcode==ERR_DUPLICATE_ROLEID) ? res->roleinfo.name : arg->roleinfo.name
+			);	
+		if (res->retcode==ERR_DUPLICATE_ROLEID) res->retcode=ERR_DUPLICATRECORD; 
+		UserInfo* userinfo = UserContainer::GetInstance().FindUser(arg->userid,save_link_sid,save_localsid);
+		if (NULL==userinfo) { return; }
+		
+		if (res->retcode == ERR_SUCCESS)
+		{
+			UidConverter::Instance().Insert(arg->userid, arg->logicuid);
+			if (res->roleinfo.worldtag==0) res->roleinfo.worldtag=1;
+			userinfo->rolelist=UserInfo::RoleList(res->rolelist);
+			userinfo->logicuid = arg->logicuid;
+			if (res->real_referrer > 0)
+			{
+				userinfo->real_referrer = res->real_referrer;
+	//			userinfo->referrer_roleid = res->referrer_role;
+			}
+			
+			dsm->Send(save_link_sid,CreateRole_Re(ERR_SUCCESS,res->roleid,save_localsid,res->roleinfo, res->refretcode));
+			//get gameserver id of the role
+			userinfo->role_pos[res->roleid % MAX_ROLE_COUNT]=UserInfo::point_t(res->roleinfo.posx,res->roleinfo.posy,res->roleinfo.posz);
+			userinfo->worldtag[res->roleid % MAX_ROLE_COUNT]=res->roleinfo.worldtag;
+			userinfo->create_time[res->roleid % MAX_ROLE_COUNT]=res->roleinfo.create_time;
+			userinfo->role_status[res->roleid % MAX_ROLE_COUNT]=res->roleinfo.status;
+			
+			CrossInfoData info;
+			userinfo->UpdateCrossInfoData(arg->roleid, info);
+
+			STAT_DAY("role-create",1);
+
+			GameTalkManager::GetInstance()->NotifyCreateRole(
+					arg->userid, res->roleid, arg->roleinfo.name, arg->roleinfo.gender, arg->roleinfo.race);
+
+			/*此时userinfo->role无效*/
+			const Octets & account = userinfo->account;
+			Log::formatlog("createrole-success", "userid=%d:account=%.*s:roleid=%d:IP=%s\n", userinfo->userid, account.size(), account.begin(), res->roleid, inet_ntoa(*(struct in_addr *)(&(userinfo->ip))));
+		}
+		else
+		{
+			Log::log(LOG_WARNING,"gdelivery::dbcreaterole: failed. roleid=%d, retcode=%d\n",arg->roleid,res->retcode);
+			if (res->retcode!=ERR_DUPLICATRECORD && res->retcode!=ERR_NOFREESPACE && res->retcode!=ERR_RECALL_ROLE_EXCEED)
+				res->retcode=ERR_CREATEROLE;
+			dsm->Send(save_link_sid,CreateRole_Re(res->retcode,_ROLE_INVALID,save_localsid));
+		}
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		DBCreateRoleArg *arg = (DBCreateRoleArg *)argument;
+		Log::log(LOG_ERR,"gdelivery::dbcreaterole:Create role(advice_roleid=%d) failed(timeout).",
+			((DBCreateRoleArg*)argument)->roleid);
+		SendErr2Client(ERR_TIMEOUT);
+		CreateRollBack( arg );
+		NotifyUniqueNameSrv( false, GDeliveryServer::GetInstance(), arg->userid, arg->roleid, arg->roleinfo.name);	
+
+	}
+
+};
+
+};
+#endif

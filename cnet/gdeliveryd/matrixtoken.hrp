@@ -1,0 +1,106 @@
+
+#ifndef __GNET_MATRIXTOKEN_HPP
+#define __GNET_MATRIXTOKEN_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "matrixtokenarg"
+#include "matrixtokenres"
+#include "gauthclient.hpp"
+#include "mapuser.h"
+
+namespace GNET
+{
+
+class MatrixToken : public ProxyRpc
+{
+	GNET::Protocol *Clone() const {  return new MatrixToken(*this); }
+public:
+	enum { PROTOCOL_TYPE = RPC_MATRIXTOKEN };
+	MatrixToken(Type type, Rpc::Data *argument, Rpc::Data *result)
+		: ProxyRpc(type, argument, result ) { }
+	MatrixToken(const MatrixToken &rhs) : ProxyRpc(rhs) { }
+	int  PriorPolicy( ) const { return 101; }
+	bool SizePolicy(size_t size) const { return size <= 512; }
+	bool TimePolicy(int timeout) const { return timeout <= 20; }
+
+	bool Delivery(Manager::Session::ID proxy_sid, const OctetsStream& osArg)
+	{
+		MatrixTokenArg arg;
+		osArg >> arg;
+		
+		//跨服服务器不应该收到这个协议	
+		if(GDeliveryServer::GetInstance()->IsCentralDS()) {
+			Log::log(LOG_ERR, "User(%.*s) Try to Login Central Delivery Server directly, Refuse him!", arg.account.size(), (char*)arg.account.begin());
+			
+			SetResult(MatrixTokenRes(-1));
+			SendToSponsor();
+			return false;
+		}
+
+		if(!GDeliveryServer::GetInstance()->token_login_support)
+		{
+			SetResult(MatrixTokenRes(ERR_COMMUNICATION));
+			SendToSponsor();
+			return false;
+		}
+
+		UserContainer& container = UserContainer::GetInstance();
+		if ( (!container.IsLanIp(arg.loginip)) && (container.Size() >= container.GetPlayerLimit()) )
+		{       
+			MatrixTokenRes res;
+			res.retcode = ERR_SERVEROVERLOAD;
+			SetResult(res);
+			SendToSponsor();
+			return false;
+		}
+		LOG_TRACE("gdelivery::matrixtoken query, user=%.*s", arg.account.size(),(char*) arg.account.begin());
+		if( GAuthClient::GetInstance()->SendProtocol( *this ) )
+		{
+			return true;
+		}
+		else
+		{
+			SetResult(MatrixTokenRes(ERR_COMMUNICATION));
+			SendToSponsor();
+			return false;
+		}
+	}
+
+	void PostProcess(Manager::Session::ID proxy_sid,const OctetsStream& osArg, const OctetsStream& osRes)
+	{
+		MatrixTokenArg arg;
+		osArg >> arg;
+		MatrixTokenRes res;
+		osRes >> res;
+		if (res.retcode == ERR_SUCCESS)
+		{
+			//判断是否为完美神盾绑定帐户
+			int algorithm_type = res.algorithm & ALGORITHM_MASK_HIGH;
+			if(algorithm_type == ALGORITHM_USBKEY || algorithm_type == ALGORITHM_USBKEY2)
+			{
+				LOG_TRACE("matrixtoken usbbind user %d", res.userid);
+				Passwd::GetInstance().SetUsbUser(res.userid);
+			}
+			else
+			{
+				LOG_TRACE("matrixtoken NOT usbbind user %d", res.userid);
+				Passwd::GetInstance().ClearUsbUser(res.userid);
+			}
+		}
+	}
+
+	void OnTimeout(const OctetsStream &osArg)
+	{
+		MatrixTokenArg arg;
+		osArg >> arg;
+		LOG_TRACE("gdelivery::tokentimeout. user=%.*s", arg.account.size(),(char*)arg.account.begin());
+		SetResult(MatrixTokenRes(ERR_COMMUNICATION));
+		SendToSponsor();
+	}
+
+};
+
+};
+#endif

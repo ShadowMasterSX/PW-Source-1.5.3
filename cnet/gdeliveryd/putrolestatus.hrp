@@ -1,0 +1,50 @@
+
+#ifndef __GNET_PUTROLESTATUS_HPP
+#define __GNET_PUTROLESTATUS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#ifdef USE_BDB
+#include "dbbuffer.h"
+#endif
+#include "rolestatuspair"
+
+
+namespace GNET
+{
+
+class PutRoleStatus : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "putrolestatus"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+#ifdef USE_BDB
+		RoleStatusPair *arg = (RoleStatusPair *)argument;
+		RpcRetcode *res = (RpcRetcode *)result;
+		Marshal::OctetsStream key, value;
+		key << arg->key;
+		value << arg->value;
+		res->retcode = DBBuffer::buf_insert( "status", key, value );
+#endif
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// RoleStatusPair *arg = (RoleStatusPair *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

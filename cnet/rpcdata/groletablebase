@@ -1,0 +1,59 @@
+#ifndef __GNET_GROLETABLEBASE_RPCDATA
+#define __GNET_GROLETABLEBASE_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "grolebase"
+
+namespace GNET
+{
+	class GRoleTableBase : public GNET::Rpc::Data
+	{
+	public:
+		GRoleBase base;
+
+	public:
+		GRoleTableBase ()
+		{
+		}
+
+		GRoleTableBase(const GRoleTableBase &rhs)
+			: base(rhs.base) { }
+
+		Rpc::Data *Clone() const { return new GRoleTableBase(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GRoleTableBase *r = dynamic_cast<const GRoleTableBase *>(&rhs);
+			if (r && r != this)
+			{
+				base = r->base;
+			}
+			return *this;
+		}
+
+		GRoleTableBase& operator = (const GRoleTableBase &rhs)
+		{
+			const GRoleTableBase *r = &rhs;
+			if (r && r != this)
+			{
+				base = r->base;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << base;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> base;
+			return os;
+		}
+
+	};
+};
+#endif

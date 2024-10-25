@@ -1,0 +1,69 @@
+#ifndef __GNET_GCHALLENGERINFO_RPCDATA
+#define __GNET_GCHALLENGERINFO_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GChallengerInfo : public GNET::Rpc::Data
+	{
+	public:
+		unsigned int faction;
+		int time;
+		unsigned int deposit;
+
+	public:
+		GChallengerInfo (unsigned int l_faction = 0,int l_time = 0,unsigned int l_deposit = 0)
+			: faction(l_faction),time(l_time),deposit(l_deposit)
+		{
+		}
+
+		GChallengerInfo(const GChallengerInfo &rhs)
+			: faction(rhs.faction),time(rhs.time),deposit(rhs.deposit) { }
+
+		Rpc::Data *Clone() const { return new GChallengerInfo(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GChallengerInfo *r = dynamic_cast<const GChallengerInfo *>(&rhs);
+			if (r && r != this)
+			{
+				faction = r->faction;
+				time = r->time;
+				deposit = r->deposit;
+			}
+			return *this;
+		}
+
+		GChallengerInfo& operator = (const GChallengerInfo &rhs)
+		{
+			const GChallengerInfo *r = &rhs;
+			if (r && r != this)
+			{
+				faction = r->faction;
+				time = r->time;
+				deposit = r->deposit;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << faction;
+			os << time;
+			os << deposit;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> faction;
+			os >> time;
+			os >> deposit;
+			return os;
+		}
+
+	};
+};
+#endif

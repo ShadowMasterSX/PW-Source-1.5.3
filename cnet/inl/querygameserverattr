@@ -1,0 +1,32 @@
+	public:
+		unsigned char paddings;
+		enum { PROTOCOL_TYPE = PROTOCOL_QUERYGAMESERVERATTR };
+	public:
+		QueryGameServerAttr() { type = PROTOCOL_QUERYGAMESERVERATTR; }
+		QueryGameServerAttr(void*) : Protocol(PROTOCOL_QUERYGAMESERVERATTR) { }
+		QueryGameServerAttr (unsigned char l_paddings = 0)
+			 : paddings(l_paddings)
+		{
+			type = PROTOCOL_QUERYGAMESERVERATTR;
+		}
+
+		QueryGameServerAttr(const QueryGameServerAttr &rhs)
+			: Protocol(rhs),paddings(rhs.paddings) { }
+
+		GNET::Protocol *Clone() const { return new QueryGameServerAttr(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << paddings;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> paddings;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 101; }
+
+		bool SizePolicy(size_t size) const { return size <= 32; }

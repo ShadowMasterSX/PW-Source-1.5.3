@@ -1,0 +1,119 @@
+
+#ifndef __GNET_TRADESAVE_HPP
+#define __GNET_TRADESAVE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#ifdef USE_BDB
+#include "dbbuffer.h"
+#endif
+#include "groleinventory"
+#include "tradesavearg"
+#include "tradesaveres"
+
+#include "trade.h"
+#include "tradeconfirm_re.hpp"
+#include "tradediscard_re.hpp"
+#include "gdeliveryserver.hpp"
+#include "gtradeend.hpp"
+#include "mapuser.h"
+namespace GNET
+{
+
+class TradeSave : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "tradesave"
+#undef	RPC_BASECLASS
+	unsigned int tid;
+	unsigned int cause;
+	int	cause_param;
+	void SendResult(GNET::Transaction* t,int retcode)
+	{
+		//send result to both traders
+		GDeliveryServer* dsm=GDeliveryServer::GetInstance();
+		Thread::RWLock::RDScoped l(UserContainer::GetInstance().GetLocker());
+		for (int j=0;j<2;j++)
+		{
+			Trader* r;
+			if (j==0) r=t->GetAlice();
+			else r=t->GetBob();
+			if(!r)
+				continue;
+			switch (cause)
+			{
+			case PROTOCOL_TRADECONFIRM:
+				dsm->Send(r->linksid,TradeConfirm_Re(retcode,tid,cause_param,r->roleid,r->localsid));
+				break;
+			case PROTOCOL_TRADEDISCARD:
+				dsm->Send(r->linksid,TradeDiscard_Re(retcode,tid,cause_param,r->roleid,r->localsid));
+				break;
+			}
+		}
+	}
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		//TradeSaveArg *arg = (TradeSaveArg *)argument;
+		TradeSaveRes *res = (TradeSaveRes *)result;
+		
+		GNET::Transaction* t=GNET::Transaction::GetTransaction(tid);
+		if (t == NULL) return;
+
+		if (res->retcode != ERR_SUCCESS)
+		{
+			switch (cause)
+			{
+			case PROTOCOL_TRADECONFIRM:
+				Log::log(LOG_ERR,"Tradesave: Trade done!,write to DB failed.(Trader:%d,%d) retcode=%d\n",
+					t->GetAlice()->roleid,t->GetBob()->roleid,res->retcode);
+				break;
+			case PROTOCOL_TRADEDISCARD:
+				Log::log(LOG_ERR,"Tradesave:Trade discard,write to DB failed.(Trader:%d,%d) retcode=%d\n",
+					t->GetAlice()->roleid,t->GetBob()->roleid,res->retcode);
+				break;
+			}
+			SendResult(t,ERR_TRADE_DB_FAILURE);
+		}
+		else
+		{
+			switch (cause)
+			{
+			case PROTOCOL_TRADECONFIRM:
+				Log::formatlog("trade_debug","TradeSave:Trade done. tid=%d,(Trader:%d,%d)\n",tid,
+						t->GetAlice()->roleid,t->GetBob()->roleid);
+				SendResult(t,ERR_TRADE_DONE);
+				break;
+			case PROTOCOL_TRADEDISCARD:
+				Log::formatlog("trade_debug","TradeSave:Trade discard!.tid=%d,(Trader:%d,%d)\n",tid,
+						t->GetAlice()->roleid,t->GetBob()->roleid);
+				SendResult(t,ERR_SUCCESS);
+				break;
+			}
+		}
+
+		t->Destroy();
+	}
+
+	void OnTimeout()
+	{
+		GNET::Transaction* t=GNET::Transaction::GetTransaction(tid);
+		if (t == NULL) return;
+		if (cause == PROTOCOL_TRADECONFIRM)
+			Log::log(LOG_ERR,"tradesave:Trade done!but write to DB failed(timeout).tid=%d,cause=%d\n",tid,cause);
+		if (cause == PROTOCOL_TRADEDISCARD)
+			Log::log(LOG_ERR,"tradesave:Trade discard!but write to DB failed(timeout).tid=%d,cause=%d\n",
+					tid,cause);
+		SendResult(t,ERR_TRADE_DB_FAILURE);
+		t->Destroy();
+	}
+
+};
+
+};
+#endif

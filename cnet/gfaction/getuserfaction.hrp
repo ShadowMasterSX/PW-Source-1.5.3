@@ -1,0 +1,74 @@
+
+#ifndef __GNET_GETUSERFACTION_HPP
+#define __GNET_GETUSERFACTION_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "userfactionarg"
+#include "userfactionres"
+#include "gfactionserver.hpp"
+#include "getplayerfactioninfo_re.hpp"
+#include "factiondb.h"
+
+namespace GNET
+{
+
+class GetUserFaction : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getuserfaction"
+#undef	RPC_BASECLASS
+	
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		UserFactionArg* arg = (UserFactionArg*)argument;
+		UserFactionRes *res = (UserFactionRes *)result;
+		if(res->value.rid<=0 || res->retcode!=ERR_SUCCESS)
+			return;
+
+		DEBUG_PRINT("GetUserFaction: roleid=%d fid=%d\n", res->value.rid, res->value.fid);
+		GFactionServer::GetInstance()->UpdatePlayer(res->value.rid, res->level, 
+				 res->reputation, res->reincarn_times, res->gender, res->value, arg->reason==REASON_LOGIN);
+		if(res->value.fid)
+		{
+			if(arg->reason==REASON_LOGIN)
+				Factiondb::GetInstance()->OnLogin(res->value.fid, res->value.rid, res->value.role, res->level,
+						res->contrib, res->reputation, res->reincarn_times,	res->gender, res->value.delayexpel);
+			else if (arg->reason==REASON_EXPEL_SYNC)
+				Factiondb::GetInstance()->OnUpdateExpel(res->value.fid, res->value.rid, res->value.role, res->level, 
+						res->contrib, res->reputation, res->reincarn_times, res->gender, res->value.delayexpel);
+		}
+
+		GetPlayerFactionInfo_Re re;
+		re.roleid = arg->rid;
+
+		GFactionServer::Player player;
+		GFactionServer* gfs = GFactionServer::GetInstance();
+		if (!(gfs->GetPlayer(arg->rid,player)))
+			return;
+		re.faction_info = res->value;
+		re.faction_info.extend.clear();
+		if(re.faction_info.delayexpel.size() && Factiondb::GetInstance()->AlreadyDelayExpel(arg->rid))
+		{
+		   	re.faction_info.delayexpel = Marshal::OctetsStream() << (char)1 
+		       	<< Factiondb::GetInstance()->GetDelayExpelTime(arg->rid);// 修改客户端用显示时间
+		}
+
+		re.localsid = player.localsid;
+		gfs->DispatchProtocol(player.linkid, re);
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

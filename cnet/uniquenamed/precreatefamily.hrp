@@ -1,0 +1,120 @@
+
+#ifndef __GNET_PRECREATEFAMILY_HPP
+#define __GNET_PRECREATEFAMILY_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "storage.h"
+#include "precreatefamilyarg"
+#include "precreatefamilyres"
+
+#include "timer.h"
+#include "uniquenameserver.hpp"
+namespace GNET
+{
+
+class PreCreateFamily : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "precreatefamily"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		PreCreateFamilyArg *arg = (PreCreateFamilyArg *)argument;
+		PreCreateFamilyRes *res = (PreCreateFamilyRes *)result;
+
+		UniqueNameServer::GetInstance()->TransformName(arg->familyname);
+
+		Octets name;
+		CharsetConverter::conv_charset_u2l( arg->familyname, name );
+		LOG_TRACE( "PreCreateFamily(zoneid=%d,name=%.*s)", arg->zoneid, name.size(), (char*)name.begin() );
+
+		try
+		{
+			StorageEnv::Storage * punamefamily = StorageEnv::GetStorage("unamefamily");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				Marshal::OctetsStream key_nextid, value_unamefamily, value_nextid;
+				int nextid_forkey = 0;
+				key_nextid << nextid_forkey;
+				if( key_nextid == arg->familyname)
+				{
+					res->retcode = ERR_DUPLICATRECORD;
+					LOG_TRACE( "PreCreateFamily(zoneid=%d,name=%.*s), duplicate, equals to next_id",
+								arg->zoneid, name.size(), (char*)name.begin() );
+					return;
+				}
+
+				if( punamefamily->find( arg->familyname, value_unamefamily, txn ) )
+				{
+					int zoneid, familyid, status, time;
+					value_unamefamily >> zoneid >> familyid >> status >> time;
+
+					if( !(UNIQUENAME_ENGAGED == status && Timer::GetTime() - time > 300) )
+					{
+						res->retcode = ERR_DUPLICATRECORD;
+						LOG_TRACE( "PreCreateFamily(zoneid=%d,name=%.*s), duplicate, old:zoneid=%d,familyid=%d,status=%d,time=%d", 
+								arg->zoneid, name.size(), (char*)name.begin(), zoneid, familyid, status, time );
+						return;
+					}
+					else
+					{
+						res->retcode = ERR_DUPLICATRECORD;
+						LOG_TRACE( "PreCreateFamily(zoneid=%d,name=%.*s), duplicate2, old:zoneid=%d,familyid=%d,status=%d,time=%d", 
+								arg->zoneid, name.size(), (char*)name.begin(), zoneid, familyid, status, time );
+						return;
+					}
+				}
+
+				int temp = 0, nextid = 1;
+				if( punamefamily->find( key_nextid, value_nextid, txn ) )
+					value_nextid >> temp >> nextid;
+				res->familyid = nextid;
+
+				value_unamefamily.clear();
+				int status = UNIQUENAME_ENGAGED;
+				value_unamefamily << arg->zoneid << nextid << status << (int)Timer::GetTime();
+				punamefamily->insert( arg->familyname, value_unamefamily, txn );
+
+				value_nextid.clear();
+				nextid ++;
+				status = UNIQUENAME_USED;
+				value_nextid << temp << nextid << status << temp;
+				punamefamily->insert( key_nextid, value_nextid, txn );
+				LOG_TRACE( "PreCreateFamily(zoneid=%d,name=%.*s) ok, nextid=%d", arg->zoneid, name.size(), (char*)name.begin(), nextid );
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "PreCreateFamily, zoneid=%d, what=%s\n", arg->zoneid, e.what() );
+			res->retcode = -1;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// PreCreateFamilyArg *arg = (PreCreateFamilyArg *)argument;
+		// PreCreateFamilyRes *res = (PreCreateFamilyRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

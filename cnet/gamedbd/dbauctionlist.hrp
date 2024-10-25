@@ -1,0 +1,111 @@
+
+#ifndef __GNET_DBAUCTIONLIST_HPP
+#define __GNET_DBAUCTIONLIST_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "gauctiondetail"
+#include "dbauctionlistarg"
+#include "dbauctionlistres"
+
+namespace GNET
+{
+
+class ListAuctionQuery : public StorageEnv::IQuery
+{
+	std::vector<GAuctionDetail>* plist;
+	int delay;
+	time_t now;
+	GAuctionDetail detail;
+	int total;
+	int size;
+	Octets last;
+public:
+	ListAuctionQuery(std::vector<GAuctionDetail>* p) : plist(p), delay(180), total(0), size(0)
+	{ 
+		now = Timer::GetTime();
+	}
+
+	bool Update( StorageEnv::Transaction& txn, Octets& key, Octets& value)
+	{
+		try
+		{
+			if(total>256 || size>65536)
+			{
+				last = key;
+				return false;
+			}
+
+			Marshal::OctetsStream(value) >> detail;
+			if((time_t)detail.info.end_time<now)
+			{
+				detail.info.end_time = now + delay;
+				delay += 2;
+			}
+			plist->push_back(detail);
+			total++;
+			size += 85 + detail.item.data.size();
+		} catch ( Marshal::Exception & ) {
+			Log::log( LOG_ERR, "ListAuctionQuery, error unmarshal.");
+		}
+		return true;
+	}
+	const Octets& GetHandle() { return last; }
+};
+
+class DBAuctionList : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbauctionlist"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBAuctionListArg *arg = (DBAuctionListArg *)argument;
+		DBAuctionListRes *res = (DBAuctionListRes *)result;
+
+		Marshal::OctetsStream key, value;
+		ListAuctionQuery q(&(res->items));
+		try
+		{
+			StorageEnv::Storage * pauction = StorageEnv::GetStorage("auction");
+			StorageEnv::AtomTransaction txn;
+			try{
+				StorageEnv::Storage::Cursor cursor = pauction->cursor( txn );
+				cursor.walk(arg->handle, q );
+				res->handle = q.GetHandle();
+				LOG_TRACE("DBAuctionList, size=%d, handle=%d\n", res->items.size(), res->handle.size());
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBAuctionList, what=%s.\n", e.what() );
+			if(e.get_errno()==DB_LOCK_DEADLOCK)
+				res->retcode = ERR_AGAIN;
+			else
+				res->retcode = ERR_AS_BID_NOTFOUND;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

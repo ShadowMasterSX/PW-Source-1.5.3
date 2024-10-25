@@ -1,0 +1,87 @@
+#ifndef __GNET_UPDATEUSERFACTIONARG_RPCDATA
+#define __GNET_UPDATEUSERFACTIONARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class UpdateUserFactionArg : public GNET::Rpc::Data
+	{
+	public:
+		unsigned int fid;
+		unsigned int rid;
+		char operation;
+		char role;
+		short loyalty;
+		Octets nickname;
+
+	public:
+		UpdateUserFactionArg (unsigned int l_fid = 0,unsigned int l_rid = 0,char l_operation = 0
+			,char l_role = -1,short l_loyalty = -1,const Octets& l_nickname = Octets(0))
+			: fid(l_fid),rid(l_rid),operation(l_operation)
+			,role(l_role),loyalty(l_loyalty),nickname(l_nickname)
+		{
+		}
+
+		UpdateUserFactionArg(const UpdateUserFactionArg &rhs)
+			: fid(rhs.fid),rid(rhs.rid),operation(rhs.operation),
+			role(rhs.role),loyalty(rhs.loyalty),nickname(rhs.nickname) { }
+
+		Rpc::Data *Clone() const { return new UpdateUserFactionArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const UpdateUserFactionArg *r = dynamic_cast<const UpdateUserFactionArg *>(&rhs);
+			if (r && r != this)
+			{
+				fid = r->fid;
+				rid = r->rid;
+				operation = r->operation;
+				role = r->role;
+				loyalty = r->loyalty;
+				nickname = r->nickname;
+			}
+			return *this;
+		}
+
+		UpdateUserFactionArg& operator = (const UpdateUserFactionArg &rhs)
+		{
+			const UpdateUserFactionArg *r = &rhs;
+			if (r && r != this)
+			{
+				fid = r->fid;
+				rid = r->rid;
+				operation = r->operation;
+				role = r->role;
+				loyalty = r->loyalty;
+				nickname = r->nickname;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << fid;
+			os << rid;
+			os << operation;
+			os << role;
+			os << loyalty;
+			os << nickname;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> fid;
+			os >> rid;
+			os >> operation;
+			os >> role;
+			os >> loyalty;
+			os >> nickname;
+			return os;
+		}
+
+	};
+};
+#endif

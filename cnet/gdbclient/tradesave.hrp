@@ -1,0 +1,49 @@
+
+#ifndef __GNET_TRADESAVE_HPP
+#define __GNET_TRADESAVE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#ifdef USE_BDB
+#include "dbbuffer.h"
+#endif
+#include "tradesavearg"
+#include "tradesaveres"
+
+namespace GNET
+{
+
+class TradeSave : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "tradesave"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+#ifdef USE_BDB
+		TradeSaveArg *arg = (TradeSaveArg *)argument;
+		TradeSaveRes *res = (TradeSaveRes *)result;
+		Marshal::OctetsStream key, value;
+		key << arg->roleid1;
+		value << arg->sellgoods1;
+#endif
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// TradeSaveArg *arg = (TradeSaveArg *)argument;
+		// TradeSaveRes *res = (TradeSaveRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

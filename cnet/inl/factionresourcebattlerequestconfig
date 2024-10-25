@@ -1,0 +1,32 @@
+	public:
+		unsigned int timestamp;
+		enum { PROTOCOL_TYPE = PROTOCOL_FACTIONRESOURCEBATTLEREQUESTCONFIG };
+	public:
+		FactionResourceBattleRequestConfig() { type = PROTOCOL_FACTIONRESOURCEBATTLEREQUESTCONFIG; }
+		FactionResourceBattleRequestConfig(void*) : Protocol(PROTOCOL_FACTIONRESOURCEBATTLEREQUESTCONFIG) { }
+		FactionResourceBattleRequestConfig (unsigned int l_timestamp)
+			 : timestamp(l_timestamp)
+		{
+			type = PROTOCOL_FACTIONRESOURCEBATTLEREQUESTCONFIG;
+		}
+
+		FactionResourceBattleRequestConfig(const FactionResourceBattleRequestConfig &rhs)
+			: Protocol(rhs),timestamp(rhs.timestamp) { }
+
+		GNET::Protocol *Clone() const { return new FactionResourceBattleRequestConfig(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << timestamp;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> timestamp;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 128; }

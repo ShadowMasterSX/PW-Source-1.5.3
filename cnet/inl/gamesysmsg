@@ -1,0 +1,44 @@
+	public:
+		int mtype;
+		int64_t time;
+		int emotiongroup;
+		Octets content;
+		enum { PROTOCOL_TYPE = PROTOCOL_GAMESYSMSG };
+	public:
+		GameSysMsg() { type = PROTOCOL_GAMESYSMSG; }
+		GameSysMsg(void*) : Protocol(PROTOCOL_GAMESYSMSG) { }
+		GameSysMsg (int l_mtype,int64_t l_time,int l_emotiongroup,
+			const Octets& l_content)
+			 : mtype(l_mtype),time(l_time),emotiongroup(l_emotiongroup)
+			,content(l_content)
+		{
+			type = PROTOCOL_GAMESYSMSG;
+		}
+
+		GameSysMsg(const GameSysMsg &rhs)
+			: Protocol(rhs),mtype(rhs.mtype),time(rhs.time),emotiongroup(rhs.emotiongroup)
+			,content(rhs.content) { }
+
+		GNET::Protocol *Clone() const { return new GameSysMsg(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << mtype;
+			os << time;
+			os << emotiongroup;
+			os << content;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> mtype;
+			os >> time;
+			os >> emotiongroup;
+			os >> content;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 2048; }

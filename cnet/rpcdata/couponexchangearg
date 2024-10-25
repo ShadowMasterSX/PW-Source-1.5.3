@@ -1,0 +1,87 @@
+#ifndef __GNET_COUPONEXCHANGEARG_RPCDATA
+#define __GNET_COUPONEXCHANGEARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class CouponExchangeArg : public GNET::Rpc::Data
+	{
+	public:
+		int userid;
+		int coupon_number;
+		int cash_number;
+		int64_t timestamp;
+		int reserved1;
+		int reserved2;
+
+	public:
+		CouponExchangeArg (int l_userid = 0,int l_coupon_number = 0,int l_cash_number = 0
+			,int64_t l_timestamp = 0,int l_reserved1 = 0,int l_reserved2 = 0)
+			: userid(l_userid),coupon_number(l_coupon_number),cash_number(l_cash_number)
+			,timestamp(l_timestamp),reserved1(l_reserved1),reserved2(l_reserved2)
+		{
+		}
+
+		CouponExchangeArg(const CouponExchangeArg &rhs)
+			: userid(rhs.userid),coupon_number(rhs.coupon_number),cash_number(rhs.cash_number),
+			timestamp(rhs.timestamp),reserved1(rhs.reserved1),reserved2(rhs.reserved2) { }
+
+		Rpc::Data *Clone() const { return new CouponExchangeArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const CouponExchangeArg *r = dynamic_cast<const CouponExchangeArg *>(&rhs);
+			if (r && r != this)
+			{
+				userid = r->userid;
+				coupon_number = r->coupon_number;
+				cash_number = r->cash_number;
+				timestamp = r->timestamp;
+				reserved1 = r->reserved1;
+				reserved2 = r->reserved2;
+			}
+			return *this;
+		}
+
+		CouponExchangeArg& operator = (const CouponExchangeArg &rhs)
+		{
+			const CouponExchangeArg *r = &rhs;
+			if (r && r != this)
+			{
+				userid = r->userid;
+				coupon_number = r->coupon_number;
+				cash_number = r->cash_number;
+				timestamp = r->timestamp;
+				reserved1 = r->reserved1;
+				reserved2 = r->reserved2;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			os << coupon_number;
+			os << cash_number;
+			os << timestamp;
+			os << reserved1;
+			os << reserved2;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			os >> coupon_number;
+			os >> cash_number;
+			os >> timestamp;
+			os >> reserved1;
+			os >> reserved2;
+			return os;
+		}
+
+	};
+};
+#endif

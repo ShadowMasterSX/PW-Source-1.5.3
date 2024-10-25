@@ -1,0 +1,35 @@
+	public:
+		Octets nonce;
+		unsigned int localsid;
+		enum { PROTOCOL_TYPE = PROTOCOL_DOMAINLOGIN };
+	public:
+		DomainLogin() { type = PROTOCOL_DOMAINLOGIN; }
+		DomainLogin(void*) : Protocol(PROTOCOL_DOMAINLOGIN) { }
+		DomainLogin (Octets l_nonce,unsigned int l_localsid)
+			 : nonce(l_nonce),localsid(l_localsid)
+		{
+			type = PROTOCOL_DOMAINLOGIN;
+		}
+
+		DomainLogin(const DomainLogin &rhs)
+			: Protocol(rhs),nonce(rhs.nonce),localsid(rhs.localsid) { }
+
+		GNET::Protocol *Clone() const { return new DomainLogin(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << nonce;
+			os << localsid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> nonce;
+			os >> localsid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 128; }

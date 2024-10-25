@@ -1,0 +1,35 @@
+	public:
+		ACQ acq;
+		IntDataVector owners;
+		enum { PROTOCOL_TYPE = PROTOCOL_ACQSTROWNER };
+	public:
+		ACQStrOwner() { type = PROTOCOL_ACQSTROWNER; }
+		ACQStrOwner(void*) : Protocol(PROTOCOL_ACQSTROWNER) { }
+		ACQStrOwner (ACQ l_acq,IntDataVector l_owners)
+			 : acq(l_acq),owners(l_owners)
+		{
+			type = PROTOCOL_ACQSTROWNER;
+		}
+
+		ACQStrOwner(const ACQStrOwner &rhs)
+			: Protocol(rhs),acq(rhs.acq),owners(rhs.owners) { }
+
+		GNET::Protocol *Clone() const { return new ACQStrOwner(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << acq;
+			os << owners;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> acq;
+			os >> owners;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 65536; }

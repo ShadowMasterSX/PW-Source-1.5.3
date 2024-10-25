@@ -1,0 +1,51 @@
+
+#ifndef __GNET_CANCHANGEROLENAME_HPP
+#define __GNET_CANCHANGEROLENAME_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#ifdef USE_DB
+#include "dbbuffer.h"
+#endif
+#include "canchangerolenamearg"
+#include "canchangerolenameres"
+
+namespace GNET
+{
+
+class CanChangeRolename : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "canchangerolename"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+#ifdef USE_DB
+		CanChangeRolenameArg *arg = (CanChangeRolenameArg *)argument;
+		CanChangeRolenameRes *res = (CanChangeRolenameRes *)result;
+		Marshal::OctetsStream key, value;
+		key << *arg;
+		res->retcode = DBBuffer::buf_find( "rolename", key, value );
+		if( 0 == res->retcode )
+			value >> res->roleid;
+#endif
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// CanChangeRolenameArg *arg = (CanChangeRolenameArg *)argument;
+		// CanChangeRolenameRes *res = (CanChangeRolenameRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

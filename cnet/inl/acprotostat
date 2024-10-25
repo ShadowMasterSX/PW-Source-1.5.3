@@ -1,0 +1,44 @@
+	public:
+		int roleid;
+		int keepalive;
+		int gamedatasend;
+		int publicchat;
+		enum { PROTOCOL_TYPE = PROTOCOL_ACPROTOSTAT };
+	public:
+		ACProtoStat() { type = PROTOCOL_ACPROTOSTAT; }
+		ACProtoStat(void*) : Protocol(PROTOCOL_ACPROTOSTAT) { }
+		ACProtoStat (int l_roleid,int l_keepalive,int l_gamedatasend,
+			int l_publicchat)
+			 : roleid(l_roleid),keepalive(l_keepalive),gamedatasend(l_gamedatasend)
+			,publicchat(l_publicchat)
+		{
+			type = PROTOCOL_ACPROTOSTAT;
+		}
+
+		ACProtoStat(const ACProtoStat &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),keepalive(rhs.keepalive),gamedatasend(rhs.gamedatasend)
+			,publicchat(rhs.publicchat) { }
+
+		GNET::Protocol *Clone() const { return new ACProtoStat(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << keepalive;
+			os << gamedatasend;
+			os << publicchat;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> keepalive;
+			os >> gamedatasend;
+			os >> publicchat;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1048576; }

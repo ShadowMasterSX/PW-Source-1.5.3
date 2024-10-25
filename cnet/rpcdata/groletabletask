@@ -1,0 +1,59 @@
+#ifndef __GNET_GROLETABLETASK_RPCDATA
+#define __GNET_GROLETABLETASK_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "groletask"
+
+namespace GNET
+{
+	class GRoleTableTask : public GNET::Rpc::Data
+	{
+	public:
+		GRoleTask task_data;
+
+	public:
+		GRoleTableTask ()
+		{
+		}
+
+		GRoleTableTask(const GRoleTableTask &rhs)
+			: task_data(rhs.task_data) { }
+
+		Rpc::Data *Clone() const { return new GRoleTableTask(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GRoleTableTask *r = dynamic_cast<const GRoleTableTask *>(&rhs);
+			if (r && r != this)
+			{
+				task_data = r->task_data;
+			}
+			return *this;
+		}
+
+		GRoleTableTask& operator = (const GRoleTableTask &rhs)
+		{
+			const GRoleTableTask *r = &rhs;
+			if (r && r != this)
+			{
+				task_data = r->task_data;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << task_data;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> task_data;
+			return os;
+		}
+
+	};
+};
+#endif

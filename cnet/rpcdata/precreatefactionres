@@ -1,0 +1,64 @@
+#ifndef __GNET_PRECREATEFACTIONRES_RPCDATA
+#define __GNET_PRECREATEFACTIONRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class PreCreateFactionRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		int factionid;
+
+	public:
+		PreCreateFactionRes (int l_retcode = -1,int l_factionid = -1)
+			: retcode(l_retcode),factionid(l_factionid)
+		{
+		}
+
+		PreCreateFactionRes(const PreCreateFactionRes &rhs)
+			: retcode(rhs.retcode),factionid(rhs.factionid) { }
+
+		Rpc::Data *Clone() const { return new PreCreateFactionRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const PreCreateFactionRes *r = dynamic_cast<const PreCreateFactionRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				factionid = r->factionid;
+			}
+			return *this;
+		}
+
+		PreCreateFactionRes& operator = (const PreCreateFactionRes &rhs)
+		{
+			const PreCreateFactionRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				factionid = r->factionid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << factionid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> factionid;
+			return os;
+		}
+
+	};
+};
+#endif

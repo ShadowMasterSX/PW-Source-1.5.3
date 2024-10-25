@@ -1,0 +1,92 @@
+
+#ifndef __GNET_DBSELLTIMEOUT_HPP
+#define __GNET_DBSELLTIMEOUT_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "sellid"
+#include "sellpointinfo"
+#include "dbsyncsellinfores"
+
+namespace GNET
+{
+
+class DBSellTimeout : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbselltimeout"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		SellID *arg = (SellID *)argument;
+		DBSyncSellInfoRes *res = (DBSyncSellInfoRes *)result;
+		res->retcode=ERR_SUCCESS;
+		try {
+			StorageEnv::Storage * psell = StorageEnv::GetStorage("sellpoint");
+			StorageEnv::CommonTransaction txn;
+			SellPointInfo sellinfo;
+			try {
+				//check sell status
+				Log::log(LOG_INFO,"sell_timeout. sellid=%d,roleid=%d\n",arg->sellid,arg->roleid);
+				Marshal::OctetsStream(
+						psell->find( Marshal::OctetsStream()<<SellID(arg->roleid,arg->sellid),txn )
+					) >> sellinfo;
+				if ( sellinfo.status!=_PST_NOTSELL )
+				{
+					res->retcode=ERR_SP_DBNOTSYNC;
+					res->list.push_back( sellinfo );
+					throw DbException(0);
+				}
+				//del sell
+				psell->del( Marshal::OctetsStream()<<SellID(arg->roleid,arg->sellid),txn );
+				//update image
+				Log::formatlog("sellpoint","sell_timeout. sellid=%d,roleid=%d\n",arg->sellid,arg->roleid);
+				SellDataImage::GetInstance().OnRmvSell( arg->roleid,arg->sellid );
+			}
+			catch ( DbException e ) { throw; } 
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			switch (res->retcode)
+			{
+				case ERR_SP_DBNOTSYNC:
+					Log::log(LOG_ERR,"DBSellTimeout. asynchronize.sellid=%d,roleid=%d\n",
+							arg->sellid,arg->roleid);
+					break;
+				case ERR_SUCCESS: //Other err occurs
+					Log::log( LOG_ERR, "DBSellTimeout, sellid=%d, roleid=%d,what=%s\n",
+						arg->sellid,arg->roleid,e.what() );
+					if(e.get_errno()==DB_LOCK_DEADLOCK)
+						res->retcode=ERR_SP_DBDEADLOCK;
+					else
+						res->retcode=ERR_DATANOTFIND;
+					break;
+			}
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// SellID *arg = (SellID *)argument;
+		// DBSyncSellInfoRes *res = (DBSyncSellInfoRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

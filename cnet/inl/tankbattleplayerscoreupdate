@@ -1,0 +1,38 @@
+	public:
+		int battle_id;
+		int world_tag;
+		TankBattlePlayerScoreInfoVector player_scores;
+		enum { PROTOCOL_TYPE = PROTOCOL_TANKBATTLEPLAYERSCOREUPDATE };
+	public:
+		TankBattlePlayerScoreUpdate() { type = PROTOCOL_TANKBATTLEPLAYERSCOREUPDATE; }
+		TankBattlePlayerScoreUpdate(void*) : Protocol(PROTOCOL_TANKBATTLEPLAYERSCOREUPDATE) { }
+		TankBattlePlayerScoreUpdate (int l_battle_id,int l_world_tag,const TankBattlePlayerScoreInfoVector& l_player_scores)
+			 : battle_id(l_battle_id),world_tag(l_world_tag),player_scores(l_player_scores)
+		{
+			type = PROTOCOL_TANKBATTLEPLAYERSCOREUPDATE;
+		}
+
+		TankBattlePlayerScoreUpdate(const TankBattlePlayerScoreUpdate &rhs)
+			: Protocol(rhs),battle_id(rhs.battle_id),world_tag(rhs.world_tag),player_scores(rhs.player_scores) { }
+
+		GNET::Protocol *Clone() const { return new TankBattlePlayerScoreUpdate(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << battle_id;
+			os << world_tag;
+			os << player_scores;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> battle_id;
+			os >> world_tag;
+			os >> player_scores;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1048576; }

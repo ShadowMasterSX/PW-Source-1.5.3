@@ -1,0 +1,49 @@
+
+#ifndef __GNET_DBGETCONSUMEINFOS_HPP
+#define __GNET_DBGETCONSUMEINFOS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "playerconsumeinfo"
+#include "gmgetplayerconsumeinfo_re.hpp"
+#include "dbgetconsumeinfosarg"
+#include "dbgetconsumeinfosres"
+
+namespace GNET
+{
+
+class DBGetConsumeInfos : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbgetconsumeinfos"
+#undef	RPC_BASECLASS
+	int save_gmroleid;
+	int save_linksid;
+	int save_localsid;
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBGetConsumeInfosArg *arg = (IntVector *)argument;
+		// DBGetConsumeInfosRes *res = (PlayerConsumeInfoVector *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		//DBGetConsumeInfosArg *arg = (DBGetConsumeInfosArg *)argument;
+		DBGetConsumeInfosRes *res = (DBGetConsumeInfosRes *)result;
+		GMGetPlayerConsumeInfo_Re getpci_re(res->retcode, save_gmroleid, save_localsid, res->playerlist, 0);
+
+		GDeliveryServer::GetInstance()->Send(save_linksid,getpci_re);
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

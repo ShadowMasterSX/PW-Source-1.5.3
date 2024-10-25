@@ -1,0 +1,35 @@
+	public:
+		ACQ acq;
+		ACStackPatternVector patterns;
+		enum { PROTOCOL_TYPE = PROTOCOL_ACQPATTERNS };
+	public:
+		ACQPatterns() { type = PROTOCOL_ACQPATTERNS; }
+		ACQPatterns(void*) : Protocol(PROTOCOL_ACQPATTERNS) { }
+		ACQPatterns (ACQ l_acq,ACStackPatternVector l_patterns)
+			 : acq(l_acq),patterns(l_patterns)
+		{
+			type = PROTOCOL_ACQPATTERNS;
+		}
+
+		ACQPatterns(const ACQPatterns &rhs)
+			: Protocol(rhs),acq(rhs.acq),patterns(rhs.patterns) { }
+
+		GNET::Protocol *Clone() const { return new ACQPatterns(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << acq;
+			os << patterns;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> acq;
+			os >> patterns;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1048576; }

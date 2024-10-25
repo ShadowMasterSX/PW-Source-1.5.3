@@ -1,0 +1,42 @@
+
+#ifndef __GNET_PRECREATEFAMILY_HPP
+#define __GNET_PRECREATEFAMILY_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "precreatefamilyarg"
+#include "precreatefamilyres"
+
+namespace GNET
+{
+
+class PreCreateFamily : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "precreatefamily"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// PreCreateFamilyArg *arg = (PreCreateFamilyArg *)argument;
+		// PreCreateFamilyRes *res = (PreCreateFamilyRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// PreCreateFamilyArg *arg = (PreCreateFamilyArg *)argument;
+		// PreCreateFamilyRes *res = (PreCreateFamilyRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

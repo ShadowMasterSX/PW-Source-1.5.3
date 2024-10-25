@@ -1,0 +1,85 @@
+
+#ifndef __GNET_QQGETROLE_HPP
+#define __GNET_QQGETROLE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "dbbuffer.h"
+#include "roleid"
+#include "grolebase"
+#include "grolestatus"
+#include "qqroleres"
+
+namespace GNET
+{
+
+class QQGetRole : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "qqgetrole"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		RoleId *arg = (RoleId *)argument;
+		QQRoleRes *res = (QQRoleRes *)result;
+		Marshal::OctetsStream key, value_status;
+
+		LOG_TRACE( "QQGetRole, roleid=%d.\n", arg->id );
+
+		try
+		{
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::Storage * pstatus = StorageEnv::GetStorage("status");
+			StorageEnv::AtomTransaction txn;
+			try
+			{
+				key << *arg;
+				GRoleBase	base;
+				Marshal::OctetsStream( pbase->find( key, txn ) ) >> base;
+				res->id   = base.id;
+				res->name = base.name;
+				res->race = base.race;
+				res->cls  = base.cls;
+				res->gender = base.gender;
+				res->retcode = ERR_SUCCESS;
+
+				GRoleStatus	status;
+				if( pstatus->find( key, value_status, txn ) )
+				{
+					value_status >> status;
+					res->level = status.level;
+				}
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "QQGetRole, roleid=%d, what=%s\n", arg->id, e.what() );
+			res->retcode = ERR_DATANOTFIND;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// RoleId *arg = (RoleId *)argument;
+		// QQRoleRes *res = (QQRoleRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

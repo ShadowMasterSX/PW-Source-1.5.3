@@ -1,0 +1,87 @@
+
+#ifndef __GNET_PREPLAYERRENAME_HPP
+#define __GNET_PREPLAYERRENAME_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "preplayerrenamearg"
+#include "preplayerrenameres"
+#include "gmailsyncdata"
+#include "dbplayerrename.hrp"
+
+namespace GNET
+{
+
+class PrePlayerRename : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "preplayerrename"
+#undef	RPC_BASECLASS
+
+	int save_linksid;
+	int save_localsid;
+	int save_gsid;
+
+	int item_pos;
+	int item_id;
+	int item_num;
+	GMailSyncData syncdata;
+	
+	void SyncGameServer(int retcode, int roleid)
+	{
+		GProviderServer::GetInstance()->DispatchProtocol(
+				save_gsid,
+				GMailEndSync(0/*tid,must be 0*/,retcode,roleid,syncdata)
+			);
+	}
+	
+	void SendResult( int retcode, int roleid, Octets & newname)
+	{
+		GDeliveryServer::GetInstance()->Send(save_linksid, PlayerRename_Re(save_localsid, roleid, newname, retcode));
+	}
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// PrePlayerRenameArg *arg = (PrePlayerRenameArg *)argument;
+		// PrePlayerRenameRes *res = (PrePlayerRenameRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		PrePlayerRenameArg *arg = (PrePlayerRenameArg *)argument;
+		PrePlayerRenameRes *res = (PrePlayerRenameRes *)result;
+
+		if (res->retcode == ERR_SUCCESS)
+		{
+			// 通知db正式修改数据
+			DBPlayerRenameArg rpcarg(arg->roleid,item_id,item_num,item_pos,arg->newname,syncdata);
+			DBPlayerRename * rpc = (DBPlayerRename *)Rpc::Call( RPC_DBPLAYERRENAME, rpcarg);
+			rpc->save_linksid = save_linksid;
+			rpc->save_localsid = save_localsid;
+			rpc->save_gsid = save_gsid;
+			GameDBClient::GetInstance()->SendProtocol(rpc);
+		}
+		else
+		{
+			//清空返回消息里的物品列表，通知gs外部交易结果
+			syncdata.inventory.items.clear();
+			SyncGameServer(res->retcode, arg->roleid);
+			//通知客户端改名失败
+			SendResult(res->retcode, arg->roleid, arg->newname);
+		}
+	}
+
+	void OnTimeout()
+	{
+		PrePlayerRenameArg *arg = (PrePlayerRenameArg *)argument;
+		// 需要通知客户端失败
+		SendResult(ERR_TIMEOUT, arg->roleid, arg->newname);
+		//do not sync data to gameserver, because gameserver will timeout and disconnect the player
+	}
+
+};
+
+};
+#endif

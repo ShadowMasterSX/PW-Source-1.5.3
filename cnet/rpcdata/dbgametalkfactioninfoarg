@@ -1,0 +1,58 @@
+#ifndef __GNET_DBGAMETALKFACTIONINFOARG_RPCDATA
+#define __GNET_DBGAMETALKFACTIONINFOARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBGameTalkFactionInfoArg : public GNET::Rpc::Data
+	{
+	public:
+		unsigned int factionid;
+
+	public:
+		DBGameTalkFactionInfoArg ()
+		{
+		}
+
+		DBGameTalkFactionInfoArg(const DBGameTalkFactionInfoArg &rhs)
+			: factionid(rhs.factionid) { }
+
+		Rpc::Data *Clone() const { return new DBGameTalkFactionInfoArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBGameTalkFactionInfoArg *r = dynamic_cast<const DBGameTalkFactionInfoArg *>(&rhs);
+			if (r && r != this)
+			{
+				factionid = r->factionid;
+			}
+			return *this;
+		}
+
+		DBGameTalkFactionInfoArg& operator = (const DBGameTalkFactionInfoArg &rhs)
+		{
+			const DBGameTalkFactionInfoArg *r = &rhs;
+			if (r && r != this)
+			{
+				factionid = r->factionid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << factionid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> factionid;
+			return os;
+		}
+
+	};
+};
+#endif

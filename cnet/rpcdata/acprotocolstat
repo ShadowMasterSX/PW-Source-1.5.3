@@ -1,0 +1,70 @@
+#ifndef __GNET_ACPROTOCOLSTAT_RPCDATA
+#define __GNET_ACPROTOCOLSTAT_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class ACProtocolStat : public GNET::Rpc::Data
+	{
+	public:
+		int keepalive;
+		int gamedatasend;
+		int acreport;
+
+	public:
+		ACProtocolStat (int l_keepalive = 0,int l_gamedatasend = 0,int l_acreport = 0)
+			: keepalive(l_keepalive),gamedatasend(l_gamedatasend),acreport(l_acreport)
+		{
+		}
+
+		ACProtocolStat(const ACProtocolStat &rhs)
+			: keepalive(rhs.keepalive),gamedatasend(rhs.gamedatasend),acreport(rhs.acreport) { }
+
+		Rpc::Data *Clone() const { return new ACProtocolStat(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const ACProtocolStat *r = dynamic_cast<const ACProtocolStat *>(&rhs);
+			if (r && r != this)
+			{
+				keepalive = r->keepalive;
+				gamedatasend = r->gamedatasend;
+				acreport = r->acreport;
+			}
+			return *this;
+		}
+
+		ACProtocolStat& operator = (const ACProtocolStat &rhs)
+		{
+			const ACProtocolStat *r = &rhs;
+			if (r && r != this)
+			{
+				keepalive = r->keepalive;
+				gamedatasend = r->gamedatasend;
+				acreport = r->acreport;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << keepalive;
+			os << gamedatasend;
+			os << acreport;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> keepalive;
+			os >> gamedatasend;
+			os >> acreport;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<ACProtocolStat>	ACProtocolStatVector;
+};
+#endif

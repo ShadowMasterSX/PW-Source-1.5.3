@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBWEBTRADEPREPOST_HPP
+#define __GNET_DBWEBTRADEPREPOST_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbwebtradeprepostarg"
+#include "dbwebtradeprepostres"
+
+namespace GNET
+{
+
+class DBWebTradePrePost : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbwebtradeprepost"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBWebTradePrePostArg *arg = (DBWebTradePrePostArg *)argument;
+		// DBWebTradePrePostRes *res = (DBWebTradePrePostRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBWebTradePrePostArg *arg = (DBWebTradePrePostArg *)argument;
+		// DBWebTradePrePostRes *res = (DBWebTradePrePostRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

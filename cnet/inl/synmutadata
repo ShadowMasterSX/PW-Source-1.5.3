@@ -1,0 +1,44 @@
+	public:
+		unsigned int synmask;
+		unsigned int roleid;
+		int level;
+		int reincarnation_times;
+		enum { PROTOCOL_TYPE = PROTOCOL_SYNMUTADATA };
+	public:
+		SynMutaData() { type = PROTOCOL_SYNMUTADATA; }
+		SynMutaData(void*) : Protocol(PROTOCOL_SYNMUTADATA) { }
+		SynMutaData (unsigned int l_synmask,unsigned int l_roleid,int l_level,
+			int l_reincarnation_times)
+			 : synmask(l_synmask),roleid(l_roleid),level(l_level)
+			,reincarnation_times(l_reincarnation_times)
+		{
+			type = PROTOCOL_SYNMUTADATA;
+		}
+
+		SynMutaData(const SynMutaData &rhs)
+			: Protocol(rhs),synmask(rhs.synmask),roleid(rhs.roleid),level(rhs.level)
+			,reincarnation_times(rhs.reincarnation_times) { }
+
+		GNET::Protocol *Clone() const { return new SynMutaData(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << synmask;
+			os << roleid;
+			os << level;
+			os << reincarnation_times;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> synmask;
+			os >> roleid;
+			os >> level;
+			os >> reincarnation_times;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 32; }

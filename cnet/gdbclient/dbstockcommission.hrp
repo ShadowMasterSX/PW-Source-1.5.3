@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBSTOCKCOMMISSION_HPP
+#define __GNET_DBSTOCKCOMMISSION_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbstockcommissionarg"
+#include "dbstockcommissionres"
+
+namespace GNET
+{
+
+class DBStockCommission : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbstockcommission"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBStockCommissionArg *arg = (DBStockCommissionArg *)argument;
+		// DBStockCommissionRes *res = (DBStockCommissionRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBStockCommissionArg *arg = (DBStockCommissionArg *)argument;
+		// DBStockCommissionRes *res = (DBStockCommissionRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

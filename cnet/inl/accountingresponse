@@ -1,0 +1,38 @@
+	public:
+		unsigned int stamp;
+		int userid;
+		Octets authenticator;
+		enum { PROTOCOL_TYPE = PROTOCOL_ACCOUNTINGRESPONSE };
+	public:
+		AccountingResponse() { type = PROTOCOL_ACCOUNTINGRESPONSE; }
+		AccountingResponse(void*) : Protocol(PROTOCOL_ACCOUNTINGRESPONSE) { }
+		AccountingResponse (unsigned int l_stamp,int l_userid,const Octets& l_authenticator)
+			 : stamp(l_stamp),userid(l_userid),authenticator(l_authenticator)
+		{
+			type = PROTOCOL_ACCOUNTINGRESPONSE;
+		}
+
+		AccountingResponse(const AccountingResponse &rhs)
+			: Protocol(rhs),stamp(rhs.stamp),userid(rhs.userid),authenticator(rhs.authenticator) { }
+
+		GNET::Protocol *Clone() const { return new AccountingResponse(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << stamp;
+			os << userid;
+			os << authenticator;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> stamp;
+			os >> userid;
+			os >> authenticator;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 101; }
+
+		bool SizePolicy(size_t size) const { return size <= 32; }

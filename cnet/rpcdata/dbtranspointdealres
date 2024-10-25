@@ -1,0 +1,68 @@
+#ifndef __GNET_DBTRANSPOINTDEALRES_RPCDATA
+#define __GNET_DBTRANSPOINTDEALRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBTransPointDealRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		IntVector delsell;
+		int getmoney;
+
+	public:
+		DBTransPointDealRes ()
+		{
+		}
+
+		DBTransPointDealRes(const DBTransPointDealRes &rhs)
+			: retcode(rhs.retcode),delsell(rhs.delsell),getmoney(rhs.getmoney) { }
+
+		Rpc::Data *Clone() const { return new DBTransPointDealRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBTransPointDealRes *r = dynamic_cast<const DBTransPointDealRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				delsell = r->delsell;
+				getmoney = r->getmoney;
+			}
+			return *this;
+		}
+
+		DBTransPointDealRes& operator = (const DBTransPointDealRes &rhs)
+		{
+			const DBTransPointDealRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				delsell = r->delsell;
+				getmoney = r->getmoney;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << delsell;
+			os << getmoney;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> delsell;
+			os >> getmoney;
+			return os;
+		}
+
+	};
+};
+#endif

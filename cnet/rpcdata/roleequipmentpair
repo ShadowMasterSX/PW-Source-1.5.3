@@ -1,0 +1,65 @@
+#ifndef __GNET_ROLEEQUIPMENTPAIR_RPCDATA
+#define __GNET_ROLEEQUIPMENTPAIR_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "roleid"
+#include "groleinventory"
+
+namespace GNET
+{
+	class RoleEquipmentPair : public GNET::Rpc::Data
+	{
+	public:
+		RoleId key;
+		GRoleInventoryVector equipment;
+
+	public:
+		RoleEquipmentPair ()
+		{
+		}
+
+		RoleEquipmentPair(const RoleEquipmentPair &rhs)
+			: key(rhs.key),equipment(rhs.equipment) { }
+
+		Rpc::Data *Clone() const { return new RoleEquipmentPair(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const RoleEquipmentPair *r = dynamic_cast<const RoleEquipmentPair *>(&rhs);
+			if (r && r != this)
+			{
+				key = r->key;
+				equipment = r->equipment;
+			}
+			return *this;
+		}
+
+		RoleEquipmentPair& operator = (const RoleEquipmentPair &rhs)
+		{
+			const RoleEquipmentPair *r = &rhs;
+			if (r && r != this)
+			{
+				key = r->key;
+				equipment = r->equipment;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << key;
+			os << equipment;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> key;
+			os >> equipment;
+			return os;
+		}
+
+	};
+};
+#endif

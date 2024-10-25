@@ -1,0 +1,144 @@
+#ifndef __GNET_DBPSHOPDRAWITEM_HPP
+#define __GNET_DBPSHOPDRAWITEM_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbpshopdrawitemarg"
+#include "dbpshopdrawitemres"
+
+namespace GNET
+{
+
+class DBPShopDrawItem : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbpshopdrawitem"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBPShopDrawItemArg *arg = (DBPShopDrawItemArg *)argument;
+		DBPShopDrawItemRes *res = (DBPShopDrawItemRes *)result;
+		unsigned int orignal_money = arg->syncdata.inventory.money;
+		try
+		{
+			StorageEnv::Storage * pinventory = StorageEnv::GetStorage("inventory");
+			StorageEnv::Storage * pequipment = StorageEnv::GetStorage("equipment");
+			StorageEnv::Storage * pstorehouse = StorageEnv::GetStorage("storehouse");
+			StorageEnv::Storage * plog = arg->syncdata.logs.size()?StorageEnv::GetStorage("shoplog"):NULL;
+			StorageEnv::Storage * pshop = StorageEnv::GetStorage("playershop");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				if(arg->item_pos < 0)
+				{
+					Log::log(LOG_ERR,"DBPShopDrawItem, draw pos invalid pos=%d roleid=%d )",arg->item_pos, arg->roleid);
+					throw DbException(DB_VERIFY_BAD);
+				}
+
+				//获取店铺
+				Marshal::OctetsStream key;
+				key << arg->roleid;
+				PShopDetail shop;
+				Marshal::OctetsStream(pshop->find(key, txn)) >> shop;
+				if(shop.roleid != arg->roleid)
+				{
+					Log::log(LOG_ERR,"DBPShopDrawItem, id invalid  masterid=%d roleid=%d )",shop.roleid, arg->roleid);
+					throw DbException(DB_VERIFY_BAD);
+				}
+				if(!PShopFunc::OptionPolicy(shop, PShopFunc::PSHOP_OP_DRAW_ITEM))
+				{
+					Log::log(LOG_ERR,"DBPShopDrawItem, draw opt invalid roleid=%d )",arg->roleid);
+					throw DbException(DB_VERIFY_BAD);
+				}
+
+				//删除仓库物品
+				GRoleInventory inv;
+				InvMan storeman(shop.store, PSHOP_STORE_CAP);
+				if(!storeman.GetItem(arg->item_pos))
+				{
+					Log::log(LOG_ERR,"DBPShopDrawItem, remove item from inventory pos=%d roleid=%d )",arg->item_pos, arg->roleid);
+					throw DbException(DB_VERIFY_BAD);
+				}
+				if(!storeman.Remove(arg->item_pos, inv))
+				{
+					Log::log(LOG_ERR,"DBPShopDrawItem, remove item from inventory pos=%d roleid=%d )",arg->item_pos, arg->roleid);
+					throw DbException(DB_VERIFY_BAD);
+				}
+
+				//获取包裹
+				GRolePocket pocket;
+				Marshal::OctetsStream(pinventory->find(key, txn)) >> pocket;
+				if(arg->syncdata.inventory.timestamp <= pocket.timestamp)
+				{
+					Log::log(LOG_ERR,"DBPShopDrawItem, timestamp mismatch. roleid=%d (%d<%d)",
+						arg->roleid, arg->syncdata.inventory.timestamp, pocket.timestamp);
+					throw DbException(DB_VERIFY_BAD);
+				}
+
+				int money_delta = arg->syncdata.inventory.money - pocket.money;
+
+				//放入包裹
+				InvMan invman(arg->syncdata.inventory.items, arg->syncdata.inventory.capacity);
+				if(!invman.HasEmptySlot())
+				{
+					Log::log(LOG_ERR,"DBPShopDrawItem, inventory full roleid=%d item=%d:pos=%d:count=%d)",
+							arg->roleid,inv.id,arg->item_pos,inv.count);
+					throw DbException(DB_VERIFY_BAD);
+				}
+				if(!invman.PushInEmpty(inv))
+				{
+					Log::log(LOG_ERR,"DBPShopDrawItem, push item to inventory fail roleid=%d item=%d:pos=%d:count=%d)",
+							arg->roleid,inv.id,arg->item_pos,inv.count);
+					throw DbException(DB_VERIFY_BAD);
+				}
+				res->syncdata.inventory.items.push_back(inv);
+
+				Log::formatlog("dbpshopdrawitem", "timestamp=%u:roleid=%d:item=%d:pos=%d:count=%d",
+					arg->syncdata.inventory.timestamp,arg->roleid,inv.id,arg->item_pos,inv.count);
+
+				//更新DB
+				pshop->insert(key, Marshal::OctetsStream()<<shop,txn);
+				pinventory->insert(key, Marshal::OctetsStream()<<arg->syncdata.inventory,txn);
+				pequipment->insert(key, Marshal::OctetsStream()<<arg->syncdata.equipment,txn);
+				WriteRestSyncData(pstorehouse, plog, arg->roleid, arg->syncdata, money_delta, txn);
+
+				res->syncdata.inventory.money = arg->syncdata.inventory.money;
+				res->syncdata.data_mask = arg->syncdata.data_mask;
+				res->retcode = ERR_SUCCESS;
+			}
+			catch(DbException e) { throw; }
+			catch(...)
+			{
+				DbException ee(DB_OLD_VERSION);
+				txn.abort(ee);
+				throw ee;
+			}
+		}
+		catch(DbException e)
+		{
+			Log::log(LOG_ERR, "DBPShopDrawItem, roleid=%d, what=%s\n", arg->roleid, e.what());
+			res->retcode = ERR_VERIFYFAILED;
+			res->syncdata.inventory.money = orignal_money;
+			res->syncdata.inventory.items.clear();
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBPShopDrawItemArg *arg = (DBPShopDrawItemArg *)argument;
+		// DBPShopDrawItemRes *res = (DBPShopDrawItemRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

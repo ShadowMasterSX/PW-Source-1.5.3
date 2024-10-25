@@ -1,0 +1,59 @@
+#ifndef __GNET_GETUSERROLESARG_RPCDATA
+#define __GNET_GETUSERROLESARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GetUserRolesArg : public GNET::Rpc::Data
+	{
+	public:
+		int userid;
+
+	public:
+		GetUserRolesArg (int l_userid = -1)
+			: userid(l_userid)
+		{
+		}
+
+		GetUserRolesArg(const GetUserRolesArg &rhs)
+			: userid(rhs.userid) { }
+
+		Rpc::Data *Clone() const { return new GetUserRolesArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GetUserRolesArg *r = dynamic_cast<const GetUserRolesArg *>(&rhs);
+			if (r && r != this)
+			{
+				userid = r->userid;
+			}
+			return *this;
+		}
+
+		GetUserRolesArg& operator = (const GetUserRolesArg &rhs)
+		{
+			const GetUserRolesArg *r = &rhs;
+			if (r && r != this)
+			{
+				userid = r->userid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			return os;
+		}
+
+	};
+};
+#endif

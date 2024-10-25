@@ -1,0 +1,78 @@
+#ifndef __GNET_FRIENDLISTRES_RPCDATA
+#define __GNET_FRIENDLISTRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gfriendlist"
+#include "gfriendextinfo"
+#include "gsendaumailrecord"
+
+namespace GNET
+{
+	class FriendListRes : public GNET::Rpc::Data
+	{
+	public:
+		char retcode;
+		GFriendList value;
+		GFriendExtInfoVector extra_info;
+		GSendAUMailRecordVector sendmail_info;
+
+	public:
+		FriendListRes (char l_retcode = -1)
+			: retcode(l_retcode)
+		{
+		}
+
+		FriendListRes(const FriendListRes &rhs)
+			: retcode(rhs.retcode),value(rhs.value),extra_info(rhs.extra_info),
+			sendmail_info(rhs.sendmail_info) { }
+
+		Rpc::Data *Clone() const { return new FriendListRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const FriendListRes *r = dynamic_cast<const FriendListRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				value = r->value;
+				extra_info = r->extra_info;
+				sendmail_info = r->sendmail_info;
+			}
+			return *this;
+		}
+
+		FriendListRes& operator = (const FriendListRes &rhs)
+		{
+			const FriendListRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				value = r->value;
+				extra_info = r->extra_info;
+				sendmail_info = r->sendmail_info;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << value;
+			os << extra_info;
+			os << sendmail_info;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> value;
+			os >> extra_info;
+			os >> sendmail_info;
+			return os;
+		}
+
+	};
+};
+#endif

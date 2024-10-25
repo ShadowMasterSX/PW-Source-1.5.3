@@ -1,0 +1,35 @@
+	public:
+		int userid;
+		int ip;
+		enum { PROTOCOL_TYPE = PROTOCOL_REPORTIP };
+	public:
+		ReportIP() { type = PROTOCOL_REPORTIP; }
+		ReportIP(void*) : Protocol(PROTOCOL_REPORTIP) { }
+		ReportIP (int l_userid = -1,int l_ip = 0)
+			 : userid(l_userid),ip(l_ip)
+		{
+			type = PROTOCOL_REPORTIP;
+		}
+
+		ReportIP(const ReportIP &rhs)
+			: Protocol(rhs),userid(rhs.userid),ip(rhs.ip) { }
+
+		GNET::Protocol *Clone() const { return new ReportIP(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			os << ip;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			os >> ip;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

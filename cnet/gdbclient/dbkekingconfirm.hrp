@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBKEKINGCONFIRM_HPP
+#define __GNET_DBKEKINGCONFIRM_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbkekingconfirmarg"
+#include "dbkekingconfirmres"
+
+namespace GNET
+{
+
+class DBKEKingConfirm : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbkekingconfirm"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBKEKingConfirmArg *arg = (DBKEKingConfirmArg *)argument;
+		// DBKEKingConfirmRes *res = (DBKEKingConfirmRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBKEKingConfirmArg *arg = (DBKEKingConfirmArg *)argument;
+		// DBKEKingConfirmRes *res = (DBKEKingConfirmRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

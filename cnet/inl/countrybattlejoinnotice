@@ -1,0 +1,50 @@
+	public:
+		int roleid;
+		int country_id;
+		int worldtag;
+		int major_strength;
+		int minor_strength;
+		char is_king;
+		enum { PROTOCOL_TYPE = PROTOCOL_COUNTRYBATTLEJOINNOTICE };
+	public:
+		CountryBattleJoinNotice() { type = PROTOCOL_COUNTRYBATTLEJOINNOTICE; }
+		CountryBattleJoinNotice(void*) : Protocol(PROTOCOL_COUNTRYBATTLEJOINNOTICE) { }
+		CountryBattleJoinNotice (int l_roleid,int l_country_id,int l_worldtag,
+			int l_major_strength,int l_minor_strength,char l_is_king)
+			 : roleid(l_roleid),country_id(l_country_id),worldtag(l_worldtag)
+			,major_strength(l_major_strength),minor_strength(l_minor_strength),is_king(l_is_king)
+		{
+			type = PROTOCOL_COUNTRYBATTLEJOINNOTICE;
+		}
+
+		CountryBattleJoinNotice(const CountryBattleJoinNotice &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),country_id(rhs.country_id),worldtag(rhs.worldtag)
+			,major_strength(rhs.major_strength),minor_strength(rhs.minor_strength),is_king(rhs.is_king) { }
+
+		GNET::Protocol *Clone() const { return new CountryBattleJoinNotice(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << country_id;
+			os << worldtag;
+			os << major_strength;
+			os << minor_strength;
+			os << is_king;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> country_id;
+			os >> worldtag;
+			os >> major_strength;
+			os >> minor_strength;
+			os >> is_king;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

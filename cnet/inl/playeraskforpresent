@@ -1,0 +1,47 @@
+	public:
+		int roleid;
+		int target_roleid;
+		int goods_id;
+		int goods_index;
+		int goods_slot;
+		enum { PROTOCOL_TYPE = PROTOCOL_PLAYERASKFORPRESENT };
+	public:
+		PlayerAskForPresent() { type = PROTOCOL_PLAYERASKFORPRESENT; }
+		PlayerAskForPresent(void*) : Protocol(PROTOCOL_PLAYERASKFORPRESENT) { }
+		PlayerAskForPresent (int l_roleid,int l_target_roleid,int l_goods_id,
+			int l_goods_index,int l_goods_slot)
+			 : roleid(l_roleid),target_roleid(l_target_roleid),goods_id(l_goods_id)
+			,goods_index(l_goods_index),goods_slot(l_goods_slot)
+		{
+			type = PROTOCOL_PLAYERASKFORPRESENT;
+		}
+
+		PlayerAskForPresent(const PlayerAskForPresent &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),target_roleid(rhs.target_roleid),goods_id(rhs.goods_id)
+			,goods_index(rhs.goods_index),goods_slot(rhs.goods_slot) { }
+
+		GNET::Protocol *Clone() const { return new PlayerAskForPresent(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << target_roleid;
+			os << goods_id;
+			os << goods_index;
+			os << goods_slot;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> target_roleid;
+			os >> goods_id;
+			os >> goods_index;
+			os >> goods_slot;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

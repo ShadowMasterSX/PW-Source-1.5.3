@@ -1,0 +1,42 @@
+
+#ifndef __GNET_PUTTASKDATARPC_HPP
+#define __GNET_PUTTASKDATARPC_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "puttaskdataarg"
+#include "puttaskdatares"
+
+namespace GNET
+{
+
+class PutTaskDataRpc : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "puttaskdatarpc"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// PutTaskDataArg *arg = (PutTaskDataArg *)argument;
+		// PutTaskDataRes *res = (PutTaskDataRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// PutTaskDataArg *arg = (PutTaskDataArg *)argument;
+		// PutTaskDataRes *res = (PutTaskDataRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

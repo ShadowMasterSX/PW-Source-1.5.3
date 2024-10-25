@@ -1,0 +1,51 @@
+
+#ifndef __GNET_GETTASKDATARPC_HPP
+#define __GNET_GETTASKDATARPC_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "gettaskdataarg"
+#include "gettaskdatares"
+
+
+void get_task_data_reply(int taskid, int uid, const void * env_data, size_t env_size, const void * task_data, size_t task_size);
+void get_task_data_timeout(int taskid, int uid, const void * env_data, size_t env_size);
+namespace GNET
+{
+
+class GetTaskDataRpc : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "gettaskdatarpc"
+#undef	RPC_BASECLASS
+
+	int uid;
+	Octets env;
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// GetTaskDataArg *arg = (GetTaskDataArg *)argument;
+		// GetTaskDataRes *res = (GetTaskDataRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		GetTaskDataArg *arg = (GetTaskDataArg *)argument;
+		GetTaskDataRes *res = (GetTaskDataRes *)result;
+		get_task_data_reply(arg->taskid, uid, env.begin(), env.size(), res->taskdata.begin(), res->taskdata.size());
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		// TODO Client Only
+		GetTaskDataArg *arg = (GetTaskDataArg *)argument;
+		get_task_data_timeout(arg->taskid, uid, env.begin(), env.size());
+	}
+
+};
+
+};
+#endif

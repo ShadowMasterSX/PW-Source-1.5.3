@@ -1,0 +1,70 @@
+#ifndef __GNET_MASSMAILRES_RPCDATA
+#define __GNET_MASSMAILRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class MassMailRes : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		unsigned char mail_id;
+		unsigned char retcode;
+
+	public:
+		MassMailRes (int l_roleid = 0,unsigned char l_mail_id = 0,unsigned char l_retcode = 0)
+			: roleid(l_roleid),mail_id(l_mail_id),retcode(l_retcode)
+		{
+		}
+
+		MassMailRes(const MassMailRes &rhs)
+			: roleid(rhs.roleid),mail_id(rhs.mail_id),retcode(rhs.retcode) { }
+
+		Rpc::Data *Clone() const { return new MassMailRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const MassMailRes *r = dynamic_cast<const MassMailRes *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				mail_id = r->mail_id;
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		MassMailRes& operator = (const MassMailRes &rhs)
+		{
+			const MassMailRes *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				mail_id = r->mail_id;
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << mail_id;
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> mail_id;
+			os >> retcode;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<MassMailRes>	MassMailResVector;
+};
+#endif

@@ -1,0 +1,69 @@
+#ifndef __GNET_DBWEBTRADELOADSOLDRES_RPCDATA
+#define __GNET_DBWEBTRADELOADSOLDRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBWebTradeLoadSoldRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		std::vector<int64_t> snlist;
+		Octets handle;
+
+	public:
+		DBWebTradeLoadSoldRes (int l_retcode = 0,const std::vector<int64_t>& l_snlist = std::vector<int64_t>(),const Octets& l_handle = Octets())
+			: retcode(l_retcode),snlist(l_snlist),handle(l_handle)
+		{
+		}
+
+		DBWebTradeLoadSoldRes(const DBWebTradeLoadSoldRes &rhs)
+			: retcode(rhs.retcode),snlist(rhs.snlist),handle(rhs.handle) { }
+
+		Rpc::Data *Clone() const { return new DBWebTradeLoadSoldRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBWebTradeLoadSoldRes *r = dynamic_cast<const DBWebTradeLoadSoldRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				snlist = r->snlist;
+				handle = r->handle;
+			}
+			return *this;
+		}
+
+		DBWebTradeLoadSoldRes& operator = (const DBWebTradeLoadSoldRes &rhs)
+		{
+			const DBWebTradeLoadSoldRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				snlist = r->snlist;
+				handle = r->handle;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << snlist;
+			os << handle;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> snlist;
+			os >> handle;
+			return os;
+		}
+
+	};
+};
+#endif

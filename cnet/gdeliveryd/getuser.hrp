@@ -1,0 +1,196 @@
+
+#ifndef __GNET_GETUSER_HPP
+#define __GNET_GETUSER_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#ifdef USE_BDB
+#include "dbbuffer.h"
+#endif
+#include "userarg"
+#include "userres"
+
+#include "kickoutuser.hpp"
+#include "getroleinfo.hrp"
+#include "gdeliveryserver.hpp"
+#include "putuser.hrp"
+#include "rolelist_re.hpp"
+#include "gamedbclient.hpp"
+#include "mapuser.h"
+#include "stockexchange.h"
+#include "grefstore"
+#include "gsysauctioncash"
+#include "gloginrecord"
+#include "sysauctionmanager.h"
+#include "accountloginrecord.hpp"
+#include "kickoutuser2.hpp"
+
+namespace GNET
+{
+
+class GetUser : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getuser"
+#undef	RPC_BASECLASS
+	unsigned int save_link_sid;
+	unsigned int save_localsid;
+
+	bool CheckUserForbid(const User &user, GRoleForbid &forbid)
+	{
+		time_t time_left = 0;
+		for (size_t i = 0; i < user.forbid.size(); i++)
+		{
+			if (user.forbid[i].type == FORBID_USER_LOGIN || user.forbid[i].type == FORBID_CHEATER_LOGIN)
+			{
+				int new_left = user.forbid[i].time+user.forbid[i].createtime-Timer::GetTime();
+				if (new_left > time_left)
+				{
+					forbid = user.forbid[i];
+					forbid.time = new_left;
+					time_left = new_left;
+				}
+			}
+		}
+		if (time_left > 0)
+		{
+			//返回给客户端的类型强置为FORBID_USER_LOGIN
+			forbid.type = FORBID_USER_LOGIN;
+			return true;
+		}
+		else
+			return false;
+	}
+	
+	void GetNextRole(int next_role,int userid, int logicuid)
+	{
+		if (next_role==_HANDLE_END)
+		{
+			GDeliveryServer::GetInstance()->Send(save_link_sid,RoleList_Re(ERR_SUCCESS,_HANDLE_END,userid,
+				save_localsid,RoleInfoVector()));
+		}
+		else
+		{
+			GetRoleInfo* rpc=(GetRoleInfo*) Rpc::Call(RPC_GETROLEINFO,RoleId(logicuid+next_role));
+			rpc->userid = userid;
+			rpc->source = GetRoleInfo::SOURCE_LOCAL;
+
+			GameDBClient::GetInstance()->SendProtocol(rpc);
+		}	
+
+	}
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		UserArg *arg = (UserArg *)argument;
+		UserRes *res = (UserRes *)result;
+		
+		GDeliveryServer* dsm=GDeliveryServer::GetInstance();
+		Thread::RWLock::WRScoped l(UserContainer::GetInstance().GetLocker());
+		UserInfo* userinfo=UserContainer::GetInstance().FindUser(arg->id);
+		if (!userinfo) 
+			return; 
+		
+		if (res->retcode==ERR_DATANOTFIND) //no such user in gamedb
+		{
+			//put user into DB
+			DEBUG_PRINT("gdelivery::getuser: user is not exist, put user into db.\n");
+			UserPair up;
+			up.key.id=arg->id;
+			up.value.logicuid = 0;
+			up.value.rolelist=ROLELIST_DEFAULT;
+			up.value.login_record = Marshal::OctetsStream() << GLoginRecord(Timer::GetTime(), userinfo->ip);
+			PutUser* rpc=(PutUser*)Rpc::Call(RPC_PUTUSER,up);
+			rpc->save_link_sid=save_link_sid;
+			rpc->save_localsid=save_localsid;
+			
+			if (!GameDBClient::GetInstance()->SendProtocol(rpc))
+			{
+				dsm->Send(save_link_sid,RoleList_Re(ERR_ROLELIST,_HANDLE_END,arg->id,save_localsid,
+					RoleInfoVector()));
+			}
+			res->value.exg_log.clear();
+
+			StockExchange::Instance()->OnLogin(arg->id, 0, 0, 0, 0, res->value.exg_log, res->value.cash_password);
+			SysAuctionManager::GetInstance().OnLogin(arg->id, 0, 0);
+		}
+		else if(res->retcode!=ERR_SUCCESS)
+		{
+			if(res->retcode == ERR_NOT_RECALL_USER)
+			{
+				dsm->Send(save_link_sid,KickoutUser2(arg->id,save_localsid,ERR_NOT_RECALL_USER));
+			}
+			else 
+			{
+				dsm->Send(save_link_sid,KickoutUser(arg->id,save_localsid,ERR_ROLELIST));
+			}
+		}
+		else if(res->value.cash<0||res->value.money<0)
+		{
+			Log::log(LOG_ERR,"Invalue account found, userid=%d,cash=%d,money=%d",arg->id, res->value.cash, res->value.money);
+			dsm->Send(save_link_sid,KickoutUser(arg->id,save_localsid,ERR_ROLELIST));
+		}
+		else
+		{
+			GRoleForbid forbid;
+			if (CheckUserForbid(res->value, forbid))
+			{
+				UserContainer::GetInstance().UserLogout(userinfo);
+				dsm->Send(save_link_sid, AnnounceForbidInfo(arg->id, save_localsid, forbid, 1));
+				return;
+			}
+			
+			StockExchange::Instance()->OnLogin(arg->id,res->value.cash,res->value.money,res->value.cash_buy,res->value.cash_sell,res->value.exg_log, 
+				res->value.cash_password);
+			
+			GSysAuctionCash sa_cash;
+			if(res->value.cash_sysauction.size())
+				Marshal::OctetsStream(res->value.cash_sysauction)>>sa_cash;	
+			SysAuctionManager::GetInstance().OnLogin(arg->id, sa_cash.cash_2, sa_cash.cash_used_2);
+			
+			userinfo->rolelist=UserInfo::RoleList(res->value.rolelist);
+			userinfo->logicuid = res->value.logicuid;
+			userinfo->autolock = res->value.autolock;
+			if (res->value.reference.size())
+			{
+				Marshal::OctetsStream   os_ref(res->value.reference);
+				GRefStore ref_store;
+				os_ref >> ref_store;
+				if (ref_store.referrer)
+				{
+					userinfo->real_referrer = ref_store.referrer;
+					//userinfo->referrer_roleid = ref_store.referrer_roleid;
+				}
+			}
+			userinfo->logintime = Timer::GetTime();
+			if(res->value.login_record.size())
+			{
+				GLoginRecord record;
+				Marshal::OctetsStream(res->value.login_record) >> record;
+				userinfo->last_login_time = record.login_time;
+				userinfo->last_login_ip = record.login_ip;
+				dsm->Send(save_link_sid,AccountLoginRecord(arg->id,save_localsid,userinfo->last_login_time,userinfo->last_login_ip,userinfo->ip));
+			}
+			userinfo->rolelist.SeekToBegin();
+			UidConverter::Instance().Insert(arg->id, res->value.logicuid);
+			GetNextRole(userinfo->rolelist.GetNextRole(),arg->id, userinfo->logicuid);
+		}
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		UserArg *arg = (UserArg *)argument;
+		GDeliveryServer* dsm=GDeliveryServer::GetInstance();
+		dsm->Send(save_link_sid,RoleList_Re(ERR_ROLELIST,_HANDLE_END,arg->id,save_localsid,RoleInfoVector()));
+		dsm->Send(save_link_sid,KickoutUser(arg->id,save_localsid,ERR_ROLELIST));
+		Log::log(LOG_ERR,"Get user rolelist failed.(timeout). userid=%d\n",arg->id);
+	}
+
+};
+
+};
+#endif

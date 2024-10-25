@@ -1,0 +1,47 @@
+
+#ifndef __GNET_DELMEMBER_HPP
+#define __GNET_DELMEMBER_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "delmemberarg"
+#include "deffactionres"
+
+namespace GNET
+{
+
+class DelMember : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "delmember"
+#undef	RPC_BASECLASS
+	OperWrapper::wref_t oper;
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DelMemberArg *arg = (DelMemberArg *)argument;
+		DefFactionRes *res = (DefFactionRes *)result;
+		OperWrapper::href_t ref(oper);
+		if(ref)
+		{
+			ref->SetResult(result);
+			ref->Execute();
+		}
+		if(res->retcode==ERR_SUCCESS)
+			Factiondb::GetInstance()->OnLeave(arg->fid, arg->rid);
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

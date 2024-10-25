@@ -1,0 +1,47 @@
+	public:
+		int64_t userid;
+		RoleBean roleinfo;
+		FactionIDBeanVector factions;
+		RoleGroupBeanVector friends;
+		RoleInfoBeanVector blacklist;
+		enum { PROTOCOL_TYPE = PROTOCOL_ROLERELATIONRESP };
+	public:
+		RoleRelationResp() { type = PROTOCOL_ROLERELATIONRESP; }
+		RoleRelationResp(void*) : Protocol(PROTOCOL_ROLERELATIONRESP) { }
+		RoleRelationResp (int64_t l_userid,const RoleBean& l_roleinfo = RoleBean(),const FactionIDBeanVector& l_factions = FactionIDBeanVector(),
+			const RoleGroupBeanVector& l_friends = RoleGroupBeanVector(),const RoleInfoBeanVector& l_blacklist = RoleInfoBeanVector())
+			 : userid(l_userid),roleinfo(l_roleinfo),factions(l_factions)
+			,friends(l_friends),blacklist(l_blacklist)
+		{
+			type = PROTOCOL_ROLERELATIONRESP;
+		}
+
+		RoleRelationResp(const RoleRelationResp &rhs)
+			: Protocol(rhs),userid(rhs.userid),roleinfo(rhs.roleinfo),factions(rhs.factions)
+			,friends(rhs.friends),blacklist(rhs.blacklist) { }
+
+		GNET::Protocol *Clone() const { return new RoleRelationResp(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			os << roleinfo;
+			os << factions;
+			os << friends;
+			os << blacklist;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			os >> roleinfo;
+			os >> factions;
+			os >> friends;
+			os >> blacklist;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1048576; }

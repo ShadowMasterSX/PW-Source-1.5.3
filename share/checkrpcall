@@ -1,0 +1,74 @@
+#!/usr/bin/python 
+                
+import xml.dom.minidom
+from xml.dom.minidom import Node
+import stat, os
+import re       
+
+def getchildnodes(pnode, childname):
+	allnodes = pnode.getElementsByTagName(childname)
+	r = []
+	for n in allnodes:
+		if n.nodeType == Node.ELEMENT_NODE:
+			r.append(n)
+	return r
+                
+xmlfile = './rpcalls.xml'
+
+dom = xml.dom.minidom.parseString(open(xmlfile, 'r').read())
+
+rpcs = getchildnodes(dom, 'rpc')
+protocols = getchildnodes(dom, 'protocol')
+
+ids = {}
+print 'checking...\n'
+        
+for rpc in rpcs:
+	attrs = rpc.attributes
+	if attrs.has_key('type'):
+		tt = int(attrs['type'].value)
+		name = str(attrs['name'].value)
+		if tt == 0 or tt == 16 or ids.has_key(tt):
+			print '\tduplicated type:', tt, ids[tt], name
+		else:
+			ids[tt] = name
+for rpc in protocols:
+	attrs = rpc.attributes
+	if attrs.has_key('type'):
+		tt = int(attrs['type'].value)
+		name = str(attrs['name'].value)
+		if tt == 0 or tt == 16 or ids.has_key(tt):
+			print '\tduplicated type:', tt, ids[tt], name
+		else:
+			ids[tt] = name
+
+keys = ids.keys()
+keys.sort()
+print '\ntotal', len(keys), 'types:\n'
+
+b = -1
+e = -1
+for i in range(len(keys)):
+	id = keys[i]
+	if e != -1:
+		if id == e + 1:
+			e = id
+		else:
+			if b == e:
+				print e
+			else:
+				print b, '-', e
+			b = id
+			e = id
+	else:
+		b = id
+		e = id
+if e != -1:	
+	if b == e:
+		print e
+	else:
+		print b, '-', e
+print 'reserved types: 0, 16'
+print '\n'
+
+	

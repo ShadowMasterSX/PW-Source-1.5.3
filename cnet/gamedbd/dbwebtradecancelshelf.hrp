@@ -1,0 +1,85 @@
+
+#ifndef __GNET_DBWEBTRADECANCELSHELF_HPP
+#define __GNET_DBWEBTRADECANCELSHELF_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbwebtradecancelshelfarg"
+#include "dbwebtradecancelshelfres"
+
+namespace GNET
+{
+
+class DBWebTradeCancelShelf : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbwebtradecancelshelf"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBWebTradeCancelShelfArg *arg = (DBWebTradeCancelShelfArg *)argument;
+		DBWebTradeCancelShelfRes *res = (DBWebTradeCancelShelfRes *)result;
+
+		Marshal::OctetsStream key;
+		try
+		{
+			StorageEnv::Storage * pwebtrade = StorageEnv::GetStorage("webtrade");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				if(arg->sn == 0) 
+					throw DbException(DB_VERIFY_BAD); 
+
+				GWebTradeDetail detail;
+				key << arg->sn;
+				Marshal::OctetsStream(pwebtrade->find(key,txn)) >> detail;
+				if(detail.info.seller_roleid != arg->roleid)
+					throw DbException(DB_VERIFY_BAD);
+				Log::formatlog("webtradecancelshelf","role=%d:sn=%lld:type=%d:itemid=%d:item_count=%d:money=%d:role=%d:petid=%d:pet_count=%d", 
+						arg->roleid,arg->sn,detail.info.posttype,detail.info.item_id,detail.info.item_count,detail.info.money,arg->roleid,0,0);
+				//´æÅÌ	
+				detail.info.state = arg->state; 
+				detail.info.show_endtime = 0;
+				detail.info.price = 0;
+				detail.info.sell_endtime = 0;
+				detail.info.buyer_roleid = 0;
+				detail.info.buyer_userid = 0;
+				detail.info.buyer_name.clear();
+				pwebtrade->insert(key, Marshal::OctetsStream()<<detail,txn);
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBWebTradeCancelShelf, role=%d sn=%lld, what=%s.\n",
+				arg->roleid, arg->sn, e.what());
+			res->retcode = ERR_EXCEPTION;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBWebTradeCancelShelfArg *arg = (DBWebTradeCancelShelfArg *)argument;
+		// DBWebTradeCancelShelfRes *res = (DBWebTradeCancelShelfRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

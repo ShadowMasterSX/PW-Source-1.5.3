@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBSENDMASSMAIL_HPP
+#define __GNET_DBSENDMASSMAIL_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbsendmassmailarg"
+#include "dbsendmassmailres"
+
+namespace GNET
+{
+
+class DBSendMassMail : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbsendmassmail"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBSendMassMailArg *arg = (DBSendMassMailArg *)argument;
+		// DBSendMassMailRes *res = (DBSendMassMailRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBSendMassMailArg *arg = (DBSendMassMailArg *)argument;
+		// DBSendMassMailRes *res = (DBSendMassMailRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

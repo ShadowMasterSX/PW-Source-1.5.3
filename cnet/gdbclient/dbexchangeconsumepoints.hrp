@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBEXCHANGECONSUMEPOINTS_HPP
+#define __GNET_DBEXCHANGECONSUMEPOINTS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbexchangeconsumepointsarg"
+#include "dbexchangeconsumepointsres"
+
+namespace GNET
+{
+
+class DBExchangeConsumePoints : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbexchangeconsumepoints"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBExchangeConsumePointsArg *arg = (DBExchangeConsumePointsArg *)argument;
+		// DBExchangeConsumePointsRes *res = (DBExchangeConsumePointsRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBExchangeConsumePointsArg *arg = (DBExchangeConsumePointsArg *)argument;
+		// DBExchangeConsumePointsRes *res = (DBExchangeConsumePointsRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,69 @@
+#ifndef __GNET_DBRAWREADARG_RPCDATA
+#define __GNET_DBRAWREADARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBRawReadArg : public GNET::Rpc::Data
+	{
+	public:
+		Octets table;
+		Octets handle;
+		Octets key;
+
+	public:
+		DBRawReadArg (Octets l_table = Octets(),Octets l_handle = Octets(),Octets l_key = Octets())
+			: table(l_table),handle(l_handle),key(l_key)
+		{
+		}
+
+		DBRawReadArg(const DBRawReadArg &rhs)
+			: table(rhs.table),handle(rhs.handle),key(rhs.key) { }
+
+		Rpc::Data *Clone() const { return new DBRawReadArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBRawReadArg *r = dynamic_cast<const DBRawReadArg *>(&rhs);
+			if (r && r != this)
+			{
+				table = r->table;
+				handle = r->handle;
+				key = r->key;
+			}
+			return *this;
+		}
+
+		DBRawReadArg& operator = (const DBRawReadArg &rhs)
+		{
+			const DBRawReadArg *r = &rhs;
+			if (r && r != this)
+			{
+				table = r->table;
+				handle = r->handle;
+				key = r->key;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << table;
+			os << handle;
+			os << key;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> table;
+			os >> handle;
+			os >> key;
+			return os;
+		}
+
+	};
+};
+#endif

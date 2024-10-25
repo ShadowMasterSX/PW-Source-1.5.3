@@ -1,0 +1,149 @@
+#ifndef __GNET_GREFSTORE_RPCDATA
+#define __GNET_GREFSTORE_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GRefStore : public GNET::Rpc::Data
+	{
+	public:
+		int bonus_add;
+		int bonus_used;
+		int referrer;
+		int referrer_roleid;
+		int bonus_total1;
+		int bonus_total2;
+		int bonus_withdraw;
+		int bonus_withdraw_today;
+		int max_role_level;
+		std::vector<Octets> rolenames;
+		int reserved1;
+		int reserved2;
+		int reserved3;
+		int reserved4;
+		int reserved5;
+		int reserved6;
+
+	public:
+		GRefStore (int l_bonus_add = 0,int l_bonus_used = 0,int l_referrer = 0
+			,int l_referrer_roleid = 0,int l_bonus_total1 = 0,int l_bonus_total2 = 0
+			,int l_bonus_withdraw = 0,int l_bonus_withdraw_today = 0,int l_max_role_level = 0
+			,const std::vector<Octets>& l_rolenames = std::vector<Octets>(),int l_reserved1 = 0,int l_reserved2 = 0
+			,int l_reserved3 = 0,int l_reserved4 = 0,int l_reserved5 = 0
+			,int l_reserved6 = 0)
+			: bonus_add(l_bonus_add),bonus_used(l_bonus_used),referrer(l_referrer)
+			,referrer_roleid(l_referrer_roleid),bonus_total1(l_bonus_total1),bonus_total2(l_bonus_total2)
+			,bonus_withdraw(l_bonus_withdraw),bonus_withdraw_today(l_bonus_withdraw_today),max_role_level(l_max_role_level)
+			,rolenames(l_rolenames),reserved1(l_reserved1),reserved2(l_reserved2)
+			,reserved3(l_reserved3),reserved4(l_reserved4),reserved5(l_reserved5)
+			,reserved6(l_reserved6)
+		{
+		}
+
+		GRefStore(const GRefStore &rhs)
+			: bonus_add(rhs.bonus_add),bonus_used(rhs.bonus_used),referrer(rhs.referrer),
+			referrer_roleid(rhs.referrer_roleid),bonus_total1(rhs.bonus_total1),bonus_total2(rhs.bonus_total2),
+			bonus_withdraw(rhs.bonus_withdraw),bonus_withdraw_today(rhs.bonus_withdraw_today),max_role_level(rhs.max_role_level),
+			rolenames(rhs.rolenames),reserved1(rhs.reserved1),reserved2(rhs.reserved2),
+			reserved3(rhs.reserved3),reserved4(rhs.reserved4),reserved5(rhs.reserved5),
+			reserved6(rhs.reserved6) { }
+
+		Rpc::Data *Clone() const { return new GRefStore(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GRefStore *r = dynamic_cast<const GRefStore *>(&rhs);
+			if (r && r != this)
+			{
+				bonus_add = r->bonus_add;
+				bonus_used = r->bonus_used;
+				referrer = r->referrer;
+				referrer_roleid = r->referrer_roleid;
+				bonus_total1 = r->bonus_total1;
+				bonus_total2 = r->bonus_total2;
+				bonus_withdraw = r->bonus_withdraw;
+				bonus_withdraw_today = r->bonus_withdraw_today;
+				max_role_level = r->max_role_level;
+				rolenames = r->rolenames;
+				reserved1 = r->reserved1;
+				reserved2 = r->reserved2;
+				reserved3 = r->reserved3;
+				reserved4 = r->reserved4;
+				reserved5 = r->reserved5;
+				reserved6 = r->reserved6;
+			}
+			return *this;
+		}
+
+		GRefStore& operator = (const GRefStore &rhs)
+		{
+			const GRefStore *r = &rhs;
+			if (r && r != this)
+			{
+				bonus_add = r->bonus_add;
+				bonus_used = r->bonus_used;
+				referrer = r->referrer;
+				referrer_roleid = r->referrer_roleid;
+				bonus_total1 = r->bonus_total1;
+				bonus_total2 = r->bonus_total2;
+				bonus_withdraw = r->bonus_withdraw;
+				bonus_withdraw_today = r->bonus_withdraw_today;
+				max_role_level = r->max_role_level;
+				rolenames = r->rolenames;
+				reserved1 = r->reserved1;
+				reserved2 = r->reserved2;
+				reserved3 = r->reserved3;
+				reserved4 = r->reserved4;
+				reserved5 = r->reserved5;
+				reserved6 = r->reserved6;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << bonus_add;
+			os << bonus_used;
+			os << referrer;
+			os << referrer_roleid;
+			os << bonus_total1;
+			os << bonus_total2;
+			os << bonus_withdraw;
+			os << bonus_withdraw_today;
+			os << max_role_level;
+			os << rolenames;
+			os << reserved1;
+			os << reserved2;
+			os << reserved3;
+			os << reserved4;
+			os << reserved5;
+			os << reserved6;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> bonus_add;
+			os >> bonus_used;
+			os >> referrer;
+			os >> referrer_roleid;
+			os >> bonus_total1;
+			os >> bonus_total2;
+			os >> bonus_withdraw;
+			os >> bonus_withdraw_today;
+			os >> max_role_level;
+			os >> rolenames;
+			os >> reserved1;
+			os >> reserved2;
+			os >> reserved3;
+			os >> reserved4;
+			os >> reserved5;
+			os >> reserved6;
+			return os;
+		}
+
+	};
+};
+#endif

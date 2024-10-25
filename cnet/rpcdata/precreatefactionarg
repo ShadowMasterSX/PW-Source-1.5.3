@@ -1,0 +1,64 @@
+#ifndef __GNET_PRECREATEFACTIONARG_RPCDATA
+#define __GNET_PRECREATEFACTIONARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class PreCreateFactionArg : public GNET::Rpc::Data
+	{
+	public:
+		int zoneid;
+		Octets factionname;
+
+	public:
+		PreCreateFactionArg (int l_zoneid = -1,const Octets& l_factionname = Octets(0))
+			: zoneid(l_zoneid),factionname(l_factionname)
+		{
+		}
+
+		PreCreateFactionArg(const PreCreateFactionArg &rhs)
+			: zoneid(rhs.zoneid),factionname(rhs.factionname) { }
+
+		Rpc::Data *Clone() const { return new PreCreateFactionArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const PreCreateFactionArg *r = dynamic_cast<const PreCreateFactionArg *>(&rhs);
+			if (r && r != this)
+			{
+				zoneid = r->zoneid;
+				factionname = r->factionname;
+			}
+			return *this;
+		}
+
+		PreCreateFactionArg& operator = (const PreCreateFactionArg &rhs)
+		{
+			const PreCreateFactionArg *r = &rhs;
+			if (r && r != this)
+			{
+				zoneid = r->zoneid;
+				factionname = r->factionname;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << zoneid;
+			os << factionname;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> zoneid;
+			os >> factionname;
+			return os;
+		}
+
+	};
+};
+#endif

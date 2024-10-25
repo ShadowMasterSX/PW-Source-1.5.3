@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBPUTPLAYERPROFILEDATA_HPP
+#define __GNET_DBPUTPLAYERPROFILEDATA_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbputplayerprofiledataarg"
+#include "dbputplayerprofiledatares"
+
+namespace GNET
+{
+
+class DBPutPlayerProfileData : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbputplayerprofiledata"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBPutPlayerProfileDataArg *arg = (DBPutPlayerProfileDataArg *)argument;
+		// DBPutPlayerProfileDataRes *res = (DBPutPlayerProfileDataRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBPutPlayerProfileDataArg *arg = (DBPutPlayerProfileDataArg *)argument;
+		// DBPutPlayerProfileDataRes *res = (DBPutPlayerProfileDataRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

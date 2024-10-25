@@ -1,0 +1,95 @@
+#ifndef __GNET_ROLEIMPORTBEAN_RPCDATA
+#define __GNET_ROLEIMPORTBEAN_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class RoleImportBean : public GNET::Rpc::Data
+	{
+	public:
+		int64_t uid;
+		int64_t roleid;
+		Octets rolename;
+		unsigned char gender;
+		int race;
+		int occupation;
+		int level;
+		Octets extinfo;
+
+	public:
+		RoleImportBean ()
+		{
+		}
+
+		RoleImportBean(const RoleImportBean &rhs)
+			: uid(rhs.uid),roleid(rhs.roleid),rolename(rhs.rolename),
+			gender(rhs.gender),race(rhs.race),occupation(rhs.occupation),
+			level(rhs.level),extinfo(rhs.extinfo) { }
+
+		Rpc::Data *Clone() const { return new RoleImportBean(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const RoleImportBean *r = dynamic_cast<const RoleImportBean *>(&rhs);
+			if (r && r != this)
+			{
+				uid = r->uid;
+				roleid = r->roleid;
+				rolename = r->rolename;
+				gender = r->gender;
+				race = r->race;
+				occupation = r->occupation;
+				level = r->level;
+				extinfo = r->extinfo;
+			}
+			return *this;
+		}
+
+		RoleImportBean& operator = (const RoleImportBean &rhs)
+		{
+			const RoleImportBean *r = &rhs;
+			if (r && r != this)
+			{
+				uid = r->uid;
+				roleid = r->roleid;
+				rolename = r->rolename;
+				gender = r->gender;
+				race = r->race;
+				occupation = r->occupation;
+				level = r->level;
+				extinfo = r->extinfo;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << uid;
+			os << roleid;
+			os << rolename;
+			os << gender;
+			os << race;
+			os << occupation;
+			os << level;
+			os << extinfo;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> uid;
+			os >> roleid;
+			os >> rolename;
+			os >> gender;
+			os >> race;
+			os >> occupation;
+			os >> level;
+			os >> extinfo;
+			return os;
+		}
+
+	};
+};
+#endif

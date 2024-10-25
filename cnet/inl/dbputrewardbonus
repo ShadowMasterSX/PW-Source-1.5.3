@@ -1,0 +1,8 @@
+		GNET::Protocol *Clone() const {  return new DBPutRewardBonus(*this); }
+	public:
+		enum { PROTOCOL_TYPE = RPC_DBPUTREWARDBONUS };
+		DBPutRewardBonus(Type type, Rpc::Data *argument, Rpc::Data *result)
+			: RPC_BASECLASS(type, argument, result ) { }
+		DBPutRewardBonus(const DBPutRewardBonus &rhs) : RPC_BASECLASS(rhs) { }
+		int  PriorPolicy( ) const { return 1; }
+		bool SizePolicy(size_t size) const { return size <= 32; }

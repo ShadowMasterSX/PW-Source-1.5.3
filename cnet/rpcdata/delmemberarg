@@ -1,0 +1,64 @@
+#ifndef __GNET_DELMEMBERARG_RPCDATA
+#define __GNET_DELMEMBERARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DelMemberArg : public GNET::Rpc::Data
+	{
+	public:
+		unsigned int fid;
+		unsigned int rid;
+
+	public:
+		DelMemberArg (unsigned int l_fid = 0,unsigned int l_rid = 0)
+			: fid(l_fid),rid(l_rid)
+		{
+		}
+
+		DelMemberArg(const DelMemberArg &rhs)
+			: fid(rhs.fid),rid(rhs.rid) { }
+
+		Rpc::Data *Clone() const { return new DelMemberArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DelMemberArg *r = dynamic_cast<const DelMemberArg *>(&rhs);
+			if (r && r != this)
+			{
+				fid = r->fid;
+				rid = r->rid;
+			}
+			return *this;
+		}
+
+		DelMemberArg& operator = (const DelMemberArg &rhs)
+		{
+			const DelMemberArg *r = &rhs;
+			if (r && r != this)
+			{
+				fid = r->fid;
+				rid = r->rid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << fid;
+			os << rid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> fid;
+			os >> rid;
+			return os;
+		}
+
+	};
+};
+#endif

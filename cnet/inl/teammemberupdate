@@ -1,0 +1,38 @@
+	public:
+		int64_t teamid;
+		std::vector<int64_t> members;
+		char operation;
+		enum { PROTOCOL_TYPE = PROTOCOL_TEAMMEMBERUPDATE };
+	public:
+		TeamMemberUpdate() { type = PROTOCOL_TEAMMEMBERUPDATE; }
+		TeamMemberUpdate(void*) : Protocol(PROTOCOL_TEAMMEMBERUPDATE) { }
+		TeamMemberUpdate (int64_t l_teamid,const std::vector<int64_t>& l_members = std::vector<int64_t>(),char l_operation = 0)
+			 : teamid(l_teamid),members(l_members),operation(l_operation)
+		{
+			type = PROTOCOL_TEAMMEMBERUPDATE;
+		}
+
+		TeamMemberUpdate(const TeamMemberUpdate &rhs)
+			: Protocol(rhs),teamid(rhs.teamid),members(rhs.members),operation(rhs.operation) { }
+
+		GNET::Protocol *Clone() const { return new TeamMemberUpdate(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << teamid;
+			os << members;
+			os << operation;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> teamid;
+			os >> members;
+			os >> operation;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1048576; }

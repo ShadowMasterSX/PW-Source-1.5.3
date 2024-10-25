@@ -1,0 +1,72 @@
+
+#ifndef __GNET_SYSAUCTIONPREPAREITEM_HPP
+#define __GNET_SYSAUCTIONPREPAREITEM_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "sysauctionprepareitemarg"
+#include "sysauctionprepareitemres"
+
+#include "../gdbclient/db_if.h"
+#include "groleinventory"
+
+bool generate_item_for_delivery(int id, GDB::itemdata & data);
+
+namespace GNET
+{
+
+class SysAuctionPrepareItem : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "sysauctionprepareitem"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		SysAuctionPrepareItemArg *arg = (SysAuctionPrepareItemArg *)argument;
+		SysAuctionPrepareItemRes *res = (SysAuctionPrepareItemRes *)result;
+		DEBUG_PRINT("sysauctionprepareitem received! arg->indexes.size=%d arg->item_ids.size=%d", arg->indexes.size(), arg->item_ids.size());	
+
+		if(arg->indexes.size() != arg->item_ids.size()) return;
+		for(size_t i=0; i<arg->indexes.size(); i++)
+		{
+			GDB::itemdata data;
+			if(generate_item_for_delivery(arg->item_ids[i], data))
+			{
+				res->indexes.push_back(arg->indexes[i]);
+				res->items.push_back(
+						GRoleInventory(
+							data.id,
+							data.index,
+							data.count,
+							data.max_count,
+							Octets(data.data, data.size),
+							data.proctype,
+							data.expire_date,
+							data.guid1,
+							data.guid2,
+							data.mask)
+						);
+				if(data.data) delete [] (const char *)data.data;
+			}
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// SysAuctionPrepareItemArg *arg = (SysAuctionPrepareItemArg *)argument;
+		// SysAuctionPrepareItemRes *res = (SysAuctionPrepareItemRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

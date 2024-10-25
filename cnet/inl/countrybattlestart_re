@@ -1,0 +1,47 @@
+	public:
+		int retcode;
+		int battle_id;
+		int world_tag;
+		unsigned int defender;
+		unsigned int attacker;
+		enum { PROTOCOL_TYPE = PROTOCOL_COUNTRYBATTLESTART_RE };
+	public:
+		CountryBattleStart_Re() { type = PROTOCOL_COUNTRYBATTLESTART_RE; }
+		CountryBattleStart_Re(void*) : Protocol(PROTOCOL_COUNTRYBATTLESTART_RE) { }
+		CountryBattleStart_Re (int l_retcode,int l_battle_id,int l_world_tag,
+			unsigned int l_defender,unsigned int l_attacker)
+			 : retcode(l_retcode),battle_id(l_battle_id),world_tag(l_world_tag)
+			,defender(l_defender),attacker(l_attacker)
+		{
+			type = PROTOCOL_COUNTRYBATTLESTART_RE;
+		}
+
+		CountryBattleStart_Re(const CountryBattleStart_Re &rhs)
+			: Protocol(rhs),retcode(rhs.retcode),battle_id(rhs.battle_id),world_tag(rhs.world_tag)
+			,defender(rhs.defender),attacker(rhs.attacker) { }
+
+		GNET::Protocol *Clone() const { return new CountryBattleStart_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << battle_id;
+			os << world_tag;
+			os << defender;
+			os << attacker;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> battle_id;
+			os >> world_tag;
+			os >> defender;
+			os >> attacker;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 32; }

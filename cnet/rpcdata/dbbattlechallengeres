@@ -1,0 +1,84 @@
+#ifndef __GNET_DBBATTLECHALLENGERES_RPCDATA
+#define __GNET_DBBATTLECHALLENGERES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailheader"
+#include "gmailsyncdata"
+
+namespace GNET
+{
+	class DBBattleChallengeRes : public GNET::Rpc::Data
+	{
+	public:
+		short retcode;
+		int challenge_res;
+		unsigned int deposit;
+		GMailHeader inform_loser;
+		GMailSyncData syncdata;
+
+	public:
+		DBBattleChallengeRes (short l_retcode = 0,int l_challenge_res = 0,unsigned int l_deposit = 0
+			,const GMailHeader& l_inform_loser = GMailHeader(),const GMailSyncData& l_syncdata = GMailSyncData())
+			: retcode(l_retcode),challenge_res(l_challenge_res),deposit(l_deposit)
+			,inform_loser(l_inform_loser),syncdata(l_syncdata)
+		{
+		}
+
+		DBBattleChallengeRes(const DBBattleChallengeRes &rhs)
+			: retcode(rhs.retcode),challenge_res(rhs.challenge_res),deposit(rhs.deposit),
+			inform_loser(rhs.inform_loser),syncdata(rhs.syncdata) { }
+
+		Rpc::Data *Clone() const { return new DBBattleChallengeRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBBattleChallengeRes *r = dynamic_cast<const DBBattleChallengeRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				challenge_res = r->challenge_res;
+				deposit = r->deposit;
+				inform_loser = r->inform_loser;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		DBBattleChallengeRes& operator = (const DBBattleChallengeRes &rhs)
+		{
+			const DBBattleChallengeRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				challenge_res = r->challenge_res;
+				deposit = r->deposit;
+				inform_loser = r->inform_loser;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << challenge_res;
+			os << deposit;
+			os << inform_loser;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> challenge_res;
+			os >> deposit;
+			os >> inform_loser;
+			os >> syncdata;
+			return os;
+		}
+
+	};
+};
+#endif

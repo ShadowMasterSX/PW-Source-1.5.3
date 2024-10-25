@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<configure>
+
+<!--
+	1. modify , line 17 , <network subnet="?" manager="?">
+	2. modify , line 19 , <ppp client="?" secret="?"> ( ppp username and password )
+	3. modify , line 22 , <eth1default NETMASK="?"> ( obtained from ISP )
+	4. modify , line 24 , <host alias="?">
+	4. modify , all GATEWAY ( obtained from ISP )
+	5. modify , all HWADDR ( copy from BIOS )
+	6. modify , all IPADDR ( obtained from ISP )
+	7. DO NOT change iptables and cricket
+	8. modify replace
+	9. modify zoneid
+-->
+
+	<network subnet="172.16.131.0" manager="172.16.131.254">
+
+		<ppp client="gmcczf94a" secret="mwcWizTp26vhzarh"/>
+
+		<eth0default ONBOOT="no" BOOTPROTO="dhcp" NETMASK="255.255.255.0"/>
+		<eth1default ONBOOT="yes" BOOTPROTO="static" NETMASK="255.255.255.0" TYPE="Ethernet"/>
+
+		<host HOSTNAME="manager" alias="changchun.world2.com.cn" mount="/" NOZEROCONF="yes" GATEWAY="221.8.18.1">
+			<ifcfg DEVICE="eth0" HWADDR="00:11:43:d3:db:7a" ONBOOT="yes" BOOTPROTO="static"/>
+			<ifcfg DEVICE="eth1" HWADDR="00:11:43:d3:db:7b" IPADDR="221.8.18.60"/>
+			<ifcfg DEVICE="ppp0" BOOTPROTO="dialup" DEFROUTE="no" DEMAND="yes" HARDFLOWCTL="no" ESCAPECHARS="yes"/>
+		</host>
+		<host HOSTNAME="link1" group="link" kernel="pxeboot/vmlinuz-2.6.11.6.nodisk" mount="/export/link1" mountmode="rw" NOZEROCONF="yes" GATEWAY="221.8.18.1">
+			<ifcfg DEVICE="eth0" HWADDR="00:11:43:D3:1C:B6"/>
+			<ifcfg DEVICE="eth1" HWADDR="00:11:43:D3:1C:B7" IPADDR="221.8.18.64"/>
+			<ifcfg DEVICE="eth1-range0" IPADDR_START="221.8.18.65" IPADDR_END="221.8.18.65" CLONENUM_START="0" NO_ALIASROUTING="yes"/>
+			<ifcfg DEVICE="BMC" HWADDR="00:11:43:D3:1C:B8"/>
+		</host>
+		<host HOSTNAME="link2" group="link" kernel="pxeboot/vmlinuz-2.6.11.6.nodisk" mount="/export/link2" mountmode="ro" NOZEROCONF="yes" GATEWAY="221.8.18.1">
+			<ifcfg DEVICE="eth0" HWADDR="00:11:43:D3:04:70"/>
+			<ifcfg DEVICE="eth1" HWADDR="00:11:43:D3:04:71" IPADDR="221.8.18.65" ONBOOT="no"/>
+			<ifcfg DEVICE="BMC" HWADDR="00:11:43:D3:04:72"/>
+		</host>
+		<host HOSTNAME="game1" group="game" kernel="pxeboot/vmlinuz-2.6.11.6.nodisk" mount="/export/game1" mountmode="rw">
+			<ifcfg DEVICE="eth0" HWADDR="00:11:43:D3:1E:47"/>
+			<ifcfg DEVICE="BMC" HWADDR="00:11:43:D3:1E:49"/>
+		</host>
+		<host HOSTNAME="game2" group="game" kernel="pxeboot/vmlinuz-2.6.11.6.nodisk" mount="/export/game2" mountmode="rw">
+			<ifcfg DEVICE="eth0" HWADDR="00:11:43:D3:04:D4"/>
+			<ifcfg DEVICE="BMC" HWADDR="00:11:43:D3:04:D6"/>
+		</host>
+		<host HOSTNAME="game3" group="game" kernel="pxeboot/vmlinuz-2.6.11.6.nodisk" mount="/export/game3" mountmode="rw">
+			<ifcfg DEVICE="eth0" HWADDR="00:11:43:D3:1E:4A"/>
+			<ifcfg DEVICE="BMC" HWADDR="00:11:43:D3:1E:4C"/>
+		</host>
+		<host HOSTNAME="game4" group="game" kernel="pxeboot/vmlinuz-2.6.11.6.nodisk" mount="/export/game4" mountmode="rw">
+			<ifcfg DEVICE="eth0" HWADDR="00:11:43:D3:1D:C0"/>
+			<ifcfg DEVICE="BMC" HWADDR="00:11:43:D3:1D:C2"/>
+		</host>
+		<!--host HOSTNAME="game5" group="game" kernel="pxeboot/vmlinuz-2.6.11.6.nodisk" mount="/export/game5" mountmode="rw">
+			<ifcfg DEVICE="eth0" HWADDR="00:11:43:db:b6:e4"/>
+			<ifcfg DEVICE="BMC" HWADDR="00:11:43:db:b6:e6"/>
+		</host>
+		<host HOSTNAME="game6" group="game" kernel="pxeboot/vmlinuz-2.6.11.6.nodisk" mount="/export/game6" mountmode="rw">
+			<ifcfg DEVICE="eth0" HWADDR="00:11:43:db:b6:e4"/>
+			<ifcfg DEVICE="BMC" HWADDR="00:11:43:db:b6:e6"/>
+		</host>
+		<host HOSTNAME="game7" group="game" kernel="pxeboot/vmlinuz-2.6.11.6.nodisk" mount="/export/game7" mountmode="rw">
+			<ifcfg DEVICE="eth0" HWADDR="00:11:43:db:b6:e4"/>
+			<ifcfg DEVICE="BMC" HWADDR="00:11:43:db:b6:e6"/>
+		</host-->
+		<host HOSTNAME="delivery" group="delivery" kernel="pxeboot/vmlinuz-2.6.11.6.nodisk" mount="/export/delivery" mountmode="rw" GATEWAY="221.8.18.1">
+			<ifcfg DEVICE="eth0" HWADDR="00:11:43:D3:02:B9"/>
+			<ifcfg DEVICE="eth1" HWADDR="00:11:43:D3:02:BA" IPADDR="221.8.18.63"/>
+			<ifcfg DEVICE="BMC" HWADDR="00:11:43:D3:02:BB"/>
+		</host>
+		<host HOSTNAME="database" group="database" kernel="pxeboot/vmlinuz-2.6.11.6.megaraid" mount="/export/database" mountmode="ro">
+			<ifcfg DEVICE="eth0" HWADDR="00:11:43:D3:BD:C1"/>
+			<ifcfg DEVICE="BMC" HWADDR="00:11:43:D3:BD:C3"/>
+		</host>
+		<host HOSTNAME="backup" group="backup" kernel="pxeboot/vmlinuz-2.6.11.6.megaraid" mount="/export/backup" mountmode="ro" GATEWAY="221.8.18.1">
+			<ifcfg DEVICE="eth0" HWADDR="00:11:43:D3:DA:E2"/>
+			<ifcfg DEVICE="eth1" HWADDR="00:11:43:D3:DA:E3" IPADDR="221.8.18.62"/>
+			<ifcfg DEVICE="BMC" HWADDR="00:11:43:D3:DA:E4"/>
+		</host>
+
+		<iptables host="manager" content="
+*filter\n
+:INPUT ACCEPT [0:0]\n
+:FORWARD ACCEPT [0:0]\n
+:OUTPUT ACCEPT [0:0]\n
+-A INPUT -i eth1 -p udp -m udp --sport 123 --dport 123 -j ACCEPT \n
+-A INPUT -s 211.100.255.4 -i eth1 -j ACCEPT \n
+-A INPUT -s 211.100.255.5 -i eth1 -p tcp -m tcp --sport 25 -j ACCEPT \n
+-A INPUT -s 221.192.136.7 -i eth1 -p tcp -j ACCEPT \n
+-A INPUT -i eth1 -j DROP \n
+-A INPUT -i ppp0 -p tcp -m multiport --dports 22,80,443 -j ACCEPT \n
+-A INPUT -i ppp0 -p icmp -j ACCEPT \n
+-A INPUT -i ppp0 -p udp -m udp --sport 53 -j ACCEPT \n
+-A INPUT -s 172.16.2.10 -i ppp0 -p udp -m udp --dport 161 -j ACCEPT \n
+-A INPUT -s 172.16.3.100 -i ppp0 -p udp -m udp --dport 161 -j ACCEPT \n
+-A INPUT -s 172.16.2.2 -i ppp0 -p udp -m udp --dport 161 -j ACCEPT \n
+-A INPUT -i ppp0 -j DROP \n
+-A FORWARD -i eth1 -j DROP \n
+-A FORWARD -s 172.16.2.2 -i ppp0 -p tcp -m tcp --tcp-flags SYN,RST,ACK SYN -j ACCEPT \n
+COMMIT"/>
+		<iptables host="delivery" content="
+*filter\n
+:INPUT ACCEPT [0:0]\n
+:FORWARD ACCEPT [0:0]\n
+:OUTPUT ACCEPT [0:0]\n
+-A INPUT -s ! 61.152.110.234/255.255.255.255 -i eth1 -j DROP \n
+COMMIT"/>
+		<iptables host="link1" content="
+*filter\n
+:INPUT ACCEPT [0:0]\n
+:FORWARD ACCEPT [0:0]\n
+:OUTPUT ACCEPT [0:0]\n
+:SYNCHK - [0:0]\n
+-A INPUT -i eth1 -p tcp -m tcp --tcp-flags SYN,RST,ACK SYN -j SYNCHK \n
+-A SYNCHK -p tcp -m tcp --dport 29000 --tcp-option 2 -j ACCEPT \n
+-A SYNCHK -j DROP \n
+COMMIT"/>
+		<iptables host="link2" content="
+*filter\n
+:INPUT ACCEPT [0:0]\n
+:FORWARD ACCEPT [0:0]\n
+:OUTPUT ACCEPT [0:0]\n
+:SYNCHK - [0:0]\n
+-A INPUT -i eth1 -p tcp -m tcp --tcp-flags SYN,RST,ACK SYN -j SYNCHK \n
+-A SYNCHK -p tcp -m tcp --dport 29000 --tcp-option 2 -j ACCEPT \n
+-A SYNCHK -j DROP\n 
+COMMIT"/>
+
+		<file src="srcfiles/ntp.conf" dest="/etc/ntp.conf"/>
+		<file src="srcfiles/step-tickers" dest="/etc/ntp/step-tickers"/>
+		<file src="srcfiles/cron.root" dest="/var/spool/cron/root"/>
+		<file src="srcfiles/cron.cricket" dest="/var/spool/cron/cricket" cricketcron="true"/>
+		<file src="srcfiles/restarttomcat.sh" dest="/root/bin/"/>
+		<file src="srcfiles/route-ppp0" dest="/etc/sysconfig/network-scripts/route-ppp0"/>
+	</network>
+
+	<cricket src="srcfiles/cricket.tar.gz">
+		<cricket-network pingloss="n:50" pingtime="n:250"/>
+		<cricket-protocol max-onlineusers="10000" link-max-onlineusers="5000"/>
+		<cricket-system-if ifInOctets-warn="80pct" ifOutOctets-warn="80pct" ifInErrors-warn="0.1pct" ifOutErrors-warn="0.1pct"/>
+		<cricket-system-storage>
+			<storage name="database" dev="sdb" mount="/dbf"/>
+			<storage name="backup" dev="sdb" mount="/export"/>
+			<storage name="manager" dev="sda" mount="/"/>
+			<storage name="nfsroot" server="manager" dev="sdc" mount="/export"/>
+		</cricket-system-storage>
+		<cricket-system-perf ssCpuRawIdle="100:n" laLoad5min="n:8"/>
+	</cricket>
+
+	<game version="1.0" release="608">
+		<mkdir dir="/export/logs"/>
+		<mkdir dir="/export/logs/old"/>
+
+		<file src="srcfiles/backupdb" dest="/root/bin/"/>
+		<file src="srcfiles/exportroles" dest="/root/bin/"/>
+		<file src="srcfiles/exportbrief" dest="/root/bin/"/>
+		<file src="srcfiles/gamedbd/gamedbd" dest="/root/bin/"/>
+		<file src="srcfiles/gamedbd/gamesys.conf" dest="/root/bin/"/>
+		<replace file="/root/bin/gamesys.conf" src="172.16.128" dest="172.16.131"/>
+		<replace file="/root/bin/gamesys.conf" src="\/dbf" dest="."/>
+
+		<file src="srcfiles/cleanbackups" dest="/export/database/root/gamedbd/"/>
+		<file src="srcfiles/listbackups" dest="/export/database/root/gamedbd/"/>
+		<file src="srcfiles/gamedbd/clsconfig" dest="/export/database/root/gamedbd/clsconfig"/>
+		<file src="srcfiles/gamedbd/gamedbd" dest="/export/database/root/gamedbd/"/>
+		<file src="srcfiles/gamedbd/gamesys.conf" dest="/export/database/root/gamedbd/"/>
+		<replace file="/export/database/root/gamedbd/gamesys.conf" src="172.16.128" dest="172.16.131"/>
+
+		<file src="srcfiles/cleanbackups" dest="/export/backup/root/gamedbd/"/>
+		<file src="srcfiles/listbackups" dest="/export/backup/root/cgi/"/>
+
+		<file src="srcfiles/glinkd/glinkd" dest="/export/link1/root/glinkd/"/>
+		<file src="srcfiles/glinkd.conf.cc" dest="/export/link1/root/glinkd/gamesys.conf"/>
+		<replace file="/export/link1/root/glinkd/gamesys.conf" src="172.16.128" dest="172.16.131"/>
+
+		<file src="srcfiles/glinkd/glinkd" dest="/export/link2/root/glinkd/"/>
+		<replace file="/export/link2/root/glinkd/gamesys.conf" src="172.16.128" dest="172.16.131"/>
+
+		<file src="srcfiles/gdeliveryd/gdeliveryd" dest="/export/delivery/root/gdeliveryd/"/>
+		<file src="srcfiles/gdeliveryd/filters" dest="/export/delivery/root/gdeliveryd/"/>
+		<file src="srcfiles/gdeliveryd/gamesys.conf" dest="/export/delivery/root/gdeliveryd/"/>
+		<replace file="/export/delivery/root/gdeliveryd/gamesys.conf" src="172.16.128" dest="172.16.131"/>
+		<replace file="/export/delivery/root/gdeliveryd/gamesys.conf" src="zoneid=2" dest="zoneid=3"/>
+		<file src="srcfiles/gfactiond/gfactiond" dest="/export/delivery/root/gfactiond/"/>
+		<file src="srcfiles/gfactiond/filters" dest="/export/delivery/root/gfactiond/"/>
+		<file src="srcfiles/gfactiond/gamesys.conf" dest="/export/delivery/root/gfactiond/"/>
+		<replace file="/export/delivery/root/gfactiond/gamesys.conf" src="172.16.128" dest="172.16.131"/>
+
+		<file src="srcfiles/gamed/" dest="/tmp/gamedfiles/"/>
+		<file src="srcfiles/gmserver.conf.cc" dest="/tmp/gamedfiles/gamed/gmserver.conf" />
+		<replace file="/tmp/gamedfiles/gamed/gmserver.conf" src="172.16.128" dest="172.16.131"/>
+		<file src="srcfiles/restart" dest="/export/game1/root/gamed/" />
+		<file src="srcfiles/restart" dest="/export/game2/root/gamed/" />
+		<file src="srcfiles/restart" dest="/export/game3/root/gamed/" />
+		<file src="srcfiles/restart" dest="/export/game4/root/gamed/" />
+		<file src="srcfiles/restart" dest="/export/game5/root/gamed/" />
+		<file src="srcfiles/restart" dest="/export/game6/root/gamed/" />
+		<file src="srcfiles/restart" dest="/export/game7/root/gamed/" />
+		<replace file="/tmp/gamedfiles/gamed/gmserver.conf" src="172.16.128" dest="172.16.131"/>
+		<replace file="/export/game1/root/gamed/restart" src="#./gs gs01" dest="./gs gs01"/>
+		<replace file="/export/game1/root/gamed/restart" src="game1.log&amp;" dest="game1.log"/>
+		<replace file="/export/game2/root/gamed/restart" src="#./gs gs02" dest="./gs gs02"/>
+		<replace file="/export/game2/root/gamed/restart" src="game2.log&amp;" dest="game2.log"/>
+		<replace file="/export/game3/root/gamed/restart" src="#./gs arena01" dest="./gs arena01"/>
+		<replace file="/export/game3/root/gamed/restart" src="#./gs arena02" dest="./gs arena02"/>
+		<replace file="/export/game3/root/gamed/restart" src="#./gs arena03" dest="./gs arena03"/>
+		<replace file="/export/game3/root/gamed/restart" src="#./gs arena04" dest="./gs arena04"/>
+		<replace file="/export/game3/root/gamed/restart" src="#./gs is01" dest="./gs is01"/>
+		<replace file="/export/game3/root/gamed/restart" src="#./gs is02" dest="./gs is02"/>
+		<replace file="/export/game3/root/gamed/restart" src="is02.log&amp;" dest="is02.log"/>
+		<replace file="/export/game4/root/gamed/restart" src="#./gs is05" dest="./gs is05"/>
+		<replace file="/export/game4/root/gamed/restart" src="#./gs is06" dest="./gs is06"/>
+		<replace file="/export/game4/root/gamed/restart" src="#./gs is07" dest="./gs is07"/>
+		<replace file="/export/game4/root/gamed/restart" src="#./gs is08" dest="./gs is08"/>
+		<replace file="/export/game4/root/gamed/restart" src="#./gs is09" dest="./gs is09"/>
+		<replace file="/export/game4/root/gamed/restart" src="#./gs is10" dest="./gs is10"/>
+		<replace file="/export/game4/root/gamed/restart" src="#./gs is11" dest="./gs is11"/>
+		<replace file="/export/game4/root/gamed/restart" src="is11.log&amp;" dest="is1.log"/>
+
+		<file src="srcfiles/loader" dest="/export/link1/root/loader/"/>
+		<file src="srcfiles/loader" dest="/export/link2/root/loader/"/>
+		<file src="srcfiles/loader" dest="/export/game1/root/loader/"/>
+		<file src="srcfiles/loader" dest="/export/game2/root/loader/"/>
+		<file src="srcfiles/loader" dest="/export/game3/root/loader/"/>
+		<file src="srcfiles/loader" dest="/export/game4/root/loader/"/>
+		<file src="srcfiles/loader" dest="/export/game5/root/loader/"/>
+		<file src="srcfiles/loader" dest="/export/game6/root/loader/"/>
+		<file src="srcfiles/loader" dest="/export/game7/root/loader/"/>
+		<file src="srcfiles/loader" dest="/export/delivery/root/loader/"/>
+		<file src="srcfiles/loader" dest="/export/database/root/loader/"/>
+		<file src="srcfiles/loader.conf" dest="/export/link1/root/loader/"/>
+		<file src="srcfiles/loader.conf" dest="/export/link2/root/loader/"/>
+		<file src="srcfiles/loader.conf" dest="/export/game1/root/loader/"/>
+		<file src="srcfiles/loader.conf" dest="/export/game2/root/loader/"/>
+		<file src="srcfiles/loader.conf" dest="/export/game3/root/loader/"/>
+		<file src="srcfiles/loader.conf" dest="/export/game4/root/loader/"/>
+		<file src="srcfiles/loader.conf" dest="/export/game5/root/loader/"/>
+		<file src="srcfiles/loader.conf" dest="/export/game6/root/loader/"/>
+		<file src="srcfiles/loader.conf" dest="/export/game7/root/loader/"/>
+		<file src="srcfiles/loader.conf" dest="/export/delivery/root/loader/"/>
+		<file src="srcfiles/loader.conf" dest="/export/database/root/loader/"/>
+
+		<file src="srcfiles/logservice" dest="/usr/sbin/"/>
+		<file src="srcfiles/servicerun" dest="/usr/sbin/"/>
+		<file src="srcfiles/rshrun" dest="/usr/sbin/"/>
+
+		<file src="srcfiles/rc.local" dest="/etc/"/>
+		<file src="srcfiles/logrotate.conf" dest="/etc/"/>
+		<file src="srcfiles/logservice.conf" dest="/etc/"/>
+		<file src="srcfiles/servicerun.conf.cc" dest="/etc/servicerun.conf"/>
+		<file src="srcfiles/syslog.conf" dest="/etc/"/>
+		<file src="srcfiles/syslog" dest="/etc/logrotate.d/"/>
+		<file src="srcfiles/thttpd" dest="/etc/logrotate.d/"/>
+		<file src="srcfiles/snmpd.conf" dest="/etc/snmp/" allhost="true"/>
+		<file src="srcfiles/get-iostat" dest="/usr/local/share/snmp/" allhost="true"/>
+		<file src="srcfiles/get-cpustat" dest="/usr/local/share/snmp/" allhost="true"/>
+		<file src="srcfiles/cron.root" dest="/var/spool/cron/root"/>
+		<file src="srcfiles/cron.cricket" dest="/var/spool/cron/cricket" cricketcron="true"/>
+
+		<file src="srcfiles/tomcat/iweb.war" dest="/usr/local/jakarta-tomcat-5.5.9/webapps/"/>
+		<file src="srcfiles/tomcat/iweb.conf" dest="/etc/"/>
+		<replace file="/etc/iweb.conf" src="172.16.128" dest="172.16.131"/>
+		<replace file="/etc/iweb.conf" src="zoneid=2" dest="zoneid=3"/>
+		<file src="srcfiles/tomcat/cricket" dest="/usr/local/jakarta-tomcat-5.5.9/webapps/"/>
+		<file src="srcfiles/tomcat/world2_java_172.16.131.254.keystore" dest="/etc/ssl/private/client"/>
+		<file src="srcfiles/tomcat/server.xml" dest="/usr/local/jakarta-tomcat-5.5.9/conf/"/>
+		<replace file="/usr/local/jakarta-tomcat-5.5.9/conf/server.conf" src="172.16.128" dest="172.16.131"/>
+	</game>
+
+
+
+</configure>
+

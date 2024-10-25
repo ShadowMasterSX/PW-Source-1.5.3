@@ -1,0 +1,162 @@
+
+#ifndef __GNET_DBBUYPOINT_HPP
+#define __GNET_DBBUYPOINT_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "sellid"
+#include "sellpointinfo"
+#include "grolestatus"
+#include "dbbuypointarg"
+#include "dbbuypointres"
+#include "transman.h"
+namespace GNET
+{
+
+class DBBuyPoint : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbbuypoint"
+#undef	RPC_BASECLASS
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBBuyPointArg *arg = (DBBuyPointArg *)argument;
+		DBBuyPointRes *res = (DBBuyPointRes *)result;
+
+		Thread::Mutex::Scoped l( TransMan::GetInstance().GetLock() );
+		res->retcode=ERR_SUCCESS;
+		try
+		{
+			try
+			{
+				StorageEnv::Storage * psell = StorageEnv::GetStorage("sellpoint");
+				StorageEnv::Storage * pinventory = StorageEnv::GetStorage("inventory");
+				StorageEnv::Storage * ptrans = StorageEnv::GetStorage("translog");
+				StorageEnv::CommonTransaction txn;
+				SellID sellid(arg->seller,arg->sellid);
+				SellPointInfo sellinfo; 
+				GRolePocket pocket;
+				Log::formatlog("sellpoint",
+					"dbbuypoint. received. buyer=%d,sellid=%d,seller=%d,money=%d,timestamp=%d\n",
+					arg->buyer, arg->sellid,arg->seller,arg->money,arg->timestamp);
+				//check sell's status
+				Marshal::OctetsStream( psell->find( Marshal::OctetsStream()<<sellid,txn ) ) >> sellinfo;
+				if ( sellinfo.status!=_PST_NOTSELL )
+				{
+					res->retcode=ERR_SP_SELLING;
+					throw DbException(0);
+				}
+				//check buyer's money
+				if ( arg->money<sellinfo.price )
+				{
+					res->retcode=ERR_SP_NOMONEY;
+					throw DbException(0);
+				}
+				//check timestamp
+				Marshal::OctetsStream(pinventory->find(Marshal::OctetsStream()<<arg->buyer,txn))>>pocket;
+				if ((unsigned int)arg->timestamp <= pocket.timestamp)
+				{
+					res->retcode=ERR_EXCEPTION;
+					throw DbException(0);
+				}
+				//update sell status
+				sellinfo.status=_PST_SELLING;
+				psell->insert( 
+						Marshal::OctetsStream()<<sellid,
+						Marshal::OctetsStream()<<sellinfo,
+						txn
+					);
+				//update buyer's money
+				pocket.money = arg->money-sellinfo.price;
+				pocket.timestamp=arg->timestamp;
+				pinventory->insert(
+						Marshal::OctetsStream()<<arg->buyer,
+						Marshal::OctetsStream()<<pocket,
+						txn
+					);
+				//add new transaction
+				int retcode=TransMan::GetInstance().AddTrans_NoLock(
+						arg->buyer,arg->seller,sellinfo.price,sellinfo.point,arg->sellid,ptrans,txn
+					);
+				if ( retcode!=ERR_SUCCESS )
+				{
+					res->retcode=retcode;
+					throw DbException(0);
+				}
+				// OK, done!
+				res->point=sellinfo.point;
+				res->price=sellinfo.price;
+				res->money=pocket.money;
+				Log::formatlog("sellpoint",
+					"dbbuypoint. buyer=%d,sellid=%d,seller=%d,money=%d,timestamp=%d\n",
+					arg->buyer,arg->sellid,arg->seller,pocket.money,pocket.timestamp);
+				return;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee(DB_OLD_VERSION);
+				throw ee;
+			}
+		}
+		catch (DbException e)
+		{
+			switch ( res->retcode )
+			{
+				default:
+					Log::log(LOG_ERR,"dbbuypoint. AddTrans err. buyer=%d,sellid=%d,seller=%d,money=%d,"
+						"timestamp=%d,what=%s\n", arg->buyer,arg->sellid,arg->seller,arg->money,
+						arg->timestamp,DbException(res->retcode).what() );
+					res->retcode=ERR_DATANOTFIND;
+					break;
+				case DB_LOCK_DEADLOCK:
+					Log::log(LOG_ERR,"dbbuypoint. AddTrans err. buyer=%d,sellid=%d,seller=%d,money=%d,"
+						"timestamp=%d,what=%s\n", arg->buyer,arg->sellid,arg->seller,arg->money,
+						arg->timestamp,DbException(res->retcode).what() );
+					res->retcode=ERR_SP_DBDEADLOCK;
+					break;
+				case ERR_EXCEPTION:
+					Log::log(LOG_ERR,"dbbuypoint. timestamp err. buyer=%d,sellid=%d,seller=%d,money=%d,"
+						"timestamp=%d,what=%s\n", arg->buyer,arg->sellid,arg->seller,arg->money,
+						arg->timestamp,DbException(res->retcode).what() );
+					break;	
+				case ERR_SP_SELLING:
+					Log::log(LOG_ERR,"dbbuypoint. wrong status.buyer=%d,sellid=%d,seller=%d,money=%d,"
+						"timestamp=%d\n", 
+						arg->buyer,arg->sellid,arg->seller,arg->money, arg->timestamp);
+					break;
+				case ERR_SP_NOMONEY:
+					Log::log(LOG_ERR,"dbbuypoint. Insufficient money.buyer=%d,sellid=%d,seller=%d,"
+						"money=%d,timestamp=%d\n", 
+						arg->buyer,arg->sellid,arg->seller,arg->money, arg->timestamp);
+					break;
+				case ERR_SUCCESS: //Other err occurs
+					Log::log(LOG_ERR,"dbbuypoint. buyer=%d,sellid=%d,seller=%d,money=%d,timestamp=%d,"
+						"what=%s\n",
+						arg->buyer,arg->sellid,arg->seller,arg->money,arg->timestamp,e.what() );
+					if(e.get_errno()==DB_LOCK_DEADLOCK)
+       		        	res->retcode=ERR_SP_DBDEADLOCK;
+					else
+						res->retcode=ERR_DATANOTFIND;
+					break;
+			}
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBBuyPointArg *arg = (DBBuyPointArg *)argument;
+		// DBBuyPointRes *res = (DBBuyPointRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,86 @@
+
+#ifndef __GNET_GETROLEID_HPP
+#define __GNET_GETROLEID_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "dbbuffer.h"
+#include "getroleidarg"
+#include "getroleidres"
+#include "gamedbmanager.h"
+namespace GNET
+{
+
+class GetRoleId : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getroleid"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		GetRoleIdArg *arg = (GetRoleIdArg *)argument;
+		GetRoleIdRes *res = (GetRoleIdRes *)result;
+
+		try
+		{
+			StorageEnv::Storage * prolename = StorageEnv::GetStorage("rolename");
+			StorageEnv::AtomTransaction txn;
+			try
+			{
+				Marshal::OctetsStream rolenamevalue( prolename->find( arg->rolename, txn ) );
+				rolenamevalue >> res->roleid;
+				if (rolenamevalue.size () > 4)
+				{
+					int rolenamestat = -1;
+					rolenamevalue >> rolenamestat;
+					if (rolenamestat == ROLE_NAME_STAT_USED)
+					{
+						res->retcode = ERR_SUCCESS;
+					}
+					else if (rolenamestat == ROLE_NAME_STAT_OBSOLETE)
+					{
+						res->retcode = ERR_OBSOLETE_NAME;
+					}
+					else
+					{
+						res->retcode = ERR_DATAERROR;
+					}
+				}
+				else
+				{
+					res->retcode = ERR_SUCCESS;  
+				}
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			res->retcode = -1;
+		}
+		LOG_TRACE("GetRoleId, retcode=%d,roleid=%d,reason=%d", res->retcode, res->roleid,arg->reason);
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// GetRoleIdArg *arg = (GetRoleIdArg *)argument;
+		// GetRoleIdRes *res = (GetRoleIdRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

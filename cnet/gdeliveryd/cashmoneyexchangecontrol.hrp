@@ -1,0 +1,60 @@
+
+#ifndef __GNET_CASHMONEYEXCHANGECONTROL_HPP
+#define __GNET_CASHMONEYEXCHANGECONTROL_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "cashmoneyexchangecontrolarg"
+#include "cashmoneyexchangecontrolres"
+
+#include "globalcontrol.h"
+
+namespace GNET
+{
+
+class CashMoneyExchangeControl : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "cashmoneyexchangecontrol"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		CashMoneyExchangeControlArg *arg = (CashMoneyExchangeControlArg *)argument;
+		CashMoneyExchangeControlRes *res = (CashMoneyExchangeControlRes *)result;
+
+		switch(arg->oper)
+		{
+			case 1:
+				res->retcode = GlobalControl::GetInstance()->SetCashMoneyExchgRate(arg->param);
+				break;
+			
+			case 2:
+				res->retcode = GlobalControl::GetInstance()->SetCashMoneyExchgOpen(arg->param);
+				break;
+			
+			default:
+				res->retcode = -100;
+				break;
+		}
+		DEBUG_PRINT("cashmoneyexchangecontrol received. oper=%d, param=%d, retcode=%d", arg->oper, arg->param, res->retcode);
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// CashMoneyExchangeControlArg *arg = (CashMoneyExchangeControlArg *)argument;
+		// CashMoneyExchangeControlRes *res = (CashMoneyExchangeControlRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

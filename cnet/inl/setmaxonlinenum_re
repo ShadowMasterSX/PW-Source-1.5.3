@@ -1,0 +1,32 @@
+	public:
+		int retcode;
+		enum { PROTOCOL_TYPE = PROTOCOL_SETMAXONLINENUM_RE };
+	public:
+		SetMaxOnlineNum_Re() { type = PROTOCOL_SETMAXONLINENUM_RE; }
+		SetMaxOnlineNum_Re(void*) : Protocol(PROTOCOL_SETMAXONLINENUM_RE) { }
+		SetMaxOnlineNum_Re (int l_retcode)
+			 : retcode(l_retcode)
+		{
+			type = PROTOCOL_SETMAXONLINENUM_RE;
+		}
+
+		SetMaxOnlineNum_Re(const SetMaxOnlineNum_Re &rhs)
+			: Protocol(rhs),retcode(rhs.retcode) { }
+
+		GNET::Protocol *Clone() const { return new SetMaxOnlineNum_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

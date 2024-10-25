@@ -1,0 +1,53 @@
+
+#ifndef __GNET_ADDFRIENDRQST_HPP
+#define __GNET_ADDFRIENDRQST_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "addfriendrqstarg"
+#include "addfriendrqstres"
+#include "glinkserver.hpp"
+
+namespace GNET
+{
+
+class AddFriendRqst : public ProxyRpc
+{
+#define	RPC_BASECLASS	ProxyRpc
+	#include "addfriendrqst"
+#undef	RPC_BASECLASS
+
+	bool Delivery(Manager::Session::ID proxy_sid, const OctetsStream& osArg)
+	{
+		AddFriendRqstArg arg;
+		osArg >> arg;
+		if( GLinkServer::GetInstance()->Send(arg.dstlsid, this ) )
+		{
+			return true;
+		}
+		else
+		{
+			SetResult(AddFriendRqstRes(ERR_DELIVER_SEND));
+			SendToSponsor();
+			return false;
+		}
+	}
+
+	void PostProcess(Manager::Session::ID proxy_sid,const OctetsStream& osArg, const OctetsStream& osRes)
+	{
+		// AddFriendRqstArg arg;
+		// osArg >> arg;
+		// AddFriendRqstRes res;
+		// osRes >> res;
+		// SetResult( &res ); // if you modified res, do not forget to call this. 
+	}
+
+	void OnTimeout( )
+	{
+	}
+
+};
+
+};
+#endif

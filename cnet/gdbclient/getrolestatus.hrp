@@ -1,0 +1,51 @@
+
+#ifndef __GNET_GETROLESTATUS_HPP
+#define __GNET_GETROLESTATUS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#ifdef USE_BDB
+#include "dbbuffer.h"
+#endif
+#include "roleid"
+#include "rolestatusres"
+
+namespace GNET
+{
+
+class GetRoleStatus : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getrolestatus"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+#ifdef USE_BDB
+		RoleId *arg = (RoleId *)argument;
+		RoleStatusRes *res = (RoleStatusRes *)result;
+		Marshal::OctetsStream key, value;
+		key << *arg;
+		res->retcode = DBBuffer::buf_find( "status", key, value );
+		if( 0 == res->retcode )
+			value >> res->value;
+#endif
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// RoleId *arg = (RoleId *)argument;
+		// RoleStatusRes *res = (RoleStatusRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

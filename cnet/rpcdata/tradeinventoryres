@@ -1,0 +1,70 @@
+#ifndef __GNET_TRADEINVENTORYRES_RPCDATA
+#define __GNET_TRADEINVENTORYRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "grolepocket"
+
+namespace GNET
+{
+	class TradeInventoryRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		GRolePocket pocket1;
+		GRolePocket pocket2;
+
+	public:
+		TradeInventoryRes (int l_retcode = -1)
+			: retcode(l_retcode)
+		{
+		}
+
+		TradeInventoryRes(const TradeInventoryRes &rhs)
+			: retcode(rhs.retcode),pocket1(rhs.pocket1),pocket2(rhs.pocket2) { }
+
+		Rpc::Data *Clone() const { return new TradeInventoryRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const TradeInventoryRes *r = dynamic_cast<const TradeInventoryRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				pocket1 = r->pocket1;
+				pocket2 = r->pocket2;
+			}
+			return *this;
+		}
+
+		TradeInventoryRes& operator = (const TradeInventoryRes &rhs)
+		{
+			const TradeInventoryRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				pocket1 = r->pocket1;
+				pocket2 = r->pocket2;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << pocket1;
+			os << pocket2;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> pocket1;
+			os >> pocket2;
+			return os;
+		}
+
+	};
+};
+#endif

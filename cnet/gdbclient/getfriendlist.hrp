@@ -1,0 +1,53 @@
+
+#ifndef __GNET_GETFRIENDLIST_HPP
+#define __GNET_GETFRIENDLIST_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#ifdef USE_BDB
+#include "dbbuffer.h"
+#endif
+#include "gfriendinfo"
+#include "ggroupinfo"
+#include "roleid"
+#include "friendlistres"
+
+namespace GNET
+{
+
+class GetFriendList : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getfriendlist"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+#ifdef USE_BDB
+		RoleId *arg = (RoleId *)argument;
+		FriendListRes *res = (FriendListRes *)result;
+		Marshal::OctetsStream key, value;
+		key << *arg;
+		res->retcode = DBBuffer::buf_find( "friends", key, value );
+		if( 0 == res->retcode )
+			value >> res->value;
+#endif
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// RoleId *arg = (RoleId *)argument;
+		// FriendListRes *res = (FriendListRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

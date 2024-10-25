@@ -1,0 +1,133 @@
+
+#ifndef __GNET_GETROLEINFO_HPP
+#define __GNET_GETROLEINFO_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "grolebase"                    
+#include "grolestatus"          
+#include "grolepocket"   
+#include "groleinfo"   
+#include "roleid"
+#include "roleinfores"
+
+namespace GNET
+{
+
+class GetRoleInfo : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getroleinfo"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		RoleId *arg = (RoleId *)argument;
+		RoleInfoRes *res = (RoleInfoRes *)result;
+		Marshal::OctetsStream key, value_status, value_equipment, user_key;
+		LOG_TRACE( "GetRoleInfo, roleid=%d.\n",arg->id);
+		try
+		{
+			StorageEnv::Storage * puser = StorageEnv::GetStorage("user");
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::Storage * pstatus = StorageEnv::GetStorage("status");
+			StorageEnv::Storage * pequipment = StorageEnv::GetStorage("equipment");
+			StorageEnv::AtomTransaction txn;
+			try
+			{
+				key << *arg;
+				GRoleBase       base;
+				Marshal::OctetsStream(pbase->find( key, txn )) >> base;
+				res->retcode = ERR_SUCCESS;
+				res->value.id = arg->id;
+				res->value.name.swap(base.name);
+				res->value.race = base.race;
+				res->value.cls  = base.cls;
+				res->value.gender = base.gender;
+				res->value.custom_data.swap(base.custom_data); 
+				res->value.custom_stamp = base.custom_stamp;
+				res->value.status = base.status;
+				res->value.create_time = base.create_time;
+				res->value.delete_time = base.delete_time;
+				res->value.lastlogin_time = base.lastlogin_time;
+				res->value.forbid.swap(base.forbid);
+				if (res->value.status == _ROLE_STATUS_READYDEL && Timer::GetTime()-res->value.delete_time 
+					> GameDBManager::GetInstance()->GetDeleteRole_Timeout())
+					res->value.status =  _ROLE_STATUS_MUSTDEL;
+				
+				if (base.cross_data.size() > 0) {
+					CrossInfoData crs_info;
+					Marshal::OctetsStream(base.cross_data) >> crs_info;
+					res->value.cross_data = crs_info;
+				}
+
+				GRoleStatus     status;
+				if(pstatus->find( key, value_status, txn ))
+				{
+					value_status >> status;
+					res->value.level = status.level;
+					res->value.level2 = status.level2;
+					res->value.posx = status.posx;
+					res->value.posy = status.posy;
+					res->value.posz = status.posz;
+					res->value.worldtag = status.worldtag;
+					res->value.custom_status = status.custom_status;
+					res->value.charactermode = status.charactermode;
+					res->value.reincarnation_data = status.reincarnation_data;
+					res->value.realm_data = status.realm_data;
+				}
+				if( pequipment->find( key, value_equipment, txn ) )
+					value_equipment >> res->value.equipment;
+				//获取上线roleid
+				int userid = (0==base.userid ? LOGICUID(base.id) : base.userid);	
+				user_key << userid;
+				User u;
+				Marshal::OctetsStream(puser->find( user_key, txn )) >> u;
+				res->value.cash_add = u.cash_add;
+				GRefStore ref_store;
+				if (u.reference.size())
+				{
+					Marshal::OctetsStream   os_ref(u.reference);
+					Marshal::OctetsStream value_referrer;
+					os_ref >> ref_store;
+					if (ref_store.referrer_roleid != -1 && 
+						!pbase->find(Marshal::OctetsStream()<<ref_store.referrer_roleid, value_referrer, txn))
+					{
+						LOG_TRACE("GetRoleInfo, roleid %d referrer_role[%d] has been deleted", arg->id, ref_store.referrer_roleid);
+						ref_store.referrer_roleid = -1;
+						u.reference = Marshal::OctetsStream() << ref_store;
+						puser->insert( user_key, Marshal::OctetsStream()<<u, txn );
+					}
+					res->value.referrer_role = ref_store.referrer_roleid;
+				}
+			}
+			catch ( DbException e ) { throw; }
+                	catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "GetRoleInfo, roleid=%d, what=%s\n", arg->id, e.what() );
+			res->retcode = ERR_DATANOTFIND;
+		}
+
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

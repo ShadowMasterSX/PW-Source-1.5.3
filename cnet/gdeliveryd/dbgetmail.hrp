@@ -1,0 +1,81 @@
+
+#ifndef __GNET_DBGETMAIL_HPP
+#define __GNET_DBGETMAIL_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "gmailid"
+#include "gmailheader"
+#include "gmail"
+#include "dbgetmailres"
+#include "postoffice.h"
+#include "getmail_re.hpp"
+#include "mapuser.h"
+#include "namemanager.h"
+namespace GNET
+{
+
+class DBGetMail : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbgetmail"
+#undef	RPC_BASECLASS
+	unsigned int save_linksid;
+	unsigned int save_localsid;
+	void _patch_mail( GMail& mail )
+	{
+		if (mail.header.sndr_type==_MST_WEB) mail.header.sndr_type=_MST_PLAYER;
+	}
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// GMailID *arg = (GMailID *)argument;
+		// DBGetMailRes *res = (DBGetMailRes *)result;
+	}
+	void SendResult(int retcode,const GMailID& arg,const GMail& mail=GMail() )
+	{
+		Thread::RWLock::RDScoped l(UserContainer::GetInstance().GetLocker());
+		PlayerInfo * pinfo = UserContainer::GetInstance().FindRoleOnline( arg.roleid );
+		if ( NULL!=pinfo )
+		{
+			GDeliveryServer::GetInstance()->Send(
+				save_linksid,
+				GetMail_Re( retcode,arg.roleid,save_localsid,mail )
+			);
+		}
+	}
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		GMailID *arg = (GMailID *)argument;
+		DBGetMailRes *res = (DBGetMailRes *)result;
+		DEBUG_PRINT("dbgetmail. rpc return. retcode=%d,roleid=%d,mailid=%d,localsid=%d\n",
+				res->retcode,arg->roleid,res->mail.header.id,save_localsid);
+		if ( res->retcode == ERR_SUCCESS )
+		{
+			Octets name;
+			if (NameManager::GetInstance()->FindName(res->mail.header.sender, name))
+			{
+				res->mail.header.sender_name = name;
+			}
+			_patch_mail( res->mail );
+			SendResult( ERR_SUCCESS,*arg,res->mail );
+			PostOffice::GetInstance().MarkReadMail( arg->roleid,res->mail.header.id );
+		}
+		else
+			SendResult( res->retcode,*arg );
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		// TODO Client Only
+		GMailID *arg = (GMailID *)argument;
+		Log::log(LOG_ERR,"dbgetmail: timeout. roleid=%d,mailid=%d,localsid=%d\n",
+				arg->roleid,arg->mail_id,save_localsid);
+		SendResult( ERR_TIMEOUT,*arg );
+	}
+
+};
+
+};
+#endif

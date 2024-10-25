@@ -1,0 +1,71 @@
+
+#ifndef __GNET_DBAUTOLOCKSETOFFLINE_HPP
+#define __GNET_DBAUTOLOCKSETOFFLINE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbautolocksetofflinearg"
+#include "dbautolocksetofflineres"
+#include "iwebautolockset_re.hpp"
+
+namespace GNET
+{
+
+class DBAutolockSetOffline : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbautolocksetoffline"
+#undef	RPC_BASECLASS
+	int save_sid;
+	int save_tid; // iweb用
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBAutolockSetOfflineArg *arg = (DBAutolockSetOfflineArg *)argument;
+		// DBAutolockSetOfflineRes *res = (DBAutolockSetOfflineRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBAutolockSetOfflineArg *arg = (DBAutolockSetOfflineArg *)argument;
+		DBAutolockSetOfflineRes *res = (DBAutolockSetOfflineRes *)result;
+		GDeliveryServer* dsm=GDeliveryServer::GetInstance();
+		if(res->retcode==ERR_SUCCESS)
+		{
+			dsm->Send(save_sid, IWebAutolockSet_Re(save_tid, ERR_SUCCESS, arg->userid));
+
+			Thread::RWLock::RDScoped l(UserContainer::GetInstance().GetLocker());
+			UserInfo * pinfo = UserContainer::GetInstance().FindUser(arg->userid);
+			if(pinfo && pinfo->rolelist.IsRoleListInitialed())
+			{
+				// 用户已获取User数据
+				pinfo->autolock = res->autolock;
+
+				if (pinfo->status==_STATUS_ONGAME)
+				{
+					//对在线的用户立即生效
+					int locktime,timeout,settime;
+					pinfo->GetLocktime(locktime,timeout,settime);
+					GProviderServer::GetInstance()->DispatchProtocol(pinfo->gameid,AutolockChanged(pinfo->roleid,locktime,timeout,settime));
+				}
+			}
+		}
+		else
+		{
+			dsm->Send(save_sid, IWebAutolockSet_Re(save_tid, res->retcode, arg->userid));
+		}
+	}
+
+	void OnTimeout()
+	{
+		DBAutolockSetOfflineArg *arg = (DBAutolockSetOfflineArg *)argument;
+		GDeliveryServer* dsm=GDeliveryServer::GetInstance();
+		dsm->Send(save_sid, IWebAutolockSet_Re(save_tid, ERR_DATABASE_TIMEOUT, arg->userid));
+	}
+
+};
+
+};
+#endif

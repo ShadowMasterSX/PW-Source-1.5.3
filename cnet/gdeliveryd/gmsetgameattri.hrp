@@ -1,0 +1,120 @@
+
+#ifndef __GNET_GMSETGAMEATTRI_HPP
+#define __GNET_GMSETGAMEATTRI_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "gmsetgameattriarg"
+#include "gmsetgameattrires"
+
+#include "mapgameattr.h"
+#include "querygameserverattr_re.hpp"
+#include "gproviderserver.hpp"
+#include "privilege.hxx"
+#include "maplinkserver.h"
+#include "announceserverattribute.hpp"
+namespace GNET
+{
+
+class GMSetGameAttri : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "gmsetgameattri"
+#undef	RPC_BASECLASS
+	void AnnounceLink()
+	{
+		LinkServer::GetInstance().BroadcastProtocol(
+				AnnounceServerAttribute( GDeliveryServer::GetInstance()->serverAttr.GetAttr(), GDeliveryServer::GetInstance()->freecreatime, GDeliveryServer::GetInstance()->serverAttr.GetExpRate() ));
+	}
+	void UpdateServerAttr( unsigned char attribute,const Octets& value)
+	{
+		try
+		{
+			GDeliveryServer* dsm=GDeliveryServer::GetInstance();
+			Marshal::OctetsStream os(value);
+			switch ( attribute )
+			{
+				case Privilege::PRV_DOUBLEEXP:
+				{
+					unsigned char blOn=0;
+					os >> blOn;
+					// dsm->serverAttr.SetDoubleExp(blOn);
+					dsm->serverAttr.SetExpRate(blOn);
+					break;
+				}
+				case Privilege::PRV_DOUBLEMONEY:
+				{
+					unsigned char blOn=0;
+					os >> blOn;
+					dsm->serverAttr.SetDoubleMoney(blOn);
+					break;
+				}
+				case Privilege::PRV_DOUBLEOBJECT:
+				{
+					unsigned char blOn=0;
+					os >> blOn;
+					dsm->serverAttr.SetDoubleObject(blOn);
+					break;
+				}
+				case Privilege::PRV_DOUBLESP:
+				{
+					unsigned char blOn=0;
+					os >> blOn;
+					dsm->serverAttr.SetDoubleSP(blOn);
+					break;
+				}
+				case Privilege::PRV_LAMBDA:
+				{
+					unsigned char lambda;
+					os >> lambda;
+					dsm->serverAttr.SetLambda(lambda);
+					break;
+				}
+				case Privilege::PRV_NOSELLPOINT:
+				{
+					unsigned char lambda;
+					os >> lambda;
+					dsm->serverAttr.SetSellpoint(!lambda);
+					break;
+				}
+			}//end of switch	
+			AnnounceLink();
+		}
+		catch ( Marshal::Exception e )
+		{ }
+	}
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		GMSetGameAttriArg *arg = (GMSetGameAttriArg *)argument;
+		GMSetGameAttriRes *res = (GMSetGameAttriRes *)result;
+		if ( arg->attribute != Privilege::PRV_PVP && GameAttrMap::Put( arg->attribute,arg->value ) )
+		{
+			res->retcode=ERR_SUCCESS;
+			QueryGameServerAttr_Re qgsa_re;
+			qgsa_re.attr.push_back( GameAttr(arg->attribute,arg->value) );
+			GProviderServer::GetInstance()->BroadcastProtocol( qgsa_re );
+			UpdateServerAttr( arg->attribute,arg->value );
+	        char content[256];
+	        sprintf(content,"SetGameAttr: attribute=%d,value.size=%d",arg->attribute,arg->value.size());
+			Log::gmoperate(arg->gmroleid,arg->attribute,content);
+		}
+		else
+			res->retcode=ERR_GENERAL;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// GMSetGameAttriArg *arg = (GMSetGameAttriArg *)argument;
+		// GMSetGameAttriRes *res = (GMSetGameAttriRes *)result;
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

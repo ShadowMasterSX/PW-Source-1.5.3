@@ -1,0 +1,59 @@
+#ifndef __GNET_DBSTOCKLOADARG_RPCDATA
+#define __GNET_DBSTOCKLOADARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBStockLoadArg : public GNET::Rpc::Data
+	{
+	public:
+		Octets handle;
+
+	public:
+		DBStockLoadArg (const Octets& l_handle = Octets())
+			: handle(l_handle)
+		{
+		}
+
+		DBStockLoadArg(const DBStockLoadArg &rhs)
+			: handle(rhs.handle) { }
+
+		Rpc::Data *Clone() const { return new DBStockLoadArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBStockLoadArg *r = dynamic_cast<const DBStockLoadArg *>(&rhs);
+			if (r && r != this)
+			{
+				handle = r->handle;
+			}
+			return *this;
+		}
+
+		DBStockLoadArg& operator = (const DBStockLoadArg &rhs)
+		{
+			const DBStockLoadArg *r = &rhs;
+			if (r && r != this)
+			{
+				handle = r->handle;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << handle;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> handle;
+			return os;
+		}
+
+	};
+};
+#endif

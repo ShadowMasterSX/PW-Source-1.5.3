@@ -1,0 +1,38 @@
+	public:
+		int battle_id;
+		int end_time;
+		unsigned int max_player_cnt;
+		enum { PROTOCOL_TYPE = PROTOCOL_TANKBATTLESTART };
+	public:
+		TankBattleStart() { type = PROTOCOL_TANKBATTLESTART; }
+		TankBattleStart(void*) : Protocol(PROTOCOL_TANKBATTLESTART) { }
+		TankBattleStart (int l_battle_id,int l_end_time,unsigned int l_max_player_cnt)
+			 : battle_id(l_battle_id),end_time(l_end_time),max_player_cnt(l_max_player_cnt)
+		{
+			type = PROTOCOL_TANKBATTLESTART;
+		}
+
+		TankBattleStart(const TankBattleStart &rhs)
+			: Protocol(rhs),battle_id(rhs.battle_id),end_time(rhs.end_time),max_player_cnt(rhs.max_player_cnt) { }
+
+		GNET::Protocol *Clone() const { return new TankBattleStart(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << battle_id;
+			os << end_time;
+			os << max_player_cnt;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> battle_id;
+			os >> end_time;
+			os >> max_player_cnt;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

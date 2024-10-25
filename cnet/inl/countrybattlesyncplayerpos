@@ -1,0 +1,50 @@
+	public:
+		int roleid;
+		int worldtag;
+		float posx;
+		float posy;
+		float posz;
+		char is_capital;
+		enum { PROTOCOL_TYPE = PROTOCOL_COUNTRYBATTLESYNCPLAYERPOS };
+	public:
+		CountryBattleSyncPlayerPos() { type = PROTOCOL_COUNTRYBATTLESYNCPLAYERPOS; }
+		CountryBattleSyncPlayerPos(void*) : Protocol(PROTOCOL_COUNTRYBATTLESYNCPLAYERPOS) { }
+		CountryBattleSyncPlayerPos (int l_roleid,int l_worldtag,float l_posx,
+			float l_posy,float l_posz,char l_is_capital)
+			 : roleid(l_roleid),worldtag(l_worldtag),posx(l_posx)
+			,posy(l_posy),posz(l_posz),is_capital(l_is_capital)
+		{
+			type = PROTOCOL_COUNTRYBATTLESYNCPLAYERPOS;
+		}
+
+		CountryBattleSyncPlayerPos(const CountryBattleSyncPlayerPos &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),worldtag(rhs.worldtag),posx(rhs.posx)
+			,posy(rhs.posy),posz(rhs.posz),is_capital(rhs.is_capital) { }
+
+		GNET::Protocol *Clone() const { return new CountryBattleSyncPlayerPos(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << worldtag;
+			os << posx;
+			os << posy;
+			os << posz;
+			os << is_capital;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> worldtag;
+			os >> posx;
+			os >> posy;
+			os >> posz;
+			os >> is_capital;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 128; }

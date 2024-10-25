@@ -1,0 +1,38 @@
+	public:
+		Octets version;
+		Octets nonce;
+		unsigned int localsid;
+		enum { PROTOCOL_TYPE = PROTOCOL_DOMAINVALIDATE };
+	public:
+		DomainValidate() { type = PROTOCOL_DOMAINVALIDATE; }
+		DomainValidate(void*) : Protocol(PROTOCOL_DOMAINVALIDATE) { }
+		DomainValidate (Octets l_version,Octets l_nonce,unsigned int l_localsid)
+			 : version(l_version),nonce(l_nonce),localsid(l_localsid)
+		{
+			type = PROTOCOL_DOMAINVALIDATE;
+		}
+
+		DomainValidate(const DomainValidate &rhs)
+			: Protocol(rhs),version(rhs.version),nonce(rhs.nonce),localsid(rhs.localsid) { }
+
+		GNET::Protocol *Clone() const { return new DomainValidate(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << version;
+			os << nonce;
+			os << localsid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> version;
+			os >> nonce;
+			os >> localsid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1024; }

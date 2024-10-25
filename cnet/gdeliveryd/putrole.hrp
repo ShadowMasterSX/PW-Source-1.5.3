@@ -1,0 +1,51 @@
+
+#ifndef __GNET_PUTROLE_HPP
+#define __GNET_PUTROLE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#ifdef USE_BDB
+#include "dbbuffer.h"
+#endif
+#include "rolepair"
+
+#include "putuser.hrp"
+#include "createrole_re.hpp"
+#include "gdeliveryserver.hpp"
+#include "gamedbclient.hpp"
+namespace GNET
+{
+
+class PutRole : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "putrole"
+#undef	RPC_BASECLASS
+	unsigned int save_link_sid;
+	unsigned int save_localsid;
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+#ifdef USE_BDB
+		RolePair *arg = (RolePair *)argument;
+		RpcRetcode *res = (RpcRetcode *)result;
+		Marshal::OctetsStream key, value;
+		key << arg->key;
+		value << arg->value;
+		res->retcode = DBBuffer::buf_insert( "Role", key, value );
+#endif
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

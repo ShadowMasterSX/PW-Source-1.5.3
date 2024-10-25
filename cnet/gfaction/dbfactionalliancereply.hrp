@@ -1,0 +1,55 @@
+
+#ifndef __GNET_DBFACTIONALLIANCEREPLY_HPP
+#define __GNET_DBFACTIONALLIANCEREPLY_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbfactionalliancereplyarg"
+#include "dbfactionrelationretcode"
+
+
+namespace GNET
+{
+
+class DBFactionAllianceReply : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbfactionalliancereply"
+#undef	RPC_BASECLASS
+	OperWrapper::wref_t oper;
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBFactionAllianceReplyArg *arg = (DBFactionAllianceReplyArg *)argument;
+		// DBFactionRelationRetcode *res = (DBFactionRelationRetcode *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		DBFactionAllianceReplyArg *arg = (DBFactionAllianceReplyArg *)argument;
+		DBFactionRelationRetcode *res = (DBFactionRelationRetcode *)result;
+		
+		OperWrapper::href_t ref(oper);
+		if(ref)
+		{
+			ref->SetResult(result);
+			ref->Execute();
+		}
+		if(res->retcode==ERR_SUCCESS)
+			Factiondb::GetInstance()->OnAllianceReply(arg->fid, arg->dst_fid, arg->agree, arg->end_time, res->fname1, res->fname2);
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+		DBFactionAllianceReplyArg *arg = (DBFactionAllianceReplyArg *)argument;
+		Log::log(LOG_ERR,"DBFactionAllianceReply timeout. fid=%d, dst_fid=%d.", arg->fid, arg->dst_fid);
+	}
+
+};
+
+};
+#endif

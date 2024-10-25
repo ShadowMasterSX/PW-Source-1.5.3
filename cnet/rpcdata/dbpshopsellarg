@@ -1,0 +1,96 @@
+#ifndef __GNET_DBPSHOPSELLARG_RPCDATA
+#define __GNET_DBPSHOPSELLARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailsyncdata"
+
+namespace GNET
+{
+	class DBPShopSellArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		int item_id;
+		int item_pos;
+		int item_count;
+		unsigned int item_price;
+		int inv_pos;
+		GMailSyncData syncdata;
+
+	public:
+		DBPShopSellArg (int l_roleid = 0,int l_item_id = 0,int l_item_pos = 0
+			,int l_item_count = 0,unsigned int l_item_price = 0,int l_inv_pos = 0
+			,const GMailSyncData& l_syncdata = GMailSyncData())
+			: roleid(l_roleid),item_id(l_item_id),item_pos(l_item_pos)
+			,item_count(l_item_count),item_price(l_item_price),inv_pos(l_inv_pos)
+			,syncdata(l_syncdata)
+		{
+		}
+
+		DBPShopSellArg(const DBPShopSellArg &rhs)
+			: roleid(rhs.roleid),item_id(rhs.item_id),item_pos(rhs.item_pos),
+			item_count(rhs.item_count),item_price(rhs.item_price),inv_pos(rhs.inv_pos),
+			syncdata(rhs.syncdata) { }
+
+		Rpc::Data *Clone() const { return new DBPShopSellArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPShopSellArg *r = dynamic_cast<const DBPShopSellArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				item_id = r->item_id;
+				item_pos = r->item_pos;
+				item_count = r->item_count;
+				item_price = r->item_price;
+				inv_pos = r->inv_pos;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		DBPShopSellArg& operator = (const DBPShopSellArg &rhs)
+		{
+			const DBPShopSellArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				item_id = r->item_id;
+				item_pos = r->item_pos;
+				item_count = r->item_count;
+				item_price = r->item_price;
+				inv_pos = r->inv_pos;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << item_id;
+			os << item_pos;
+			os << item_count;
+			os << item_price;
+			os << inv_pos;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> item_id;
+			os >> item_pos;
+			os >> item_count;
+			os >> item_price;
+			os >> inv_pos;
+			os >> syncdata;
+			return os;
+		}
+
+	};
+};
+#endif

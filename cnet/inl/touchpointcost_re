@@ -1,0 +1,50 @@
+	public:
+		int roleid;
+		int64_t orderid;
+		unsigned int cost;
+		int64_t income;
+		int64_t remain;
+		int retcode;
+		enum { PROTOCOL_TYPE = PROTOCOL_TOUCHPOINTCOST_RE };
+	public:
+		TouchPointCost_Re() { type = PROTOCOL_TOUCHPOINTCOST_RE; }
+		TouchPointCost_Re(void*) : Protocol(PROTOCOL_TOUCHPOINTCOST_RE) { }
+		TouchPointCost_Re (int l_roleid,int64_t l_orderid,unsigned int l_cost,
+			int64_t l_income,int64_t l_remain,int l_retcode)
+			 : roleid(l_roleid),orderid(l_orderid),cost(l_cost)
+			,income(l_income),remain(l_remain),retcode(l_retcode)
+		{
+			type = PROTOCOL_TOUCHPOINTCOST_RE;
+		}
+
+		TouchPointCost_Re(const TouchPointCost_Re &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),orderid(rhs.orderid),cost(rhs.cost)
+			,income(rhs.income),remain(rhs.remain),retcode(rhs.retcode) { }
+
+		GNET::Protocol *Clone() const { return new TouchPointCost_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << orderid;
+			os << cost;
+			os << income;
+			os << remain;
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> orderid;
+			os >> cost;
+			os >> income;
+			os >> remain;
+			os >> retcode;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

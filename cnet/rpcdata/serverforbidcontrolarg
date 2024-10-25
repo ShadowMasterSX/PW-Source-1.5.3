@@ -1,0 +1,64 @@
+#ifndef __GNET_SERVERFORBIDCONTROLARG_RPCDATA
+#define __GNET_SERVERFORBIDCONTROLARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class ServerForbidControlArg : public GNET::Rpc::Data
+	{
+	public:
+		char oper;
+		Octets param;
+
+	public:
+		ServerForbidControlArg (char l_oper = 0)
+			: oper(l_oper)
+		{
+		}
+
+		ServerForbidControlArg(const ServerForbidControlArg &rhs)
+			: oper(rhs.oper),param(rhs.param) { }
+
+		Rpc::Data *Clone() const { return new ServerForbidControlArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const ServerForbidControlArg *r = dynamic_cast<const ServerForbidControlArg *>(&rhs);
+			if (r && r != this)
+			{
+				oper = r->oper;
+				param = r->param;
+			}
+			return *this;
+		}
+
+		ServerForbidControlArg& operator = (const ServerForbidControlArg &rhs)
+		{
+			const ServerForbidControlArg *r = &rhs;
+			if (r && r != this)
+			{
+				oper = r->oper;
+				param = r->param;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << oper;
+			os << param;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> oper;
+			os >> param;
+			return os;
+		}
+
+	};
+};
+#endif

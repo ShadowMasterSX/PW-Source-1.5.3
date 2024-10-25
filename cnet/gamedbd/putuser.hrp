@@ -1,0 +1,67 @@
+
+#ifndef __GNET_PUTUSER_HPP
+#define __GNET_PUTUSER_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "dbbuffer.h"
+#include "userpair"
+
+
+namespace GNET
+{
+
+class PutUser : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "putuser"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		UserPair *arg = (UserPair *)argument;
+		RpcRetcode *res = (RpcRetcode *)result;
+
+		LOG_TRACE( "PutUser, userid=%d.\n", arg->key.id );
+
+		try
+		{
+			StorageEnv::Storage * puser = StorageEnv::GetStorage("user");
+			StorageEnv::AtomTransaction txn;
+			try
+			{
+				puser->insert( Marshal::OctetsStream() << arg->key, Marshal::OctetsStream() << arg->value, txn );
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "PutUser, userid=%d, what=%s\n", arg->key.id, e.what() );
+			res->retcode = -1;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// UserPair *arg = (UserPair *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

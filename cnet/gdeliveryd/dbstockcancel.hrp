@@ -1,0 +1,69 @@
+
+#ifndef __GNET_DBSTOCKCANCEL_HPP
+#define __GNET_DBSTOCKCANCEL_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbstockcancelarg"
+#include "dbstockcancelres"
+#include "stockcancel_re.hpp"
+#include "gdeliveryserver.hpp"
+#include "gamedbclient.hpp"
+
+namespace GNET
+{
+
+class DBStockCancel : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbstockcancel"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBStockCancelArg *arg = (DBStockCancelArg *)argument;
+		// DBStockCancelRes *res = (DBStockCancelRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBStockCancelArg *arg = (DBStockCancelArg *)argument;
+		DBStockCancelRes *res = (DBStockCancelRes *)result;
+
+		if(res->retcode==ERR_SUCCESS || res->retcode==ERR_NOTFOUND)
+		{
+			StockExchange::Instance()->PostCancel(arg->userid,arg->tid,arg->result,res->cash,res->money);
+
+			Thread::RWLock::RDScoped l(UserContainer::GetInstance().GetLocker());
+			UserInfo * pinfo = UserContainer::GetInstance().FindUser(arg->userid);
+			if(pinfo )
+			{
+				StockCancel_Re ret;
+				ret.retcode = res->retcode? ERR_STOCK_DATABASE : 0;
+				ret.tid = arg->tid;
+				ret.localsid = pinfo->localsid;
+				GDeliveryServer::GetInstance()->Send(pinfo->linksid,ret);
+			}
+		}
+		else
+		{
+			// 相关账户将锁定一段时间
+			Log::log( LOG_ERR, "DBStockCancel, critical error, userid=%d, tid=%d, retcode=%d",
+					arg->userid, arg->tid, res->retcode );
+		}
+	}
+
+	void OnTimeout()
+	{
+		DBStockCancelArg *arg = (DBStockCancelArg*)argument;
+		GameDBClient::GetInstance()->SendProtocol( Rpc::Call(RPC_DBSTOCKCANCEL,arg));
+
+		Log::log(LOG_ERR,"dbstockcancel: rpc timeout, tid=%d, userid=%d", arg->tid, arg->userid);
+	}
+
+};
+
+};
+#endif

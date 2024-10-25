@@ -1,0 +1,38 @@
+	public:
+		ACQ acq;
+		ACThreadTime process_time;
+		ACThreadTimeVector thread_times;
+		enum { PROTOCOL_TYPE = PROTOCOL_ACQTHREADTIMES };
+	public:
+		ACQThreadTimes() { type = PROTOCOL_ACQTHREADTIMES; }
+		ACQThreadTimes(void*) : Protocol(PROTOCOL_ACQTHREADTIMES) { }
+		ACQThreadTimes (ACQ l_acq,ACThreadTime l_process_time,ACThreadTimeVector l_thread_times)
+			 : acq(l_acq),process_time(l_process_time),thread_times(l_thread_times)
+		{
+			type = PROTOCOL_ACQTHREADTIMES;
+		}
+
+		ACQThreadTimes(const ACQThreadTimes &rhs)
+			: Protocol(rhs),acq(rhs.acq),process_time(rhs.process_time),thread_times(rhs.thread_times) { }
+
+		GNET::Protocol *Clone() const { return new ACQThreadTimes(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << acq;
+			os << process_time;
+			os << thread_times;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> acq;
+			os >> process_time;
+			os >> thread_times;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1048576; }

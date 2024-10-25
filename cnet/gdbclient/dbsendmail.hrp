@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBSENDMAIL_HPP
+#define __GNET_DBSENDMAIL_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbsendmailarg"
+#include "dbsendmailres"
+
+namespace GNET
+{
+
+class DBSendMail : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbsendmail"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBSendMailArg *arg = (DBSendMailArg *)argument;
+		// DBSendMailRes *res = (DBSendMailRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBSendMailArg *arg = (DBSendMailArg *)argument;
+		// DBSendMailRes *res = (DBSendMailRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

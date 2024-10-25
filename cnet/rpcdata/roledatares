@@ -1,0 +1,65 @@
+#ifndef __GNET_ROLEDATARES_RPCDATA
+#define __GNET_ROLEDATARES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "groledata"
+
+namespace GNET
+{
+	class RoleDataRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		GRoleData value;
+
+	public:
+		RoleDataRes (int l_retcode = -1)
+			: retcode(l_retcode)
+		{
+		}
+
+		RoleDataRes(const RoleDataRes &rhs)
+			: retcode(rhs.retcode),value(rhs.value) { }
+
+		Rpc::Data *Clone() const { return new RoleDataRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const RoleDataRes *r = dynamic_cast<const RoleDataRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				value = r->value;
+			}
+			return *this;
+		}
+
+		RoleDataRes& operator = (const RoleDataRes &rhs)
+		{
+			const RoleDataRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				value = r->value;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << value;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> value;
+			return os;
+		}
+
+	};
+};
+#endif

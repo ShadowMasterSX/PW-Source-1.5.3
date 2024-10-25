@@ -1,0 +1,35 @@
+	public:
+		int roleid;
+		int level;
+		enum { PROTOCOL_TYPE = PROTOCOL_PLAYERINFOUPDATE };
+	public:
+		PlayerInfoUpdate() { type = PROTOCOL_PLAYERINFOUPDATE; }
+		PlayerInfoUpdate(void*) : Protocol(PROTOCOL_PLAYERINFOUPDATE) { }
+		PlayerInfoUpdate (int l_roleid,int l_level)
+			 : roleid(l_roleid),level(l_level)
+		{
+			type = PROTOCOL_PLAYERINFOUPDATE;
+		}
+
+		PlayerInfoUpdate(const PlayerInfoUpdate &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),level(rhs.level) { }
+
+		GNET::Protocol *Clone() const { return new PlayerInfoUpdate(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << level;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> level;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

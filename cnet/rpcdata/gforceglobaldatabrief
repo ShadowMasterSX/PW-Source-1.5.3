@@ -1,0 +1,87 @@
+#ifndef __GNET_GFORCEGLOBALDATABRIEF_RPCDATA
+#define __GNET_GFORCEGLOBALDATABRIEF_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GForceGlobalDataBrief : public GNET::Rpc::Data
+	{
+	public:
+		int force_id;
+		int player_count;
+		int development;
+		int construction;
+		int activity;
+		int activity_level;
+
+	public:
+		GForceGlobalDataBrief (int l_force_id = 0,int l_player_count = 0,int l_development = 0
+			,int l_construction = 0,int l_activity = 0,int l_activity_level = 0)
+			: force_id(l_force_id),player_count(l_player_count),development(l_development)
+			,construction(l_construction),activity(l_activity),activity_level(l_activity_level)
+		{
+		}
+
+		GForceGlobalDataBrief(const GForceGlobalDataBrief &rhs)
+			: force_id(rhs.force_id),player_count(rhs.player_count),development(rhs.development),
+			construction(rhs.construction),activity(rhs.activity),activity_level(rhs.activity_level) { }
+
+		Rpc::Data *Clone() const { return new GForceGlobalDataBrief(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GForceGlobalDataBrief *r = dynamic_cast<const GForceGlobalDataBrief *>(&rhs);
+			if (r && r != this)
+			{
+				force_id = r->force_id;
+				player_count = r->player_count;
+				development = r->development;
+				construction = r->construction;
+				activity = r->activity;
+				activity_level = r->activity_level;
+			}
+			return *this;
+		}
+
+		GForceGlobalDataBrief& operator = (const GForceGlobalDataBrief &rhs)
+		{
+			const GForceGlobalDataBrief *r = &rhs;
+			if (r && r != this)
+			{
+				force_id = r->force_id;
+				player_count = r->player_count;
+				development = r->development;
+				construction = r->construction;
+				activity = r->activity;
+				activity_level = r->activity_level;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << force_id;
+			os << player_count;
+			os << development;
+			os << construction;
+			os << activity;
+			os << activity_level;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> force_id;
+			os >> player_count;
+			os >> development;
+			os >> construction;
+			os >> activity;
+			os >> activity_level;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,59 @@
+#ifndef __GNET_GROLETABLEUSER_RPCDATA
+#define __GNET_GROLETABLEUSER_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "user"
+
+namespace GNET
+{
+	class GRoleTableUser : public GNET::Rpc::Data
+	{
+	public:
+		User user;
+
+	public:
+		GRoleTableUser ()
+		{
+		}
+
+		GRoleTableUser(const GRoleTableUser &rhs)
+			: user(rhs.user) { }
+
+		Rpc::Data *Clone() const { return new GRoleTableUser(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GRoleTableUser *r = dynamic_cast<const GRoleTableUser *>(&rhs);
+			if (r && r != this)
+			{
+				user = r->user;
+			}
+			return *this;
+		}
+
+		GRoleTableUser& operator = (const GRoleTableUser &rhs)
+		{
+			const GRoleTableUser *r = &rhs;
+			if (r && r != this)
+			{
+				user = r->user;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << user;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> user;
+			return os;
+		}
+
+	};
+};
+#endif

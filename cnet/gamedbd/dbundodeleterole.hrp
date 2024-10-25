@@ -1,0 +1,102 @@
+
+#ifndef __GNET_DBUNDODELETEROLE_HPP
+#define __GNET_DBUNDODELETEROLE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "dbbuffer.h"
+
+#include "dbundodeleterolearg"
+#include "dbundodeleteroleres"
+
+#include "roleid"
+#include "grolebase"
+#include "grolestatus"
+namespace GNET
+{
+
+class DBUndoDeleteRole : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbundodeleterole"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBUndoDeleteRoleArg *arg = (DBUndoDeleteRoleArg *)argument;
+		DBUndoDeleteRoleRes *res = (DBUndoDeleteRoleRes *)result;
+
+		Marshal::OctetsStream key,value;
+
+		try
+		{
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::Storage * pstatus = StorageEnv::GetStorage("status");
+			StorageEnv::Storage * pwaitdel = StorageEnv::GetStorage("waitdel");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				key<<RoleId(arg->roleid);
+				GRoleBase base;
+				Marshal::OctetsStream(pbase->find( key, txn )) >> base;
+				base.status = _ROLE_STATUS_NORMAL;
+				pbase->insert( key, Marshal::OctetsStream() << base, txn );
+
+				GRoleStatus status;
+				if (pstatus->find( key, value, txn ) )
+				{
+					try { value >> status; }
+					catch ( Marshal::Exception & )
+					{
+						Log::log(LOG_ERR,"DBUndoDeleteRole, error unmarshal status. roleid=%d.", arg->roleid);
+						GameDBManager::GetInstance()->GetClsPos( base.cls, base.gender,
+								 status.posx, status.posy, status.posz );
+					}
+				}
+				else
+				{
+					GameDBManager::GetInstance()->GetClsPos( base.cls, base.gender,
+							status.posx, status.posy, status.posz );
+				}
+				res->gameserver_id = GameDBManager::GetInstance()->FindGameServer(
+									point_t(status.posx,status.posy,status.posz));
+				res->retcode = ERR_SUCCESS;
+				res->posx=status.posx;
+				res->posy=status.posy;
+				res->posz=status.posz;
+
+				//delete role from "waitdel" table
+				pwaitdel->del( key, txn );
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBUnduDeleteRole, roleid=%d, what=%s\n", arg->roleid, e.what() );
+			res->retcode = ERR_UNDODELROLE;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBUndoDeleteRoleArg *arg = (DBUndoDeleteRoleArg *)argument;
+		// DBUndoDeleteRoleRes *res = (DBUndoDeleteRoleRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

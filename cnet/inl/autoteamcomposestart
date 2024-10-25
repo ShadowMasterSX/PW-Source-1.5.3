@@ -1,0 +1,38 @@
+	public:
+		int goal_id;
+		int roleid;
+		std::vector< int > member_list;
+		enum { PROTOCOL_TYPE = PROTOCOL_AUTOTEAMCOMPOSESTART };
+	public:
+		AutoTeamComposeStart() { type = PROTOCOL_AUTOTEAMCOMPOSESTART; }
+		AutoTeamComposeStart(void*) : Protocol(PROTOCOL_AUTOTEAMCOMPOSESTART) { }
+		AutoTeamComposeStart (int l_goal_id,int l_roleid,const std::vector< int >& l_member_list)
+			 : goal_id(l_goal_id),roleid(l_roleid),member_list(l_member_list)
+		{
+			type = PROTOCOL_AUTOTEAMCOMPOSESTART;
+		}
+
+		AutoTeamComposeStart(const AutoTeamComposeStart &rhs)
+			: Protocol(rhs),goal_id(rhs.goal_id),roleid(rhs.roleid),member_list(rhs.member_list) { }
+
+		GNET::Protocol *Clone() const { return new AutoTeamComposeStart(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << goal_id;
+			os << roleid;
+			os << member_list;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> goal_id;
+			os >> roleid;
+			os >> member_list;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1024; }

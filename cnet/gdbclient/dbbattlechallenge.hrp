@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBBATTLECHALLENGE_HPP
+#define __GNET_DBBATTLECHALLENGE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbbattlechallengearg"
+#include "dbbattlechallengeres"
+
+namespace GNET
+{
+
+class DBBattleChallenge : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbbattlechallenge"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBBattleChallengeArg *arg = (DBBattleChallengeArg *)argument;
+		// DBBattleChallengeRes *res = (DBBattleChallengeRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBBattleChallengeArg *arg = (DBBattleChallengeArg *)argument;
+		// DBBattleChallengeRes *res = (DBBattleChallengeRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,65 @@
+#ifndef __GNET_DBAUTOLOCKSETOFFLINERES_RPCDATA
+#define __GNET_DBAUTOLOCKSETOFFLINERES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gpair"
+
+namespace GNET
+{
+	class DBAutolockSetOfflineRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		std::vector<GPair> autolock;
+
+	public:
+		DBAutolockSetOfflineRes (std::vector<GPair> l_autolock = std::vector<GPair>())
+			: autolock(l_autolock)
+		{
+		}
+
+		DBAutolockSetOfflineRes(const DBAutolockSetOfflineRes &rhs)
+			: retcode(rhs.retcode),autolock(rhs.autolock) { }
+
+		Rpc::Data *Clone() const { return new DBAutolockSetOfflineRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBAutolockSetOfflineRes *r = dynamic_cast<const DBAutolockSetOfflineRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				autolock = r->autolock;
+			}
+			return *this;
+		}
+
+		DBAutolockSetOfflineRes& operator = (const DBAutolockSetOfflineRes &rhs)
+		{
+			const DBAutolockSetOfflineRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				autolock = r->autolock;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << autolock;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> autolock;
+			return os;
+		}
+
+	};
+};
+#endif

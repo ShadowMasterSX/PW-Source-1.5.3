@@ -1,0 +1,35 @@
+	public:
+		int64_t localuid;
+		FactionIDBean factionid;
+		enum { PROTOCOL_TYPE = PROTOCOL_FACTIONINFOREQ };
+	public:
+		FactionInfoReq() { type = PROTOCOL_FACTIONINFOREQ; }
+		FactionInfoReq(void*) : Protocol(PROTOCOL_FACTIONINFOREQ) { }
+		FactionInfoReq (int64_t l_localuid,const FactionIDBean& l_factionid)
+			 : localuid(l_localuid),factionid(l_factionid)
+		{
+			type = PROTOCOL_FACTIONINFOREQ;
+		}
+
+		FactionInfoReq(const FactionInfoReq &rhs)
+			: Protocol(rhs),localuid(rhs.localuid),factionid(rhs.factionid) { }
+
+		GNET::Protocol *Clone() const { return new FactionInfoReq(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << localuid;
+			os << factionid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> localuid;
+			os >> factionid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 32; }

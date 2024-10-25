@@ -1,0 +1,67 @@
+
+#ifndef __GNET_DBKELOAD_HPP
+#define __GNET_DBKELOAD_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbkeloadarg"
+#include "dbkeloadres"
+
+namespace GNET
+{
+
+class DBKELoad : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbkeload"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		//DBKELoadArg *arg = (DBKELoadArg *)argument;
+		DBKELoadRes *res = (DBKELoadRes *)result;
+		try
+		{
+			StorageEnv::Storage * pking = StorageEnv::GetStorage("kingelection");
+			StorageEnv::AtomTransaction txn;
+			Marshal::OctetsStream value;
+			try
+			{
+				if(pking->find(Marshal::OctetsStream()<<(int)0,value,txn))
+					value >> res->detail;
+				res->retcode = ERR_SUCCESS;
+				LOG_TRACE("DBKELoad, king=%d.", res->detail.king.roleid);
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBKELoad, what=%s\n", e.what() );
+			res->retcode = ERR_EXCEPTION;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBKELoadArg *arg = (DBKELoadArg *)argument;
+		// DBKELoadRes *res = (DBKELoadRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

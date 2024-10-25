@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBPUTFORCE_HPP
+#define __GNET_DBPUTFORCE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbputforcearg"
+#include "dbputforceres"
+
+namespace GNET
+{
+
+class DBPutForce : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbputforce"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBPutForceArg *arg = (DBPutForceArg *)argument;
+		// DBPutForceRes *res = (DBPutForceRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBPutForceArg *arg = (DBPutForceArg *)argument;
+		// DBPutForceRes *res = (DBPutForceRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

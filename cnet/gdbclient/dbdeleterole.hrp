@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBDELETEROLE_HPP
+#define __GNET_DBDELETEROLE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbdeleterolearg"
+#include "dbdeleteroleres"
+
+namespace GNET
+{
+
+class DBDeleteRole : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbdeleterole"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBDeleteRoleArg *arg = (DBDeleteRoleArg *)argument;
+		// DBDeleteRoleRes *res = (DBDeleteRoleRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBDeleteRoleArg *arg = (DBDeleteRoleArg *)argument;
+		// DBDeleteRoleRes *res = (DBDeleteRoleRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

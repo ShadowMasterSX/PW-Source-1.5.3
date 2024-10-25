@@ -1,0 +1,42 @@
+
+#ifndef __GNET_TRANSACTIONABORT_HPP
+#define __GNET_TRANSACTIONABORT_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "transactionid"
+
+
+namespace GNET
+{
+
+class TransactionAbort : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "transactionabort"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TransactionId *arg = (TransactionId *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// TransactionId *arg = (TransactionId *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

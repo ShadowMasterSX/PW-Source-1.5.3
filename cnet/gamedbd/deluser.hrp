@@ -1,0 +1,67 @@
+
+#ifndef __GNET_DELUSER_HPP
+#define __GNET_DELUSER_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "dbbuffer.h"
+#include "userid"
+
+
+namespace GNET
+{
+
+class DelUser : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "deluser"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		UserID *arg = (UserID *)argument;
+		RpcRetcode *res = (RpcRetcode *)result;
+
+		LOG_TRACE( "DelUser, userid=%d.\n", arg->id );
+
+		try
+		{
+			StorageEnv::Storage * puser = StorageEnv::GetStorage("user");
+			StorageEnv::AtomTransaction txn;
+			try
+			{
+				puser->del( Marshal::OctetsStream() << *arg, txn );
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DelUser, userid=%d, what=%s\n", arg->id, e.what() );
+			res->retcode = -1;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// UserID *arg = (UserID *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

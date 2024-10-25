@@ -1,0 +1,44 @@
+	public:
+		int64_t roleid;
+		RoleStatusBean status;
+		std::vector<int64_t> friends;
+		FactionIDBeanVector factions;
+		enum { PROTOCOL_TYPE = PROTOCOL_ROLESTATUSUPDATE };
+	public:
+		RoleStatusUpdate() { type = PROTOCOL_ROLESTATUSUPDATE; }
+		RoleStatusUpdate(void*) : Protocol(PROTOCOL_ROLESTATUSUPDATE) { }
+		RoleStatusUpdate (int64_t l_roleid,const RoleStatusBean& l_status = RoleStatusBean(),const std::vector<int64_t>& l_friends = std::vector<int64_t>(),
+			const FactionIDBeanVector& l_factions = FactionIDBeanVector())
+			 : roleid(l_roleid),status(l_status),friends(l_friends)
+			,factions(l_factions)
+		{
+			type = PROTOCOL_ROLESTATUSUPDATE;
+		}
+
+		RoleStatusUpdate(const RoleStatusUpdate &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),status(rhs.status),friends(rhs.friends)
+			,factions(rhs.factions) { }
+
+		GNET::Protocol *Clone() const { return new RoleStatusUpdate(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << status;
+			os << friends;
+			os << factions;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> status;
+			os >> friends;
+			os >> factions;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1024; }

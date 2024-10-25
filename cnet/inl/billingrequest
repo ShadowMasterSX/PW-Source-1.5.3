@@ -1,0 +1,68 @@
+	public:
+		int userid;
+		int request;
+		int result;
+		int itemid;
+		int itemnum;
+		int timeout;
+		int amount;
+		Octets menuid;
+		Octets bxtxno;
+		Octets agtxno;
+		enum { PROTOCOL_TYPE = PROTOCOL_BILLINGREQUEST };
+	public:
+		BillingRequest() { type = PROTOCOL_BILLINGREQUEST; }
+		BillingRequest(void*) : Protocol(PROTOCOL_BILLINGREQUEST) { }
+		BillingRequest (int l_userid,int l_request,int l_result,
+			int l_itemid,int l_itemnum,int l_timeout,
+			int l_amount,Octets l_menuid,Octets l_bxtxno,
+			Octets l_agtxno)
+			 : userid(l_userid),request(l_request),result(l_result)
+			,itemid(l_itemid),itemnum(l_itemnum),timeout(l_timeout)
+			,amount(l_amount),menuid(l_menuid),bxtxno(l_bxtxno)
+			,agtxno(l_agtxno)
+		{
+			type = PROTOCOL_BILLINGREQUEST;
+		}
+
+		BillingRequest(const BillingRequest &rhs)
+			: Protocol(rhs),userid(rhs.userid),request(rhs.request),result(rhs.result)
+			,itemid(rhs.itemid),itemnum(rhs.itemnum),timeout(rhs.timeout)
+			,amount(rhs.amount),menuid(rhs.menuid),bxtxno(rhs.bxtxno)
+			,agtxno(rhs.agtxno) { }
+
+		GNET::Protocol *Clone() const { return new BillingRequest(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			os << request;
+			os << result;
+			os << itemid;
+			os << itemnum;
+			os << timeout;
+			os << amount;
+			os << menuid;
+			os << bxtxno;
+			os << agtxno;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			os >> request;
+			os >> result;
+			os >> itemid;
+			os >> itemnum;
+			os >> timeout;
+			os >> amount;
+			os >> menuid;
+			os >> bxtxno;
+			os >> agtxno;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 8192; }

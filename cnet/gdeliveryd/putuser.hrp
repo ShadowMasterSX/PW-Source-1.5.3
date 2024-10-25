@@ -1,0 +1,72 @@
+
+#ifndef __GNET_PUTUSER_HPP
+#define __GNET_PUTUSER_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#ifdef USE_BDB
+#include "dbbuffer.h"
+#endif
+#include "stocklog"
+#include "userpair"
+#include "kickoutuser.hpp"
+#include "gdeliveryserver.hpp"
+#include "rolelist_re.hpp"
+#include "gamedbclient.hpp"
+#include "mapuser.h"
+namespace GNET
+{
+
+class PutUser : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "putuser"
+#undef	RPC_BASECLASS
+
+	unsigned int save_link_sid;
+	unsigned int save_localsid;
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+#ifdef USE_BDB
+		UserPair *arg = (UserPair *)argument;
+		RpcRetcode *res = (RpcRetcode *)result;
+		Marshal::OctetsStream key, value;
+		key << arg->key;
+		value << arg->value;
+		res->retcode = DBBuffer::buf_insert( "user", key, value );
+#endif
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		UserPair *arg = (UserPair *)argument;
+		RpcRetcode *res = (RpcRetcode *)result;
+				
+		GDeliveryServer* dsm=GDeliveryServer::GetInstance();
+		Thread::RWLock::WRScoped l(UserContainer::GetInstance().GetLocker());
+		UserInfo* userinfo=UserContainer::GetInstance().FindUser(arg->key.id,save_link_sid,save_localsid);
+		if (NULL==userinfo) { return; }
+		
+		if (res->retcode==ERR_SUCCESS)
+		{
+			//get role info
+			userinfo->rolelist=UserInfo::RoleList(arg->value.rolelist);
+			dsm->Send(save_link_sid,RoleList_Re(ERR_SUCCESS,_HANDLE_END,arg->key.id,save_localsid,RoleInfoVector()));
+		}
+		else
+		{
+			dsm->Send(save_link_sid,KickoutUser(arg->key.id,save_localsid,ERR_ROLELIST));
+		}
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

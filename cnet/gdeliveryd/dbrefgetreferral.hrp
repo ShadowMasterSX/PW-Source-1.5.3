@@ -1,0 +1,50 @@
+
+#ifndef __GNET_DBREFGETREFERRAL_HPP
+#define __GNET_DBREFGETREFERRAL_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "integer"
+#include "dbrefgetreferralres"
+#include "referencemanager.h"
+#include "greferral"
+
+namespace GNET
+{
+
+class DBRefGetReferral : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbrefgetreferral"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// RoleId *arg = (RoleId *)argument;
+		// DBRefGetReferralRes *res = (DBRefGetReferralRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		Integer *arg = (Integer *)argument;
+		DBRefGetReferralRes *res = (DBRefGetReferralRes *)result;
+
+		ReferenceManager *refman = ReferenceManager::GetInstance();
+		if (res->retcode == ERR_SUCCESS)
+			refman->OnLoadReferral(res->referral);
+		else
+			refman->OnLoadReferral(GReferral(arg->value));
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		Integer *arg = (Integer *)argument;
+		Log::log(LOG_ERR, "dbrefgetreferral timeout roleid %d", arg->value);
+//		ReferenceManager::GetInstance()->OnLoadReferral(GReferral(arg->value));
+	}
+};
+
+};
+#endif

@@ -1,0 +1,50 @@
+#!/usr/bin/perl
+
+# get-pinginfo
+# SunZhenyu, 3/26/05
+# sunzhenyu@world2.cn
+
+use strict;
+use FileHandle;
+
+my $g_host;
+my $g_from;
+$g_host = $ARGV[0] if( @ARGV > 0 );
+$g_from = $ARGV[1] if( @ARGV > 1 );
+
+my @values = get_save_values( );
+my $timeLast = $values[0];
+
+my $now = time();
+
+if( $now - $timeLast < 300 )
+{
+	my $i;
+	for( $i=1; $i<6; $i++ )
+	{
+		$values[$i] = "0" unless( $values[$i] );
+		print "$values[$i]\n";
+	}
+}
+else
+{
+	print "0\n0\n0\n0\n0\n";
+}
+
+sub get_save_values
+{
+	my $filename = "/tmp/pingtmp/ping.$g_host";
+	$filename = "/tmp/pingtmp/ping.$g_host.$g_from" if $g_from;
+	
+	my @values;
+	my $file = new FileHandle;
+	if( $file->open( "< $filename" ) )
+	{
+		my $line = $file->getline();
+		@values = $line =~ /:(.*):(.*):(.*):(.*):(.*):(.*):/g;
+		$file->close();
+	}
+	return @values;
+}
+
+

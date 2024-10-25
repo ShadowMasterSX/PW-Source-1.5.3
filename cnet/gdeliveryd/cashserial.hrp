@@ -1,0 +1,64 @@
+
+#ifndef __GNET_CASHSERIAL_HPP
+#define __GNET_CASHSERIAL_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "cashserialarg"
+#include "cashserialres"
+#include "gamedbclient.hpp"
+
+namespace GNET
+{
+
+class CashSerial : public ProxyRpc
+{
+#define	RPC_BASECLASS	ProxyRpc
+	#include "cashserial"
+#undef	RPC_BASECLASS
+
+	bool Delivery(Manager::Session::ID proxy_sid, const OctetsStream& osArg)
+	{
+		CashSerialArg arg;
+		osArg >> arg;
+
+		GRoleForbid forbid;
+		if( ForbidLogin::GetInstance().GetForbidLogin( arg.userid, forbid ) &&
+			!arg.force)
+		{
+			SetResult(CashSerialRes(-19));
+			SendToSponsor();
+			return false;
+		}
+		
+		if( GameDBClient::GetInstance()->SendProtocol( *this ) )
+		{
+			return true;
+		}
+		else
+		{
+			SetResult(CashSerialRes(ERR_DELIVER_SEND));
+			SendToSponsor();
+			return false;
+		}
+	}
+
+	void PostProcess(Manager::Session::ID proxy_sid,const OctetsStream& osArg, const OctetsStream& osRes)
+	{
+		CashSerialArg arg;
+		osArg >> arg;
+		CashSerialRes res;
+		osRes >> res;
+		SetResult( &res ); // if you modified res, do not forget to call this. 
+	}
+
+	void OnTimeout( )
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

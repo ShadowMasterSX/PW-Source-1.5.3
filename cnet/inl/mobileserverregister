@@ -1,0 +1,35 @@
+	public:
+		int server_id;
+		int world_tag;
+		enum { PROTOCOL_TYPE = PROTOCOL_MOBILESERVERREGISTER };
+	public:
+		MobileServerRegister() { type = PROTOCOL_MOBILESERVERREGISTER; }
+		MobileServerRegister(void*) : Protocol(PROTOCOL_MOBILESERVERREGISTER) { }
+		MobileServerRegister (int l_server_id,int l_world_tag)
+			 : server_id(l_server_id),world_tag(l_world_tag)
+		{
+			type = PROTOCOL_MOBILESERVERREGISTER;
+		}
+
+		MobileServerRegister(const MobileServerRegister &rhs)
+			: Protocol(rhs),server_id(rhs.server_id),world_tag(rhs.world_tag) { }
+
+		GNET::Protocol *Clone() const { return new MobileServerRegister(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << server_id;
+			os << world_tag;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> server_id;
+			os >> world_tag;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

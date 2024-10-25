@@ -1,0 +1,35 @@
+	public:
+		FactionIDBean factionid;
+		RoleMsgBean message;
+		enum { PROTOCOL_TYPE = PROTOCOL_FACTIONMSG };
+	public:
+		FactionMsg() { type = PROTOCOL_FACTIONMSG; }
+		FactionMsg(void*) : Protocol(PROTOCOL_FACTIONMSG) { }
+		FactionMsg (const FactionIDBean& l_factionid,const RoleMsgBean& l_message)
+			 : factionid(l_factionid),message(l_message)
+		{
+			type = PROTOCOL_FACTIONMSG;
+		}
+
+		FactionMsg(const FactionMsg &rhs)
+			: Protocol(rhs),factionid(rhs.factionid),message(rhs.message) { }
+
+		GNET::Protocol *Clone() const { return new FactionMsg(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << factionid;
+			os << message;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> factionid;
+			os >> message;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 2048; }

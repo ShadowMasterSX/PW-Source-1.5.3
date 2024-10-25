@@ -1,0 +1,71 @@
+#ifndef __GNET_DBREFWITHDRAWTRANSARG_RPCDATA
+#define __GNET_DBREFWITHDRAWTRANSARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "greferrer"
+#include "greferral"
+
+namespace GNET
+{
+	class DBRefWithdrawTransArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		GReferrer referrer;
+		std::vector<GReferral> referrals;
+
+	public:
+		DBRefWithdrawTransArg (const GReferrer& l_referrer = GReferrer(),const std::vector<GReferral>& l_referrals = std::vector<GReferral>())
+			: referrer(l_referrer),referrals(l_referrals)
+		{
+		}
+
+		DBRefWithdrawTransArg(const DBRefWithdrawTransArg &rhs)
+			: roleid(rhs.roleid),referrer(rhs.referrer),referrals(rhs.referrals) { }
+
+		Rpc::Data *Clone() const { return new DBRefWithdrawTransArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBRefWithdrawTransArg *r = dynamic_cast<const DBRefWithdrawTransArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				referrer = r->referrer;
+				referrals = r->referrals;
+			}
+			return *this;
+		}
+
+		DBRefWithdrawTransArg& operator = (const DBRefWithdrawTransArg &rhs)
+		{
+			const DBRefWithdrawTransArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				referrer = r->referrer;
+				referrals = r->referrals;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << referrer;
+			os << referrals;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> referrer;
+			os >> referrals;
+			return os;
+		}
+
+	};
+};
+#endif

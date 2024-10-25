@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBREWARDMATURE_HPP
+#define __GNET_DBREWARDMATURE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbrewardmaturearg"
+#include "dbrewardmatureres"
+
+namespace GNET
+{
+
+class DBRewardMature : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbrewardmature"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBRewardMatureArg *arg = (DBRewardMatureArg *)argument;
+		// DBRewardMatureRes *res = (DBRewardMatureRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBRewardMatureArg *arg = (DBRewardMatureArg *)argument;
+		// DBRewardMatureRes *res = (DBRewardMatureRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

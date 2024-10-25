@@ -1,0 +1,65 @@
+
+#ifndef __GNET_USERLOGIN2_HPP
+#define __GNET_USERLOGIN2_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "userlogin2arg"
+#include "userlogin2res"
+
+namespace GNET
+{
+
+class UserLogin2 : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "userlogin2"
+#undef	RPC_BASECLASS
+	
+	Manager::Session::ID localsid;
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// UserLogin2Arg *arg = (UserLogin2Arg *)argument;
+		// UserLogin2Res *res = (UserLogin2Res *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		UserLogin2Arg *arg = (UserLogin2Arg *)argument;
+		UserLogin2Res *res = (UserLogin2Res *)result;
+
+		GLinkServer *lsm = GLinkServer::GetInstance();
+		if (!lsm->ValidUser(localsid,arg->userid)) 
+			return;
+
+		if(res->retcode)
+		{
+			lsm->SessionError(localsid, res->retcode, "Server error.");
+			return;
+		}
+
+		lsm->halfloginset.erase(localsid);
+		lsm->TriggerListen();
+		
+		if (lsm->IsListening() && lsm->ExceedUserLimit(lsm->roleinfomap.size()))
+		{
+			DEBUG_PRINT("\tStop Listening, user count=%d\n",lsm->roleinfomap.size());
+			lsm->StopListen();
+		}
+	}
+
+	void OnTimeout()
+	{
+		GLinkServer *lsm = GLinkServer::GetInstance();
+		if (!lsm->ValidSid(localsid)) 
+			return;
+		GLinkServer::GetInstance()->SessionError(localsid, ERR_TIMEOUT, "Login Timeout.");
+	}
+
+};
+
+};
+#endif

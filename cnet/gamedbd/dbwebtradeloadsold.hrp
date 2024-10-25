@@ -1,0 +1,102 @@
+
+#ifndef __GNET_DBWEBTRADELOADSOLD_HPP
+#define __GNET_DBWEBTRADELOADSOLD_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbwebtradeloadsoldarg"
+#include "dbwebtradeloadsoldres"
+
+namespace GNET
+{
+
+class DBWebTradeLoadSold : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbwebtradeloadsold"
+#undef	RPC_BASECLASS
+class ListWebTradeSoldQuery : public StorageEnv::IQuery
+{
+	std::vector<int64_t>* plist;
+	int total;
+	int64_t sn;
+	Octets last;
+public:
+	ListWebTradeSoldQuery(std::vector<int64_t>* p) : plist(p),  total(0)
+	{ 
+	}
+
+	bool Update( StorageEnv::Transaction& txn, Octets& key, Octets& value)
+	{
+		try
+		{
+			if(total>256)
+			{
+				last = key;
+				return false;
+			}
+			Marshal::OctetsStream(key) >> sn;
+			plist->push_back(sn);
+			total++;
+		} catch ( Marshal::Exception & ) {
+			Log::log( LOG_ERR, "ListWebTradeSoldQuery, error unmarshal.");
+		}
+		return true;
+	}
+	const Octets& GetHandle() { return last; }
+};
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBWebTradeLoadSoldArg *arg = (DBWebTradeLoadSoldArg *)argument;
+		DBWebTradeLoadSoldRes *res = (DBWebTradeLoadSoldRes *)result;
+
+		ListWebTradeSoldQuery q(&res->snlist);
+		try
+		{
+			StorageEnv::Storage * pwebtradesold = StorageEnv::GetStorage("webtradesold");
+			StorageEnv::AtomTransaction txn;
+			try
+			{
+				StorageEnv::Storage::Cursor cursor = pwebtradesold->cursor( txn );
+				cursor.walk(arg->handle, q );
+				res->handle = q.GetHandle();
+				res->retcode = ERR_SUCCESS;
+				LOG_TRACE("DBWebTradeLoadSold, size=%d, handle=%d\n", res->snlist.size(), res->handle.size());
+			}
+			catch(DbException e) { throw; }
+			catch(...)
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;				
+			}			
+		}
+		catch( DbException e )
+		{
+			Log::log(LOG_ERR,"DBWebTradeLoadSold, what=%s.\n",e.what());	
+			if(e.get_errno()==DB_LOCK_DEADLOCK)
+				res->retcode = ERR_AGAIN;
+			else
+				res->retcode = ERR_EXCEPTION;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBWebTradeLoadSoldArg *arg = (DBWebTradeLoadSoldArg *)argument;
+		// DBWebTradeLoadSoldRes *res = (DBWebTradeLoadSoldRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

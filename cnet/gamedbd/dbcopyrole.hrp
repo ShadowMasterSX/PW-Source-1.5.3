@@ -1,0 +1,112 @@
+
+#ifndef __GNET_DBCOPYROLE_HPP
+#define __GNET_DBCOPYROLE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbcopyrolearg"
+
+
+namespace GNET
+{
+
+class DBCopyRole : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbcopyrole"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBCopyRoleArg *arg = (DBCopyRoleArg *)argument;
+		RpcRetcode *res = (RpcRetcode *)result;
+
+        if (arg->srcroleid <= 0 || arg->srcroleid == arg->dstroleid)
+        {
+            res->retcode = -1;
+            return;
+        }
+
+        try
+		{
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::Storage * pstatus = StorageEnv::GetStorage("status");
+			StorageEnv::Storage * pinventory = StorageEnv::GetStorage("inventory");
+			StorageEnv::Storage * pstorehouse = StorageEnv::GetStorage("storehouse");
+			StorageEnv::Storage * ptask = StorageEnv::GetStorage("task");
+			StorageEnv::Storage * pequipment = StorageEnv::GetStorage("equipment"); 
+			StorageEnv::CommonTransaction txn;
+            
+			Marshal::OctetsStream key_src, key_dst;
+            Marshal::OctetsStream value_base, value_status, value_pocket, value_store, value_equip, value_task;
+
+			try
+			{
+				key_src << arg->srcroleid;
+				GRoleBase base_src;
+				Marshal::OctetsStream(pbase->find( key_src, txn )) >> base_src;
+
+                if ((base_src.status != _ROLE_STATUS_NORMAL) || (base_src.spouse != 0))
+                {
+                    res->retcode = -2;
+                    return;
+                }
+                base_src.cross_data.clear();
+
+                pstatus->find( key_src, value_status, txn );
+                pinventory->find( key_src, value_pocket, txn );
+                pstorehouse->find( key_src, value_store, txn );
+                ptask->find( key_src, value_task, txn );
+                pequipment->find( key_src, value_equip, txn );
+                
+                key_dst << arg->dstroleid;
+                GRoleBase base_dst;
+				Marshal::OctetsStream(pbase->find( key_dst, txn )) >> base_dst;
+
+                base_src.id = base_dst.id;
+                base_src.userid = base_dst.userid;
+                base_src.name = base_dst.name;
+
+                pbase->insert(key_dst, Marshal::OctetsStream() << base_src, txn);
+                pstatus->insert(key_dst, value_status, txn);
+                pinventory->insert(key_dst, value_pocket, txn);
+                pstorehouse->insert(key_dst, value_store, txn);
+                ptask->insert(key_dst, value_task, txn);
+                pequipment->insert(key_dst, value_equip, txn);
+
+				res->retcode = ERR_SUCCESS;
+                LOG_TRACE("DBCopyRole: srcroleid=%d, dstroleid=%d.\n",arg->srcroleid, arg->dstroleid);
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBCopyRole, srcroleid=%d, dstroleid=%d, what=%s\n", arg->srcroleid, arg->dstroleid, e.what() );
+			res->retcode = -1;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// CopyRoleArg *arg = (CopyRoleArg *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

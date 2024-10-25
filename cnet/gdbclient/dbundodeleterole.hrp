@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBUNDODELETEROLE_HPP
+#define __GNET_DBUNDODELETEROLE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbundodeleterolearg"
+#include "dbundodeleteroleres"
+
+namespace GNET
+{
+
+class DBUndoDeleteRole : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbundodeleterole"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBUndoDeleteRoleArg *arg = (DBUndoDeleteRoleArg *)argument;
+		// DBUndoDeleteRoleRes *res = (DBUndoDeleteRoleRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBUndoDeleteRoleArg *arg = (DBUndoDeleteRoleArg *)argument;
+		// DBUndoDeleteRoleRes *res = (DBUndoDeleteRoleRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

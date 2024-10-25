@@ -1,0 +1,44 @@
+	public:
+		int userid;
+		int request;
+		int result;
+		int balance;
+		enum { PROTOCOL_TYPE = PROTOCOL_BILLINGBALANCE };
+	public:
+		BillingBalance() { type = PROTOCOL_BILLINGBALANCE; }
+		BillingBalance(void*) : Protocol(PROTOCOL_BILLINGBALANCE) { }
+		BillingBalance (int l_userid,int l_request,int l_result,
+			int l_balance)
+			 : userid(l_userid),request(l_request),result(l_result)
+			,balance(l_balance)
+		{
+			type = PROTOCOL_BILLINGBALANCE;
+		}
+
+		BillingBalance(const BillingBalance &rhs)
+			: Protocol(rhs),userid(rhs.userid),request(rhs.request),result(rhs.result)
+			,balance(rhs.balance) { }
+
+		GNET::Protocol *Clone() const { return new BillingBalance(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			os << request;
+			os << result;
+			os << balance;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			os >> request;
+			os >> result;
+			os >> balance;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 8192; }

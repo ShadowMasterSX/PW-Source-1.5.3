@@ -1,0 +1,74 @@
+
+#ifndef __GNET_DBGETREWARD_HPP
+#define __GNET_DBGETREWARD_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbgetrewardarg"
+#include "dbgetrewardres"
+
+namespace GNET
+{
+
+class DBGetReward : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbgetreward"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBGetRewardArg *arg = (DBGetRewardArg *)argument;
+		DBGetRewardRes *res = (DBGetRewardRes *)result;
+		try
+		{
+			StorageEnv::Storage * puser = StorageEnv::GetStorage("user");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				Marshal::OctetsStream key_user;
+				key_user << arg->userid;
+				User u;
+				Marshal::OctetsStream(puser->find(key_user,txn))>>u;
+				GRewardStore store;
+				if (u.consume_reward.size())
+				{
+					Marshal::OctetsStream   os_reward(u.consume_reward);
+					os_reward >> store;
+				}
+				res->reward = store;
+				res->retcode = ERR_SUCCESS;
+			}
+			catch (DbException &e) { throw e; }
+			catch ( ... )
+			{
+				DbException ee(DB_OLD_VERSION);
+				txn.abort(ee);
+				throw ee;
+			}
+		}
+		catch (DbException &e)
+		{
+			Log::log(LOG_ERR, "gamedbd: DBGetRewawrd failed, what=%s\n", e.what());
+			res->retcode = ERR_FAILED;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBGetRewardArg *arg = (DBGetRewardArg *)argument;
+		// DBGetRewardRes *res = (DBGetRewardRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

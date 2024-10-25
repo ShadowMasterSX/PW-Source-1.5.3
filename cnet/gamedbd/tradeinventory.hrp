@@ -1,0 +1,75 @@
+
+#ifndef __GNET_TRADEINVENTORY_HPP
+#define __GNET_TRADEINVENTORY_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "dbbuffer.h"
+#include "tradeinventoryarg"
+#include "tradeinventoryres"
+
+namespace GNET
+{
+
+class TradeInventory : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "tradeinventory"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		TradeInventoryArg *arg = (TradeInventoryArg *)argument;
+		TradeInventoryRes *res = (TradeInventoryRes *)result;
+		Marshal::OctetsStream key1,key2;
+
+		LOG_TRACE( "TradeInventory, roleid1=%d, roleid2=%d.\n", arg->roleid1, arg->roleid2 );
+
+		try
+		{
+			StorageEnv::Storage * pinventory = StorageEnv::GetStorage("inventory");
+			StorageEnv::AtomTransaction txn;
+			try
+			{
+				GRolePocket    pocket1, pocket2;
+				key1 << arg->roleid1;
+				Marshal::OctetsStream(pinventory->find( key1, txn )) >> res->pocket1;
+
+				key2 << arg->roleid2;
+				Marshal::OctetsStream(pinventory->find( key2, txn )) >> res->pocket2;
+
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "TradeInventory, roleid11=%d, roleid2=%d, what=%s\n",
+							arg->roleid1, arg->roleid2, e.what() );
+			res->retcode = -1;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// TradeInventoryArg *arg = (TradeInventoryArg *)argument;
+		// TradeInventoryRes *res = (TradeInventoryRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

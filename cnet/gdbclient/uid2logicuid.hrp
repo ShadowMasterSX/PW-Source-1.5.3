@@ -1,0 +1,42 @@
+
+#ifndef __GNET_UID2LOGICUID_HPP
+#define __GNET_UID2LOGICUID_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "uid2logicuidarg"
+#include "uid2logicuidres"
+
+namespace GNET
+{
+
+class Uid2Logicuid : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "uid2logicuid"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// Uid2LogicuidArg *arg = (Uid2LogicuidArg *)argument;
+		// Uid2LogicuidRes *res = (Uid2LogicuidRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// Uid2LogicuidArg *arg = (Uid2LogicuidArg *)argument;
+		// Uid2LogicuidRes *res = (Uid2LogicuidRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

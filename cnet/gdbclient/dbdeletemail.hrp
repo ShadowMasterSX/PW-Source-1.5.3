@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBDELETEMAIL_HPP
+#define __GNET_DBDELETEMAIL_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbdeletemailarg"
+#include "gmaildefres"
+
+namespace GNET
+{
+
+class DBDeleteMail : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbdeletemail"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// GMailID *arg = (GMailID *)argument;
+		// GMailDefRes *res = (GMailDefRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// GMailID *arg = (GMailID *)argument;
+		// GMailDefRes *res = (GMailDefRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

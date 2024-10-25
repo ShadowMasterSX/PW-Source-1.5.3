@@ -1,0 +1,32 @@
+	public:
+		TeamBean team;
+		enum { PROTOCOL_TYPE = PROTOCOL_TEAMCREATE };
+	public:
+		TeamCreate() { type = PROTOCOL_TEAMCREATE; }
+		TeamCreate(void*) : Protocol(PROTOCOL_TEAMCREATE) { }
+		TeamCreate (TeamBean l_team)
+			 : team(l_team)
+		{
+			type = PROTOCOL_TEAMCREATE;
+		}
+
+		TeamCreate(const TeamCreate &rhs)
+			: Protocol(rhs),team(rhs.team) { }
+
+		GNET::Protocol *Clone() const { return new TeamCreate(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << team;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> team;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1048576; }

@@ -1,0 +1,75 @@
+#ifndef __GNET_GROLETASK_RPCDATA
+#define __GNET_GROLETASK_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "groleinventory"
+
+namespace GNET
+{
+	class GRoleTask : public GNET::Rpc::Data
+	{
+	public:
+		Octets task_data;
+		Octets task_complete;
+		Octets task_finishtime;
+		GRoleInventoryVector task_inventory;
+
+	public:
+		GRoleTask ()
+		{
+		}
+
+		GRoleTask(const GRoleTask &rhs)
+			: task_data(rhs.task_data),task_complete(rhs.task_complete),task_finishtime(rhs.task_finishtime),
+			task_inventory(rhs.task_inventory) { }
+
+		Rpc::Data *Clone() const { return new GRoleTask(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GRoleTask *r = dynamic_cast<const GRoleTask *>(&rhs);
+			if (r && r != this)
+			{
+				task_data = r->task_data;
+				task_complete = r->task_complete;
+				task_finishtime = r->task_finishtime;
+				task_inventory = r->task_inventory;
+			}
+			return *this;
+		}
+
+		GRoleTask& operator = (const GRoleTask &rhs)
+		{
+			const GRoleTask *r = &rhs;
+			if (r && r != this)
+			{
+				task_data = r->task_data;
+				task_complete = r->task_complete;
+				task_finishtime = r->task_finishtime;
+				task_inventory = r->task_inventory;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << task_data;
+			os << task_complete;
+			os << task_finishtime;
+			os << task_inventory;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> task_data;
+			os >> task_complete;
+			os >> task_finishtime;
+			os >> task_inventory;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,82 @@
+#ifndef __GNET_INSTANTADDCASHARG_RPCDATA
+#define __GNET_INSTANTADDCASHARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class InstantAddCashArg : public GNET::Rpc::Data
+	{
+	public:
+		int userid;
+		int loginip;
+		Octets cardnum;
+		Octets cardpasswd;
+		int reserved;
+
+	public:
+		InstantAddCashArg (int l_userid = 0,int l_loginip = 0,const Octets& l_cardnum = Octets(0)
+			,const Octets& l_cardpasswd = Octets(0),int l_reserved = 0)
+			: userid(l_userid),loginip(l_loginip),cardnum(l_cardnum)
+			,cardpasswd(l_cardpasswd),reserved(l_reserved)
+		{
+		}
+
+		InstantAddCashArg(const InstantAddCashArg &rhs)
+			: userid(rhs.userid),loginip(rhs.loginip),cardnum(rhs.cardnum),
+			cardpasswd(rhs.cardpasswd),reserved(rhs.reserved) { }
+
+		Rpc::Data *Clone() const { return new InstantAddCashArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const InstantAddCashArg *r = dynamic_cast<const InstantAddCashArg *>(&rhs);
+			if (r && r != this)
+			{
+				userid = r->userid;
+				loginip = r->loginip;
+				cardnum = r->cardnum;
+				cardpasswd = r->cardpasswd;
+				reserved = r->reserved;
+			}
+			return *this;
+		}
+
+		InstantAddCashArg& operator = (const InstantAddCashArg &rhs)
+		{
+			const InstantAddCashArg *r = &rhs;
+			if (r && r != this)
+			{
+				userid = r->userid;
+				loginip = r->loginip;
+				cardnum = r->cardnum;
+				cardpasswd = r->cardpasswd;
+				reserved = r->reserved;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			os << loginip;
+			os << cardnum;
+			os << cardpasswd;
+			os << reserved;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			os >> loginip;
+			os >> cardnum;
+			os >> cardpasswd;
+			os >> reserved;
+			return os;
+		}
+
+	};
+};
+#endif

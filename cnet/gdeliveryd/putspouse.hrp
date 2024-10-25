@@ -1,0 +1,125 @@
+
+#ifndef __GNET_PUTSPOUSE_HPP
+#define __GNET_PUTSPOUSE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "putspousearg"
+#include "ondivorce.hpp"
+#include "maplinkserver.h"
+#include "chatbroadcast.hpp"
+#include "putmessage.hrp"
+
+#include "gamedbclient.hpp"
+#include "gametalkmanager.h"
+
+namespace GNET
+{
+#define    MSG_MARRIAGE   100
+#define    MSG_DIVORCE    101
+
+class PutSpouse : public ProxyRpc
+{
+#define	RPC_BASECLASS	ProxyRpc
+	#include "putspouse"
+#undef	RPC_BASECLASS
+
+	bool Delivery(Manager::Session::ID proxy_sid, const OctetsStream& osArg)
+	{
+		PutSpouseArg arg;
+		osArg >> arg;
+		if(arg.oper)
+		{
+			PlayerInfo * su1 = UserContainer::GetInstance().FindRole((arg.rid1));
+			PlayerInfo * su2 = UserContainer::GetInstance().FindRole((arg.rid2));
+			if(su1 && su2 )
+			{
+				ChatBroadCast cbc;
+				cbc.channel = GN_CHAT_CHANNEL_SYSTEM;
+				cbc.srcroleid = MSG_MARRIAGE; 
+				Marshal::OctetsStream data;
+				data<<(int)arg.rid1<<(int)arg.rid2<<su1->name<<su2->name;
+				cbc.msg = data;
+				LinkServer::GetInstance().BroadcastProtocol(cbc);
+				su1->spouse = arg.rid2;
+				su2->spouse = arg.rid1;
+			}
+			SetResult(RpcRetcode(0));
+			SendToSponsor();
+			GameTalkManager::GetInstance()->NotifyUpdateFriend(
+					arg.rid1, GT_FRIEND_ADD, arg.rid2, 0, GT_GROUP_SPOUSE, su1->name);
+			GameTalkManager::GetInstance()->NotifyUpdateFriend(
+					arg.rid2, GT_FRIEND_ADD, arg.rid1, 0, GT_GROUP_SPOUSE, su2->name);
+			return false;
+		}
+		if( GameDBClient::GetInstance()->SendProtocol( *this ) )
+		{
+			return true;
+		}
+		else
+		{
+			SetResult(RpcRetcode(ERR_DELIVER_SEND));
+			SendToSponsor();
+			return false;
+		}
+	}
+
+	void PostProcess(Manager::Session::ID proxy_sid,const OctetsStream& osArg, const OctetsStream& osRes)
+	{
+		PutSpouseArg arg;
+		osArg >> arg;
+		RpcRetcode res;
+		osRes >> res;
+		if(res.retcode)
+			return;
+		
+		GameTalkManager::GetInstance()->NotifyUpdateFriend(arg.rid1, GT_FRIEND_DEL, arg.rid2, 0, GT_GROUP_SPOUSE);
+		GameTalkManager::GetInstance()->NotifyUpdateFriend(arg.rid2, GT_FRIEND_DEL, arg.rid1, 0, GT_GROUP_SPOUSE);
+
+		Message msg;
+		msg.channel = GN_CHAT_CHANNEL_SYSTEM;
+		msg.srcroleid = MSG_DIVORCE;
+		Marshal::OctetsStream data1, data2;
+
+		OnDivorce data(arg.rid1, arg.rid2);
+		PlayerInfo * su1 = UserContainer::GetInstance().FindRoleOnline((arg.rid1));
+		PlayerInfo * su2 = UserContainer::GetInstance().FindRoleOnline((arg.rid2));
+
+		if(su1)
+		{
+			GProviderServer::GetInstance()->DispatchProtocol(su1->gameid,data);
+			data1<<(int)arg.rid1<<su1->name;
+			su1->spouse = 0;
+		}
+		if(su2)
+		{
+			GProviderServer::GetInstance()->DispatchProtocol(su2->gameid,data);
+			data2<<(int)arg.rid1<<su1->name;
+			su2->spouse = 0;
+		}
+		if(!data1.size() && data2.size())
+		{
+			msg.dstroleid = arg.rid1;
+			msg.msg.swap(data2);
+			GameDBClient::GetInstance()->SendProtocol(Rpc::Call(RPC_PUTMESSAGE, msg));
+			GameTalkManager::GetInstance()->SetOfflineMessage(msg.dstroleid);
+		}
+		if(!data2.size() && data1.size())
+		{
+			msg.dstroleid = arg.rid2;
+			msg.msg.swap(data1);
+			GameDBClient::GetInstance()->SendProtocol(Rpc::Call(RPC_PUTMESSAGE, msg));
+			GameTalkManager::GetInstance()->SetOfflineMessage(msg.dstroleid);
+		}
+		// SetResult( &res ); // if you modified res, do not forget to call this. 
+	}
+
+	void OnTimeout( )
+	{
+	}
+
+};
+
+};
+#endif

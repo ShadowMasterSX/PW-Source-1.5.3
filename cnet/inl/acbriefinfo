@@ -1,0 +1,32 @@
+	public:
+		std::map<int,std::pair<int, std::pair<size_t,int> > > brief_map;
+		enum { PROTOCOL_TYPE = PROTOCOL_ACBRIEFINFO };
+	public:
+		ACBriefInfo() { type = PROTOCOL_ACBRIEFINFO; }
+		ACBriefInfo(void*) : Protocol(PROTOCOL_ACBRIEFINFO) { }
+		ACBriefInfo (std::map<int,std::pair<int, std::pair<size_t,int> > > l_brief_map)
+			 : brief_map(l_brief_map)
+		{
+			type = PROTOCOL_ACBRIEFINFO;
+		}
+
+		ACBriefInfo(const ACBriefInfo &rhs)
+			: Protocol(rhs),brief_map(rhs.brief_map) { }
+
+		GNET::Protocol *Clone() const { return new ACBriefInfo(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << brief_map;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> brief_map;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 131072; }

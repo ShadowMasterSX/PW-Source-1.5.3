@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBSTOCKBALANCE_HPP
+#define __GNET_DBSTOCKBALANCE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbstockbalancearg"
+#include "dbstockbalanceres"
+
+namespace GNET
+{
+
+class DBStockBalance : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbstockbalance"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBStockBalanceArg *arg = (DBStockBalanceArg *)argument;
+		// DBStockBalanceRes *res = (DBStockBalanceRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBStockBalanceArg *arg = (DBStockBalanceArg *)argument;
+		// DBStockBalanceRes *res = (DBStockBalanceRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,59 @@
+	public:
+		int battle_id;
+		unsigned int defender;
+		unsigned int attacker;
+		unsigned int player_limit;
+		int end_time;
+		unsigned int defender_player_cnt;
+		unsigned int attacker_player_cnt;
+		unsigned int country_max_player_cnt;
+		enum { PROTOCOL_TYPE = PROTOCOL_COUNTRYBATTLESTART };
+	public:
+		CountryBattleStart() { type = PROTOCOL_COUNTRYBATTLESTART; }
+		CountryBattleStart(void*) : Protocol(PROTOCOL_COUNTRYBATTLESTART) { }
+		CountryBattleStart (int l_battle_id,unsigned int l_defender,unsigned int l_attacker,
+			unsigned int l_player_limit,int l_end_time,unsigned int l_defender_player_cnt,
+			unsigned int l_attacker_player_cnt,unsigned int l_country_max_player_cnt)
+			 : battle_id(l_battle_id),defender(l_defender),attacker(l_attacker)
+			,player_limit(l_player_limit),end_time(l_end_time),defender_player_cnt(l_defender_player_cnt)
+			,attacker_player_cnt(l_attacker_player_cnt),country_max_player_cnt(l_country_max_player_cnt)
+		{
+			type = PROTOCOL_COUNTRYBATTLESTART;
+		}
+
+		CountryBattleStart(const CountryBattleStart &rhs)
+			: Protocol(rhs),battle_id(rhs.battle_id),defender(rhs.defender),attacker(rhs.attacker)
+			,player_limit(rhs.player_limit),end_time(rhs.end_time),defender_player_cnt(rhs.defender_player_cnt)
+			,attacker_player_cnt(rhs.attacker_player_cnt),country_max_player_cnt(rhs.country_max_player_cnt) { }
+
+		GNET::Protocol *Clone() const { return new CountryBattleStart(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << battle_id;
+			os << defender;
+			os << attacker;
+			os << player_limit;
+			os << end_time;
+			os << defender_player_cnt;
+			os << attacker_player_cnt;
+			os << country_max_player_cnt;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> battle_id;
+			os >> defender;
+			os >> attacker;
+			os >> player_limit;
+			os >> end_time;
+			os >> defender_player_cnt;
+			os >> attacker_player_cnt;
+			os >> country_max_player_cnt;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

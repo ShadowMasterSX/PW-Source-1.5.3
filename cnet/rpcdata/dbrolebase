@@ -1,0 +1,64 @@
+#ifndef __GNET_DBROLEBASE_RPCDATA
+#define __GNET_DBROLEBASE_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBRoleBase : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		Octets name;
+
+	public:
+		DBRoleBase ()
+		{
+		}
+
+		DBRoleBase(const DBRoleBase &rhs)
+			: roleid(rhs.roleid),name(rhs.name) { }
+
+		Rpc::Data *Clone() const { return new DBRoleBase(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBRoleBase *r = dynamic_cast<const DBRoleBase *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				name = r->name;
+			}
+			return *this;
+		}
+
+		DBRoleBase& operator = (const DBRoleBase &rhs)
+		{
+			const DBRoleBase *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				name = r->name;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << name;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> name;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<DBRoleBase>	DBRoleBaseVector;
+};
+#endif

@@ -1,0 +1,57 @@
+
+#ifndef __GNET_PUTSERVERDATA_HPP
+#define __GNET_PUTSERVERDATA_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "putserverdataarg"
+#include "db_if.h"
+
+
+namespace GNET
+{
+
+class PutServerData : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "putserverdata"
+#undef	RPC_BASECLASS
+
+	GDB::ServerDataResult * _callback;
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// PutServerDataArg *arg = (PutServerDataArg *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// PutServerDataArg *arg = (PutServerDataArg *)argument;
+		RpcRetcode *res = (RpcRetcode *)result;
+		if(_callback) 
+		{
+			if(res->retcode)
+			{
+				_callback->OnFailed();
+			}
+			else
+			{
+				_callback->OnPutServerData();
+			}
+		}
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+		if(_callback) _callback->OnTimeOut();
+	}
+
+};
+
+};
+#endif

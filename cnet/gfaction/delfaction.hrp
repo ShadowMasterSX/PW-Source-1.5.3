@@ -1,0 +1,52 @@
+
+#ifndef __GNET_DELFACTION_HPP
+#define __GNET_DELFACTION_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "factionid"
+#include "delfactionres"
+#include "delfactionannounce.hpp"
+
+namespace GNET
+{
+
+class DelFaction : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "delfaction"
+#undef	RPC_BASECLASS
+
+	OperWrapper::wref_t oper;
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		FactionId* arg = (FactionId*)argument;
+		DelFactionRes* res = (DelFactionRes*)result;
+		OperWrapper::href_t ref(oper);
+		if(ref)
+		{
+			ref->SetResult(result);
+			ref->Execute();
+		}
+		if(res->retcode == ERR_SUCCESS)
+		{
+			Factiondb::GetInstance()->RemoveFactionInfo(arg->fid);
+			GFactionServer::GetInstance()->DispatchProtocol(0, DelFactionAnnounce(arg->fid));
+		}
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

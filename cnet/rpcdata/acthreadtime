@@ -1,0 +1,78 @@
+#ifndef __GNET_ACTHREADTIME_RPCDATA
+#define __GNET_ACTHREADTIME_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class ACThreadTime : public GNET::Rpc::Data
+	{
+	public:
+		int thread_id;
+		int all_secs;
+		int kernel_secs;
+		int user_secs;
+
+	public:
+		ACThreadTime (int l_thread_id = 0,int l_all_secs = 0,int l_kernel_secs = 0
+			,int l_user_secs = 0)
+			: thread_id(l_thread_id),all_secs(l_all_secs),kernel_secs(l_kernel_secs)
+			,user_secs(l_user_secs)
+		{
+		}
+
+		ACThreadTime(const ACThreadTime &rhs)
+			: thread_id(rhs.thread_id),all_secs(rhs.all_secs),kernel_secs(rhs.kernel_secs),
+			user_secs(rhs.user_secs) { }
+
+		Rpc::Data *Clone() const { return new ACThreadTime(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const ACThreadTime *r = dynamic_cast<const ACThreadTime *>(&rhs);
+			if (r && r != this)
+			{
+				thread_id = r->thread_id;
+				all_secs = r->all_secs;
+				kernel_secs = r->kernel_secs;
+				user_secs = r->user_secs;
+			}
+			return *this;
+		}
+
+		ACThreadTime& operator = (const ACThreadTime &rhs)
+		{
+			const ACThreadTime *r = &rhs;
+			if (r && r != this)
+			{
+				thread_id = r->thread_id;
+				all_secs = r->all_secs;
+				kernel_secs = r->kernel_secs;
+				user_secs = r->user_secs;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << thread_id;
+			os << all_secs;
+			os << kernel_secs;
+			os << user_secs;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> thread_id;
+			os >> all_secs;
+			os >> kernel_secs;
+			os >> user_secs;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<ACThreadTime>	ACThreadTimeVector;
+};
+#endif

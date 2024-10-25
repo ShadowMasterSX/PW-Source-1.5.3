@@ -1,0 +1,70 @@
+#ifndef __GNET_GMAILBOX_RPCDATA
+#define __GNET_GMAILBOX_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmail"
+
+namespace GNET
+{
+	class GMailBox : public GNET::Rpc::Data
+	{
+	public:
+		unsigned int timestamp;
+		unsigned int status;
+		GMailVector mails;
+
+	public:
+		GMailBox (unsigned int l_timestamp = 0,unsigned int l_status = 0,const GMailVector& l_mails = GMailVector())
+			: timestamp(l_timestamp),status(l_status),mails(l_mails)
+		{
+		}
+
+		GMailBox(const GMailBox &rhs)
+			: timestamp(rhs.timestamp),status(rhs.status),mails(rhs.mails) { }
+
+		Rpc::Data *Clone() const { return new GMailBox(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GMailBox *r = dynamic_cast<const GMailBox *>(&rhs);
+			if (r && r != this)
+			{
+				timestamp = r->timestamp;
+				status = r->status;
+				mails = r->mails;
+			}
+			return *this;
+		}
+
+		GMailBox& operator = (const GMailBox &rhs)
+		{
+			const GMailBox *r = &rhs;
+			if (r && r != this)
+			{
+				timestamp = r->timestamp;
+				status = r->status;
+				mails = r->mails;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << timestamp;
+			os << status;
+			os << mails;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> timestamp;
+			os >> status;
+			os >> mails;
+			return os;
+		}
+
+	};
+};
+#endif

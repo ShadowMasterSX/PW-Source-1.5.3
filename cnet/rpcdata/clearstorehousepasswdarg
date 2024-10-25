@@ -1,0 +1,69 @@
+#ifndef __GNET_CLEARSTOREHOUSEPASSWDARG_RPCDATA
+#define __GNET_CLEARSTOREHOUSEPASSWDARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class ClearStorehousePasswdArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		Octets rolename;
+		Octets reserved;
+
+	public:
+		ClearStorehousePasswdArg (int l_roleid = -1,const Octets& l_rolename = Octets(0),Octets l_reserved = Octets(0))
+			: roleid(l_roleid),rolename(l_rolename),reserved(l_reserved)
+		{
+		}
+
+		ClearStorehousePasswdArg(const ClearStorehousePasswdArg &rhs)
+			: roleid(rhs.roleid),rolename(rhs.rolename),reserved(rhs.reserved) { }
+
+		Rpc::Data *Clone() const { return new ClearStorehousePasswdArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const ClearStorehousePasswdArg *r = dynamic_cast<const ClearStorehousePasswdArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				rolename = r->rolename;
+				reserved = r->reserved;
+			}
+			return *this;
+		}
+
+		ClearStorehousePasswdArg& operator = (const ClearStorehousePasswdArg &rhs)
+		{
+			const ClearStorehousePasswdArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				rolename = r->rolename;
+				reserved = r->reserved;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << rolename;
+			os << reserved;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> rolename;
+			os >> reserved;
+			return os;
+		}
+
+	};
+};
+#endif

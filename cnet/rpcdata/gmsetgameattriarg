@@ -1,0 +1,74 @@
+#ifndef __GNET_GMSETGAMEATTRIARG_RPCDATA
+#define __GNET_GMSETGAMEATTRIARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GMSetGameAttriArg : public GNET::Rpc::Data
+	{
+	public:
+		int gmroleid;
+		unsigned int localsid;
+		unsigned char attribute;
+		Octets value;
+
+	public:
+		GMSetGameAttriArg ()
+		{
+		}
+
+		GMSetGameAttriArg(const GMSetGameAttriArg &rhs)
+			: gmroleid(rhs.gmroleid),localsid(rhs.localsid),attribute(rhs.attribute),
+			value(rhs.value) { }
+
+		Rpc::Data *Clone() const { return new GMSetGameAttriArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GMSetGameAttriArg *r = dynamic_cast<const GMSetGameAttriArg *>(&rhs);
+			if (r && r != this)
+			{
+				gmroleid = r->gmroleid;
+				localsid = r->localsid;
+				attribute = r->attribute;
+				value = r->value;
+			}
+			return *this;
+		}
+
+		GMSetGameAttriArg& operator = (const GMSetGameAttriArg &rhs)
+		{
+			const GMSetGameAttriArg *r = &rhs;
+			if (r && r != this)
+			{
+				gmroleid = r->gmroleid;
+				localsid = r->localsid;
+				attribute = r->attribute;
+				value = r->value;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << gmroleid;
+			os << localsid;
+			os << attribute;
+			os << value;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> gmroleid;
+			os >> localsid;
+			os >> attribute;
+			os >> value;
+			return os;
+		}
+
+	};
+};
+#endif

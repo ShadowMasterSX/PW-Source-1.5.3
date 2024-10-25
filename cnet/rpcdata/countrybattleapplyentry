@@ -1,0 +1,69 @@
+#ifndef __GNET_COUNTRYBATTLEAPPLYENTRY_RPCDATA
+#define __GNET_COUNTRYBATTLEAPPLYENTRY_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class CountryBattleApplyEntry : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		int major_strength;
+		int minor_strength;
+
+	public:
+		CountryBattleApplyEntry (int l_roleid = 0,int l_major_strength = 0,int l_minor_strength = 0)
+			: roleid(l_roleid),major_strength(l_major_strength),minor_strength(l_minor_strength)
+		{
+		}
+
+		CountryBattleApplyEntry(const CountryBattleApplyEntry &rhs)
+			: roleid(rhs.roleid),major_strength(rhs.major_strength),minor_strength(rhs.minor_strength) { }
+
+		Rpc::Data *Clone() const { return new CountryBattleApplyEntry(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const CountryBattleApplyEntry *r = dynamic_cast<const CountryBattleApplyEntry *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				major_strength = r->major_strength;
+				minor_strength = r->minor_strength;
+			}
+			return *this;
+		}
+
+		CountryBattleApplyEntry& operator = (const CountryBattleApplyEntry &rhs)
+		{
+			const CountryBattleApplyEntry *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				major_strength = r->major_strength;
+				minor_strength = r->minor_strength;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << major_strength;
+			os << minor_strength;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> major_strength;
+			os >> minor_strength;
+			return os;
+		}
+
+	};
+};
+#endif

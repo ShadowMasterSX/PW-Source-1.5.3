@@ -1,0 +1,32 @@
+	public:
+		IntVector rolelist;
+		enum { PROTOCOL_TYPE = PROTOCOL_DELROLEANNOUNCE };
+	public:
+		DelRoleAnnounce() { type = PROTOCOL_DELROLEANNOUNCE; }
+		DelRoleAnnounce(void*) : Protocol(PROTOCOL_DELROLEANNOUNCE) { }
+		DelRoleAnnounce (IntVector l_rolelist)
+			 : rolelist(l_rolelist)
+		{
+			type = PROTOCOL_DELROLEANNOUNCE;
+		}
+
+		DelRoleAnnounce(const DelRoleAnnounce &rhs)
+			: Protocol(rhs),rolelist(rhs.rolelist) { }
+
+		GNET::Protocol *Clone() const { return new DelRoleAnnounce(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << rolelist;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> rolelist;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 512; }

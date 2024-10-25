@@ -1,0 +1,32 @@
+	public:
+		GCountryCapitalVector country_capitals;
+		enum { PROTOCOL_TYPE = PROTOCOL_COUNTRYBATTLECONFIGNOTIFY };
+	public:
+		CountryBattleConfigNotify() { type = PROTOCOL_COUNTRYBATTLECONFIGNOTIFY; }
+		CountryBattleConfigNotify(void*) : Protocol(PROTOCOL_COUNTRYBATTLECONFIGNOTIFY) { }
+		CountryBattleConfigNotify (const GCountryCapitalVector& l_country_capitals)
+			 : country_capitals(l_country_capitals)
+		{
+			type = PROTOCOL_COUNTRYBATTLECONFIGNOTIFY;
+		}
+
+		CountryBattleConfigNotify(const CountryBattleConfigNotify &rhs)
+			: Protocol(rhs),country_capitals(rhs.country_capitals) { }
+
+		GNET::Protocol *Clone() const { return new CountryBattleConfigNotify(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << country_capitals;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> country_capitals;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1024; }

@@ -1,0 +1,47 @@
+	public:
+		int tid;
+		int retcode;
+		int userid;
+		int settime;
+		int locktime;
+		enum { PROTOCOL_TYPE = PROTOCOL_IWEBAUTOLOCKGET_RE };
+	public:
+		IWebAutolockGet_Re() { type = PROTOCOL_IWEBAUTOLOCKGET_RE; }
+		IWebAutolockGet_Re(void*) : Protocol(PROTOCOL_IWEBAUTOLOCKGET_RE) { }
+		IWebAutolockGet_Re (int l_tid,int l_retcode,int l_userid,
+			int l_settime = -1,int l_locktime = 0)
+			 : tid(l_tid),retcode(l_retcode),userid(l_userid)
+			,settime(l_settime),locktime(l_locktime)
+		{
+			type = PROTOCOL_IWEBAUTOLOCKGET_RE;
+		}
+
+		IWebAutolockGet_Re(const IWebAutolockGet_Re &rhs)
+			: Protocol(rhs),tid(rhs.tid),retcode(rhs.retcode),userid(rhs.userid)
+			,settime(rhs.settime),locktime(rhs.locktime) { }
+
+		GNET::Protocol *Clone() const { return new IWebAutolockGet_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << tid;
+			os << retcode;
+			os << userid;
+			os << settime;
+			os << locktime;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> tid;
+			os >> retcode;
+			os >> userid;
+			os >> settime;
+			os >> locktime;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 128; }

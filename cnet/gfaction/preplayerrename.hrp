@@ -1,0 +1,42 @@
+
+#ifndef __GNET_PREPLAYERRENAME_HPP
+#define __GNET_PREPLAYERRENAME_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "preplayerrenamearg"
+#include "preplayerrenameres"
+
+namespace GNET
+{
+
+class PrePlayerRename : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "preplayerrename"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// PrePlayerRenameArg *arg = (PrePlayerRenameArg *)argument;
+		// PrePlayerRenameRes *res = (PrePlayerRenameRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// PrePlayerRenameArg *arg = (PrePlayerRenameArg *)argument;
+		// PrePlayerRenameRes *res = (PrePlayerRenameRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

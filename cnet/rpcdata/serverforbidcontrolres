@@ -1,0 +1,64 @@
+#ifndef __GNET_SERVERFORBIDCONTROLRES_RPCDATA
+#define __GNET_SERVERFORBIDCONTROLRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class ServerForbidControlRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		Octets forbid_cmd;
+
+	public:
+		ServerForbidControlRes (int l_retcode = -1)
+			: retcode(l_retcode)
+		{
+		}
+
+		ServerForbidControlRes(const ServerForbidControlRes &rhs)
+			: retcode(rhs.retcode),forbid_cmd(rhs.forbid_cmd) { }
+
+		Rpc::Data *Clone() const { return new ServerForbidControlRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const ServerForbidControlRes *r = dynamic_cast<const ServerForbidControlRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				forbid_cmd = r->forbid_cmd;
+			}
+			return *this;
+		}
+
+		ServerForbidControlRes& operator = (const ServerForbidControlRes &rhs)
+		{
+			const ServerForbidControlRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				forbid_cmd = r->forbid_cmd;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << forbid_cmd;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> forbid_cmd;
+			return os;
+		}
+
+	};
+};
+#endif

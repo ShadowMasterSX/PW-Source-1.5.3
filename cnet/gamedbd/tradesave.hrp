@@ -1,0 +1,122 @@
+
+#ifndef __GNET_TRADESAVE_HPP
+#define __GNET_TRADESAVE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "dbbuffer.h"
+#include "tradesavearg"
+#include "tradesaveres"
+#include "gamedbmanager.h"
+
+#include <vector>
+
+namespace GNET
+{
+
+class TradeSave : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "tradesave"
+#undef	RPC_BASECLASS
+
+	struct InventoryCompare
+	{
+		bool operator() (const GRoleInventory &x, const GRoleInventory &y) const
+		{ return x.pos < y.pos; }
+	};
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		TradeSaveArg *arg = (TradeSaveArg *)argument;
+		TradeSaveRes *res = (TradeSaveRes *)result;
+		Marshal::OctetsStream key1, key2;
+
+		LOG_TRACE( "TradeSave, roleid1=%d, roleid2=%d.\n", arg->roleid1, arg->roleid2 );
+		GameDBManager::GetInstance()->UpdateTradeMoney( arg->money1, arg->money2 );
+
+		try
+		{
+			StorageEnv::Storage * pinventory = StorageEnv::GetStorage("inventory");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				
+				GRolePocket pocket1, pocket2;
+				GRoleInventoryVector items;
+				std::map<unsigned int, unsigned int> verify;
+				key1 << arg->roleid1;
+				key2 << arg->roleid2;
+				Marshal::OctetsStream( pinventory->find( key1, txn ) ) >> pocket1;
+				Marshal::OctetsStream( pinventory->find( key2, txn ) ) >> pocket2;
+				if(pocket1.money+pocket2.money!=arg->money1+arg->money2)
+				{
+					Log::log( LOG_ERR, 
+						"TradeSave, roleid=%d,roleid2=%d, money1=%d money2=%d, arg1=%d arg2=\n",
+						arg->roleid1, arg->roleid2, pocket1.money, pocket2.money, arg->money1, 
+						arg->money2);
+					throw DbException(DB_VERIFY_BAD);
+				}
+				pocket1.money = arg->money1;
+				pocket2.money = arg->money2;
+
+				std::vector<GRoleInventory>::iterator it,ie;
+				for(it=pocket1.items.begin(),ie=pocket1.items.end();it!=ie;++it)
+					verify[it->id] += it->count;
+				for(it=pocket2.items.begin(),ie=pocket2.items.end();it!=ie;++it)
+					verify[it->id] += it->count;
+
+				for(it=arg->goods1.begin(),ie=arg->goods1.end();it!=ie;++it)
+					verify[it->id] -= it->count;
+				for(it=arg->goods2.begin(),ie=arg->goods2.end();it!=ie;++it)
+					verify[it->id] -= it->count;
+				for(std::map<unsigned int, unsigned int>::iterator i=verify.begin(),e=verify.end();i!=e;++i)
+				{
+					if(i->second!=0)
+					{
+						Log::log( LOG_ERR, "TradeSave, roleid=%d,roleid2=%d, item=%d count=%d\n",
+							arg->roleid1, arg->roleid2, i->first, i->second);
+						throw DbException(DB_VERIFY_BAD);
+					}
+				}
+
+				pocket1.items.GetVector().swap(arg->goods1);
+				pocket2.items.GetVector().swap(arg->goods2);
+
+				pinventory->insert( key1, Marshal::OctetsStream() << pocket1, txn );
+				pinventory->insert( key2, Marshal::OctetsStream() << pocket2, txn );
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "TradeSave, roleid=%d,roleid2=%d, what=%s\n",
+							arg->roleid1, arg->roleid2, e.what() );
+			res->retcode = ERR_TRADE_DB_FAILURE;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// TradeSaveArg *arg = (TradeSaveArg *)argument;
+		// TradeSaveRes *res = (TradeSaveRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,65 @@
+#ifndef __GNET_DBPSHOPCANCELGOODSRES_RPCDATA
+#define __GNET_DBPSHOPCANCELGOODSRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "groleinventory"
+
+namespace GNET
+{
+	class DBPShopCancelGoodsRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		GRoleInventory itemstore;
+
+	public:
+		DBPShopCancelGoodsRes (int l_retcode = 0,const GRoleInventory& l_itemstore = GRoleInventory())
+			: retcode(l_retcode),itemstore(l_itemstore)
+		{
+		}
+
+		DBPShopCancelGoodsRes(const DBPShopCancelGoodsRes &rhs)
+			: retcode(rhs.retcode),itemstore(rhs.itemstore) { }
+
+		Rpc::Data *Clone() const { return new DBPShopCancelGoodsRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPShopCancelGoodsRes *r = dynamic_cast<const DBPShopCancelGoodsRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				itemstore = r->itemstore;
+			}
+			return *this;
+		}
+
+		DBPShopCancelGoodsRes& operator = (const DBPShopCancelGoodsRes &rhs)
+		{
+			const DBPShopCancelGoodsRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				itemstore = r->itemstore;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << itemstore;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> itemstore;
+			return os;
+		}
+
+	};
+};
+#endif

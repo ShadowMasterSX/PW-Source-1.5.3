@@ -1,0 +1,47 @@
+	public:
+		int roleid;
+		int is_valid;
+		std::vector<std::vector<size_t> > process_times;
+		std::vector<std::vector<size_t> > threads_times;
+		std::vector<std::pair<float,std::vector<size_t> > > mouse;
+		enum { PROTOCOL_TYPE = PROTOCOL_ACPERIODINFO };
+	public:
+		ACPeriodInfo() { type = PROTOCOL_ACPERIODINFO; }
+		ACPeriodInfo(void*) : Protocol(PROTOCOL_ACPERIODINFO) { }
+		ACPeriodInfo (int l_roleid,int l_is_valid,std::vector<std::vector<size_t> > l_process_times,
+			std::vector<std::vector<size_t> > l_threads_times,std::vector<std::pair<float,std::vector<size_t> > > l_mouse)
+			 : roleid(l_roleid),is_valid(l_is_valid),process_times(l_process_times)
+			,threads_times(l_threads_times),mouse(l_mouse)
+		{
+			type = PROTOCOL_ACPERIODINFO;
+		}
+
+		ACPeriodInfo(const ACPeriodInfo &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),is_valid(rhs.is_valid),process_times(rhs.process_times)
+			,threads_times(rhs.threads_times),mouse(rhs.mouse) { }
+
+		GNET::Protocol *Clone() const { return new ACPeriodInfo(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << is_valid;
+			os << process_times;
+			os << threads_times;
+			os << mouse;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> is_valid;
+			os >> process_times;
+			os >> threads_times;
+			os >> mouse;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1048576; }

@@ -1,0 +1,35 @@
+	public:
+		int roleid;
+		int model;
+		enum { PROTOCOL_TYPE = PROTOCOL_TANKBATTLEPLAYERAPPLY };
+	public:
+		TankBattlePlayerApply() { type = PROTOCOL_TANKBATTLEPLAYERAPPLY; }
+		TankBattlePlayerApply(void*) : Protocol(PROTOCOL_TANKBATTLEPLAYERAPPLY) { }
+		TankBattlePlayerApply (int l_roleid,int l_model)
+			 : roleid(l_roleid),model(l_model)
+		{
+			type = PROTOCOL_TANKBATTLEPLAYERAPPLY;
+		}
+
+		TankBattlePlayerApply(const TankBattlePlayerApply &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),model(rhs.model) { }
+
+		GNET::Protocol *Clone() const { return new TankBattlePlayerApply(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << model;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> model;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

@@ -1,0 +1,57 @@
+
+#ifndef __GNET_SERVERFORBIDCONTROL_HPP
+#define __GNET_SERVERFORBIDCONTROL_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "serverforbidcontrolarg"
+#include "serverforbidcontrolres"
+
+#include "globalcontrol.h"
+
+namespace GNET
+{
+
+class ServerForbidControl : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "serverforbidcontrol"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		ServerForbidControlArg *arg = (ServerForbidControlArg *)argument;
+		ServerForbidControlRes *res = (ServerForbidControlRes *)result;
+		switch(arg->oper)
+		{
+			case 0: //²éÑ¯
+				res->retcode = GlobalControl::GetInstance()->GetForbidList(res->forbid_cmd);
+				break;
+			case 1: //ÉèÖÃ
+				res->retcode = GlobalControl::GetInstance()->SetForbidList(arg->param);
+				break;
+			default:
+				res->retcode = -1;
+				break;
+		}
+		DEBUG_PRINT("servieforbidcontrol received. oper=%d, retcode=%d", arg->oper,res->retcode);
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// ServerForbidControlArg *arg = (ServerForbidControlArg *)argument;
+		// ServerForbidControlRes *res = (ServerForbidControlRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

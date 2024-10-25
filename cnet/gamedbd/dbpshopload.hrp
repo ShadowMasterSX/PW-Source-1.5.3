@@ -1,0 +1,124 @@
+#ifndef __GNET_DBPSHOPLOAD_HPP
+#define __GNET_DBPSHOPLOAD_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbpshoploadarg"
+#include "dbpshoploadres"
+#include "pshopdetail"
+
+namespace GNET
+{
+
+class QueryLoadShop : public StorageEnv::IQuery
+{
+	PShopDetailVector * plist;
+	int total;
+	int size;
+	Octets last;
+
+public:
+	QueryLoadShop(PShopDetailVector *p): plist(p), total(0), size(0) {}
+	bool Update(StorageEnv::Transaction& txn, Octets& key, Octets& value)
+	{
+		try
+		{
+			if(total>256 || size>65536)
+			{
+				last = key;
+				return false;
+			}
+
+			PShopDetail detail;
+			Marshal::OctetsStream(value) >> detail;
+			plist->push_back(detail);
+			size += DetailSize(detail);
+			++total;
+		} catch (Marshal::Exception &) {
+			Log::log(LOG_ERR, "QueryLoadShop, error unmarshal.");
+		}
+		return true;
+	}
+	const Octets& GetHandle() { return last; }
+
+private:
+	//计算PShopDetail的长度
+	size_t DetailSize(const PShopDetail & detail) const
+	{
+		size_t len = sizeof(detail);
+		len += detail.blist.size() * sizeof(PShopItem);
+		len += detail.slist.size() * sizeof(PShopItem);
+		len += detail.store.size() * sizeof(GRoleInventory);
+		len += detail.yinpiao.size() * sizeof(GRoleInventory);
+
+		for(size_t i=0; i<detail.slist.size(); ++i)
+		{
+			len += detail.slist[i].item.data.size();
+		}
+		for(size_t i=0; i<detail.store.size(); ++i)
+		{
+			len += detail.store[i].data.size();
+		}
+		return len;
+	}
+};
+
+class DBPShopLoad : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbpshopload"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBPShopLoadArg *arg = (DBPShopLoadArg *)argument;
+		DBPShopLoadRes *res = (DBPShopLoadRes *)result;
+
+		QueryLoadShop q(&(res->shops));
+		try
+		{
+			StorageEnv::Storage * pshop = StorageEnv::GetStorage("playershop");
+			StorageEnv::AtomTransaction txn;
+			try
+			{
+				StorageEnv::Storage::Cursor cursor = pshop->cursor(txn);
+				cursor.walk(arg->handle, q);
+				res->handle = q.GetHandle();
+				LOG_TRACE("DBPShopLoad, size=%d, handle=%d\n", res->shops.size(), res->handle.size());
+				res->retcode = ERR_SUCCESS;
+			}
+			catch (DbException e) { throw; }
+			catch (...)
+			{
+				DbException e(DB_OLD_VERSION);
+				txn.abort(e);
+				throw e;
+			}
+		}
+		catch(DbException e)
+		{
+			Log::log(LOG_ERR, "DBPShopLoad, what=%s.\n", e.what());
+			if(e.get_errno() == DB_LOCK_DEADLOCK)
+				res->retcode = ERR_AGAIN;
+			else
+				res->retcode = ERR_EXCEPTION;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBPShopLoadArg *arg = (DBPShopLoadArg *)argument;
+		// DBPShopLoadRes *res = (DBPShopLoadRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+};
+
+};
+#endif

@@ -1,0 +1,78 @@
+#ifndef __GNET_PFACTIONINFO_RPCDATA
+#define __GNET_PFACTIONINFO_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class PFactionInfo : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		unsigned int faction_id;
+		char faction_role;
+		unsigned char faction_pvp_mask;
+
+	public:
+		PFactionInfo (int l_roleid = -1,unsigned int l_faction_id = 0,char l_faction_role = -1
+			,unsigned char l_faction_pvp_mask = 0)
+			: roleid(l_roleid),faction_id(l_faction_id),faction_role(l_faction_role)
+			,faction_pvp_mask(l_faction_pvp_mask)
+		{
+		}
+
+		PFactionInfo(const PFactionInfo &rhs)
+			: roleid(rhs.roleid),faction_id(rhs.faction_id),faction_role(rhs.faction_role),
+			faction_pvp_mask(rhs.faction_pvp_mask) { }
+
+		Rpc::Data *Clone() const { return new PFactionInfo(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const PFactionInfo *r = dynamic_cast<const PFactionInfo *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				faction_id = r->faction_id;
+				faction_role = r->faction_role;
+				faction_pvp_mask = r->faction_pvp_mask;
+			}
+			return *this;
+		}
+
+		PFactionInfo& operator = (const PFactionInfo &rhs)
+		{
+			const PFactionInfo *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				faction_id = r->faction_id;
+				faction_role = r->faction_role;
+				faction_pvp_mask = r->faction_pvp_mask;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << faction_id;
+			os << faction_role;
+			os << faction_pvp_mask;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> faction_id;
+			os >> faction_role;
+			os >> faction_pvp_mask;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<PFactionInfo>	PFactionInfoVector;
+};
+#endif

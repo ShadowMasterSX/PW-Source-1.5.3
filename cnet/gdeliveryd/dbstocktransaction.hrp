@@ -1,0 +1,60 @@
+
+#ifndef __GNET_DBSTOCKTRANSACTION_HPP
+#define __GNET_DBSTOCKTRANSACTION_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbstocktransactionarg"
+#include "dbstocktransactionres"
+#include "stockexchange.h"
+#include "stocktransaction_re.hpp"
+#include "localmacro.h"
+
+namespace GNET
+{
+
+class DBStockTransaction : public Rpc
+{
+#define RPC_BASECLASS   Rpc
+#include "dbstocktransaction"
+#undef  RPC_BASECLASS
+
+	int gamesid;
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBStockTransactionArg *arg = (DBStockTransactionArg *)argument;
+		// DBStockTransactionRes *res = (DBStockTransactionRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBStockTransactionArg *arg = (DBStockTransactionArg *)argument;
+		DBStockTransactionRes *res = (DBStockTransactionRes *)result;
+		DEBUG_PRINT("DBStockTransaction, retcode=%d, roleid=%d, cash=%d, money=%d, cash_total=%d",
+				res->retcode, arg->roleid, res->cash, res->money, res->syncdata.cash_total);
+		StockExchange::Instance()->PostTransaction(arg->userid, res->retcode, res->cash, res->money);
+		GProviderServer::GetInstance()->Send(gamesid, GMailEndSync(0,res->retcode,arg->roleid,res->syncdata));
+
+		{
+			int ret = res->retcode? ERR_STOCK_DATABASE : 0;
+			Thread::RWLock::RDScoped l(UserContainer::GetInstance().GetLocker());
+			PlayerInfo * pinfo = UserContainer::GetInstance().FindRoleOnline(arg->roleid);
+			if (pinfo )
+				GDeliveryServer::GetInstance()->Send(pinfo->linksid, StockTransaction_Re(ret, res->cash, res->money,
+							pinfo->localsid));
+		}
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		DBStockTransactionArg *arg = (DBStockTransactionArg *)argument;
+		Log::log( LOG_ERR,"dbstocktransaction: timeout. roleid=%d", arg->roleid);
+		// μè′yí??ò3?ê±????
+	}
+
+};
+
+};
+#endif

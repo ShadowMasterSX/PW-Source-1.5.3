@@ -1,0 +1,46 @@
+
+#ifndef __GNET_DBPUTCONSUMEPOINTS_HPP
+#define __GNET_DBPUTCONSUMEPOINTS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbputconsumepointsarg"
+#include "rewardmanager.h"
+
+namespace GNET
+{
+
+class DBPutConsumePoints : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbputconsumepoints"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBPutConsumePointsArg *arg = (DBPutConsumePointsArg *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBPutConsumePointsArg *arg = (DBPutConsumePointsArg *)argument;
+		RpcRetcode *res = (RpcRetcode *)result;
+		if (res->retcode != ERR_SUCCESS)
+			Log::log(LOG_ERR, "dbputconsumepoints retcode %d roleid %d", res->retcode, arg->roleid);
+		RewardManager::GetInstance()->OnDBPointsUpdate(res->retcode ,arg->userid);
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		DBPutConsumePointsArg *arg = (DBPutConsumePointsArg *)argument;
+		Log::log(LOG_ERR, "dbputconsumepoints timeout roleid %d", arg->roleid);
+		RewardManager::GetInstance()->OnDBPointsUpdate(ERR_TIMEOUT, arg->userid);
+	}
+
+};
+
+};
+#endif

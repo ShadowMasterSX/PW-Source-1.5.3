@@ -1,0 +1,75 @@
+
+#ifndef __GNET_GETCASHTOTAL_HPP
+#define __GNET_GETCASHTOTAL_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "getcashtotalarg"
+#include "getcashtotalres"
+
+#include "gsysauctioncash"
+
+namespace GNET
+{
+
+class GetCashTotal : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getcashtotal"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		GetCashTotalArg *arg = (GetCashTotalArg *)argument;
+		GetCashTotalRes *res = (GetCashTotalRes *)result;
+		LOG_TRACE( "GetCashTotal, userid=%d",arg->userid);
+
+		try
+		{
+			StorageEnv::Storage * puser = StorageEnv::GetStorage("user");
+			StorageEnv::CommonTransaction txn;
+		
+			try
+			{
+				User u;
+				Marshal::OctetsStream(puser->find(Marshal::OctetsStream()<<arg->userid,txn))>>u;
+				GSysAuctionCash sa_cash;
+				if(u.cash_sysauction.size())
+					Marshal::OctetsStream(u.cash_sysauction)>>sa_cash;
+
+				res->cash_total = u.cash_add+u.cash_buy-u.cash_sell-sa_cash.cash_used_2-u.cash-sa_cash.cash_2;
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "GetCashTotal, userid=%d, what=%s\n", arg->userid, e.what() );
+			res->retcode = ERR_EXCEPTION;
+		}		
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// GetCashTotalArg *arg = (GetCashTotalArg *)argument;
+		// GetCashTotalRes *res = (GetCashTotalRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

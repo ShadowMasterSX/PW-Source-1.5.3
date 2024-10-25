@@ -1,0 +1,59 @@
+#ifndef __GNET_DBWEBTRADEGETROLESIMPLEINFOARG_RPCDATA
+#define __GNET_DBWEBTRADEGETROLESIMPLEINFOARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBWebTradeGetRoleSimpleInfoArg : public GNET::Rpc::Data
+	{
+	public:
+		int userid;
+
+	public:
+		DBWebTradeGetRoleSimpleInfoArg (int l_userid = 0)
+			: userid(l_userid)
+		{
+		}
+
+		DBWebTradeGetRoleSimpleInfoArg(const DBWebTradeGetRoleSimpleInfoArg &rhs)
+			: userid(rhs.userid) { }
+
+		Rpc::Data *Clone() const { return new DBWebTradeGetRoleSimpleInfoArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBWebTradeGetRoleSimpleInfoArg *r = dynamic_cast<const DBWebTradeGetRoleSimpleInfoArg *>(&rhs);
+			if (r && r != this)
+			{
+				userid = r->userid;
+			}
+			return *this;
+		}
+
+		DBWebTradeGetRoleSimpleInfoArg& operator = (const DBWebTradeGetRoleSimpleInfoArg &rhs)
+		{
+			const DBWebTradeGetRoleSimpleInfoArg *r = &rhs;
+			if (r && r != this)
+			{
+				userid = r->userid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			return os;
+		}
+
+	};
+};
+#endif

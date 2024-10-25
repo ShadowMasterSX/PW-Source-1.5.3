@@ -1,0 +1,69 @@
+#ifndef __GNET_ANNOUNCEFACTIONROLEDELARG_RPCDATA
+#define __GNET_ANNOUNCEFACTIONROLEDELARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class AnnounceFactionRoleDelArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		char zoneid;
+		unsigned int faction;
+
+	public:
+		AnnounceFactionRoleDelArg (int l_roleid = -1,char l_zoneid = -1,unsigned int l_faction = 0)
+			: roleid(l_roleid),zoneid(l_zoneid),faction(l_faction)
+		{
+		}
+
+		AnnounceFactionRoleDelArg(const AnnounceFactionRoleDelArg &rhs)
+			: roleid(rhs.roleid),zoneid(rhs.zoneid),faction(rhs.faction) { }
+
+		Rpc::Data *Clone() const { return new AnnounceFactionRoleDelArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const AnnounceFactionRoleDelArg *r = dynamic_cast<const AnnounceFactionRoleDelArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				zoneid = r->zoneid;
+				faction = r->faction;
+			}
+			return *this;
+		}
+
+		AnnounceFactionRoleDelArg& operator = (const AnnounceFactionRoleDelArg &rhs)
+		{
+			const AnnounceFactionRoleDelArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				zoneid = r->zoneid;
+				faction = r->faction;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << zoneid;
+			os << faction;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> zoneid;
+			os >> faction;
+			return os;
+		}
+
+	};
+};
+#endif

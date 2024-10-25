@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBKECANDIDATEAPPLY_HPP
+#define __GNET_DBKECANDIDATEAPPLY_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbkecandidateapplyarg"
+#include "dbkecandidateapplyres"
+
+namespace GNET
+{
+
+class DBKECandidateApply : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbkecandidateapply"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBKECandidateApplyArg *arg = (DBKECandidateApplyArg *)argument;
+		// DBKECandidateApplyRes *res = (DBKECandidateApplyRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBKECandidateApplyArg *arg = (DBKECandidateApplyArg *)argument;
+		// DBKECandidateApplyRes *res = (DBKECandidateApplyRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

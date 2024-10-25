@@ -1,0 +1,49 @@
+
+#ifndef __GNET_DBKEDELETEKING_HPP
+#define __GNET_DBKEDELETEKING_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbkedeletekingarg"
+#include "dbkedeletekingres"
+
+#include "kingelection.h"
+#include "gamedbclient.hpp"
+
+namespace GNET
+{
+
+class DBKEDeleteKing : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbkedeleteking"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBKEDeleteKingArg *arg = (DBKEDeleteKingArg *)argument;
+		// DBKEDeleteKingRes *res = (DBKEDeleteKingRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		//DBKEDeleteKingArg *arg = (DBKEDeleteKingArg *)argument;
+		DBKEDeleteKingRes *res = (DBKEDeleteKingRes *)result;
+		DEBUG_PRINT("dbkedeleteking: rpc return. retcode=%d", res->retcode);
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+		DBKEDeleteKingArg *arg = (DBKEDeleteKingArg *)argument;
+		Log::log(LOG_ERR,"dbkedeleteking: timeout.\n");
+		GameDBClient::GetInstance()->SendProtocol( Rpc::Call(RPC_DBKEDELETEKING,arg) );
+	}
+
+};
+
+};
+#endif

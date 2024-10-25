@@ -1,0 +1,83 @@
+#ifndef __GNET_GCOUNTRYCAPITAL_RPCDATA
+#define __GNET_GCOUNTRYCAPITAL_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GCountryCapital : public GNET::Rpc::Data
+	{
+	public:
+		int country_id;
+		int worldtag;
+		float posx;
+		float posy;
+		float posz;
+
+	public:
+		GCountryCapital (int l_country_id = 0,int l_worldtag = 0,float l_posx = 0.0
+			,float l_posy = 0.0,float l_posz = 0.0)
+			: country_id(l_country_id),worldtag(l_worldtag),posx(l_posx)
+			,posy(l_posy),posz(l_posz)
+		{
+		}
+
+		GCountryCapital(const GCountryCapital &rhs)
+			: country_id(rhs.country_id),worldtag(rhs.worldtag),posx(rhs.posx),
+			posy(rhs.posy),posz(rhs.posz) { }
+
+		Rpc::Data *Clone() const { return new GCountryCapital(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GCountryCapital *r = dynamic_cast<const GCountryCapital *>(&rhs);
+			if (r && r != this)
+			{
+				country_id = r->country_id;
+				worldtag = r->worldtag;
+				posx = r->posx;
+				posy = r->posy;
+				posz = r->posz;
+			}
+			return *this;
+		}
+
+		GCountryCapital& operator = (const GCountryCapital &rhs)
+		{
+			const GCountryCapital *r = &rhs;
+			if (r && r != this)
+			{
+				country_id = r->country_id;
+				worldtag = r->worldtag;
+				posx = r->posx;
+				posy = r->posy;
+				posz = r->posz;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << country_id;
+			os << worldtag;
+			os << posx;
+			os << posy;
+			os << posz;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> country_id;
+			os >> worldtag;
+			os >> posx;
+			os >> posy;
+			os >> posz;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<GCountryCapital>	GCountryCapitalVector;
+};
+#endif

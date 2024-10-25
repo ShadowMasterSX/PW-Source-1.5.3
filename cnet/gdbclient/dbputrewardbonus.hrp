@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBPUTREWARDBONUS_HPP
+#define __GNET_DBPUTREWARDBONUS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbputrewardbonusarg"
+
+
+namespace GNET
+{
+
+class DBPutRewardBonus : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbputrewardbonus"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBPutRewardBonusArg *arg = (DBPutRewardBonusArg *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBPutRewardBonusArg *arg = (DBPutRewardBonusArg *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

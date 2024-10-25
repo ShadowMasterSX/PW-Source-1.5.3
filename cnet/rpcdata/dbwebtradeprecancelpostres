@@ -1,0 +1,59 @@
+#ifndef __GNET_DBWEBTRADEPRECANCELPOSTRES_RPCDATA
+#define __GNET_DBWEBTRADEPRECANCELPOSTRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBWebTradePreCancelPostRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+
+	public:
+		DBWebTradePreCancelPostRes (int l_retcode = 0)
+			: retcode(l_retcode)
+		{
+		}
+
+		DBWebTradePreCancelPostRes(const DBWebTradePreCancelPostRes &rhs)
+			: retcode(rhs.retcode) { }
+
+		Rpc::Data *Clone() const { return new DBWebTradePreCancelPostRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBWebTradePreCancelPostRes *r = dynamic_cast<const DBWebTradePreCancelPostRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		DBWebTradePreCancelPostRes& operator = (const DBWebTradePreCancelPostRes &rhs)
+		{
+			const DBWebTradePreCancelPostRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			return os;
+		}
+
+	};
+};
+#endif

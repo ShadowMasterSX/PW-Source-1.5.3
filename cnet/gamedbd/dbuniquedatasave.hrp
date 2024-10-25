@@ -1,0 +1,71 @@
+
+#ifndef __GNET_DBUNIQUEDATASAVE_HPP
+#define __GNET_DBUNIQUEDATASAVE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbuniquedatasavearg"
+#include "dbuniquedatasaveres"
+
+namespace GNET
+{
+
+struct SaveElem
+{
+	StorageEnv::Storage *pt;
+	StorageEnv::AtomTransaction& txn;
+	SaveElem(StorageEnv::Storage * p,StorageEnv::AtomTransaction& t) : pt(p),txn(t) {}
+	void operator()(GUniqueDataElemNode& e2){ 
+		pt->insert(Marshal::OctetsStream() << e2.key, Marshal::OctetsStream() << e2.val, txn); 
+	}
+};
+
+class DBUniqueDataSave : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbuniquedatasave"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// 只更新改变
+		DBUniqueDataSaveArg *arg = (DBUniqueDataSaveArg *)argument;
+		DBUniqueDataSaveRes *res = (DBUniqueDataSaveRes *)result;
+		
+		try
+		{
+			StorageEnv::Storage * puniquedata = StorageEnv::GetStorage("uniquedata");
+			StorageEnv::AtomTransaction txn;
+
+
+			for_each(arg->values.begin(),arg->values.end(),SaveElem(puniquedata,txn));
+				
+		}
+		catch(DbException e)
+		{
+			Log::log(LOG_ERR, "DBUniqueDataSave, what=%s.\n", e.what());
+			if(e.get_errno() == DB_LOCK_DEADLOCK)
+				res->retcode = ERR_AGAIN;
+			else
+				res->retcode = ERR_EXCEPTION;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBUniqueSaveArg *arg = (DBUniqueSaveArg *)argument;
+		// DBUniqueSaveRes *res = (DBUniqueSaveRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

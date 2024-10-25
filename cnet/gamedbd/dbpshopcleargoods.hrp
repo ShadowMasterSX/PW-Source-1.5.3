@@ -1,0 +1,110 @@
+#ifndef __GNET_DBPSHOPCLEARGOODS_HPP
+#define __GNET_DBPSHOPCLEARGOODS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbpshopcleargoodsarg"
+#include "dbpshopcleargoodsres"
+#include "utilfunction.h"
+
+namespace GNET
+{
+
+class DBPShopClearGoods : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbpshopcleargoods"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		/*
+		 * 店铺清理时做2项工作:
+		 * 1) 将出售栏物品移到店铺仓库,如果店铺仓库装不下,则部分转移
+		 * 2) 清空出售栏和收购栏
+		 */
+
+		DBPShopClearGoodsArg *arg = (DBPShopClearGoodsArg *)argument;
+		DBPShopClearGoodsRes *res = (DBPShopClearGoodsRes *)result;
+		try
+		{
+			StorageEnv::Storage * pshop = StorageEnv::GetStorage("playershop");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				Marshal::OctetsStream key;
+				key << arg->roleid;
+				PShopDetail shop;
+				Marshal::OctetsStream(pshop->find(key, txn)) >> shop;
+				if(!PShopFunc::OptionPolicy(shop, PShopFunc::PSHOP_OP_CLEAR))
+				{
+					Log::log(LOG_ERR,"DBPShopClearGoods, clear opt invalid roleid=%d )",arg->roleid);
+					throw DbException(DB_VERIFY_BAD);
+				}
+
+				//转移出售栏物品到店铺仓库
+				InvMan storeman(shop.store, PSHOP_STORE_CAP);
+				PShopItemVector & slist = shop.slist;
+				PShopItemVector::iterator it;
+				for(it=slist.begin(); it!=slist.end();)
+				{
+					if(storeman.HasEmptySlot())
+					{
+						PShopItem itemdel = *it;
+						storeman.PushInHeap(itemdel.item);
+						it = slist.erase(it);
+						continue;
+					}
+					break;
+				}
+
+				LOG_TRACE("DBPShopClearGoods, roleid=%d", arg->roleid);
+
+				//更新DB
+				shop.blist.clear();
+				pshop->insert(key, Marshal::OctetsStream()<<shop,txn);
+
+
+				if(it == slist.end())
+					res->retcode = ERR_SUCCESS;
+				else
+					res->retcode = ERR_PLAYERSHOP_STORE_FULL;
+
+				res->store = shop.store;
+				res->slist = shop.slist;
+			}
+			catch(DbException e) { throw; }
+			catch(...)
+			{
+				DbException ee(DB_OLD_VERSION);
+				txn.abort(ee);
+				throw ee;
+			}
+		}
+		catch(DbException e)
+		{
+			Log::log(LOG_ERR, "DBPShopClearGoods, roleid=%d, what=%s\n", arg->roleid, e.what());
+			res->retcode = ERR_VERIFYFAILED;
+			res->store.clear();
+			res->slist.clear();
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBPShopClearGoodsArg *arg = (DBPShopClearGoodsArg *)argument;
+		// DBPShopClearGoodsRes *res = (DBPShopClearGoodsRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

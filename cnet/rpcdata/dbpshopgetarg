@@ -1,0 +1,64 @@
+#ifndef __GNET_DBPSHOPGETARG_RPCDATA
+#define __GNET_DBPSHOPGETARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBPShopGetArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		int reason;
+
+	public:
+		DBPShopGetArg (int l_roleid = 0,int l_reason = 0)
+			: roleid(l_roleid),reason(l_reason)
+		{
+		}
+
+		DBPShopGetArg(const DBPShopGetArg &rhs)
+			: roleid(rhs.roleid),reason(rhs.reason) { }
+
+		Rpc::Data *Clone() const { return new DBPShopGetArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPShopGetArg *r = dynamic_cast<const DBPShopGetArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				reason = r->reason;
+			}
+			return *this;
+		}
+
+		DBPShopGetArg& operator = (const DBPShopGetArg &rhs)
+		{
+			const DBPShopGetArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				reason = r->reason;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << reason;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> reason;
+			return os;
+		}
+
+	};
+};
+#endif

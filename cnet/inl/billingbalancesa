@@ -1,0 +1,32 @@
+	public:
+		int userid;
+		enum { PROTOCOL_TYPE = PROTOCOL_BILLINGBALANCESA };
+	public:
+		BillingBalanceSA() { type = PROTOCOL_BILLINGBALANCESA; }
+		BillingBalanceSA(void*) : Protocol(PROTOCOL_BILLINGBALANCESA) { }
+		BillingBalanceSA (int l_userid)
+			 : userid(l_userid)
+		{
+			type = PROTOCOL_BILLINGBALANCESA;
+		}
+
+		BillingBalanceSA(const BillingBalanceSA &rhs)
+			: Protocol(rhs),userid(rhs.userid) { }
+
+		GNET::Protocol *Clone() const { return new BillingBalanceSA(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << userid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> userid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 128; }

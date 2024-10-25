@@ -1,0 +1,69 @@
+#ifndef __GNET_GCONSUMPTIONRECORD_RPCDATA
+#define __GNET_GCONSUMPTIONRECORD_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GConsumptionRecord : public GNET::Rpc::Data
+	{
+	public:
+		int consumption;
+		int reserved;
+		int reserved2;
+
+	public:
+		GConsumptionRecord (int l_consumption = 0,int l_reserved = 0,int l_reserved2 = 0)
+			: consumption(l_consumption),reserved(l_reserved),reserved2(l_reserved2)
+		{
+		}
+
+		GConsumptionRecord(const GConsumptionRecord &rhs)
+			: consumption(rhs.consumption),reserved(rhs.reserved),reserved2(rhs.reserved2) { }
+
+		Rpc::Data *Clone() const { return new GConsumptionRecord(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GConsumptionRecord *r = dynamic_cast<const GConsumptionRecord *>(&rhs);
+			if (r && r != this)
+			{
+				consumption = r->consumption;
+				reserved = r->reserved;
+				reserved2 = r->reserved2;
+			}
+			return *this;
+		}
+
+		GConsumptionRecord& operator = (const GConsumptionRecord &rhs)
+		{
+			const GConsumptionRecord *r = &rhs;
+			if (r && r != this)
+			{
+				consumption = r->consumption;
+				reserved = r->reserved;
+				reserved2 = r->reserved2;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << consumption;
+			os << reserved;
+			os << reserved2;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> consumption;
+			os >> reserved;
+			os >> reserved2;
+			return os;
+		}
+
+	};
+};
+#endif

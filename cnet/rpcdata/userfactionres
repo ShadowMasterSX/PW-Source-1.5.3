@@ -1,0 +1,94 @@
+#ifndef __GNET_USERFACTIONRES_RPCDATA
+#define __GNET_USERFACTIONRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "guserfaction"
+
+namespace GNET
+{
+	class UserFactionRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		GUserFaction value;
+		int level;
+		int contrib;
+		int reputation;
+		unsigned char reincarn_times;
+		unsigned char gender;
+
+	public:
+		UserFactionRes (int l_retcode = -1,int l_level = 0,int l_contrib = 0
+			,int l_reputation = 0,unsigned char l_reincarn_times = 0,unsigned char l_gender = 0)
+			: retcode(l_retcode),level(l_level),contrib(l_contrib)
+			,reputation(l_reputation),reincarn_times(l_reincarn_times),gender(l_gender)
+		{
+		}
+
+		UserFactionRes(const UserFactionRes &rhs)
+			: retcode(rhs.retcode),value(rhs.value),level(rhs.level),
+			contrib(rhs.contrib),reputation(rhs.reputation),reincarn_times(rhs.reincarn_times),
+			gender(rhs.gender) { }
+
+		Rpc::Data *Clone() const { return new UserFactionRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const UserFactionRes *r = dynamic_cast<const UserFactionRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				value = r->value;
+				level = r->level;
+				contrib = r->contrib;
+				reputation = r->reputation;
+				reincarn_times = r->reincarn_times;
+				gender = r->gender;
+			}
+			return *this;
+		}
+
+		UserFactionRes& operator = (const UserFactionRes &rhs)
+		{
+			const UserFactionRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				value = r->value;
+				level = r->level;
+				contrib = r->contrib;
+				reputation = r->reputation;
+				reincarn_times = r->reincarn_times;
+				gender = r->gender;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << value;
+			os << level;
+			os << contrib;
+			os << reputation;
+			os << reincarn_times;
+			os << gender;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> value;
+			os >> level;
+			os >> contrib;
+			os >> reputation;
+			os >> reincarn_times;
+			os >> gender;
+			return os;
+		}
+
+	};
+};
+#endif

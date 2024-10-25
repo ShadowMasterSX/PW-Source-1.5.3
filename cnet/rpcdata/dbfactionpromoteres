@@ -1,0 +1,69 @@
+#ifndef __GNET_DBFACTIONPROMOTERES_RPCDATA
+#define __GNET_DBFACTIONPROMOTERES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBFactionPromoteRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		char suprole;
+		char newrole;
+
+	public:
+		DBFactionPromoteRes (int l_retcode = -1,char l_suprole = 0,char l_newrole = 0)
+			: retcode(l_retcode),suprole(l_suprole),newrole(l_newrole)
+		{
+		}
+
+		DBFactionPromoteRes(const DBFactionPromoteRes &rhs)
+			: retcode(rhs.retcode),suprole(rhs.suprole),newrole(rhs.newrole) { }
+
+		Rpc::Data *Clone() const { return new DBFactionPromoteRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBFactionPromoteRes *r = dynamic_cast<const DBFactionPromoteRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				suprole = r->suprole;
+				newrole = r->newrole;
+			}
+			return *this;
+		}
+
+		DBFactionPromoteRes& operator = (const DBFactionPromoteRes &rhs)
+		{
+			const DBFactionPromoteRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				suprole = r->suprole;
+				newrole = r->newrole;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << suprole;
+			os << newrole;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> suprole;
+			os >> newrole;
+			return os;
+		}
+
+	};
+};
+#endif

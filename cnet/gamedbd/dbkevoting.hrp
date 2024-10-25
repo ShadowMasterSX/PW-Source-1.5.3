@@ -1,0 +1,132 @@
+
+#ifndef __GNET_DBKEVOTING_HPP
+#define __GNET_DBKEVOTING_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbkevotingarg"
+#include "dbkevotingres"
+
+#include "kingelectiondetail"
+
+namespace GNET
+{
+
+class DBKEVoting : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbkevoting"
+#undef	RPC_BASECLASS
+
+	int Find(KECandidateVector & list, int roleid)
+	{
+		for(size_t i=0; i<list.size(); i++)
+		{
+			if(list[i].roleid == roleid)
+				return (int)i;
+		}
+		return -1;
+	}
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBKEVotingArg *arg = (DBKEVotingArg *)argument;
+		DBKEVotingRes *res = (DBKEVotingRes *)result;
+
+		try
+		{
+			StorageEnv::Storage * pking = StorageEnv::GetStorage("kingelection");
+			StorageEnv::Storage * pinventory = StorageEnv::GetStorage("inventory");
+			StorageEnv::Storage * pequipment = StorageEnv::GetStorage("equipment");
+			StorageEnv::Storage * pstorehouse = StorageEnv::GetStorage("storehouse");
+			StorageEnv::Storage * plog = arg->syncdata.logs.size()?StorageEnv::GetStorage("shoplog"):NULL;
+			StorageEnv::CommonTransaction txn;
+		
+			try
+			{
+				KingElectionDetail detail;
+				Marshal::OctetsStream( pking->find(Marshal::OctetsStream()<<(int)0,txn) ) >> detail;
+				//检查被投票人是否存在
+				int rst = Find(detail.candidate_list, arg->candidate_roleid);
+				if(rst == -1)
+					throw DbException(DB_VERIFY_BAD);
+				//检查包裹中是否存在物品
+				GRoleInventoryVector& v = arg->syncdata.inventory.items;
+				GRoleInventoryVector::iterator it,ie;
+				for(it=v.begin(),ie=v.end();it!=ie;it++)
+				{
+					if(it->pos == arg->item_pos)
+					{
+						if(it->id != arg->item_id || it->count < arg->item_num)
+							it = ie;
+						break;
+					}
+				}
+				if(it == ie)
+					throw DbException(DB_VERIFY_BAD);
+				//检查inventory时戳，计算金钱变化
+				Marshal::OctetsStream krole;
+				krole << arg->roleid;
+				GRolePocket pocket;
+				Marshal::OctetsStream(pinventory->find(krole, txn)) >> pocket;
+				if(arg->syncdata.inventory.timestamp <= pocket.timestamp)
+				{
+					Log::log(LOG_ERR,"DBKEVoting, timestamp mismatch. %d<%d",
+						arg->syncdata.inventory.timestamp, pocket.timestamp);
+					throw DbException(DB_VERIFY_BAD);
+				}
+				int delta = arg->syncdata.inventory.money - pocket.money;
+
+				Log::formatlog("kevoting","roleid=%d:candidate_roleid=%d:item_id=%d:item_num=%d",
+						arg->roleid,arg->candidate_roleid,arg->item_id,arg->item_num);
+
+				//修改国王选举数据
+				++ detail.candidate_list[rst].votes;
+				//消耗物品，生成syncdata
+				it->count -= arg->item_num;
+				res->syncdata.inventory.items.push_back(*it);
+				if(it->count==0)
+					v.erase(it);
+
+				pking->insert(Marshal::OctetsStream()<<(int)0, Marshal::OctetsStream()<<detail, txn);
+				pinventory->insert(krole, Marshal::OctetsStream()<<arg->syncdata.inventory, txn);
+				pequipment->insert(krole, Marshal::OctetsStream()<<arg->syncdata.equipment, txn);
+				WriteRestSyncData(pstorehouse, plog, arg->roleid, arg->syncdata, delta, txn);
+				res->syncdata.inventory.money = arg->syncdata.inventory.money;
+				res->syncdata.data_mask = arg->syncdata.data_mask;
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log(LOG_ERR, "DBKEVoting, roleid=%d, what=%s.", arg->roleid, e.what());
+			res->retcode = ERR_EXCEPTION;
+			res->syncdata.inventory.money = arg->syncdata.inventory.money;
+			res->syncdata.inventory.items.clear();
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBKEVotingArg *arg = (DBKEVotingArg *)argument;
+		// DBKEVotingRes *res = (DBKEVotingRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

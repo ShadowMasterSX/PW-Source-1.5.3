@@ -1,0 +1,34 @@
+
+#ifndef __GNET_DBSELLPOINT_HPP
+#define __GNET_DBSELLPOINT_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "sellpointarg"
+#include "sellpointres"
+namespace GNET
+{
+
+class DBSellPoint : public ProxyRpc
+{
+#define	RPC_BASECLASS	ProxyRpc
+	#include "dbsellpoint"
+#undef	RPC_BASECLASS
+	bool Delivery(Manager::Session::ID proxy_sid, const OctetsStream& osArg)
+	{
+		return false;
+	}
+
+	void PostProcess(Manager::Session::ID proxy_sid,const OctetsStream& osArg, const OctetsStream& osRes)
+	{
+	}
+
+	void OnTimeout( const OctetsStream &osArg )
+	{
+	}
+
+};
+
+};
+#endif

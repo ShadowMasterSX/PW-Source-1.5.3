@@ -1,0 +1,35 @@
+	public:
+		FactionIDBean factionid;
+		Octets updateforbid;
+		enum { PROTOCOL_TYPE = PROTOCOL_FACTIONFORBIDUPDATE };
+	public:
+		FactionForbidUpdate() { type = PROTOCOL_FACTIONFORBIDUPDATE; }
+		FactionForbidUpdate(void*) : Protocol(PROTOCOL_FACTIONFORBIDUPDATE) { }
+		FactionForbidUpdate (const FactionIDBean& l_factionid,const Octets& l_updateforbid = Octets())
+			 : factionid(l_factionid),updateforbid(l_updateforbid)
+		{
+			type = PROTOCOL_FACTIONFORBIDUPDATE;
+		}
+
+		FactionForbidUpdate(const FactionForbidUpdate &rhs)
+			: Protocol(rhs),factionid(rhs.factionid),updateforbid(rhs.updateforbid) { }
+
+		GNET::Protocol *Clone() const { return new FactionForbidUpdate(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << factionid;
+			os << updateforbid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> factionid;
+			os >> updateforbid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1048576; }

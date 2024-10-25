@@ -1,0 +1,47 @@
+	public:
+		unsigned short retcode;
+		int roleid;
+		int battle_id;
+		int server_id;
+		int world_tag;
+		enum { PROTOCOL_TYPE = PROTOCOL_BATTLEENTERNOTICE };
+	public:
+		BattleEnterNotice() { type = PROTOCOL_BATTLEENTERNOTICE; }
+		BattleEnterNotice(void*) : Protocol(PROTOCOL_BATTLEENTERNOTICE) { }
+		BattleEnterNotice (unsigned short l_retcode,int l_roleid = 0,int l_battle_id = 0,
+			int l_server_id = 0,int l_world_tag = 0)
+			 : retcode(l_retcode),roleid(l_roleid),battle_id(l_battle_id)
+			,server_id(l_server_id),world_tag(l_world_tag)
+		{
+			type = PROTOCOL_BATTLEENTERNOTICE;
+		}
+
+		BattleEnterNotice(const BattleEnterNotice &rhs)
+			: Protocol(rhs),retcode(rhs.retcode),roleid(rhs.roleid),battle_id(rhs.battle_id)
+			,server_id(rhs.server_id),world_tag(rhs.world_tag) { }
+
+		GNET::Protocol *Clone() const { return new BattleEnterNotice(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << roleid;
+			os << battle_id;
+			os << server_id;
+			os << world_tag;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> roleid;
+			os >> battle_id;
+			os >> server_id;
+			os >> world_tag;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 32; }

@@ -1,0 +1,64 @@
+#ifndef __GNET_DBPSHOPTIMEOUTARG_RPCDATA
+#define __GNET_DBPSHOPTIMEOUTARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBPShopTimeoutArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		char delflag;
+
+	public:
+		DBPShopTimeoutArg (int l_roleid = 0,char l_delflag = 0)
+			: roleid(l_roleid),delflag(l_delflag)
+		{
+		}
+
+		DBPShopTimeoutArg(const DBPShopTimeoutArg &rhs)
+			: roleid(rhs.roleid),delflag(rhs.delflag) { }
+
+		Rpc::Data *Clone() const { return new DBPShopTimeoutArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPShopTimeoutArg *r = dynamic_cast<const DBPShopTimeoutArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				delflag = r->delflag;
+			}
+			return *this;
+		}
+
+		DBPShopTimeoutArg& operator = (const DBPShopTimeoutArg &rhs)
+		{
+			const DBPShopTimeoutArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				delflag = r->delflag;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << delflag;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> delflag;
+			return os;
+		}
+
+	};
+};
+#endif

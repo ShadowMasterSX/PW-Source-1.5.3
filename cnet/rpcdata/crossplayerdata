@@ -1,0 +1,90 @@
+#ifndef __GNET_CROSSPLAYERDATA_RPCDATA
+#define __GNET_CROSSPLAYERDATA_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "grolebase"
+#include "grolestatus"
+#include "grolepocket"
+#include "groleequipment"
+#include "grolestorehouse"
+#include "groletask"
+
+namespace GNET
+{
+	class CrossPlayerData : public GNET::Rpc::Data
+	{
+	public:
+		GRoleBase base;
+		GRoleStatus status;
+		GRolePocket inventory;
+		GRoleEquipment equipment;
+		GRoleStorehouse storehouse;
+		GRoleTask task;
+
+	public:
+		CrossPlayerData ()
+		{
+		}
+
+		CrossPlayerData(const CrossPlayerData &rhs)
+			: base(rhs.base),status(rhs.status),inventory(rhs.inventory),
+			equipment(rhs.equipment),storehouse(rhs.storehouse),task(rhs.task) { }
+
+		Rpc::Data *Clone() const { return new CrossPlayerData(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const CrossPlayerData *r = dynamic_cast<const CrossPlayerData *>(&rhs);
+			if (r && r != this)
+			{
+				base = r->base;
+				status = r->status;
+				inventory = r->inventory;
+				equipment = r->equipment;
+				storehouse = r->storehouse;
+				task = r->task;
+			}
+			return *this;
+		}
+
+		CrossPlayerData& operator = (const CrossPlayerData &rhs)
+		{
+			const CrossPlayerData *r = &rhs;
+			if (r && r != this)
+			{
+				base = r->base;
+				status = r->status;
+				inventory = r->inventory;
+				equipment = r->equipment;
+				storehouse = r->storehouse;
+				task = r->task;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << base;
+			os << status;
+			os << inventory;
+			os << equipment;
+			os << storehouse;
+			os << task;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> base;
+			os >> status;
+			os >> inventory;
+			os >> equipment;
+			os >> storehouse;
+			os >> task;
+			return os;
+		}
+
+	};
+};
+#endif

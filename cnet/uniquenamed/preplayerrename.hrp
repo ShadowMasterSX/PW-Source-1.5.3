@@ -1,0 +1,97 @@
+
+#ifndef __GNET_PREPLAYERRENAME_HPP
+#define __GNET_PREPLAYERRENAME_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "preplayerrenamearg"
+#include "preplayerrenameres"
+
+namespace GNET
+{
+
+class PrePlayerRename : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "preplayerrename"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		PrePlayerRenameArg *arg = (PrePlayerRenameArg *)argument;
+		PrePlayerRenameRes *res = (PrePlayerRenameRes *)result;
+
+		LOG_TRACE( "PrePlayerRename(zoneid=%d, userid=%d, roleid=%d newnamesize=%d)", arg->zoneid, arg->userid, arg->roleid, arg->newname.size());
+
+		UniqueNameServer::GetInstance()->TransformName(arg->newname);
+
+		Octets name;
+		CharsetConverter::conv_charset_u2l(arg->newname, name);
+		LOG_TRACE( "PrePlayerRename(zoneid=%d, userid=%d, roleid=%d newname=%.*s)", arg->zoneid, arg->userid, arg->roleid, name.size(),(char*)name.begin());
+
+		try
+		{
+			StorageEnv::Storage * punamerole = StorageEnv::GetStorage("unamerole");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				Marshal::OctetsStream value_unamerole;
+				if (punamerole->find(arg->newname, value_unamerole, txn))
+				{
+					int zoneid, roleid, status, time;
+					value_unamerole >> zoneid >> roleid >> status >> time;
+					if (!(UNIQUENAME_ENGAGED == status && Timer::GetTime() - time > 300))
+					{
+						res->retcode = ERR_DUPLICATRECORD;
+						LOG_TRACE("PrePlayerRename(zoneid=%d,userid=%d,roleid=%d,name=%.*s),duplicate,old:zoneid=%d,roleid=%d,status=%d,time=%d.",arg->zoneid,arg->userid,arg->roleid,name.size(),(char*)name.begin(),zoneid,roleid,status,time);
+						return;
+					}
+					else
+					{
+						res->retcode = ERR_DUPLICATRECORD;
+						LOG_TRACE("PrePlayerRename(zoneid=%d,userid=%d,roleid=%d,name=%.*s),duplicate2,old:zoneid=%d,roleid=%d,status=%d,time=%d.",arg->zoneid,arg->userid,arg->roleid,name.size(),(char*)name.begin(),zoneid,roleid,status,time);
+						return;
+					}
+				}
+				LOG_TRACE("PrePlayerRename(zoneid=%d,userid=%d,roleid=%d,name=%.*s), ok",arg->zoneid,arg->userid,arg->roleid, name.size(),(char*)name.begin());
+				int status = UNIQUENAME_ENGAGED;
+				value_unamerole.clear();
+				value_unamerole << arg->zoneid << arg->roleid << status << (int)Timer::GetTime();
+				punamerole->insert(arg->newname, value_unamerole, txn);
+
+				res->retcode  = ERR_SUCCESS;
+
+			}
+			catch( DbException e ) { throw; }
+			catch( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch( DbException e )
+		{
+			Log::log( LOG_ERR, "PrePlayerRename, roleid=%d, what=%s\n", arg->roleid, e.what() );
+			res->retcode = ERR_EXCEPTION;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// PrePlayerRenameArg *arg = (PrePlayerRenameArg *)argument;
+		// PrePlayerRenameRes *res = (PrePlayerRenameRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

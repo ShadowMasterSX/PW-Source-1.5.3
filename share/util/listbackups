@@ -1,0 +1,97 @@
+#!/usr/bin/perl -w
+
+use CGI qw(fatalsToBrowser);
+use Time::Local 'timelocal_nocheck';
+
+my %backups;
+my %backups_zipstatus;
+my $backup_dir = "/export/backup";
+$backup_dir = $ARGV[0] if( @ARGV > 0 );
+
+my $gQ = new CGI;
+
+my @dirorfiles = glob( "$backup_dir/*" );
+foreach( @dirorfiles )
+{
+	my $time_string;
+	if( -d $_ )
+	{
+		($time_string) = $_=~m/.*\/(.+)$/g;
+	}
+	elsif( -f $_ )
+	{
+		($time_string) = $_=~m/.*\/(.+)\.tar.bz$/g;
+		$backups_zipstatus{$time_string} = 1;
+	}
+	else
+	{
+		next;
+	}
+
+	my $year = substr($time_string,0,4);
+	my $mon = substr($time_string,4,2);
+	my $mday = substr($time_string,6,2);
+	my $hour = substr($time_string,9,2);
+	my $min = substr($time_string,11,2);
+	my $sec = substr($time_string,13,2);
+	my $time = timelocal_nocheck($sec,$min,$hour,$mday,$mon-1,$year);
+	$backups{$time_string} = $time;
+}
+
+my @keys_sort = sort { $backups{$b} <=> $backups{$a} } keys(%backups);
+
+if( @ARGV > 1 and defined $ARGV[1] and $ARGV[1] eq 'latest_whole' )
+{
+	my $latest_whole = "";
+	$latest_whole = $keys_sort[1] if( @keys_sort >= 2 );
+	print "$latest_whole";
+}
+elsif( @ARGV > 1 and defined $ARGV[1] )
+{
+	my $rollbacksubdir = "";
+	my $rollbacktime = $ARGV[1];
+	$rollbacktime = timelocal_nocheck( substr($rollbacktime,13,2), substr($rollbacktime,11,2),
+								substr($rollbacktime,9,2), substr($rollbacktime,6,2),
+								substr($rollbacktime,4,2)-1, substr($rollbacktime,0,4) );
+
+	foreach( @keys_sort )
+	{
+		if( $rollbacktime >= $backups{$_} )
+		{
+			$rollbacksubdir = $_;
+			last;
+		}
+	}
+	print "$rollbacksubdir";
+}
+else
+{
+	print $gQ->header( -type=>'text/html', -charset=>'gb2312');
+
+	$gQ->print( "<html><head><title>完美世界-游戏运行管理</title>" );
+	$gQ->print( "<META HTTP-EQUIV=\"Pragma\" CONTENT=\"no-cache\"></head>" );
+	$gQ->print( "<body>\n<br>&nbsp;<br>" );
+	$gQ->print( "<table border=0 cellpadding=0 width=750 align=center><tr><td>" );
+
+	$gQ->print( "<P align=center>服务器备份列表</P><br>" );
+	$gQ->print( "<table border cellpadding=2 width=750 align=center>" );
+	$gQ->print( "<tr><th width=25%>备份</th><th>日期</th><th>状态</th><th>操作</th></tr>\n" );
+	foreach( @keys_sort )
+	{
+		$gQ->print( "<tr><td align=center>$_</td><td align=center>" . scalar localtime $backups{$_} );
+		$gQ->print( "</td>" );
+		$gQ->print( $backups_zipstatus{$_} ? "<td align=center>压缩</td>" : "<td align=center>未压缩</td>" );
+		$gQ->print( "<td align=center>" );
+		$gQ->print( "<a href=\"./download.cgi?backup=$_\">下载全部</a>&nbsp;" );
+		$gQ->print( "<a href=\"./downloadtxt.cgi?backup=$_\">下载角色列表</a>&nbsp;" );
+		$gQ->print( "<a href=\"./rollback.cgi?backup=$_\">回档</a></td>" );
+		$gQ->print( "</tr>\n" );
+	}
+
+	$gQ->print( "</table>\n" );
+
+	$gQ->print("</td></tr><tr><td align=center><br><a href=\"javascript:window.history.back(-1);\">返回</a><br>");
+	$gQ->print( "</td></tr></table>" );
+	$gQ->print( "</body></html>\n" );
+}
+

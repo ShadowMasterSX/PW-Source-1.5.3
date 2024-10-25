@@ -1,0 +1,119 @@
+
+#ifndef __GNET_PRECREATEFACTION_HPP
+#define __GNET_PRECREATEFACTION_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "storage.h"
+#include "precreatefactionarg"
+#include "precreatefactionres"
+
+#include "timer.h"
+#include "uniquenameserver.hpp"
+namespace GNET
+{
+
+class PreCreateFaction : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "precreatefaction"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		PreCreateFactionArg *arg = (PreCreateFactionArg *)argument;
+		PreCreateFactionRes *res = (PreCreateFactionRes *)result;
+
+		UniqueNameServer::GetInstance()->TransformName(arg->factionname);
+
+		Octets name;
+		CharsetConverter::conv_charset_u2l( arg->factionname, name );
+		LOG_TRACE( "PreCreateFaction(zoneid=%d,name=%.*s)", arg->zoneid, name.size(), (char*)name.begin() );
+
+		try
+		{
+			StorageEnv::Storage * punamefaction = StorageEnv::GetStorage("unamefaction");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				Marshal::OctetsStream key_nextid, value_unamefaction, value_nextid;
+				int nextid_forkey = 0;
+				key_nextid << nextid_forkey;
+				if( key_nextid == arg->factionname )
+				{
+					res->retcode = ERR_DUPLICATRECORD;
+					LOG_TRACE( "PreCreateFaction(zoneid=%d,name=%.*s), duplicate, equals to next_id",
+								arg->zoneid, name.size(), (char*)name.begin() );
+					return;
+				}
+
+				if( punamefaction->find( arg->factionname, value_unamefaction, txn ) )
+				{
+					int zoneid, factionid, status, time;
+					value_unamefaction >> zoneid >> factionid >> status >> time;
+					if( !(UNIQUENAME_ENGAGED == status && Timer::GetTime() - time > 300) )
+					{
+						res->retcode = ERR_DUPLICATRECORD;
+						LOG_TRACE( "PreCreateFaction(zoneid=%d,name=%.*s), duplicate, old:zoneid=%d,factionid=%d,status=%d,time=%d", 
+								arg->zoneid, name.size(), (char*)name.begin(), zoneid, factionid, status, time );
+						return;
+					}
+					else
+					{
+						res->retcode = ERR_DUPLICATRECORD;
+						LOG_TRACE( "PreCreateFaction(zoneid=%d,name=%.*s), duplicate, old:zoneid=%d,factionid=%d,status=%d,time=%d", 
+								arg->zoneid, name.size(), (char*)name.begin(), zoneid, factionid, status, time );
+						return;
+					}
+				}
+
+				int temp = 0, nextid = 1;
+				if( punamefaction->find( key_nextid, value_nextid, txn ) )
+					value_nextid >> temp >> nextid;
+				res->factionid = nextid;
+
+				value_unamefaction.clear();
+				int status = UNIQUENAME_ENGAGED;
+				value_unamefaction << arg->zoneid << nextid << status << (int)Timer::GetTime();
+				punamefaction->insert( arg->factionname, value_unamefaction, txn );
+
+				value_nextid.clear();
+				nextid ++;
+				status = UNIQUENAME_USED;
+				value_nextid << temp << nextid << status << temp;
+				punamefaction->insert( key_nextid, value_nextid, txn );
+				LOG_TRACE( "PreCreateFaction(zoneid=%d,name=%.*s) ok, nextid=%d", arg->zoneid, name.size(), (char*)name.begin(), nextid );
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "PreCreateFaction, zoneid=%d, what=%s\n", arg->zoneid, e.what() );
+			res->retcode = -1;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// PreCreateFactionArg *arg = (PreCreateFactionArg *)argument;
+		// PreCreateFactionRes *res = (PreCreateFactionRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

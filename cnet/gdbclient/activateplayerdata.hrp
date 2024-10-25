@@ -1,0 +1,42 @@
+
+#ifndef __GNET_ACTIVATEPLAYERDATA_HPP
+#define __GNET_ACTIVATEPLAYERDATA_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "activateplayerdataarg"
+#include "activateplayerdatares"
+
+namespace GNET
+{
+
+class ActivatePlayerData : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "activateplayerdata"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// ActivatePlayerDataArg *arg = (ActivatePlayerDataArg *)argument;
+		// ActivatePlayerDataRes *res = (ActivatePlayerDataRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// ActivatePlayerDataArg *arg = (ActivatePlayerDataArg *)argument;
+		// ActivatePlayerDataRes *res = (ActivatePlayerDataRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

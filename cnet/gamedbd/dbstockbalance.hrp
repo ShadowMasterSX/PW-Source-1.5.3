@@ -1,0 +1,143 @@
+
+#ifndef __GNET_DBSTOCKBALANCE_HPP
+#define __GNET_DBSTOCKBALANCE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbstockbalancearg"
+#include "dbstockbalanceres"
+#include "localmacro.h"
+
+namespace GNET
+{
+
+class DBStockBalance : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbstockbalance"
+#undef	RPC_BASECLASS
+
+	void InsertLog(User& user, unsigned int tid, int ack_volume, int ack_money )
+	{
+		StockLog log;
+		time_t now = Timer::GetTime();
+		for(std::vector<StockLog>::iterator it=user.exg_log.begin();it!=user.exg_log.end();)
+		{
+			if(now-it->time>86400*30) //todo: 30 days
+				it = user.exg_log.erase(it);
+			else 
+				++it;
+		}
+		log.tid = tid;
+		log.time = now;
+		log.volume = ack_volume;
+		log.cost = ack_money;
+		log.result = STOCK_ORDER_DONE;
+		user.exg_log.push_back(log);
+		if(user.exg_log.size()>80)
+			user.exg_log.erase(user.exg_log.begin());
+	}
+
+	void UpdateBalance(StorageEnv::Storage * porder, StorageEnv::CommonTransaction& txn, int ack_volume)
+	{
+		Marshal::OctetsStream key, value;
+		StockOrder order;
+		key << (unsigned int)STOCK_BALANCE_ID;
+		if(porder->find(key,value,txn))
+		{
+			value >> order;
+			order.volume += ack_volume;
+		}
+		else
+			order.volume = ack_volume;
+		order.tid = STOCK_BALANCE_ID;
+		porder->insert(key,Marshal::OctetsStream()<<order,txn);
+	}
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBStockBalanceArg *arg = (DBStockBalanceArg *)argument;
+		DBStockBalanceRes *res = (DBStockBalanceRes *)result;
+		try
+		{
+			StorageEnv::Storage * porder = StorageEnv::GetStorage("order");
+			StorageEnv::Storage * puser = StorageEnv::GetStorage("user");
+			StorageEnv::CommonTransaction txn;
+			Marshal::OctetsStream key, keyu;
+
+			try{
+				StockOrder order;
+				User user;
+				if(!arg->tid || arg->tid==STOCK_BALANCE_ID)
+					throw DbException(DB_VERIFY_BAD);
+
+				key << arg->tid;
+				Marshal::OctetsStream(porder->find(key,txn)) >> order;
+
+				keyu << arg->userid;
+				Marshal::OctetsStream(puser->find(keyu,txn)) >> user;
+
+				if(arg->userid!=order.userid)
+					throw DbException(DB_VERIFY_BAD);
+				if(order.price>0)
+				{
+					user.cash -= (int)(STOCK_TAX_RATE*100*arg->ack_volume);
+					user.cash_sell += (int)(STOCK_TAX_RATE*100*arg->ack_volume);
+					user.money += arg->ack_money;
+				}else
+				{
+					user.cash += arg->ack_volume*100;
+					user.cash_buy += arg->ack_volume*100;
+					user.money += (int)(STOCK_TAX_RATE*arg->ack_money);
+				}
+				order.volume -= arg->ack_volume;
+				if(order.volume)
+					porder->insert(key,Marshal::OctetsStream()<<order,txn);
+				else
+					porder->del(key,txn);
+				UpdateBalance(porder, txn, order.price>0 ? arg->ack_volume : -arg->ack_volume);
+				InsertLog(user, arg->tid, arg->ack_volume, arg->ack_money);
+				puser->insert(keyu,Marshal::OctetsStream()<<user,txn);
+				res->volume_left = order.volume;
+				res->cash = user.cash;
+				res->money = user.money;
+				res->retcode = ERR_SUCCESS;
+
+				Log::formatlog("stockbalance","userid=%d:tid=%d:volume=%d:ack_volume=%d:ack_money=%d:"
+					"cash=%d:money=%d:cash_buy=%d:cash_sell=%d", arg->userid, arg->tid, order.volume, 
+					arg->ack_volume,arg->ack_money,user.cash,user.money,user.cash_buy,user.cash_sell);
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBStockBalance, userid=%d,tid=%d,what=%s", arg->userid,arg->tid,e.what());
+			if(e.get_errno()==DB_LOCK_DEADLOCK)
+				res->retcode = ERR_AGAIN;
+			else
+				res->retcode = ERR_EXCEPTION;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBStockBalanceArg *arg = (DBStockBalanceArg *)argument;
+		// DBStockBalanceRes *res = (DBStockBalanceRes *)result;
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

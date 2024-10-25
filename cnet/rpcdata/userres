@@ -1,0 +1,65 @@
+#ifndef __GNET_USERRES_RPCDATA
+#define __GNET_USERRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "user"
+
+namespace GNET
+{
+	class UserRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		User value;
+
+	public:
+		UserRes (int l_retcode = -1)
+			: retcode(l_retcode)
+		{
+		}
+
+		UserRes(const UserRes &rhs)
+			: retcode(rhs.retcode),value(rhs.value) { }
+
+		Rpc::Data *Clone() const { return new UserRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const UserRes *r = dynamic_cast<const UserRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				value = r->value;
+			}
+			return *this;
+		}
+
+		UserRes& operator = (const UserRes &rhs)
+		{
+			const UserRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				value = r->value;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << value;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> value;
+			return os;
+		}
+
+	};
+};
+#endif

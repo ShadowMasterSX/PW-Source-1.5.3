@@ -1,0 +1,106 @@
+
+#ifndef __GNET_DBDELETEMAIL_HPP
+#define __GNET_DBDELETEMAIL_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "gmailid"
+#include "gmaildefres"
+#include "dbdeletemailarg"
+
+namespace GNET
+{
+
+class DBDeleteMail : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbdeletemail"
+#undef	RPC_BASECLASS
+	GMailVector::iterator FindMail(unsigned char mid, GMailBox& box)
+	{
+		for(GMailVector::iterator it=box.mails.begin(),ie=box.mails.end();it!=ie;it++)
+			if(it->header.id==mid)
+				return it;
+		return box.mails.end();
+	}
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBDeleteMailArg *arg = (DBDeleteMailArg *)argument;
+		GMailDefRes *res = (GMailDefRes *)result;
+
+		Marshal::OctetsStream key;
+
+		try
+		{
+			StorageEnv::Storage * pmailbox = StorageEnv::GetStorage("mailbox");
+			StorageEnv::CommonTransaction txn;
+			try{
+				GMailBox box;
+				key << arg->roleid;
+				Marshal::OctetsStream(pmailbox->find(key,txn)) >> box;
+				box.timestamp = Timer::GetTime();
+				for(size_t i=0;i<arg->mailid.size();i++)
+				{
+					GMailVector::iterator it = FindMail(arg->mailid[i], box);
+					if(it==box.mails.end())
+						continue;
+					if(it->header.attribute&MAIL_RESERVED)
+					{
+						if(arg->reason!=MAIL_FORCE_DELETE||box.timestamp-it->header.send_time<600)
+						{
+							Log::log(LOG_ERR,"DBDeleteMail, illegal delete roleid=%d mailid=%d"
+								"reason=%d attr=%d\n", arg->roleid, arg->mailid[i], 
+								arg->reason, it->header.attribute );
+							res->retcode = ERR_NOTFOUND;
+							return;
+						}
+						if((it->header.attribute&MAIL_ATTACHED) 
+								&& box.timestamp-it->header.send_time<600)
+						{
+							Log::log(LOG_ERR,"DBDeleteMail, attach protection, roleid=%d"
+								"mailid=%d attr=%d\n", 
+								arg->roleid, arg->mailid[i], it->header.attribute );
+							res->retcode = ERR_NOTFOUND;
+							return;
+						}
+					}
+					Log::formatlog("mail","type=delete:src=%d:dst=%d:mid=%d:money=%d:item=%d:"
+						"count=%d:pos=%d",
+						it->header.sender, arg->roleid, it->header.id, it->attach_money, 
+						it->attach_obj.id, it->attach_obj.count, it->attach_obj.pos);
+					box.mails.erase(it);
+				}
+				pmailbox->insert( key, Marshal::OctetsStream()<<box, txn );
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBDeleteMail, roleid=%d reason=%d what=%s\n", 
+				arg->roleid, arg->reason, e.what() );
+			res->retcode = ERR_EXCEPTION;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

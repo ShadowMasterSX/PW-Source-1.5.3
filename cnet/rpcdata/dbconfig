@@ -1,0 +1,64 @@
+#ifndef __GNET_DBCONFIG_RPCDATA
+#define __GNET_DBCONFIG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBConfig : public GNET::Rpc::Data
+	{
+	public:
+		unsigned int init_time;
+		unsigned int open_time;
+
+	public:
+		DBConfig (unsigned int l_init_time = 0,unsigned int l_open_time = 0)
+			: init_time(l_init_time),open_time(l_open_time)
+		{
+		}
+
+		DBConfig(const DBConfig &rhs)
+			: init_time(rhs.init_time),open_time(rhs.open_time) { }
+
+		Rpc::Data *Clone() const { return new DBConfig(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBConfig *r = dynamic_cast<const DBConfig *>(&rhs);
+			if (r && r != this)
+			{
+				init_time = r->init_time;
+				open_time = r->open_time;
+			}
+			return *this;
+		}
+
+		DBConfig& operator = (const DBConfig &rhs)
+		{
+			const DBConfig *r = &rhs;
+			if (r && r != this)
+			{
+				init_time = r->init_time;
+				open_time = r->open_time;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << init_time;
+			os << open_time;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> init_time;
+			os >> open_time;
+			return os;
+		}
+
+	};
+};
+#endif

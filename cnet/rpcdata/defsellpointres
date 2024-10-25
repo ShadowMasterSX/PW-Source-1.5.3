@@ -1,0 +1,59 @@
+#ifndef __GNET_DEFSELLPOINTRES_RPCDATA
+#define __GNET_DEFSELLPOINTRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DefSellPointRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+
+	public:
+		DefSellPointRes (int l_retcode = 0)
+			: retcode(l_retcode)
+		{
+		}
+
+		DefSellPointRes(const DefSellPointRes &rhs)
+			: retcode(rhs.retcode) { }
+
+		Rpc::Data *Clone() const { return new DefSellPointRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DefSellPointRes *r = dynamic_cast<const DefSellPointRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		DefSellPointRes& operator = (const DefSellPointRes &rhs)
+		{
+			const DefSellPointRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			return os;
+		}
+
+	};
+};
+#endif

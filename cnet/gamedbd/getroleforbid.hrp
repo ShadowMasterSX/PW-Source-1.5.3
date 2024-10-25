@@ -1,0 +1,93 @@
+
+#ifndef __GNET_GETROLEFORBID_HPP
+#define __GNET_GETROLEFORBID_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "dbbuffer.h"
+#include "groleforbid"
+#include "getroleforbidarg"
+#include "getroleforbidres"
+
+namespace GNET
+{
+
+class GetRoleForbid : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getroleforbid"
+#undef	RPC_BASECLASS
+
+	size_t DropCopy( GRoleForbidVector & forbid, GRoleForbidVector & oldforbid )
+	{
+		size_t count = 0;
+		time_t now = Timer::GetTime();
+		for( size_t i=0; i<oldforbid.size(); i++ )
+		{
+			if( oldforbid[i].time > now )
+			{
+				forbid.add( oldforbid[i] );
+				count ++;
+			}
+		}
+		return count;
+	}
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		GetRoleForbidArg *arg = (GetRoleForbidArg *)argument;
+		GetRoleForbidRes *res = (GetRoleForbidRes *)result;
+		Marshal::OctetsStream key;
+
+		LOG_TRACE( "GetRoleForbid, roleid=%d.\n", arg->key.id );
+
+		GRoleBase	base;
+		try
+		{
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				key << arg->key;
+				Marshal::OctetsStream(pbase->find( key, txn )) >> base;;
+				res->value = base.forbid;
+				res->retcode = ERR_SUCCESS;
+
+				if( base.forbid.size() != DropCopy( res->value, base.forbid ) )
+				{
+					base.forbid = res->value;
+					pbase->insert( key, Marshal::OctetsStream() << base, txn );
+				}
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "GetRoleForbid, roleid=%d, what=%s\n", arg->key.id, e.what() );
+			res->retcode = ERR_DATANOTFIND;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// GetRoleForbidArg *arg = (GetRoleForbidArg *)argument;
+		// GetRoleForbidRes *res = (GetRoleForbidRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,32 @@
+	public:
+		int64_t teamid;
+		enum { PROTOCOL_TYPE = PROTOCOL_TEAMDISMISS };
+	public:
+		TeamDismiss() { type = PROTOCOL_TEAMDISMISS; }
+		TeamDismiss(void*) : Protocol(PROTOCOL_TEAMDISMISS) { }
+		TeamDismiss (int64_t l_teamid)
+			 : teamid(l_teamid)
+		{
+			type = PROTOCOL_TEAMDISMISS;
+		}
+
+		TeamDismiss(const TeamDismiss &rhs)
+			: Protocol(rhs),teamid(rhs.teamid) { }
+
+		GNET::Protocol *Clone() const { return new TeamDismiss(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << teamid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> teamid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1048576; }

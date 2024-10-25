@@ -1,0 +1,64 @@
+#ifndef __GNET_ROLEID2UIDRES_RPCDATA
+#define __GNET_ROLEID2UIDRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class Roleid2UidRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		int userid;
+
+	public:
+		Roleid2UidRes (int l_retcode = -1,int l_userid = 0)
+			: retcode(l_retcode),userid(l_userid)
+		{
+		}
+
+		Roleid2UidRes(const Roleid2UidRes &rhs)
+			: retcode(rhs.retcode),userid(rhs.userid) { }
+
+		Rpc::Data *Clone() const { return new Roleid2UidRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const Roleid2UidRes *r = dynamic_cast<const Roleid2UidRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				userid = r->userid;
+			}
+			return *this;
+		}
+
+		Roleid2UidRes& operator = (const Roleid2UidRes &rhs)
+		{
+			const Roleid2UidRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				userid = r->userid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << userid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> userid;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,159 @@
+
+#ifndef __GNET_DBRAWREAD_HPP
+#define __GNET_DBRAWREAD_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "rawkeyvalue"
+#include "dbrawreadarg"
+#include "dbrawreadres"
+
+#include "conf.h"
+#include "parsestring.h"
+
+namespace GNET
+{
+
+class Tables
+{
+	Tables()
+	{
+#ifdef USE_WDB
+		Conf *conf = Conf::GetInstance();
+		if( !ParseStrings( conf->find( "storagewdb", "tables" ), m_tables ) )
+		{
+			LOG_TRACE( "in Tables: ParseStrings error" );
+		}
+#endif 
+	}
+
+	std::vector<std::string> m_tables;
+
+public:
+	static Tables* GetInstance() { static Tables instance; return &instance; }
+	bool checkTable(std::string name) 
+	{ 
+#ifdef USE_WDB
+		std::vector<std::string>::iterator it = m_tables.begin();
+		for( ; it!= m_tables.end(); ++it)
+		{
+			if(!it->compare(name))
+				return true;
+		}
+		return false;
+#else
+		return true;
+#endif 
+       	}
+
+};
+
+class BrowseQuery : public StorageEnv::IQuery
+{
+	std::vector<RawKeyValue> *list;
+	Octets last;
+	size_t total;
+public:
+	BrowseQuery(std::vector<RawKeyValue> *pack) : list(pack), total(0) { }
+
+	bool Update( StorageEnv::Transaction& txn, Octets& key, Octets& value)
+	{
+		if(list->size()>32 || total>128*1024)
+		{
+			last = key;
+			return false;
+		}
+		RawKeyValue tmp;
+		tmp.key = key;
+		total += key.size() + value.size();
+		tmp.value = value;
+		list->push_back(tmp);
+		return true;
+	}
+	const Octets& GetHandle() { return last; }
+};
+
+class DBRawRead : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+#include "dbrawread"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBRawReadArg *arg = (DBRawReadArg *)argument;
+		DBRawReadRes *res = (DBRawReadRes *)result;
+		Marshal::OctetsStream key; 
+		Marshal::OctetsStream value;
+
+		try
+		{
+			std::string tname((char*)arg->table.begin(), arg->table.size());
+			if(!Tables::GetInstance()->checkTable(tname))
+			{
+				res->retcode = ERR_INVALIDHANDLE;
+				LOG_TRACE( "DBRawRead: error, table %s not found", tname.c_str() );
+				return;
+			}
+
+			StorageEnv::Storage * ptables = StorageEnv::GetStorage(tname.c_str());
+			StorageEnv::AtomTransaction txn;
+			try{
+				key = arg->handle;
+				if(arg->key.size())
+				{
+					if(ptables->find(arg->key, value, txn))
+					{
+						RawKeyValue tmp;
+						tmp.key = arg->key;
+						tmp.value = value;
+						res->values.push_back(tmp);
+						res->retcode = ERR_SUCCESS;
+					}
+					else 
+						res->retcode = ERR_DATANOTFIND;
+				}
+				else 
+				{
+					BrowseQuery q(&res->values);
+					StorageEnv::Storage::Cursor cursor = ptables->cursor( txn );
+					cursor.walk(key, q);
+
+					res->handle = q.GetHandle();
+					if(res->handle.size()==0)
+						Log::log( LOG_ERR, "DBRawRead: browsing complete for table %s", tname.c_str());
+					res->retcode = ERR_SUCCESS;
+				}
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "DBRawRead: Exception what=%s\n", e.what() );
+			res->retcode = ERR_DATANOTFIND;
+		}
+
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBRawReadArg *arg = (DBRawReadArg *)argument;
+		// DBRawReadRes *res = (DBRawReadRes *)result;
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

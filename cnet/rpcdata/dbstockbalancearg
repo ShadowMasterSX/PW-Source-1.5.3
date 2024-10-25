@@ -1,0 +1,77 @@
+#ifndef __GNET_DBSTOCKBALANCEARG_RPCDATA
+#define __GNET_DBSTOCKBALANCEARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBStockBalanceArg : public GNET::Rpc::Data
+	{
+	public:
+		unsigned int tid;
+		int userid;
+		int ack_volume;
+		int ack_money;
+
+	public:
+		DBStockBalanceArg (unsigned int l_tid = 0,int l_userid = 0,int l_ack_volume = 0
+			,int l_ack_money = 0)
+			: tid(l_tid),userid(l_userid),ack_volume(l_ack_volume)
+			,ack_money(l_ack_money)
+		{
+		}
+
+		DBStockBalanceArg(const DBStockBalanceArg &rhs)
+			: tid(rhs.tid),userid(rhs.userid),ack_volume(rhs.ack_volume),
+			ack_money(rhs.ack_money) { }
+
+		Rpc::Data *Clone() const { return new DBStockBalanceArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBStockBalanceArg *r = dynamic_cast<const DBStockBalanceArg *>(&rhs);
+			if (r && r != this)
+			{
+				tid = r->tid;
+				userid = r->userid;
+				ack_volume = r->ack_volume;
+				ack_money = r->ack_money;
+			}
+			return *this;
+		}
+
+		DBStockBalanceArg& operator = (const DBStockBalanceArg &rhs)
+		{
+			const DBStockBalanceArg *r = &rhs;
+			if (r && r != this)
+			{
+				tid = r->tid;
+				userid = r->userid;
+				ack_volume = r->ack_volume;
+				ack_money = r->ack_money;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << tid;
+			os << userid;
+			os << ack_volume;
+			os << ack_money;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> tid;
+			os >> userid;
+			os >> ack_volume;
+			os >> ack_money;
+			return os;
+		}
+
+	};
+};
+#endif

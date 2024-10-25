@@ -1,0 +1,35 @@
+	public:
+		int result;
+		int roleid;
+		enum { PROTOCOL_TYPE = PROTOCOL_PLAYEROFFLINE_RE };
+	public:
+		PlayerOffline_Re() { type = PROTOCOL_PLAYEROFFLINE_RE; }
+		PlayerOffline_Re(void*) : Protocol(PROTOCOL_PLAYEROFFLINE_RE) { }
+		PlayerOffline_Re (int l_result,int l_roleid)
+			 : result(l_result),roleid(l_roleid)
+		{
+			type = PROTOCOL_PLAYEROFFLINE_RE;
+		}
+
+		PlayerOffline_Re(const PlayerOffline_Re &rhs)
+			: Protocol(rhs),result(rhs.result),roleid(rhs.roleid) { }
+
+		GNET::Protocol *Clone() const { return new PlayerOffline_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << result;
+			os << roleid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> result;
+			os >> roleid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 32; }

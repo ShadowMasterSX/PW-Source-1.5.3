@@ -1,0 +1,100 @@
+
+#ifndef __GNET_DBREWARDMATURE_HPP
+#define __GNET_DBREWARDMATURE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbrewardmaturearg"
+#include "dbrewardmatureres"
+
+namespace GNET
+{
+
+class DBRewardMature : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbrewardmature"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBRewardMatureArg *arg = (DBRewardMatureArg *)argument;
+		DBRewardMatureRes *res = (DBRewardMatureRes *)result;
+		try
+		{
+			StorageEnv::Storage * puser = StorageEnv::GetStorage("user");
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				Marshal::OctetsStream key_user;
+				key_user << arg->userid;
+				User u;
+				Marshal::OctetsStream(puser->find(key_user,txn))>>u;
+				GRewardStore store;
+				if (u.consume_reward.size())
+				{
+					Marshal::OctetsStream   os_reward(u.consume_reward);
+					os_reward >> store;
+				}
+/*
+				int bonus_add = 0;
+				GRewardItemVector::iterator it;
+				for (it=store.rewardlist.begin(); it!=store.rewardlist.end();)
+				{
+					if (arg->now >= it->reward_time)
+					{
+						bonus_add += it->reward_bonus;
+						it = store.rewardlist.erase(it);
+					}
+					else
+						break;
+				}
+				bonus_add = std::min((INT_MAX-store.bonus_reward), bonus_add);
+				store.bonus_reward += bonus_add;
+*/
+				store.bonus_reward = arg->bonus_reward;
+				store.rewardlist = arg->rewardlist;
+				u.consume_reward = Marshal::OctetsStream() << store;
+				puser->insert(key_user, Marshal::OctetsStream() << u, txn);
+/*
+				if (bonus_add == 0)
+					Log::log(LOG_WARNING, "DBRewardMature bonus_add is 0 roleid %d userid %d now %d", arg->roleid, arg->userid, arg->now);
+*/
+				res->retcode = ERR_SUCCESS;
+//				res->bonus_reward = bonus_add;
+			}
+			catch (DbException &e) { throw e; }
+			catch ( ... )
+			{
+				DbException ee(DB_OLD_VERSION);
+				txn.abort(ee);
+				throw ee;
+			}
+		}
+		catch (DbException &e)
+		{
+			Log::log(LOG_ERR, "gamedbd: DBRewardMature failed, what=%s\n", e.what());
+			res->retcode = ERR_FAILED;
+		}
+
+
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBRewardMatureArg *arg = (DBRewardMatureArg *)argument;
+		// DBRewardMatureRes *res = (DBRewardMatureRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

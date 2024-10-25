@@ -1,0 +1,65 @@
+#ifndef __GNET_ROLESTOREHOUSERES_RPCDATA
+#define __GNET_ROLESTOREHOUSERES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "grolestorehouse"
+
+namespace GNET
+{
+	class RoleStorehouseRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		GRoleStorehouse value;
+
+	public:
+		RoleStorehouseRes (int l_retcode = -1)
+			: retcode(l_retcode)
+		{
+		}
+
+		RoleStorehouseRes(const RoleStorehouseRes &rhs)
+			: retcode(rhs.retcode),value(rhs.value) { }
+
+		Rpc::Data *Clone() const { return new RoleStorehouseRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const RoleStorehouseRes *r = dynamic_cast<const RoleStorehouseRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				value = r->value;
+			}
+			return *this;
+		}
+
+		RoleStorehouseRes& operator = (const RoleStorehouseRes &rhs)
+		{
+			const RoleStorehouseRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				value = r->value;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << value;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> value;
+			return os;
+		}
+
+	};
+};
+#endif

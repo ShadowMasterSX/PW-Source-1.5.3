@@ -1,0 +1,76 @@
+#ifndef __GNET_DBROLEGROUP_RPCDATA
+#define __GNET_DBROLEGROUP_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "dbrolebase"
+
+namespace GNET
+{
+	class DBRoleGroup : public GNET::Rpc::Data
+	{
+	public:
+		int gtype;
+		char id;
+		Octets name;
+		DBRoleBaseVector friends;
+
+	public:
+		DBRoleGroup ()
+		{
+		}
+
+		DBRoleGroup(const DBRoleGroup &rhs)
+			: gtype(rhs.gtype),id(rhs.id),name(rhs.name),
+			friends(rhs.friends) { }
+
+		Rpc::Data *Clone() const { return new DBRoleGroup(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBRoleGroup *r = dynamic_cast<const DBRoleGroup *>(&rhs);
+			if (r && r != this)
+			{
+				gtype = r->gtype;
+				id = r->id;
+				name = r->name;
+				friends = r->friends;
+			}
+			return *this;
+		}
+
+		DBRoleGroup& operator = (const DBRoleGroup &rhs)
+		{
+			const DBRoleGroup *r = &rhs;
+			if (r && r != this)
+			{
+				gtype = r->gtype;
+				id = r->id;
+				name = r->name;
+				friends = r->friends;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << gtype;
+			os << id;
+			os << name;
+			os << friends;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> gtype;
+			os >> id;
+			os >> name;
+			os >> friends;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<DBRoleGroup>	DBRoleGroupVector;
+};
+#endif

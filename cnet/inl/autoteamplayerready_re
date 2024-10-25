@@ -1,0 +1,38 @@
+	public:
+		int roleid;
+		int leader_id;
+		char retcode;
+		enum { PROTOCOL_TYPE = PROTOCOL_AUTOTEAMPLAYERREADY_RE };
+	public:
+		AutoTeamPlayerReady_Re() { type = PROTOCOL_AUTOTEAMPLAYERREADY_RE; }
+		AutoTeamPlayerReady_Re(void*) : Protocol(PROTOCOL_AUTOTEAMPLAYERREADY_RE) { }
+		AutoTeamPlayerReady_Re (int l_roleid,int l_leader_id,char l_retcode)
+			 : roleid(l_roleid),leader_id(l_leader_id),retcode(l_retcode)
+		{
+			type = PROTOCOL_AUTOTEAMPLAYERREADY_RE;
+		}
+
+		AutoTeamPlayerReady_Re(const AutoTeamPlayerReady_Re &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),leader_id(rhs.leader_id),retcode(rhs.retcode) { }
+
+		GNET::Protocol *Clone() const { return new AutoTeamPlayerReady_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << leader_id;
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> leader_id;
+			os >> retcode;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 32; }

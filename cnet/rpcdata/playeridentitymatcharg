@@ -1,0 +1,95 @@
+#ifndef __GNET_PLAYERIDENTITYMATCHARG_RPCDATA
+#define __GNET_PLAYERIDENTITYMATCHARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class PlayerIdentityMatchArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		int userid;
+		int ip;
+		int src_zoneid;
+		Octets random;
+		char flag;
+		unsigned int localsid;
+
+	public:
+		PlayerIdentityMatchArg (int l_roleid = 0,int l_userid = 0,int l_ip = 0
+			,int l_src_zoneid = 0,const Octets& l_random = Octets(),char l_flag = 0
+			,unsigned int l_localsid = 0)
+			: roleid(l_roleid),userid(l_userid),ip(l_ip)
+			,src_zoneid(l_src_zoneid),random(l_random),flag(l_flag)
+			,localsid(l_localsid)
+		{
+		}
+
+		PlayerIdentityMatchArg(const PlayerIdentityMatchArg &rhs)
+			: roleid(rhs.roleid),userid(rhs.userid),ip(rhs.ip),
+			src_zoneid(rhs.src_zoneid),random(rhs.random),flag(rhs.flag),
+			localsid(rhs.localsid) { }
+
+		Rpc::Data *Clone() const { return new PlayerIdentityMatchArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const PlayerIdentityMatchArg *r = dynamic_cast<const PlayerIdentityMatchArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				userid = r->userid;
+				ip = r->ip;
+				src_zoneid = r->src_zoneid;
+				random = r->random;
+				flag = r->flag;
+				localsid = r->localsid;
+			}
+			return *this;
+		}
+
+		PlayerIdentityMatchArg& operator = (const PlayerIdentityMatchArg &rhs)
+		{
+			const PlayerIdentityMatchArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				userid = r->userid;
+				ip = r->ip;
+				src_zoneid = r->src_zoneid;
+				random = r->random;
+				flag = r->flag;
+				localsid = r->localsid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << userid;
+			os << ip;
+			os << src_zoneid;
+			os << random;
+			os << flag;
+			os << localsid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> userid;
+			os >> ip;
+			os >> src_zoneid;
+			os >> random;
+			os >> flag;
+			os >> localsid;
+			return os;
+		}
+
+	};
+};
+#endif

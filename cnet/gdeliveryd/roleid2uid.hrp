@@ -1,0 +1,66 @@
+
+#ifndef __GNET_ROLEID2UID_HPP
+#define __GNET_ROLEID2UID_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "roleid2uidarg"
+#include "roleid2uidres"
+#include "uidconverter.h"
+
+namespace GNET
+{
+
+class Roleid2Uid : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "roleid2uid"
+#undef	RPC_BASECLASS
+	Manager* _manager;
+	Manager::Session::ID _sid;
+	Protocol* _cmd;
+
+	static void LegacyFetch(Manager* manager, Manager::Session::ID sid, Protocol* cmd, int roleid) 
+	{
+		Roleid2Uid* rpc = (Roleid2Uid*) Rpc::Call(RPC_ROLEID2UID,Roleid2UidArg(roleid));
+		rpc->_manager = manager;
+		rpc->_sid = sid;
+		rpc->_cmd = cmd;
+		GameDBClient::GetInstance()->SendProtocol(rpc);
+	}
+
+	
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// Roleid2UidArg *arg = (Roleid2UidArg *)argument;
+		// Roleid2UidRes *res = (Roleid2UidRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		Roleid2UidArg *arg = (Roleid2UidArg *)argument;
+		Roleid2UidRes *res = (Roleid2UidRes *)result;
+	
+		if(_cmd)
+		{
+			if(res->retcode==ERR_SUCCESS)
+			{
+				UidConverter::Instance().Insert(res->userid, LOGICUID(arg->roleid));
+				_cmd->Process(_manager, _sid);
+			}
+			_cmd->Destroy();
+		}
+	}
+
+	void OnTimeout()
+	{
+		if(_cmd)
+			_cmd->Destroy();
+	}
+
+};
+
+};
+#endif

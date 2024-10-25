@@ -1,0 +1,13 @@
+cd gauthd
+./gauthd gauthd.conf &
+cd ..
+cd gdeliveryd
+./gdeliveryd gdeliveryd.conf &
+cd ..
+cd glinkd
+./glinkd glinkd.conf 1 &
+cd ..
+cd gamedbd
+./gamedbd gamedbd.conf &
+cd ..
+

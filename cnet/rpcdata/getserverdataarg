@@ -1,0 +1,64 @@
+#ifndef __GNET_GETSERVERDATAARG_RPCDATA
+#define __GNET_GETSERVERDATAARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GetServerDataArg : public GNET::Rpc::Data
+	{
+	public:
+		int world_tag;
+		int data_mask;
+
+	public:
+		GetServerDataArg (int l_world_tag = 0,int l_data_mask = 0)
+			: world_tag(l_world_tag),data_mask(l_data_mask)
+		{
+		}
+
+		GetServerDataArg(const GetServerDataArg &rhs)
+			: world_tag(rhs.world_tag),data_mask(rhs.data_mask) { }
+
+		Rpc::Data *Clone() const { return new GetServerDataArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GetServerDataArg *r = dynamic_cast<const GetServerDataArg *>(&rhs);
+			if (r && r != this)
+			{
+				world_tag = r->world_tag;
+				data_mask = r->data_mask;
+			}
+			return *this;
+		}
+
+		GetServerDataArg& operator = (const GetServerDataArg &rhs)
+		{
+			const GetServerDataArg *r = &rhs;
+			if (r && r != this)
+			{
+				world_tag = r->world_tag;
+				data_mask = r->data_mask;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << world_tag;
+			os << data_mask;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> world_tag;
+			os >> data_mask;
+			return os;
+		}
+
+	};
+};
+#endif

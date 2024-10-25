@@ -1,0 +1,65 @@
+#ifndef __GNET_GETMESSAGERES_RPCDATA
+#define __GNET_GETMESSAGERES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "message"
+
+namespace GNET
+{
+	class GetMessageRes : public GNET::Rpc::Data
+	{
+	public:
+		char retcode;
+		MessageVector messages;
+
+	public:
+		GetMessageRes (char l_retcode = 0)
+			: retcode(l_retcode)
+		{
+		}
+
+		GetMessageRes(const GetMessageRes &rhs)
+			: retcode(rhs.retcode),messages(rhs.messages) { }
+
+		Rpc::Data *Clone() const { return new GetMessageRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GetMessageRes *r = dynamic_cast<const GetMessageRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				messages = r->messages;
+			}
+			return *this;
+		}
+
+		GetMessageRes& operator = (const GetMessageRes &rhs)
+		{
+			const GetMessageRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				messages = r->messages;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << messages;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> messages;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,68 @@
+
+#ifndef __GNET_DBBATTLECHALLENGE_HPP
+#define __GNET_DBBATTLECHALLENGE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbbattlechallengearg"
+#include "dbbattlechallengeres"
+#include "battlechallenge_re.hpp"
+#include "battlemanager.h"
+#include "groleinventory"
+#include "grolestorehouse"
+#include "gmailsyncdata"
+#include "gmailendsync.hpp"
+#include "gproviderserver.hpp"
+#include "postoffice.h"
+
+namespace GNET
+{
+
+class DBBattleChallenge : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbbattlechallenge"
+#undef	RPC_BASECLASS
+	unsigned gsid;
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBBattleChallengeArg *arg = (DBBattleChallengeArg *)argument;
+		// DBBattleChallengeRes *res = (DBBattleChallengeRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBBattleChallengeArg *arg = (DBBattleChallengeArg *)argument;
+		DBBattleChallengeRes *res = (DBBattleChallengeRes *)result;
+
+		DEBUG_PRINT("DBBattleChallenge: roleid=%d,cityid=%d,retcode=%d,deposit=%d\n",
+				arg->roleid,arg->cityid,res->retcode,res->deposit);
+
+		BattleManager* pmgr = BattleManager::GetInstance();
+		BattleChallenge_Re reply(res->retcode, arg->roleid, arg->cityid, arg->deposit, arg->maxbonus, arg->factionid, 0, 0);
+		pmgr->OnChallenge(res->retcode,res->challenge_res,arg->cityid, arg->deposit, arg->maxbonus, arg->factionid,arg->challenge_time,reply);
+       /*
+		if(res->inform_loser.receiver!=_ROLE_INVALID)
+			PostOffice::GetInstance().AddNewMail( res->inform_loser.receiver,res->inform_loser);
+		*/
+		unsigned int linkid, gsid;
+
+		if(pmgr->FindSid(arg->roleid, reply.localsid, linkid, gsid))
+		{
+			GDeliveryServer::GetInstance()->Send(linkid, reply);
+			GProviderServer::GetInstance()->DispatchProtocol(gsid, GMailEndSync(0,res->retcode,arg->roleid,
+				res->syncdata));
+		}
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

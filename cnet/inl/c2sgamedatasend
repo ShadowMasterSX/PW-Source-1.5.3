@@ -1,0 +1,38 @@
+	public:
+		int roleid;
+		unsigned int localsid;
+		Octets data;
+		enum { PROTOCOL_TYPE = PROTOCOL_C2SGAMEDATASEND };
+	public:
+		C2SGamedataSend() { type = PROTOCOL_C2SGAMEDATASEND; }
+		C2SGamedataSend(void*) : Protocol(PROTOCOL_C2SGAMEDATASEND) { }
+		C2SGamedataSend (int l_roleid,unsigned int l_localsid,const Octets& l_data)
+			 : roleid(l_roleid),localsid(l_localsid),data(l_data)
+		{
+			type = PROTOCOL_C2SGAMEDATASEND;
+		}
+
+		C2SGamedataSend(const C2SGamedataSend &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),localsid(rhs.localsid),data(rhs.data) { }
+
+		GNET::Protocol *Clone() const { return new C2SGamedataSend(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << localsid;
+			os << data;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> localsid;
+			os >> data;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 100; }
+
+		bool SizePolicy(size_t size) const { return size <= 65535; }

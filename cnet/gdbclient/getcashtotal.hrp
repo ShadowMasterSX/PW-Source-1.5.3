@@ -1,0 +1,53 @@
+
+#ifndef __GNET_GETCASHTOTAL_HPP
+#define __GNET_GETCASHTOTAL_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "getcashtotalarg"
+#include "getcashtotalres"
+
+namespace GNET
+{
+
+class GetCashTotal : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getcashtotal"
+#undef	RPC_BASECLASS
+		
+	GDB::Result * _callback;
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// GetCashTotalArg *arg = (GetCashTotalArg *)argument;
+		// GetCashTotalRes *res = (GetCashTotalRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// GetCashTotalArg *arg = (GetCashTotalArg *)argument;
+		GetCashTotalRes *res = (GetCashTotalRes *)result;
+
+		if(res->retcode)
+		{
+			_callback->OnFailed();
+			return;
+		}
+
+		_callback->OnGetCashTotal(res->cash_total);
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+		_callback->OnTimeOut();
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,24 @@
+
+TOP_SRCDIR = ..
+
+SINGLE_THREAD = true
+DEBUG_VERSION = true
+
+include ../mk/gcc.defs.mk
+DEFINES += -DUSE_HASH_MAP -DUSE_LOGCLIENT -O3 
+LDFLAGS += -DUSE_HASH_MAP -O3 -static 
+
+OBJS = logclientclient.o logclienttcpclient.o state.o stubs.o logclient.o log.o
+LIBOBJS = logclientclient.o logclienttcpclient.o state.o stubs.o glog.o log.o
+
+all : logclient lib
+
+logclient : $(OBJS) $(SHAREOBJ)
+	$(LD) $(LDFLAGS) -o $@ $(OBJS) $(SHAREOBJ) $(SHARE_SOBJ)
+
+lib: $(LIBOBJS)
+	rm ./liblogClisinglegcc.a -f
+	$(AR) crs ./liblogClisinglegcc.a $(LIBOBJS)
+
+include ../mk/gcc.rules.mk
+

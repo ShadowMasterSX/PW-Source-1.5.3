@@ -1,0 +1,44 @@
+	public:
+		int roleid;
+		int country_id;
+		int major_strength;
+		int minor_strength;
+		enum { PROTOCOL_TYPE = PROTOCOL_COUNTRYBATTLELEAVENOTICE };
+	public:
+		CountryBattleLeaveNotice() { type = PROTOCOL_COUNTRYBATTLELEAVENOTICE; }
+		CountryBattleLeaveNotice(void*) : Protocol(PROTOCOL_COUNTRYBATTLELEAVENOTICE) { }
+		CountryBattleLeaveNotice (int l_roleid,int l_country_id,int l_major_strength,
+			int l_minor_strength)
+			 : roleid(l_roleid),country_id(l_country_id),major_strength(l_major_strength)
+			,minor_strength(l_minor_strength)
+		{
+			type = PROTOCOL_COUNTRYBATTLELEAVENOTICE;
+		}
+
+		CountryBattleLeaveNotice(const CountryBattleLeaveNotice &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),country_id(rhs.country_id),major_strength(rhs.major_strength)
+			,minor_strength(rhs.minor_strength) { }
+
+		GNET::Protocol *Clone() const { return new CountryBattleLeaveNotice(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << country_id;
+			os << major_strength;
+			os << minor_strength;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> country_id;
+			os >> major_strength;
+			os >> minor_strength;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 32; }

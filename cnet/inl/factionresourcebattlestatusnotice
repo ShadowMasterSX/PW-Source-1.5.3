@@ -1,0 +1,35 @@
+	public:
+		char status;
+		std::vector<int> controller_list;
+		enum { PROTOCOL_TYPE = PROTOCOL_FACTIONRESOURCEBATTLESTATUSNOTICE };
+	public:
+		FactionResourceBattleStatusNotice() { type = PROTOCOL_FACTIONRESOURCEBATTLESTATUSNOTICE; }
+		FactionResourceBattleStatusNotice(void*) : Protocol(PROTOCOL_FACTIONRESOURCEBATTLESTATUSNOTICE) { }
+		FactionResourceBattleStatusNotice (char l_status,const std::vector<int>& l_controller_list)
+			 : status(l_status),controller_list(l_controller_list)
+		{
+			type = PROTOCOL_FACTIONRESOURCEBATTLESTATUSNOTICE;
+		}
+
+		FactionResourceBattleStatusNotice(const FactionResourceBattleStatusNotice &rhs)
+			: Protocol(rhs),status(rhs.status),controller_list(rhs.controller_list) { }
+
+		GNET::Protocol *Clone() const { return new FactionResourceBattleStatusNotice(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << status;
+			os << controller_list;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> status;
+			os >> controller_list;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1024; }

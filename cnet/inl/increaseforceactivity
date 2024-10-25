@@ -1,0 +1,35 @@
+	public:
+		int force_id;
+		int activity;
+		enum { PROTOCOL_TYPE = PROTOCOL_INCREASEFORCEACTIVITY };
+	public:
+		IncreaseForceActivity() { type = PROTOCOL_INCREASEFORCEACTIVITY; }
+		IncreaseForceActivity(void*) : Protocol(PROTOCOL_INCREASEFORCEACTIVITY) { }
+		IncreaseForceActivity (int l_force_id,int l_activity)
+			 : force_id(l_force_id),activity(l_activity)
+		{
+			type = PROTOCOL_INCREASEFORCEACTIVITY;
+		}
+
+		IncreaseForceActivity(const IncreaseForceActivity &rhs)
+			: Protocol(rhs),force_id(rhs.force_id),activity(rhs.activity) { }
+
+		GNET::Protocol *Clone() const { return new IncreaseForceActivity(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << force_id;
+			os << activity;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> force_id;
+			os >> activity;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 16; }

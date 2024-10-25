@@ -1,0 +1,57 @@
+
+#ifndef __GNET_DBSYSMAIL3_HPP
+#define __GNET_DBSYSMAIL3_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbsysmail3arg"
+#include "dbsysmail3res"
+#include "syssendmail3_re.hpp"
+
+namespace GNET
+{
+
+class DBSysMail3 : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbsysmail3"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBSysMail3Arg *arg = (DBSysMail3Arg *)argument;
+		// DBSysMail3Res *res = (DBSysMail3Res *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBSysMail3Arg *arg = (DBSysMail3Arg *)argument;
+		DBSysMail3Res *res = (DBSysMail3Res *)result;
+
+		if(res->retcode == ERR_AGAIN) {
+			GameDBClient::GetInstance()->SendProtocol(Rpc::Call(RPC_DBSYSMAIL3, arg));
+		} else  {
+			if(res->retcode == ERR_SUCCESS) {
+				arg->mail.header.id = res->mail_id;
+				PostOffice::GetInstance().AddNewMail(arg->mail.header.receiver, arg->mail.header);
+			} else {
+				Log::log(LOG_ERR, "DBSysMail3, failed, ret=%d roleid=%lld", res->retcode, arg->roleid);
+			}
+
+			GAuthClient::GetInstance()->SendProtocol(SysSendMail3_Re(arg->orderid, res->retcode, res->roleid));
+		}
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		DBSysMail3Arg *arg = (DBSysMail3Arg *)argument;
+		Log::log(LOG_ERR, "DBSysMail3, timeout, orderid=%d, userid=%lld, roleid=%lld", arg->orderid, arg->userid, arg->roleid);
+		GameDBClient::GetInstance()->SendProtocol(Rpc::Call(RPC_DBSYSMAIL3, arg));
+	}
+
+};
+
+};
+#endif

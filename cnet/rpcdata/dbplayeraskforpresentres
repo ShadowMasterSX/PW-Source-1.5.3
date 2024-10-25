@@ -1,0 +1,65 @@
+#ifndef __GNET_DBPLAYERASKFORPRESENTRES_RPCDATA
+#define __GNET_DBPLAYERASKFORPRESENTRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailheader"
+
+namespace GNET
+{
+	class DBPlayerAskForPresentRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		GMailHeader inform_target;
+
+	public:
+		DBPlayerAskForPresentRes (int l_retcode = -1,const GMailHeader& l_inform_target = GMailHeader())
+			: retcode(l_retcode),inform_target(l_inform_target)
+		{
+		}
+
+		DBPlayerAskForPresentRes(const DBPlayerAskForPresentRes &rhs)
+			: retcode(rhs.retcode),inform_target(rhs.inform_target) { }
+
+		Rpc::Data *Clone() const { return new DBPlayerAskForPresentRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPlayerAskForPresentRes *r = dynamic_cast<const DBPlayerAskForPresentRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				inform_target = r->inform_target;
+			}
+			return *this;
+		}
+
+		DBPlayerAskForPresentRes& operator = (const DBPlayerAskForPresentRes &rhs)
+		{
+			const DBPlayerAskForPresentRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				inform_target = r->inform_target;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << inform_target;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> inform_target;
+			return os;
+		}
+
+	};
+};
+#endif

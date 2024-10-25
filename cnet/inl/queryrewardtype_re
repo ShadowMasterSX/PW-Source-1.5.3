@@ -1,0 +1,47 @@
+	public:
+		int roleid;
+		int reward;
+		int reward2;
+		int param;
+		int rewardmask;
+		enum { PROTOCOL_TYPE = PROTOCOL_QUERYREWARDTYPE_RE };
+	public:
+		QueryRewardType_Re() { type = PROTOCOL_QUERYREWARDTYPE_RE; }
+		QueryRewardType_Re(void*) : Protocol(PROTOCOL_QUERYREWARDTYPE_RE) { }
+		QueryRewardType_Re (int l_roleid,int l_reward,int l_reward2,
+			int l_param,int l_rewardmask)
+			 : roleid(l_roleid),reward(l_reward),reward2(l_reward2)
+			,param(l_param),rewardmask(l_rewardmask)
+		{
+			type = PROTOCOL_QUERYREWARDTYPE_RE;
+		}
+
+		QueryRewardType_Re(const QueryRewardType_Re &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),reward(rhs.reward),reward2(rhs.reward2)
+			,param(rhs.param),rewardmask(rhs.rewardmask) { }
+
+		GNET::Protocol *Clone() const { return new QueryRewardType_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << reward;
+			os << reward2;
+			os << param;
+			os << rewardmask;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> reward;
+			os >> reward2;
+			os >> param;
+			os >> rewardmask;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 101; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

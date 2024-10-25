@@ -1,0 +1,103 @@
+
+#ifndef __GNET_DBBATTLELOAD_HPP
+#define __GNET_DBBATTLELOAD_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "gterritorydetail"
+#include "dbbattleloadarg"
+#include "dbbattleloadres"
+#include "dbbattleset.hrp"
+#include "domaindataman.h"
+#include "battlemanager.h"
+#include "gamedbclient.hpp"
+
+namespace GNET
+{
+
+class DBBattleLoad : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbbattleload"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBBattleLoadArg *arg = (DBBattleLoadArg *)argument;
+		DBBattleLoadRes *res = (DBBattleLoadRes *)result;
+		if(res->retcode==ERR_SUCCESS)
+		{
+			size_t count = domain_data_getcount();
+			if(res->cities.size()==0)
+			{
+				DBBattleSetArg arg;
+				arg.reason = _BATTLE_INITIALIZE;
+				Log::formatlog("battle", "load=file:size=%d", count);
+				for(size_t i=0;i<count;i++)
+				{
+					DOMAIN_INFO_SERV * p = domain_data_getbyindex(i);
+					if(p)
+						arg.cities.push_back(GTerritoryDetail(p->id,p->type));
+				}
+				GameDBClient::GetInstance()->SendProtocol(Rpc::Call(RPC_DBBATTLESET,arg));
+				BattleManager::GetInstance()->LoadMap(arg.cities);
+			}
+			else
+			{
+				Log::formatlog("battle", "load=database:reason=%d:size=%d", arg->data, res->cities.size());
+				if(arg->data)
+					BattleManager::GetInstance()->SyncChallenge(res->cities);
+				else
+				{
+					//支持城战地图数扩增，地图id不能重复
+					if (count > res->cities.size())
+					{
+						Log::formatlog("battle", "extend city size from %d to %d", res->cities.size(), count);
+						for (size_t i = 0; i < count; i++)
+						{
+							DOMAIN_INFO_SERV * p = domain_data_getbyindex(i);
+							if(p)
+							{
+								std::vector<GTerritoryDetail>::const_iterator it=res->cities.begin(), ite=res->cities.end();
+								for (;it != ite; ++it)
+								{
+									if (p->id == it->id)
+										break;
+								}
+								if (it == ite)
+									res->cities.push_back(GTerritoryDetail(p->id, p->type));
+							}
+						}
+						if (count == res->cities.size())
+						{
+							DBBattleSetArg arg;
+							arg.reason = _BATTLE_EXTEND;
+							arg.cities = res->cities;
+							GameDBClient::GetInstance()->SendProtocol(Rpc::Call(RPC_DBBATTLESET,arg));
+						}
+					}
+					BattleManager::GetInstance()->LoadMap(res->cities);
+				}
+			}
+		}
+		else if(res->retcode==ERR_AGAIN)
+			GameDBClient::GetInstance()->SendProtocol(Rpc::Call(RPC_DBBATTLELOAD,arg)); 
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		DBBattleLoadArg *arg = (DBBattleLoadArg *)argument;
+		Log::log(LOG_WARNING,"battle: rpc timeout, resend request.\n");
+		GameDBClient::GetInstance()->SendProtocol( Rpc::Call(RPC_DBBATTLELOAD,arg) ); 
+	}
+
+};
+
+};
+#endif

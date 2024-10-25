@@ -1,0 +1,97 @@
+
+#ifndef __GNET_FETCHPLAYERDATA_HPP
+#define __GNET_FETCHPLAYERDATA_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "fetchplayerdataarg"
+#include "fetchplayerdatares"
+#include "disconnectplayer.hpp"
+#include "senddataandidentity.hpp"
+#include "centraldeliveryclient.hpp"
+#include "centraldeliveryserver.hpp"
+#include "crossinfodata"
+#include "mappasswd.h"
+#include "mapforbid.h"
+
+namespace GNET
+{
+
+class FetchPlayerData : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "fetchplayerdata"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// FetchPlayerDataArg *arg = (FetchPlayerDataArg *)argument;
+		// FetchPlayerDataRes *res = (FetchPlayerDataRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		FetchPlayerDataArg *arg = (FetchPlayerDataArg *)argument;
+		FetchPlayerDataRes *res = (FetchPlayerDataRes *)result;
+
+		UserInfo* pinfo = UserContainer::GetInstance().FindUser(arg->userid);
+		if(pinfo == NULL || (pinfo->status != _STATUS_REMOTE_HALFLOGIN && pinfo->status != _STATUS_REMOTE_CACHERANDOM)) {
+			Log::log (LOG_ERR, "CrossRelated FetchPlayerData userid %d roleid %d, user status %d invalid", arg->userid, arg->roleid, pinfo == NULL ? 0: pinfo->status);
+			return;
+		}
+		
+		if(res->retcode != ERR_SUCCESS) {
+			Log::log(LOG_ERR, "CrossRelated FetchPlayerData roleid %d userid %d, errno %d", arg->roleid, arg->userid, res->retcode);
+			GDeliveryServer::GetInstance()->Send(pinfo->linksid, DisconnectPlayer(arg->roleid, -1, pinfo->localsid, -1));
+			UserContainer::GetInstance().UserLogout(pinfo);
+			return;
+		}
+		
+		int src_zoneid = GDeliveryServer::GetInstance()->GetZoneid();
+
+		CrossInfoData data;
+		if(res->data.base.cross_data.size() > 0) {
+			try{
+				Marshal::OctetsStream os(res->data.base.cross_data);
+				os >> data;
+			} catch(Marshal::Exception) {
+				Log::log(LOG_ERR,"CrossRelated FetchPlayerData: unmarshal cross_data failed, roleid %d, userid %d", arg->roleid, arg->userid);
+				return;
+			}
+		}
+		
+		//pinfo->UpdateCrossInfoData(arg->roleid, data);
+		bool usbbind = Passwd::GetInstance().IsUsbUser(arg->userid);
+		int rewardmask = Passwd::GetInstance().GetUserReward(arg->userid);
+		
+		int type = (pinfo->rewardtype2 << 16) | pinfo->rewardtype; 
+		SendDataAndIdentity pro(arg->roleid, data.remote_roleid, arg->userid, src_zoneid, pinfo->ip, pinfo->iseckey, pinfo->oseckey, pinfo->account, pinfo->rand_key, arg->flag, 
+			res->data, data.data_timestamp, pinfo->logintime, (char)(pinfo->gmstatus & GMSTATE_ACTIVE != 0), type, pinfo->rewarddata, pinfo->privileges, usbbind, rewardmask);
+		
+		ForbidUserTalk::GetInstance().GetForbidUserTalk(arg->userid, pro.forbid_talk);
+		
+		if(arg->flag == DS_TO_CENTRALDS) {
+			LOG_TRACE("CrossRelated SendDataAndIdentity to Central DS, roleid %d remote_roleid %d userid %d ip %d isec.size %d osec.size %d account.size %d random_key.size %d logintime %d forbid_time %d",
+				arg->roleid, data.remote_roleid, arg->userid, pinfo->ip, pinfo->iseckey.size(), pinfo->oseckey.size(), pinfo->account.size(), pinfo->rand_key.size(), pinfo->logintime, pro.forbid_talk.time);
+			
+			CentralDeliveryClient::GetInstance()->SendProtocol(pro);
+		} else if (arg->flag == CENTRALDS_TO_DS) {
+			int zoneid = data.src_zoneid;
+			LOG_TRACE("CrossRelated SendDataAndIdentity to DS(zoneid=%d), roleid %d remote_roleid %d userid %d ip %d isec.size %d osec.size %d account.size %d random_key.size %d",
+					zoneid,	arg->roleid, data.remote_roleid, arg->userid, pinfo->ip, pinfo->iseckey.size(), pinfo->oseckey.size(), pinfo->account.size(), pinfo->rand_key.size());
+			
+			CentralDeliveryServer::GetInstance()->DispatchProtocol(zoneid, pro);
+		}
+	}
+
+	void OnTimeout()
+	{
+		//RemoLoggingUsers::CheckTimeoutUser ¥¶¿Ì≥¨ ±
+	}
+
+};
+
+};
+#endif

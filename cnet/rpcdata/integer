@@ -1,0 +1,59 @@
+#ifndef __GNET_INTEGER_RPCDATA
+#define __GNET_INTEGER_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class Integer : public GNET::Rpc::Data
+	{
+	public:
+		int value;
+
+	public:
+		Integer (int l_value = 0)
+			: value(l_value)
+		{
+		}
+
+		Integer(const Integer &rhs)
+			: value(rhs.value) { }
+
+		Rpc::Data *Clone() const { return new Integer(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const Integer *r = dynamic_cast<const Integer *>(&rhs);
+			if (r && r != this)
+			{
+				value = r->value;
+			}
+			return *this;
+		}
+
+		Integer& operator = (const Integer &rhs)
+		{
+			const Integer *r = &rhs;
+			if (r && r != this)
+			{
+				value = r->value;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << value;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> value;
+			return os;
+		}
+
+	};
+};
+#endif

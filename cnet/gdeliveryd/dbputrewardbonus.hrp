@@ -1,0 +1,46 @@
+
+#ifndef __GNET_DBPUTREWARDBONUS_HPP
+#define __GNET_DBPUTREWARDBONUS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbputrewardbonusarg"
+
+
+namespace GNET
+{
+
+class DBPutRewardBonus : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbputrewardbonus"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBPutRewardBonusArg *arg = (DBPutRewardBonusArg *)argument;
+		// RpcRetcode *res = (RpcRetcode *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBPutRewardBonusArg *arg = (DBPutRewardBonusArg *)argument;
+		RpcRetcode *res = (RpcRetcode *)result;
+		if (res->retcode != ERR_SUCCESS)
+			Log::log(LOG_ERR, "dbputrewardbonus retcode %d roleid %d", res->retcode, arg->roleid);
+		RewardManager::GetInstance()->OnDBBonusUpdate(res->retcode ,arg->userid);
+	}
+
+	void OnTimeout()
+	{
+		DBPutRewardBonusArg *arg = (DBPutRewardBonusArg *)argument;
+		Log::log(LOG_ERR, "dbputrewardbonus timeout roleid %d", arg->roleid);
+		RewardManager::GetInstance()->OnDBBonusUpdate(ERR_TIMEOUT, arg->userid);
+	}
+
+};
+
+};
+#endif

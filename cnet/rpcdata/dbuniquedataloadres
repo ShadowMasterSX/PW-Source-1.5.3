@@ -1,0 +1,70 @@
+#ifndef __GNET_DBUNIQUEDATALOADRES_RPCDATA
+#define __GNET_DBUNIQUEDATALOADRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "guniquedataelemnode"
+
+namespace GNET
+{
+	class DBUniqueDataLoadRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		GUniqueDataElemNodeVector values;
+		Octets handle;
+
+	public:
+		DBUniqueDataLoadRes (int l_retcode = -1,const GUniqueDataElemNodeVector& l_values = GUniqueDataElemNodeVector(),const Octets& l_handle = Octets())
+			: retcode(l_retcode),values(l_values),handle(l_handle)
+		{
+		}
+
+		DBUniqueDataLoadRes(const DBUniqueDataLoadRes &rhs)
+			: retcode(rhs.retcode),values(rhs.values),handle(rhs.handle) { }
+
+		Rpc::Data *Clone() const { return new DBUniqueDataLoadRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBUniqueDataLoadRes *r = dynamic_cast<const DBUniqueDataLoadRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				values = r->values;
+				handle = r->handle;
+			}
+			return *this;
+		}
+
+		DBUniqueDataLoadRes& operator = (const DBUniqueDataLoadRes &rhs)
+		{
+			const DBUniqueDataLoadRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				values = r->values;
+				handle = r->handle;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << values;
+			os << handle;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> values;
+			os >> handle;
+			return os;
+		}
+
+	};
+};
+#endif

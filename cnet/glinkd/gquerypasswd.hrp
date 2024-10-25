@@ -1,0 +1,39 @@
+
+#ifndef __GNET_GQUERYPASSWD_HPP
+#define __GNET_GQUERYPASSWD_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "gquerypasswdarg"
+#include "gquerypasswdres"
+#include "keyexchange.hpp"
+#include "glinkserver.hpp"
+namespace GNET
+{
+
+class GQueryPasswd : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "gquerypasswd"
+#undef	RPC_BASECLASS
+
+	Manager::Session::ID link_save_sid;
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// GQueryPasswdArg *arg = (GQueryPasswdArg *)argument;
+		// GQueryPasswdRes *res = (GQueryPasswdRes *)result;
+	}
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

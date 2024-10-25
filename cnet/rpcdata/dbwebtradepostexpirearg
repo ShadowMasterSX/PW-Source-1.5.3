@@ -1,0 +1,64 @@
+#ifndef __GNET_DBWEBTRADEPOSTEXPIREARG_RPCDATA
+#define __GNET_DBWEBTRADEPOSTEXPIREARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBWebTradePostExpireArg : public GNET::Rpc::Data
+	{
+	public:
+		int64_t sn;
+		int roleid;
+
+	public:
+		DBWebTradePostExpireArg (int64_t l_sn = 0,int l_roleid = 0)
+			: sn(l_sn),roleid(l_roleid)
+		{
+		}
+
+		DBWebTradePostExpireArg(const DBWebTradePostExpireArg &rhs)
+			: sn(rhs.sn),roleid(rhs.roleid) { }
+
+		Rpc::Data *Clone() const { return new DBWebTradePostExpireArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBWebTradePostExpireArg *r = dynamic_cast<const DBWebTradePostExpireArg *>(&rhs);
+			if (r && r != this)
+			{
+				sn = r->sn;
+				roleid = r->roleid;
+			}
+			return *this;
+		}
+
+		DBWebTradePostExpireArg& operator = (const DBWebTradePostExpireArg &rhs)
+		{
+			const DBWebTradePostExpireArg *r = &rhs;
+			if (r && r != this)
+			{
+				sn = r->sn;
+				roleid = r->roleid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << sn;
+			os << roleid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> sn;
+			os >> roleid;
+			return os;
+		}
+
+	};
+};
+#endif

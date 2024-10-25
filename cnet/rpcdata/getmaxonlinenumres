@@ -1,0 +1,74 @@
+#ifndef __GNET_GETMAXONLINENUMRES_RPCDATA
+#define __GNET_GETMAXONLINENUMRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GetMaxOnlineNumRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		int maxnum;
+		int fake_maxnum;
+		int curnum;
+
+	public:
+		GetMaxOnlineNumRes ()
+		{
+		}
+
+		GetMaxOnlineNumRes(const GetMaxOnlineNumRes &rhs)
+			: retcode(rhs.retcode),maxnum(rhs.maxnum),fake_maxnum(rhs.fake_maxnum),
+			curnum(rhs.curnum) { }
+
+		Rpc::Data *Clone() const { return new GetMaxOnlineNumRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GetMaxOnlineNumRes *r = dynamic_cast<const GetMaxOnlineNumRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				maxnum = r->maxnum;
+				fake_maxnum = r->fake_maxnum;
+				curnum = r->curnum;
+			}
+			return *this;
+		}
+
+		GetMaxOnlineNumRes& operator = (const GetMaxOnlineNumRes &rhs)
+		{
+			const GetMaxOnlineNumRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				maxnum = r->maxnum;
+				fake_maxnum = r->fake_maxnum;
+				curnum = r->curnum;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << maxnum;
+			os << fake_maxnum;
+			os << curnum;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> maxnum;
+			os >> fake_maxnum;
+			os >> curnum;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -1,0 +1,58 @@
+#ifndef __GNET_DBSETMAILATTRRES_RPCDATA
+#define __GNET_DBSETMAILATTRRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBSetMailAttrRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+
+	public:
+		DBSetMailAttrRes ()
+		{
+		}
+
+		DBSetMailAttrRes(const DBSetMailAttrRes &rhs)
+			: retcode(rhs.retcode) { }
+
+		Rpc::Data *Clone() const { return new DBSetMailAttrRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBSetMailAttrRes *r = dynamic_cast<const DBSetMailAttrRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		DBSetMailAttrRes& operator = (const DBSetMailAttrRes &rhs)
+		{
+			const DBSetMailAttrRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			return os;
+		}
+
+	};
+};
+#endif

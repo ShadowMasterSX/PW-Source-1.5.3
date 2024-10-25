@@ -1,0 +1,58 @@
+#ifndef __GNET_GMQUERYROLEINFORES_RPCDATA
+#define __GNET_GMQUERYROLEINFORES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GMQueryRoleInfoRes : public GNET::Rpc::Data
+	{
+	public:
+		int status;
+
+	public:
+		GMQueryRoleInfoRes ()
+		{
+		}
+
+		GMQueryRoleInfoRes(const GMQueryRoleInfoRes &rhs)
+			: status(rhs.status) { }
+
+		Rpc::Data *Clone() const { return new GMQueryRoleInfoRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GMQueryRoleInfoRes *r = dynamic_cast<const GMQueryRoleInfoRes *>(&rhs);
+			if (r && r != this)
+			{
+				status = r->status;
+			}
+			return *this;
+		}
+
+		GMQueryRoleInfoRes& operator = (const GMQueryRoleInfoRes &rhs)
+		{
+			const GMQueryRoleInfoRes *r = &rhs;
+			if (r && r != this)
+			{
+				status = r->status;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << status;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> status;
+			return os;
+		}
+
+	};
+};
+#endif

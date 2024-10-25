@@ -1,0 +1,81 @@
+
+#ifndef __GNET_QUERYUSERID_HPP
+#define __GNET_QUERYUSERID_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "queryuseridarg"
+#include "queryuseridres"
+#include "grolebase"
+#include "grolestatus"
+#include "localmacro.h"
+
+namespace GNET
+{
+
+class QueryUserid : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "queryuserid"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		QueryUseridArg *arg = (QueryUseridArg *)argument;
+		QueryUseridRes *res = (QueryUseridRes *)result;
+		try
+		{
+			StorageEnv::Storage * prolename = StorageEnv::GetStorage("rolename");
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::Storage * pstatus = StorageEnv::GetStorage("status");
+			StorageEnv::AtomTransaction txn;
+			Marshal::OctetsStream key,value;
+			try
+			{
+				Marshal::OctetsStream( prolename->find( arg->rolename, txn ) ) >> res->roleid;
+				key << res->roleid;
+				GRoleBase base;
+				Marshal::OctetsStream( pbase->find( key, txn ) ) >> base;
+				if(base.userid)
+					res->userid = base.userid;
+				else
+					res->userid = LOGICUID(res->roleid);
+				if(pstatus->find(key, value,txn))
+				{
+					GRoleStatus status;
+					value >> status;
+					res->level = (int)status.level;
+				}
+				res->result = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			res->result = ERR_NOTFOUND;
+		}
+		LOG_TRACE("QueryUserid, retcode=%d,userid=%d,roleid=%d,level=%d", res->result, res->userid,res->roleid,res->level);
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// QueryUseridArg *arg = (QueryUseridArg *)argument;
+		// QueryUseridRes *res = (QueryUseridRes *)result;
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

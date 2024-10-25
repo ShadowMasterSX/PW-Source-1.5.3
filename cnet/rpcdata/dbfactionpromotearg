@@ -1,0 +1,87 @@
+#ifndef __GNET_DBFACTIONPROMOTEARG_RPCDATA
+#define __GNET_DBFACTIONPROMOTEARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBFactionPromoteArg : public GNET::Rpc::Data
+	{
+	public:
+		unsigned int fid;
+		unsigned int superior;
+		unsigned int roleid;
+		char suprole;
+		char newrole;
+		int max;
+
+	public:
+		DBFactionPromoteArg (unsigned int l_fid = 0,unsigned int l_superior = 0,unsigned int l_roleid = 0
+			,char l_suprole = 0,char l_newrole = 0,int l_max = 0)
+			: fid(l_fid),superior(l_superior),roleid(l_roleid)
+			,suprole(l_suprole),newrole(l_newrole),max(l_max)
+		{
+		}
+
+		DBFactionPromoteArg(const DBFactionPromoteArg &rhs)
+			: fid(rhs.fid),superior(rhs.superior),roleid(rhs.roleid),
+			suprole(rhs.suprole),newrole(rhs.newrole),max(rhs.max) { }
+
+		Rpc::Data *Clone() const { return new DBFactionPromoteArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBFactionPromoteArg *r = dynamic_cast<const DBFactionPromoteArg *>(&rhs);
+			if (r && r != this)
+			{
+				fid = r->fid;
+				superior = r->superior;
+				roleid = r->roleid;
+				suprole = r->suprole;
+				newrole = r->newrole;
+				max = r->max;
+			}
+			return *this;
+		}
+
+		DBFactionPromoteArg& operator = (const DBFactionPromoteArg &rhs)
+		{
+			const DBFactionPromoteArg *r = &rhs;
+			if (r && r != this)
+			{
+				fid = r->fid;
+				superior = r->superior;
+				roleid = r->roleid;
+				suprole = r->suprole;
+				newrole = r->newrole;
+				max = r->max;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << fid;
+			os << superior;
+			os << roleid;
+			os << suprole;
+			os << newrole;
+			os << max;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> fid;
+			os >> superior;
+			os >> roleid;
+			os >> suprole;
+			os >> newrole;
+			os >> max;
+			return os;
+		}
+
+	};
+};
+#endif

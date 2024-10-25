@@ -1,0 +1,100 @@
+
+#ifndef __GNET_DBPLAYERPOSITIONRESET_HPP
+#define __GNET_DBPLAYERPOSITIONRESET_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbplayerpositionresetarg"
+#include "dbplayerpositionresetres"
+
+#include "playerlogin_re.hpp" 
+#include "gamedbclient.hpp"
+
+namespace GNET
+{
+
+class DBPlayerPositionReset : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbplayerpositionreset"
+#undef	RPC_BASECLASS
+public:
+	int reason;
+	int src_provider_id;
+	int sid;
+	int localsid;
+	int userid;
+
+	void DBPlayerPositionReset::DBResetSuccess(int roleid, int worldtag, float x, float y, float z)
+	{
+		UserInfo * pinfo = UserContainer::GetInstance().FindUser(userid);
+
+		if(pinfo) // reset status for next PlayerLogin::DoLogin
+		{
+			if(pinfo->status == _STATUS_SELECTROLE || pinfo->status == _STATUS_READYGAME)
+			{
+				pinfo->status = _STATUS_ONLINE;
+				pinfo->worldtag[roleid % MAX_ROLE_COUNT] = worldtag;
+				pinfo->role_pos[roleid % MAX_ROLE_COUNT] = UserInfo::point_t(x,y,z);
+			}
+			else
+			{
+				Log::log(LOG_ERR,"gdelivery::dbplayerpositionreset ResetUserInfo get wrong user state! [userid=%d] [state %d] \n", userid, pinfo->status);	
+			}
+		}
+		else
+		{
+			Log::log(LOG_ERR, "gdelivery::dbplayerpositionreset  ResetUserInfo cannt find UserInfo [userid=%d] \n",userid);
+		}
+		
+		GDeliveryServer* dsm=GDeliveryServer::GetInstance();
+		DBPlayerPositionResetArg *arg = (DBPlayerPositionResetArg *)argument;
+		PlayerLogin_Re re(ERR_PRP_RESETPOS_OK,arg->roleid,src_provider_id,localsid);
+
+		dsm->Send(sid,re); 
+	}
+
+	void DBPlayerPositionReset::DBResetException()
+	{
+		GDeliveryServer* dsm=GDeliveryServer::GetInstance();
+		DBPlayerPositionResetArg *arg = (DBPlayerPositionResetArg *)argument;
+		PlayerLogin_Re re(reason,arg->roleid,src_provider_id,localsid);
+		dsm->Send(sid,re); 
+	}
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBPlayerPositionResetArg *arg = (DBPlayerPositionResetArg *)argument;
+		// DBPlayerPositionResetRes *res = (DBPlayerPositionResetRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		DBPlayerPositionResetArg *arg = (DBPlayerPositionResetArg *)argument;
+		DBPlayerPositionResetRes *res = (DBPlayerPositionResetRes *)result;
+
+		if(res->retcode == ERR_SUCCESS)
+		{
+			DEBUG_PRINT("gdelivery::dbplayerpositionreset  reset pos ok! roleid=%d [pid%d][sid%d][lsid%d] \n",arg->roleid,src_provider_id,sid,localsid);
+			DBResetSuccess(arg->roleid, arg->worldtag, arg->pos_x, arg->pos_y, arg->pos_z);
+		}
+		else
+		{
+			Log::log(LOG_ERR, "gdelivery::dbplayerpositionreset  reset pos exception! roleid=%d [pid%d][sid%d][lsid%d] \n",arg->roleid,src_provider_id,sid,localsid);
+			DBResetException();
+		}
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+		DBResetException();
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,35 @@
+	public:
+		int factionid;
+		GFactionFortressInfo2 info2;
+		enum { PROTOCOL_TYPE = PROTOCOL_NOTIFYFACTIONFORTRESSINFO2 };
+	public:
+		NotifyFactionFortressInfo2() { type = PROTOCOL_NOTIFYFACTIONFORTRESSINFO2; }
+		NotifyFactionFortressInfo2(void*) : Protocol(PROTOCOL_NOTIFYFACTIONFORTRESSINFO2) { }
+		NotifyFactionFortressInfo2 (int l_factionid,const GFactionFortressInfo2& l_info2)
+			 : factionid(l_factionid),info2(l_info2)
+		{
+			type = PROTOCOL_NOTIFYFACTIONFORTRESSINFO2;
+		}
+
+		NotifyFactionFortressInfo2(const NotifyFactionFortressInfo2 &rhs)
+			: Protocol(rhs),factionid(rhs.factionid),info2(rhs.info2) { }
+
+		GNET::Protocol *Clone() const { return new NotifyFactionFortressInfo2(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << factionid;
+			os << info2;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> factionid;
+			os >> info2;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 256; }

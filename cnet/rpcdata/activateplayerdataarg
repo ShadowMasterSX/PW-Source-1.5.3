@@ -1,0 +1,59 @@
+#ifndef __GNET_ACTIVATEPLAYERDATAARG_RPCDATA
+#define __GNET_ACTIVATEPLAYERDATAARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class ActivatePlayerDataArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+
+	public:
+		ActivatePlayerDataArg (int l_roleid = 0)
+			: roleid(l_roleid)
+		{
+		}
+
+		ActivatePlayerDataArg(const ActivatePlayerDataArg &rhs)
+			: roleid(rhs.roleid) { }
+
+		Rpc::Data *Clone() const { return new ActivatePlayerDataArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const ActivatePlayerDataArg *r = dynamic_cast<const ActivatePlayerDataArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+			}
+			return *this;
+		}
+
+		ActivatePlayerDataArg& operator = (const ActivatePlayerDataArg &rhs)
+		{
+			const ActivatePlayerDataArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			return os;
+		}
+
+	};
+};
+#endif

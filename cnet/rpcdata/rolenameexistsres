@@ -1,0 +1,82 @@
+#ifndef __GNET_ROLENAMEEXISTSRES_RPCDATA
+#define __GNET_ROLENAMEEXISTSRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class RolenameExistsRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		int zoneid;
+		int roleid;
+		int status;
+		int time;
+
+	public:
+		RolenameExistsRes (int l_retcode = -1,int l_zoneid = -1,int l_roleid = -1
+			,int l_status = -1,int l_time = -1)
+			: retcode(l_retcode),zoneid(l_zoneid),roleid(l_roleid)
+			,status(l_status),time(l_time)
+		{
+		}
+
+		RolenameExistsRes(const RolenameExistsRes &rhs)
+			: retcode(rhs.retcode),zoneid(rhs.zoneid),roleid(rhs.roleid),
+			status(rhs.status),time(rhs.time) { }
+
+		Rpc::Data *Clone() const { return new RolenameExistsRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const RolenameExistsRes *r = dynamic_cast<const RolenameExistsRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				zoneid = r->zoneid;
+				roleid = r->roleid;
+				status = r->status;
+				time = r->time;
+			}
+			return *this;
+		}
+
+		RolenameExistsRes& operator = (const RolenameExistsRes &rhs)
+		{
+			const RolenameExistsRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				zoneid = r->zoneid;
+				roleid = r->roleid;
+				status = r->status;
+				time = r->time;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << zoneid;
+			os << roleid;
+			os << status;
+			os << time;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> zoneid;
+			os >> roleid;
+			os >> status;
+			os >> time;
+			return os;
+		}
+
+	};
+};
+#endif

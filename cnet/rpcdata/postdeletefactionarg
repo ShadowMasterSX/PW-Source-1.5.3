@@ -1,0 +1,69 @@
+#ifndef __GNET_POSTDELETEFACTIONARG_RPCDATA
+#define __GNET_POSTDELETEFACTIONARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class PostDeleteFactionArg : public GNET::Rpc::Data
+	{
+	public:
+		int zoneid;
+		int factionid;
+		Octets factionname;
+
+	public:
+		PostDeleteFactionArg (int l_zoneid = -1,int l_factionid = -1,const Octets& l_factionname = Octets(0))
+			: zoneid(l_zoneid),factionid(l_factionid),factionname(l_factionname)
+		{
+		}
+
+		PostDeleteFactionArg(const PostDeleteFactionArg &rhs)
+			: zoneid(rhs.zoneid),factionid(rhs.factionid),factionname(rhs.factionname) { }
+
+		Rpc::Data *Clone() const { return new PostDeleteFactionArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const PostDeleteFactionArg *r = dynamic_cast<const PostDeleteFactionArg *>(&rhs);
+			if (r && r != this)
+			{
+				zoneid = r->zoneid;
+				factionid = r->factionid;
+				factionname = r->factionname;
+			}
+			return *this;
+		}
+
+		PostDeleteFactionArg& operator = (const PostDeleteFactionArg &rhs)
+		{
+			const PostDeleteFactionArg *r = &rhs;
+			if (r && r != this)
+			{
+				zoneid = r->zoneid;
+				factionid = r->factionid;
+				factionname = r->factionname;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << zoneid;
+			os << factionid;
+			os << factionname;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> zoneid;
+			os >> factionid;
+			os >> factionname;
+			return os;
+		}
+
+	};
+};
+#endif

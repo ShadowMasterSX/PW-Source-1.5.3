@@ -1,0 +1,98 @@
+
+#ifndef __GNET_GQUERYPASSWD_HPP
+#define __GNET_GQUERYPASSWD_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "security.h"
+
+#include "gquerypasswdarg"
+#include "gquerypasswdres"
+#include "gauthclient.hpp"
+
+#include "gdeliveryserver.hpp"
+#include "mappasswd.h"
+namespace GNET
+{
+
+class GQueryPasswd : public ProxyRpc
+{
+	GNET::Protocol *Clone() const {  return new GQueryPasswd(*this); }
+public:
+	enum { PROTOCOL_TYPE = RPC_GQUERYPASSWD };
+	GQueryPasswd(Type type, Rpc::Data *argument, Rpc::Data *result)
+		: ProxyRpc(type, argument, result ) { }
+	GQueryPasswd(const GQueryPasswd &rhs) : ProxyRpc(rhs) { }
+	int  PriorPolicy( ) const { return 101; }
+	bool SizePolicy(size_t size) const { return size <= 128; }
+	bool TimePolicy(int timeout) const { return timeout <= 30; }
+
+	void CalcResponse(GQueryPasswdArg& arg,GQueryPasswdRes& res)
+	{
+		HMAC_MD5Hash hash;
+		hash.SetParameter(res.response);
+		hash.Update(arg.challenge);
+		hash.Final(res.response);
+	}
+	void TryResponse(GQueryPasswdArg& arg)
+	{
+		GQueryPasswdRes res;
+		if( Passwd::GetInstance().GetPasswd( arg.account, res.userid, res.response ) )
+		{
+			LOG_TRACE("gdelivery::gquerypassword::AU timeout. Use password in cache user(%.*s)", 
+				arg.account.size(),(char*) arg.account.begin() );
+			res.retcode=ERR_SUCCESS;
+			CalcResponse(arg,res);
+		}
+		else
+		{
+			Log::log(LOG_ERR,"gdelivery::gquerypassword::AU timeout. Password cache miss user(%.*s)", 
+				arg.account.size(),(char*)arg.account.begin() );
+			res.retcode = ERR_COMMUNICATION;
+		}
+
+		SetResult(res);
+		SendToSponsor();
+	}
+	bool Delivery( Manager::Session::ID proxy_sid, const OctetsStream & osArg )
+	{
+		GQueryPasswdArg arg;
+		osArg >> arg;
+		if( GAuthClient::GetInstance()->SendProtocol( *this ) )
+		{
+			return true;
+		}
+		else
+		{
+			TryResponse(arg);
+			return false;
+		}
+	}
+
+	void PostProcess( Manager::Session::ID proxy_sid, const OctetsStream & osArg, const OctetsStream & osRes )
+	{
+		GQueryPasswdArg arg;
+		osArg >> arg;
+		GQueryPasswdRes res;
+		osRes >> res;
+		if (res.retcode == ERR_SUCCESS)
+		{
+			Passwd::GetInstance().SetPasswd( arg.account, res.userid, res.response );
+			//calculate response here
+			CalcResponse(arg,res);
+		}
+		SetResult( &res ); // if you modified res, do not forget to call this. 
+	}
+
+	void OnTimeout(const OctetsStream &osArg)
+	{
+		GQueryPasswdArg arg;
+		osArg >> arg;
+		TryResponse(arg);
+	}
+
+};
+
+};
+#endif

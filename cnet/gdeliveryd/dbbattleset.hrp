@@ -1,0 +1,46 @@
+
+#ifndef __GNET_DBBATTLESET_HPP
+#define __GNET_DBBATTLESET_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "gterritorydetail"
+#include "dbbattlesetarg"
+#include "dbbattlesetres"
+
+namespace GNET
+{
+
+class DBBattleSet : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbbattleset"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBBattleSetArg *arg = (DBBattleSetArg *)argument;
+		DBBattleSetRes *res = (DBBattleSetRes *)result;
+		if( res->retcode==ERR_AGAIN )
+		{
+			GameDBClient::GetInstance()->SendProtocol(Rpc::Call(RPC_DBBATTLESET,arg));
+		}
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		DBBattleSetArg *arg = (DBBattleSetArg *)argument;
+		Log::log(LOG_ERR, "dbbattleset timeout");
+		GameDBClient::GetInstance()->SendProtocol(Rpc::Call(RPC_DBBATTLESET,arg));
+	}
+
+};
+
+};
+#endif

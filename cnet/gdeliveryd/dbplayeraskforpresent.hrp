@@ -1,0 +1,69 @@
+
+#ifndef __GNET_DBPLAYERASKFORPRESENT_HPP
+#define __GNET_DBPLAYERASKFORPRESENT_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbplayeraskforpresentarg"
+#include "dbplayeraskforpresentres"
+
+#include "playeraskforpresent_re.hpp"
+
+namespace GNET
+{
+
+class DBPlayerAskForPresent : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbplayeraskforpresent"
+#undef	RPC_BASECLASS
+	
+	int save_linksid;
+	int save_localsid;
+	int save_gsid;
+	
+	void SendResult(int retcode, int roleid)
+	{
+		GDeliveryServer::GetInstance()->Send(
+				save_linksid, 
+				PlayerAskForPresent_Re(save_localsid, roleid, retcode)
+				);
+	}
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBPlayerAskForPresentArg *arg = (DBPlayerAskForPresentArg *)argument;
+		// DBPlayerAskForPresentRes *res = (DBPlayerAskForPresentRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBPlayerAskForPresentArg *arg = (DBPlayerAskForPresentArg *)argument;
+		DBPlayerAskForPresentRes *res = (DBPlayerAskForPresentRes *)result;
+		
+		LOG_TRACE("DBPlayerAskForPresent roleid=%d ret=%d", arg->roleid, res->retcode);
+		
+		//通知客户端赠送结果
+		SendResult(res->retcode, arg->target_roleid);
+
+		if (ERR_SUCCESS == res->retcode)
+		{
+			//索取对象邮筒里添加新邮件
+			PostOffice::GetInstance().AddNewMail( res->inform_target.receiver,res->inform_target );
+		}
+	}
+
+	void OnTimeout()
+	{
+		DBPlayerAskForPresentArg *arg = (DBPlayerAskForPresentArg *)argument;
+		Log::log(LOG_ERR, "DBPlayerAskForPresent timeout, roleid=%d", arg->roleid);
+
+		SendResult(ERR_TIMEOUT, arg->target_roleid);
+	}
+
+};
+
+};
+#endif

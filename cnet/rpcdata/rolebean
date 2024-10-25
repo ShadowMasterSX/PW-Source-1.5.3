@@ -1,0 +1,67 @@
+#ifndef __GNET_ROLEBEAN_RPCDATA
+#define __GNET_ROLEBEAN_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "roleinfobean"
+#include "rolestatusbean"
+
+namespace GNET
+{
+	class RoleBean : public GNET::Rpc::Data
+	{
+	public:
+		RoleInfoBean info;
+		RoleStatusBean status;
+
+	public:
+		RoleBean (const RoleInfoBean& l_info = RoleInfoBean(),const RoleStatusBean& l_status = RoleStatusBean())
+			: info(l_info),status(l_status)
+		{
+		}
+
+		RoleBean(const RoleBean &rhs)
+			: info(rhs.info),status(rhs.status) { }
+
+		Rpc::Data *Clone() const { return new RoleBean(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const RoleBean *r = dynamic_cast<const RoleBean *>(&rhs);
+			if (r && r != this)
+			{
+				info = r->info;
+				status = r->status;
+			}
+			return *this;
+		}
+
+		RoleBean& operator = (const RoleBean &rhs)
+		{
+			const RoleBean *r = &rhs;
+			if (r && r != this)
+			{
+				info = r->info;
+				status = r->status;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << info;
+			os << status;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> info;
+			os >> status;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<RoleBean>	RoleBeanVector;
+};
+#endif

@@ -1,0 +1,15 @@
+cd gdeliveryd
+./gdeliveryd gamesys.conf &
+cd ..
+cd glinkd
+./glinkd gamesys.conf 1 &
+cd ..
+cd gfaction
+./gfactiond gamesys.conf &
+cd ..
+cd gamedbd
+./gamedbd.wdb gamesys.conf &
+cd ..
+cd uniquenamed
+./uniquenamed.wdb gamesys.conf&
+cd ..

@@ -1,0 +1,65 @@
+#ifndef __GNET_DBBATTLELOADRES_RPCDATA
+#define __GNET_DBBATTLELOADRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gterritorydetail"
+
+namespace GNET
+{
+	class DBBattleLoadRes : public GNET::Rpc::Data
+	{
+	public:
+		short retcode;
+		std::vector<GTerritoryDetail> cities;
+
+	public:
+		DBBattleLoadRes (short l_retcode = 0,std::vector<GTerritoryDetail> l_cities = std::vector<GTerritoryDetail>())
+			: retcode(l_retcode),cities(l_cities)
+		{
+		}
+
+		DBBattleLoadRes(const DBBattleLoadRes &rhs)
+			: retcode(rhs.retcode),cities(rhs.cities) { }
+
+		Rpc::Data *Clone() const { return new DBBattleLoadRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBBattleLoadRes *r = dynamic_cast<const DBBattleLoadRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				cities = r->cities;
+			}
+			return *this;
+		}
+
+		DBBattleLoadRes& operator = (const DBBattleLoadRes &rhs)
+		{
+			const DBBattleLoadRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				cities = r->cities;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << cities;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> cities;
+			return os;
+		}
+
+	};
+};
+#endif

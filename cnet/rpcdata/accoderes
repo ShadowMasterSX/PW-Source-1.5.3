@@ -1,0 +1,65 @@
+#ifndef __GNET_ACCODERES_RPCDATA
+#define __GNET_ACCODERES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class ACCodeRes : public GNET::Rpc::Data
+	{
+	public:
+		short codeid;
+		int res;
+
+	public:
+		ACCodeRes (short l_codeid = 0,int l_res = 0)
+			: codeid(l_codeid),res(l_res)
+		{
+		}
+
+		ACCodeRes(const ACCodeRes &rhs)
+			: codeid(rhs.codeid),res(rhs.res) { }
+
+		Rpc::Data *Clone() const { return new ACCodeRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const ACCodeRes *r = dynamic_cast<const ACCodeRes *>(&rhs);
+			if (r && r != this)
+			{
+				codeid = r->codeid;
+				res = r->res;
+			}
+			return *this;
+		}
+
+		ACCodeRes& operator = (const ACCodeRes &rhs)
+		{
+			const ACCodeRes *r = &rhs;
+			if (r && r != this)
+			{
+				codeid = r->codeid;
+				res = r->res;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << codeid;
+			os << res;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> codeid;
+			os >> res;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<ACCodeRes>	ACCodeResVector;
+};
+#endif

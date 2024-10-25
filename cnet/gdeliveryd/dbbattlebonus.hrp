@@ -1,0 +1,66 @@
+
+#ifndef __GNET_DBBATTLEBONUS_HPP
+#define __GNET_DBBATTLEBONUS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbbattlebonusarg"
+#include "dbbattlebonusres"
+
+namespace GNET
+{
+
+class DBBattleBonus : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbbattlebonus"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBBattleBonusArg *arg = (DBBattleBonusArg *)argument;
+		// DBBattleBonusRes *res = (DBBattleBonusRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBBattleBonusArg *arg = (DBBattleBonusArg *)argument;
+		DBBattleBonusRes *res = (DBBattleBonusRes *)result;
+		if( res->retcode==ERR_AGAIN )
+		{
+			GameDBClient::GetInstance()->SendProtocol(Rpc::Call(RPC_DBBATTLEBONUS,arg));
+		}
+		else 
+		{
+			if(res->retcode!=ERR_SUCCESS)
+				Log::log(LOG_ERR, "DBBattleBonus, failed, ret=%d factionid=%d", res->retcode, arg->factionid);
+			if(res->retcode == ERR_SUCCESS && arg->isspecialbonus==1)
+			{
+				ChatBroadCast cbc;
+				Marshal::OctetsStream data;
+				data<<(short)arg->cityid ;
+				cbc.msg = data;
+				cbc.channel = GN_CHAT_CHANNEL_SYSTEM;
+				cbc.srcroleid = CMSG_SPECIAL;
+				LinkServer::GetInstance().BroadcastProtocol(cbc);
+			}
+			BattleManager::GetInstance()->OnSendBonus(res->retcode, arg->factionid, arg->item,arg->money);
+			if(res->inform_master.receiver!=_ROLE_INVALID)
+				PostOffice::GetInstance().AddNewMail( res->inform_master.receiver,res->inform_master);
+		}
+
+	}
+
+	void OnTimeout(Rpc::Data *argument)
+	{
+		DBBattleBonusArg *arg = (DBBattleBonusArg *)argument;
+		Log::log(LOG_ERR, "DBBattleBonus, timeout, factionid=%d,money=%d", arg->factionid, arg->money);
+		GameDBClient::GetInstance()->SendProtocol(Rpc::Call(RPC_DBBATTLEBONUS,arg));
+	}
+
+};
+
+};
+#endif

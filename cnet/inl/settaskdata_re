@@ -1,0 +1,32 @@
+	public:
+		int retcode;
+		enum { PROTOCOL_TYPE = PROTOCOL_SETTASKDATA_RE };
+	public:
+		SetTaskData_Re() { type = PROTOCOL_SETTASKDATA_RE; }
+		SetTaskData_Re(void*) : Protocol(PROTOCOL_SETTASKDATA_RE) { }
+		SetTaskData_Re (int l_retcode)
+			 : retcode(l_retcode)
+		{
+			type = PROTOCOL_SETTASKDATA_RE;
+		}
+
+		SetTaskData_Re(const SetTaskData_Re &rhs)
+			: Protocol(rhs),retcode(rhs.retcode) { }
+
+		GNET::Protocol *Clone() const { return new SetTaskData_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 32; }

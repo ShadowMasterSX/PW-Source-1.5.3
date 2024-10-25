@@ -1,0 +1,38 @@
+	public:
+		int roleid;
+		int cheattype;
+		Octets cheatinfo;
+		enum { PROTOCOL_TYPE = PROTOCOL_ACREPORTCHEATER };
+	public:
+		ACReportCheater() { type = PROTOCOL_ACREPORTCHEATER; }
+		ACReportCheater(void*) : Protocol(PROTOCOL_ACREPORTCHEATER) { }
+		ACReportCheater (int l_roleid,int l_cheattype,Octets l_cheatinfo)
+			 : roleid(l_roleid),cheattype(l_cheattype),cheatinfo(l_cheatinfo)
+		{
+			type = PROTOCOL_ACREPORTCHEATER;
+		}
+
+		ACReportCheater(const ACReportCheater &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),cheattype(rhs.cheattype),cheatinfo(rhs.cheatinfo) { }
+
+		GNET::Protocol *Clone() const { return new ACReportCheater(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << cheattype;
+			os << cheatinfo;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> cheattype;
+			os >> cheatinfo;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 8192; }

@@ -1,0 +1,137 @@
+
+#ifndef __GNET_DBMODIFYROLEDATA_HPP
+#define __GNET_DBMODIFYROLEDATA_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbmodifyroledataarg"
+#include "dbmodifyroledatares"
+
+namespace GNET
+{
+
+class DBModifyRoleData : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbmodifyroledata"
+#undef	RPC_BASECLASS
+
+	enum {
+		ATTR_CLEARINVENTORY	= 0x00000100,
+	};
+
+	inline int64_t CalItemMoney (GRoleInventoryVector::const_iterator it)
+	{
+		int64_t money = 0;
+		if (it->id == 2929)
+			money += 10000000*it->count;
+		return money;
+	}
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+//		DBModifyRoleDataArg *arg = (DBModifyRoleDataArg *)argument;
+		DBModifyRoleDataRes *res = (DBModifyRoleDataRes *)result;
+//		int userid;
+
+		res->retcode = ERR_FAILED;
+		/* try
+		{
+			StorageEnv::Storage *pbase = StorageEnv::GetStorage("base");
+			StorageEnv::Storage *puser = StorageEnv::GetStorage("user");
+			StorageEnv::Storage *ppocket = StorageEnv::GetStorage("inventory");
+			StorageEnv::Storage *pstore  = StorageEnv::GetStorage("storehouse");
+			StorageEnv::CommonTransaction txn;
+			GRoleBase base;
+			User user;
+			GRolePocket pocket;
+			GRoleStorehouse storehouse;
+			Marshal::OctetsStream os_roleid, os_userid;
+			try
+			{
+				os_roleid << arg->roleid;
+				Marshal::OctetsStream(pbase->find(os_roleid, txn)) >> base;
+				Marshal::OctetsStream(ppocket->find(os_roleid, txn)) >> pocket;
+				Marshal::OctetsStream(pstore->find(os_roleid, txn)) >> storehouse;
+				userid = base.userid;
+				if (0 == userid)
+				{
+					userid = LOGICUID(arg->roleid);
+					Log::formatlog("modifyrole", "Base.userid of role[%d] is 0, use LOGICUID(roleid)[%d]\n", arg->roleid, userid);
+				}
+				os_userid << userid;
+				Marshal::OctetsStream(puser->find(os_userid, txn)) >> user;
+
+				if (arg->mask & ATTR_CLEARINVENTORY)
+				{
+					int64_t total_money = 0;
+					total_money += user.money;
+					Log::formatlog("modifyrole", "roleid=%d userid=%d clear user.money[%d]\n", arg->roleid, userid, user.money);
+					user.money = 0;
+					total_money += pocket.money;
+					pocket.money = 0;
+					total_money += storehouse.money;
+					storehouse.money = 0;
+	
+					GRoleInventoryVector::const_iterator it, ite;
+					for (it=pocket.items.begin(), ite=pocket.items.end(); it!=ite; it++)
+						total_money += CalItemMoney(it);
+					pocket.items.clear();
+					
+					for (it=storehouse.items.begin(), ite=storehouse.items.end(); it!=ite; it++)
+						total_money += CalItemMoney(it);
+					storehouse.items.clear();
+
+					for (it=storehouse.dress.begin(), ite=storehouse.dress.end(); it!=ite; it++)
+						total_money += CalItemMoney(it);
+					storehouse.dress.clear();
+
+					for (it=storehouse.material.begin(), ite=storehouse.material.end(); it!=ite; it++)
+						total_money += CalItemMoney(it);
+					storehouse.material.clear();
+
+					res->total_money = total_money;
+				}
+
+//				pbase->insert(os_roleid, Marshal::OctetsStream()<<base, txn);
+				ppocket->insert(os_roleid, Marshal::OctetsStream()<<pocket, txn);
+				pstore->insert(os_roleid, Marshal::OctetsStream()<<storehouse, txn);
+				puser->insert(os_userid, Marshal::OctetsStream()<<user, txn);
+
+				res->retcode = ERR_SUCCESS;
+			}
+			catch (DbException e) { throw; }
+			catch ( ... )
+			{
+				DbException ee(DB_OLD_VERSION);
+				txn.abort(ee);
+				throw ee;
+			}
+		}
+		catch (DbException e)
+		{
+			Log::log(LOG_ERR, "GameDBServer::DBModifyRoleData: roleid=%d, what=%s\n", arg->roleid, e.what());
+			res->retcode = ERR_FAILED;
+		}
+		Log::formatlog("modifyrole", "sid=%d roleid=%d userid=%d mask=0x%x retcode=%d clear_money_total=%ld\n",
+			sid, arg->roleid, userid, arg->mask, res->retcode, res->total_money); */
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBModifyRoleDataArg *arg = (DBModifyRoleDataArg *)argument;
+		// DBModifyRoleDataRes *res = (DBModifyRoleDataRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

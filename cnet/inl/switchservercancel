@@ -1,0 +1,38 @@
+	public:
+		int roleid;
+		int link_id;
+		unsigned int localsid;
+		enum { PROTOCOL_TYPE = PROTOCOL_SWITCHSERVERCANCEL };
+	public:
+		SwitchServerCancel() { type = PROTOCOL_SWITCHSERVERCANCEL; }
+		SwitchServerCancel(void*) : Protocol(PROTOCOL_SWITCHSERVERCANCEL) { }
+		SwitchServerCancel (int l_roleid,int l_link_id,unsigned int l_localsid)
+			 : roleid(l_roleid),link_id(l_link_id),localsid(l_localsid)
+		{
+			type = PROTOCOL_SWITCHSERVERCANCEL;
+		}
+
+		SwitchServerCancel(const SwitchServerCancel &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),link_id(rhs.link_id),localsid(rhs.localsid) { }
+
+		GNET::Protocol *Clone() const { return new SwitchServerCancel(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << link_id;
+			os << localsid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> link_id;
+			os >> localsid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 101; }
+
+		bool SizePolicy(size_t size) const { return size <= 32; }

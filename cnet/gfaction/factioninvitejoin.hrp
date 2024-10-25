@@ -1,0 +1,59 @@
+
+#ifndef __GNET_FACTIONINVITEJOIN_HPP
+#define __GNET_FACTIONINVITEJOIN_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "factioninvitearg"
+#include "factioninviteres"
+
+#include "gfs_io.h"
+#include "factionoprequest.hpp"
+namespace GNET
+{
+
+class FactionInviteJoin : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "factioninvitejoin"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		//FactionInviteArg *arg = (FactionInviteArg *)argument;
+		//FactionInviteRes *res = (FactionInviteRes *)result;
+
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		FactionInviteArg *arg = (FactionInviteArg *)argument;
+		FactionInviteRes *res = (FactionInviteRes *)result;
+		if (res->retcode == ERR_SUCCESS)
+		{
+			FactionOPRequest request(
+					_O_FACTION_ACCEPTJOIN,
+					arg->roleid,
+					acceptjoin_param_st(arg->invited_roleid,true).marshal() );
+			request.Process(manager,_SID_INVALID);
+		}
+		else if (res->retcode == ERR_FC_JOIN_REFUSE)
+		{
+			gfs_send_factionacceptjoin_re(arg->roleid,ERR_FC_JOIN_REFUSE,arg->invited_roleid,arg->roleid);
+		}
+		//else discard the message, maybe network error or other error occurs
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+		//if timeout, then discard the message
+	}
+
+};
+
+};
+#endif

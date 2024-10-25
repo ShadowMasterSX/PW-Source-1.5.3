@@ -1,0 +1,35 @@
+	public:
+		ACQ acq;
+		ACUserCodeResVector res;
+		enum { PROTOCOL_TYPE = PROTOCOL_ACQCODERES };
+	public:
+		ACQCodeRes() { type = PROTOCOL_ACQCODERES; }
+		ACQCodeRes(void*) : Protocol(PROTOCOL_ACQCODERES) { }
+		ACQCodeRes (ACQ l_acq,ACUserCodeResVector l_res)
+			 : acq(l_acq),res(l_res)
+		{
+			type = PROTOCOL_ACQCODERES;
+		}
+
+		ACQCodeRes(const ACQCodeRes &rhs)
+			: Protocol(rhs),acq(rhs.acq),res(rhs.res) { }
+
+		GNET::Protocol *Clone() const { return new ACQCodeRes(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << acq;
+			os << res;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> acq;
+			os >> res;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 65536; }

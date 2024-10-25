@@ -1,0 +1,35 @@
+	public:
+		RoleInfoBean roleinfo;
+		int updateflag;
+		enum { PROTOCOL_TYPE = PROTOCOL_ROLEINFOUPDATE };
+	public:
+		RoleInfoUpdate() { type = PROTOCOL_ROLEINFOUPDATE; }
+		RoleInfoUpdate(void*) : Protocol(PROTOCOL_ROLEINFOUPDATE) { }
+		RoleInfoUpdate (const RoleInfoBean& l_roleinfo,int l_updateflag = 0)
+			 : roleinfo(l_roleinfo),updateflag(l_updateflag)
+		{
+			type = PROTOCOL_ROLEINFOUPDATE;
+		}
+
+		RoleInfoUpdate(const RoleInfoUpdate &rhs)
+			: Protocol(rhs),roleinfo(rhs.roleinfo),updateflag(rhs.updateflag) { }
+
+		GNET::Protocol *Clone() const { return new RoleInfoUpdate(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleinfo;
+			os << updateflag;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleinfo;
+			os >> updateflag;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 65535; }

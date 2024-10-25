@@ -1,0 +1,77 @@
+#ifndef __GNET_DBFACTIONHOSTILEREPLYARG_RPCDATA
+#define __GNET_DBFACTIONHOSTILEREPLYARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBFactionHostileReplyArg : public GNET::Rpc::Data
+	{
+	public:
+		int fid;
+		int dst_fid;
+		char agree;
+		int end_time;
+
+	public:
+		DBFactionHostileReplyArg (int l_fid = 0,int l_dst_fid = 0,char l_agree = 0
+			,int l_end_time = 0)
+			: fid(l_fid),dst_fid(l_dst_fid),agree(l_agree)
+			,end_time(l_end_time)
+		{
+		}
+
+		DBFactionHostileReplyArg(const DBFactionHostileReplyArg &rhs)
+			: fid(rhs.fid),dst_fid(rhs.dst_fid),agree(rhs.agree),
+			end_time(rhs.end_time) { }
+
+		Rpc::Data *Clone() const { return new DBFactionHostileReplyArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBFactionHostileReplyArg *r = dynamic_cast<const DBFactionHostileReplyArg *>(&rhs);
+			if (r && r != this)
+			{
+				fid = r->fid;
+				dst_fid = r->dst_fid;
+				agree = r->agree;
+				end_time = r->end_time;
+			}
+			return *this;
+		}
+
+		DBFactionHostileReplyArg& operator = (const DBFactionHostileReplyArg &rhs)
+		{
+			const DBFactionHostileReplyArg *r = &rhs;
+			if (r && r != this)
+			{
+				fid = r->fid;
+				dst_fid = r->dst_fid;
+				agree = r->agree;
+				end_time = r->end_time;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << fid;
+			os << dst_fid;
+			os << agree;
+			os << end_time;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> fid;
+			os >> dst_fid;
+			os >> agree;
+			os >> end_time;
+			return os;
+		}
+
+	};
+};
+#endif

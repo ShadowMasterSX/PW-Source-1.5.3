@@ -1,0 +1,69 @@
+#ifndef __GNET_FACTIONINFOBEAN_RPCDATA
+#define __GNET_FACTIONINFOBEAN_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class FactionInfoBean : public GNET::Rpc::Data
+	{
+	public:
+		Octets factionname;
+		Octets announcement;
+		Octets extinfo;
+
+	public:
+		FactionInfoBean (const Octets& l_factionname = Octets(),const Octets& l_announcement = Octets(),const Octets& l_extinfo = Octets())
+			: factionname(l_factionname),announcement(l_announcement),extinfo(l_extinfo)
+		{
+		}
+
+		FactionInfoBean(const FactionInfoBean &rhs)
+			: factionname(rhs.factionname),announcement(rhs.announcement),extinfo(rhs.extinfo) { }
+
+		Rpc::Data *Clone() const { return new FactionInfoBean(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const FactionInfoBean *r = dynamic_cast<const FactionInfoBean *>(&rhs);
+			if (r && r != this)
+			{
+				factionname = r->factionname;
+				announcement = r->announcement;
+				extinfo = r->extinfo;
+			}
+			return *this;
+		}
+
+		FactionInfoBean& operator = (const FactionInfoBean &rhs)
+		{
+			const FactionInfoBean *r = &rhs;
+			if (r && r != this)
+			{
+				factionname = r->factionname;
+				announcement = r->announcement;
+				extinfo = r->extinfo;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << factionname;
+			os << announcement;
+			os << extinfo;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> factionname;
+			os >> announcement;
+			os >> extinfo;
+			return os;
+		}
+
+	};
+};
+#endif

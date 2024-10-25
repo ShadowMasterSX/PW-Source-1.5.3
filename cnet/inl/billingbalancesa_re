@@ -1,0 +1,38 @@
+	public:
+		int retcode;
+		int userid;
+		int cashremain;
+		enum { PROTOCOL_TYPE = PROTOCOL_BILLINGBALANCESA_RE };
+	public:
+		BillingBalanceSA_Re() { type = PROTOCOL_BILLINGBALANCESA_RE; }
+		BillingBalanceSA_Re(void*) : Protocol(PROTOCOL_BILLINGBALANCESA_RE) { }
+		BillingBalanceSA_Re (int l_retcode,int l_userid,int l_cashremain)
+			 : retcode(l_retcode),userid(l_userid),cashremain(l_cashremain)
+		{
+			type = PROTOCOL_BILLINGBALANCESA_RE;
+		}
+
+		BillingBalanceSA_Re(const BillingBalanceSA_Re &rhs)
+			: Protocol(rhs),retcode(rhs.retcode),userid(rhs.userid),cashremain(rhs.cashremain) { }
+
+		GNET::Protocol *Clone() const { return new BillingBalanceSA_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << userid;
+			os << cashremain;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> userid;
+			os >> cashremain;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 128; }
