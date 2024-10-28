@@ -7,6 +7,7 @@
 #include "gfriendlist"
 #include "gfriendextinfo"
 #include "gsendaumailrecord"
+#include "genemylist"
 
 namespace GNET
 {
@@ -17,15 +18,17 @@ namespace GNET
 		GFriendList value;
 		GFriendExtInfoVector extra_info;
 		GSendAUMailRecordVector sendmail_info;
+		GEnemyListVector enemylist_info;
 
 	public:
-		FriendListPair ()
+		FriendListPair (const GEnemyListVector& l_enemylist_info = GEnemyListVector())
+			: enemylist_info(l_enemylist_info)
 		{
 		}
 
 		FriendListPair(const FriendListPair &rhs)
 			: key(rhs.key),value(rhs.value),extra_info(rhs.extra_info),
-			sendmail_info(rhs.sendmail_info) { }
+			sendmail_info(rhs.sendmail_info),enemylist_info(rhs.enemylist_info) { }
 
 		Rpc::Data *Clone() const { return new FriendListPair(*this); }
 
@@ -38,6 +41,7 @@ namespace GNET
 				value = r->value;
 				extra_info = r->extra_info;
 				sendmail_info = r->sendmail_info;
+				enemylist_info = r->enemylist_info;
 			}
 			return *this;
 		}
@@ -51,6 +55,7 @@ namespace GNET
 				value = r->value;
 				extra_info = r->extra_info;
 				sendmail_info = r->sendmail_info;
+				enemylist_info = r->enemylist_info;
 			}
 			return *this;
 		}
@@ -61,6 +66,7 @@ namespace GNET
 			os << value;
 			os << extra_info;
 			os << sendmail_info;
+			os << enemylist_info;
 			return os;
 		}
 
@@ -70,6 +76,7 @@ namespace GNET
 			os >> value;
 			os >> extra_info;
 			os >> sendmail_info;
+			os >> enemylist_info;
 			return os;
 		}
 

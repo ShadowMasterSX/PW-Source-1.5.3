@@ -19,9 +19,9 @@ namespace GNET
         Skill256Stub ():SkillStub (256)
         {
             cls = 6;
-            name = L"¹­åó¾«Í¨";
-            nativename = "¹­åó¾«Í¨";
-            icon = "¹­åó¾«Í¨.dds";
+            name = L"å¼“å¼©ç²¾é€š";
+            nativename = "å¼“å¼©ç²¾é€š";
+            icon = "å¼“å¼©ç²¾é€š.dds";
             max_level = 10;
             type = 5;
             apcost = 0;

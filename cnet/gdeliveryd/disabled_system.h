@@ -29,6 +29,9 @@ enum
 	SYS_TANKBATTLE,			//战车战场
 	SYS_FACTIONRESOURCEBATTLE, //帮派PVP
     SYS_MAPPASSWORD,        // 密保卡
+    SYS_SOLOCHALLENGERANK,  // 单人副本排行榜
+	SYS_MNFACTIONBATTLE,	//跨服帮战 
+	SYS_FORBIDCROSS,		//参加跨服活动
 
 	SYS_INDEX_MAX,
 };	

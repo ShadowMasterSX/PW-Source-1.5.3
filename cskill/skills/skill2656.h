@@ -132,8 +132,8 @@ namespace GNET
       Skill2656Stub ():SkillStub (2656)
         {
             cls = 127;
-            name = L"元气比拼";
-            nativename = "元气比拼";
+            name = L"鍏冩皵姣旀嫾";
+            nativename = "鍏冩皵姣旀嫾";
             icon = "";
             max_level = 10;
             type = 3;

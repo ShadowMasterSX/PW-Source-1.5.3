@@ -38,7 +38,7 @@ class GetCashTotal : public Rpc
 			return;
 		}
 
-		_callback->OnGetCashTotal(res->cash_total);
+		_callback->OnGetCashTotal(res->cash_total, res->cash_vip_score_add, res->cash_vip_level);
 	}
 
 	void OnTimeout()

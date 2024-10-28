@@ -47,6 +47,9 @@ struct gplayer  : public gactive_object
 	unsigned char reincarnation_times;	//转生次数
 	unsigned char realmlevel;	// 境界等级	 	
 	unsigned char mafia_pvp_mask; // 帮派pvp Mask
+	int64_t  mnfaction_id; //跨服唯一帮派id
+	int      cash_vip_level;
+	int      cash_vip_score;
 
 	bool	is_waitting_login() { return login_state == WAITING_LOGIN;}
 	void Clear()
@@ -76,6 +79,9 @@ struct gplayer  : public gactive_object
 		reincarnation_times = 0;
 		realmlevel = 0;
 		mafia_pvp_mask = 0;
+		mnfaction_id = 0;
+		cash_vip_level = 0;
+		cash_vip_score      = 0;
 		gactive_object::Clear();
 	}
 
@@ -93,7 +99,7 @@ struct gplayer  : public gactive_object
 		adv_data1 << adv_data2 << pariah_state << sec_level << 
 		bind_type << mount_color <<
 		bind_target << mount_id << spouse_id << team_id << disabled_equip_mask << 
-		force_id << country_id << title_id << reincarnation_times << realmlevel << mafia_pvp_mask;
+		force_id << country_id << title_id << reincarnation_times << realmlevel << mafia_pvp_mask << mnfaction_id << cash_vip_level << cash_vip_score;
 		return wrapper.push_back(effect_list,sizeof(effect_list));
 	}
 
@@ -111,11 +117,11 @@ struct gplayer  : public gactive_object
 		adv_data1 >> adv_data2 >> pariah_state >> sec_level >>
 		bind_type >> mount_color >>
 		bind_target >> mount_id >> spouse_id >> team_id >> disabled_equip_mask >> 
-		force_id >> country_id >> title_id >> reincarnation_times >> realmlevel >> mafia_pvp_mask;
+		force_id >> country_id >> title_id >> reincarnation_times >> realmlevel >> mafia_pvp_mask >> mnfaction_id >> cash_vip_level >> cash_vip_score;
 		return wrapper.pop_back(effect_list,sizeof(effect_list));
 	}
 public:
-	
+	int GetCountryId() { return country_id &0xffff; }  
 };
 
 inline bool make_link_sid(gplayer * dest, link_sid & id)
@@ -230,7 +236,7 @@ struct player_var_data
 		is_drop =  pImp->_layer_ctrl.IsOnAir();
 		resurrect_state = pImp->GetResurrectState(resurrect_exp_reduce,resurrect_hp_factor,resurrect_mp_factor);
 	//	int tag = world_manager::GetWorldTag();
-		ins_key = pImp->_plane->w_ins_key;
+		ins_key = pImp->GetLogoutInstanceKey();
 		trashbox_size = pImp->_trashbox.GetTrashBoxSize();
 		pImp->GetLastInstancePos( last_instance_tag, last_instance_pos,last_instance_timestamp);
 		dir = pPlayer->dir;

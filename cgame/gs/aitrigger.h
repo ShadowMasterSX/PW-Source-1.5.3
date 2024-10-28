@@ -1545,6 +1545,17 @@ namespace ai_trigger
 		virtual void GetTarget(policy * self, XID & target);	
 	};
 
+
+	class target_aggro_first_redirected : public target//策略目标为仇恨排名第一（宠物）时，将第一仇恨目标选定为宠物的主人
+	{
+	public:
+		virtual target * Clone() const
+		{
+			return new target_aggro_first_redirected(*this);
+		}
+		virtual void GetTarget(policy * self, XID & target);
+	};
+
 //-----------后面是有的操作-----------------------	
 	class op_attack : public operation
 	{
@@ -1721,8 +1732,8 @@ namespace ai_trigger
 		op_say(const char * str)
 		{	
 			size_t len = strlen(str);
-			_msg = abase::fastalloc(len); // 有问题
 			_size = len*2;
+			_msg = abase::fastalloc(_size);
 			for(size_t i = 0; i < len; i ++)
 			{
 				((char*)_msg)[i*2] = str[i];
@@ -2227,6 +2238,19 @@ namespace ai_trigger
 		virtual operation * Clone() const
 		{
 			return new op_deliver_task_in_dmglist(*this);
+		}
+		virtual bool DoSomething(policy * self);
+		virtual bool RequireTarget() {return false;}
+	};
+	
+	class op_clear_tower_task_in_region: public operation
+	{
+		rect _rect;
+		public:
+		op_clear_tower_task_in_region(float l,float t,float r, float b):_rect(l,t,r,b) {}
+		virtual operation * Clone() const
+		{
+			return new op_clear_tower_task_in_region(*this);
 		}
 		virtual bool DoSomething(policy * self);
 		virtual bool RequireTarget() {return false;}

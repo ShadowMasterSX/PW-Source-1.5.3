@@ -137,9 +137,9 @@ namespace GNET
       Skill1355Stub ():SkillStub (1355)
         {
             cls = 8;
-            name = L"熔心剑意";
-            nativename = "熔心剑意";
-            icon = "熔心剑意.dds";
+            name = L"鐔斿績鍓戞剰";
+            nativename = "鐔斿績鍓戞剰";
+            icon = "鐔斿績鍓戞剰.dds";
             max_level = 10;
             type = 1;
             apcost = 0;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (1);
             }
-            effect = "剑灵_熔心剑意.sgc";
+            effect = "鍓戠伒_鐔斿績鍓戞剰.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

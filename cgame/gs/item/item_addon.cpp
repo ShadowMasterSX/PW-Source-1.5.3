@@ -241,7 +241,9 @@ namespace
 		PERCENT_OFF = offsetof(gactive_imp, _en_percent),
 		EQ_POINT = offsetof(equip_item, _base_param),
 		EQ_PERCENT = offsetof(equip_item, _base_param_percent),
-		
+		VIGOUR_EN_OFF = offsetof(gactive_imp, _vigour_en),
+		ANTI_DEF_OFF = offsetof(gactive_imp, _anti_defense_degree),
+		ANTI_RESIST_OFF = offsetof(gactive_imp, _anti_resistance_degree),
 		//POINT_OFF = (((size_t)&(((gactive_imp*)100)->_en_point)) - 100),
 		//PERCENT_OFF = ((size_t)&(((gactive_imp*)100)->_en_percent)) - 100,
 		//EQ_POINT = ((size_t)&(((equip_item*)100)->_base_param)) - 100,
@@ -402,12 +404,6 @@ public:
 		return 0;
 	}
 
-	inline void Check(const addon_data & data)
-	{
-		//由于精炼属性的存在，此检查作废
-		//ASSERT(addon_manager::GetArgCount(data.id) == 1);
-	}
-
 	virtual int Activate(const addon_data & data , equip_item * item, gactive_imp *pImp)
 	{
 		Check(data);
@@ -441,12 +437,6 @@ public:
 		return 0;
 	}
 	
-	inline void Check(const addon_data & data)
-	{
-		//由于精炼属性的存在，此检查作废
-		//ASSERT(addon_manager::GetArgCount(data.id) == 1);
-	}
-
 	virtual int Activate(const addon_data & data , equip_item * item, gactive_imp *pImp)
 	{
 		Check(data);
@@ -630,6 +620,34 @@ public:
 };
 typedef template_enhance_all_resistance<POINT>			enhance_all_resistance_addon;
 typedef template_enhance_all_resistance<DOUBLE_POINT>	enhance_all_resistance_addon_2arg;
+
+template <typename ARG_TYPE>
+class astrolabe_enhance_all_resistance: public arg_addon<ARG_TYPE>
+{
+public:
+	virtual int UpdateItem(const addon_data & data, equip_item * equip)
+	{
+		return addon_manager::ADDON_MASK_ACTIVATE;
+	}
+	virtual int TestUpdate()
+	{
+		return addon_manager::ADDON_MASK_ACTIVATE;
+	}
+
+	virtual int Use(const addon_data & , equip_item *, gactive_imp *) { ASSERT(false); return 0; } 
+	virtual int Activate(const addon_data & data, equip_item * item, gactive_imp *pImp)
+	{
+		pImp->EnhanceAllResistance((int)(*(float*)&(data.arg[0])));
+		return 0;
+	}
+
+	virtual int Deactivate(const addon_data & data, equip_item *, gactive_imp *pImp) 
+	{
+		pImp->ImpairAllResistance((int)(*(float*)&(data.arg[0])));
+		return 0;
+	}
+};
+typedef astrolabe_enhance_all_resistance<POINT> as_enhance_all_resistance;
 
 template <typename ARG_TYPE>
 class template_enhance_all_resistance_scale: public arg_addon<ARG_TYPE>
@@ -1215,6 +1233,96 @@ public:
 	virtual int GetExpireDate(const addon_data & data){ return data.arg[1]; }
 };
 
+// 星盘用的百分比附加属性 
+template <typename PARAM_TYPE,typename RETURN_TYPE, int OFFSET_IN_IMP,typename ARGTYPE>
+class APSA_addon: public arg_addon<ARGTYPE>		// enhance param (single arg) addon
+{
+public:
+	virtual int UpdateItem(const addon_data & , equip_item *)
+	{
+		return addon_manager::ADDON_MASK_ACTIVATE;
+	}
+	virtual int TestUpdate()
+	{
+		return addon_manager::ADDON_MASK_ACTIVATE;
+	}
+
+	virtual int Use(const addon_data & , equip_item *, gactive_imp *)
+	{
+		ASSERT(false);
+		return 0;
+	}
+
+	virtual int Activate(const addon_data & data , equip_item * item, gactive_imp *pImp)
+	{
+		*(RETURN_TYPE*)((char*)pImp + OFFSET_IN_IMP) += (RETURN_TYPE)(*(PARAM_TYPE*)&(data.arg[0]));
+		return 0;
+	}
+
+	virtual int Deactivate(const addon_data & data, equip_item *, gactive_imp *pImp)
+	{
+		*(RETURN_TYPE*)((char*)pImp + OFFSET_IN_IMP) -= (RETURN_TYPE)(*(PARAM_TYPE*)&(data.arg[0]));
+		return 0;
+	}
+};
+
+template <typename PARAM_TYPE,typename RETURN_TYPE, int OFFSET_IN_IMP,
+		  typename PARAM_TYPE2,typename RETURN_TYPE2, int OFFSET_IN_IMP2,
+		  typename ARGTYPE>
+class APSA_addon_2: public arg_addon<ARGTYPE>		// enhance param (single arg,double prop) addon
+{
+public:
+	virtual int UpdateItem(const addon_data & , equip_item *)
+	{
+		return addon_manager::ADDON_MASK_ACTIVATE;
+	}
+	virtual int TestUpdate()
+	{
+		return addon_manager::ADDON_MASK_ACTIVATE;
+	}
+
+	virtual int Use(const addon_data & , equip_item *, gactive_imp *)
+	{
+		ASSERT(false);
+		return 0;
+	}
+
+	virtual int Activate(const addon_data & data , equip_item * item, gactive_imp *pImp)
+	{
+		*(RETURN_TYPE*)((char*)pImp + OFFSET_IN_IMP) += (RETURN_TYPE)(*(PARAM_TYPE*)&(data.arg[0]));
+		*(RETURN_TYPE2*)((char*)pImp + OFFSET_IN_IMP2) += (RETURN_TYPE2)(*(PARAM_TYPE2*)&(data.arg[0]));
+		return 0;
+	}
+
+	virtual int Deactivate(const addon_data & data, equip_item *, gactive_imp *pImp)
+	{
+		*(RETURN_TYPE*)((char*)pImp + OFFSET_IN_IMP) -= (RETURN_TYPE)(*(PARAM_TYPE*)&(data.arg[0]));
+		*(RETURN_TYPE2*)((char*)pImp + OFFSET_IN_IMP2) -= (RETURN_TYPE2)(*(PARAM_TYPE2*)&(data.arg[0]));
+		return 0;
+	}
+};
+
+typedef APSA_addon_2<float, int, POINT_OFF+offsetof(enhanced_param,damage_low),
+				   float, int, POINT_OFF+offsetof(enhanced_param,damage_high),POINT> as_enhance_damage_addon;
+typedef APSA_addon_2<float, int, POINT_OFF+offsetof(enhanced_param,magic_dmg_low),
+				   float, int, POINT_OFF+offsetof(enhanced_param,magic_dmg_high),POINT> as_enhance_magic_dmg_addon;
+typedef APSA_addon<float, int, POINT_OFF+offsetof(enhanced_param,max_hp),POINT> as_enhance_maxhp_addon;
+typedef APSA_addon<float, int, POINT_OFF+offsetof(enhanced_param,max_mp),POINT> as_enhance_maxmp_addon;
+typedef APSA_addon<float, int, POINT_OFF+offsetof(enhanced_param,attack),POINT> as_enhance_attack_addon;
+typedef APSA_addon<float, int, POINT_OFF+offsetof(enhanced_param,defense),POINT> as_enhance_defense_addon;
+typedef APSA_addon<float, int, POINT_OFF+offsetof(enhanced_param,armor),POINT> as_enhance_armor_addon;
+typedef APSA_addon<float, int, POINT_OFF+offsetof(enhanced_param,resistance[0]),POINT> as_enhance_resist0_addon;
+typedef APSA_addon<float, int, POINT_OFF+offsetof(enhanced_param,resistance[1]),POINT> as_enhance_resist1_addon;
+typedef APSA_addon<float, int, POINT_OFF+offsetof(enhanced_param,resistance[2]),POINT> as_enhance_resist2_addon;
+typedef APSA_addon<float, int, POINT_OFF+offsetof(enhanced_param,resistance[3]),POINT> as_enhance_resist3_addon;
+typedef APSA_addon<float, int, POINT_OFF+offsetof(enhanced_param,resistance[4]),POINT> as_enhance_resist4_addon;
+typedef APSA_addon<float, int, VIGOUR_EN_OFF,POINT> as_enhance_vigour_addon;
+typedef APSA_addon<float, int, ANTI_DEF_OFF,POINT> as_enhance_anti_def_addon;
+typedef APSA_addon<float, int, ANTI_RESIST_OFF,POINT> as_enhance_anti_resist_addon;
+
+
+typedef EPSA_addon<int, ANTI_DEF_OFF,POINT> enhance_anti_def_addon;
+typedef EPSA_addon<int, ANTI_RESIST_OFF,POINT> enhance_anti_resist_addon;
 typedef EPSA_addon<int, POINT_OFF+offsetof(enhanced_param,hp_gen),POINT> enhance_hpgen_addon;
 typedef EPSA_addon<int, POINT_OFF+offsetof(enhanced_param,mp_gen),POINT> enhance_mpgen_addon;
 typedef EPSA_addon<int, POINT_OFF+offsetof(enhanced_param,hp_gen),DOUBLE_POINT> enhance_hpgen_addon_2arg;
@@ -4465,6 +4573,106 @@ typedef EPSA_addon<int, POINT_OFF+offsetof(enhanced_param,max_mp),DOUBLE_POINT> 
 	INSERT_ADDON(3133, TEMPORARY_ADDON_MACRO(enhance_mount_speed_addon));
 	INSERT_ADDON(3134, TEMPORARY_ADDON_MACRO(enhance_mount_speed_addon));
 	INSERT_ADDON(3135, TEMPORARY_ADDON_MACRO(enhance_mount_speed_addon));
+
+    INSERT_ADDON(3136, enhance_defense_addon_1arg);
+    INSERT_ADDON(3137, enhance_defense_addon_1arg);
+    INSERT_ADDON(3138, enhance_defense_addon_1arg);
+    INSERT_ADDON(3139, enhance_defense_addon_1arg);
+
+    INSERT_ADDON(3140, enhance_all_resistance_addon);
+    INSERT_ADDON(3141, enhance_all_resistance_addon);
+    INSERT_ADDON(3142, enhance_all_resistance_addon);
+    INSERT_ADDON(3143, enhance_all_resistance_addon);
+
+    INSERT_ADDON(3144, enhance_vit_addon_1arg);
+    INSERT_ADDON(3145, enhance_vit_addon_1arg);
+    INSERT_ADDON(3146, enhance_vit_addon_1arg);
+    INSERT_ADDON(3147, enhance_vit_addon_1arg);
+
+    INSERT_ADDON(3148, enhance_vigour);
+    INSERT_ADDON(3149, enhance_vigour);
+    INSERT_ADDON(3150, enhance_vigour);
+    INSERT_ADDON(3151, enhance_vigour);
+
+    INSERT_ADDON(3152, enhance_attack_degree);
+    INSERT_ADDON(3153, enhance_defend_degree);
+
+	/*
+	INSERT_ADDON_RATIO(3154, enhance_damage_addon_2, addon_manager::ADDON_PARAM_RATIO_ALL_INT);
+	INSERT_ADDON_RATIO(3155, enhance_magic_damage_addon_2, addon_manager::ADDON_PARAM_RATIO_ALL_INT); 
+	INSERT_ADDON_RATIO(3156, enhance_defense_addon_2, addon_manager::ADDON_PARAM_RATIO_ALL_INT);
+	INSERT_ADDON_RATIO(3157, enhance_all_resistance_addon, addon_manager::ADDON_PARAM_RATIO_ALL_INT);
+	INSERT_ADDON_RATIO(3158, enhance_hp_addon, addon_manager::ADDON_PARAM_RATIO_ALL_INT);
+	INSERT_ADDON_RATIO(3159, enhance_mp_addon, addon_manager::ADDON_PARAM_RATIO_ALL_INT);
+	*/
+	
+	INSERT_ADDON_RATIO(3160,as_enhance_damage_addon, addon_manager::ADDON_PARAM_RATIO_ALL_FLOAT);
+	INSERT_ADDON_RATIO(3161,as_enhance_damage_addon, addon_manager::ADDON_PARAM_RATIO_ALL_FLOAT);
+	INSERT_ADDON_RATIO(3162,as_enhance_damage_addon, addon_manager::ADDON_PARAM_RATIO_ALL_FLOAT);
+	INSERT_ADDON_RATIO(3163,as_enhance_magic_dmg_addon, addon_manager::ADDON_PARAM_RATIO_ALL_FLOAT);
+	INSERT_ADDON_RATIO(3164,as_enhance_defense_addon, addon_manager::ADDON_PARAM_RATIO_ALL_FLOAT);
+	INSERT_ADDON_RATIO(3165,as_enhance_defense_addon, addon_manager::ADDON_PARAM_RATIO_ALL_FLOAT);
+	INSERT_ADDON_RATIO(3166,as_enhance_defense_addon, addon_manager::ADDON_PARAM_RATIO_ALL_FLOAT);
+	INSERT_ADDON_RATIO(3167,as_enhance_all_resistance, addon_manager::ADDON_PARAM_RATIO_ALL_FLOAT);
+	INSERT_ADDON_RATIO(3168,as_enhance_all_resistance, addon_manager::ADDON_PARAM_RATIO_ALL_FLOAT);
+	INSERT_ADDON_RATIO(3169,as_enhance_all_resistance, addon_manager::ADDON_PARAM_RATIO_ALL_FLOAT);
+	INSERT_ADDON_RATIO(3170,as_enhance_maxhp_addon, addon_manager::ADDON_PARAM_RATIO_ALL_FLOAT);
+	INSERT_ADDON_RATIO(3171,as_enhance_maxhp_addon, addon_manager::ADDON_PARAM_RATIO_ALL_FLOAT);
+	INSERT_ADDON_RATIO(3172,as_enhance_maxhp_addon, addon_manager::ADDON_PARAM_RATIO_ALL_FLOAT);
+	INSERT_ADDON_RATIO(3173,as_enhance_vigour_addon, addon_manager::ADDON_PARAM_RATIO_ALL_FLOAT);
+	INSERT_ADDON_RATIO(3174,as_enhance_resist0_addon, addon_manager::ADDON_PARAM_RATIO_ALL_FLOAT);
+	INSERT_ADDON_RATIO(3175,as_enhance_resist0_addon, addon_manager::ADDON_PARAM_RATIO_ALL_FLOAT);
+	INSERT_ADDON_RATIO(3176,as_enhance_resist0_addon, addon_manager::ADDON_PARAM_RATIO_ALL_FLOAT);
+	INSERT_ADDON_RATIO(3177,as_enhance_resist1_addon, addon_manager::ADDON_PARAM_RATIO_ALL_FLOAT);
+	INSERT_ADDON_RATIO(3178,as_enhance_resist1_addon, addon_manager::ADDON_PARAM_RATIO_ALL_FLOAT);
+	INSERT_ADDON_RATIO(3179,as_enhance_resist1_addon, addon_manager::ADDON_PARAM_RATIO_ALL_FLOAT);
+	INSERT_ADDON_RATIO(3180,as_enhance_resist2_addon, addon_manager::ADDON_PARAM_RATIO_ALL_FLOAT);
+	INSERT_ADDON_RATIO(3181,as_enhance_resist2_addon, addon_manager::ADDON_PARAM_RATIO_ALL_FLOAT);
+	INSERT_ADDON_RATIO(3182,as_enhance_resist2_addon, addon_manager::ADDON_PARAM_RATIO_ALL_FLOAT);
+	INSERT_ADDON_RATIO(3183,as_enhance_resist3_addon, addon_manager::ADDON_PARAM_RATIO_ALL_FLOAT);
+	INSERT_ADDON_RATIO(3184,as_enhance_resist3_addon, addon_manager::ADDON_PARAM_RATIO_ALL_FLOAT);
+	INSERT_ADDON_RATIO(3185,as_enhance_resist3_addon, addon_manager::ADDON_PARAM_RATIO_ALL_FLOAT);
+	INSERT_ADDON_RATIO(3186,as_enhance_resist4_addon, addon_manager::ADDON_PARAM_RATIO_ALL_FLOAT);
+	INSERT_ADDON_RATIO(3187,as_enhance_resist4_addon, addon_manager::ADDON_PARAM_RATIO_ALL_FLOAT);
+	INSERT_ADDON_RATIO(3188,as_enhance_resist4_addon, addon_manager::ADDON_PARAM_RATIO_ALL_FLOAT);
+	INSERT_ADDON_RATIO(3189,as_enhance_attack_addon, addon_manager::ADDON_PARAM_RATIO_ALL_FLOAT);
+	INSERT_ADDON_RATIO(3190,as_enhance_armor_addon, addon_manager::ADDON_PARAM_RATIO_ALL_FLOAT);
+	INSERT_ADDON_RATIO(3191,as_enhance_maxmp_addon, addon_manager::ADDON_PARAM_RATIO_ALL_FLOAT);
+	INSERT_ADDON_RATIO(3192,as_enhance_maxmp_addon, addon_manager::ADDON_PARAM_RATIO_ALL_FLOAT);
+	INSERT_ADDON_RATIO(3193,as_enhance_anti_def_addon, addon_manager::ADDON_PARAM_RATIO_ALL_FLOAT);
+	INSERT_ADDON_RATIO(3194,as_enhance_anti_resist_addon, addon_manager::ADDON_PARAM_RATIO_ALL_FLOAT);
+
+	INSERT_ADDON(3195, enhance_attack_degree);
+	INSERT_ADDON(3196, enhance_vigour);
+	INSERT_ADDON(3197, enhance_anti_def_addon);
+	INSERT_ADDON(3198, enhance_anti_resist_addon);
+
+    INSERT_ADDON(3199, enhance_defense_addon_1arg);
+    INSERT_ADDON(3200, enhance_all_resistance_addon);
+    INSERT_ADDON(3201, enhance_vit_addon_1arg);
+    INSERT_ADDON(3202, enhance_vigour);
+    INSERT_ADDON(3203, enhance_attack_degree);
+    INSERT_ADDON(3204, enhance_defend_degree);
+
+    INSERT_ADDON(3205, enhance_attack_degree);
+    INSERT_ADDON(3206, enhance_attack_degree);
+    INSERT_ADDON(3207, enhance_attack_degree);
+    INSERT_ADDON(3208, enhance_attack_degree);
+
+    INSERT_ADDON(3209, enhance_vigour);
+    INSERT_ADDON(3210, enhance_vigour);
+    INSERT_ADDON(3211, enhance_vigour);
+    INSERT_ADDON(3212, enhance_vigour);
+
+    INSERT_ADDON(3213, enhance_anti_def_addon);
+    INSERT_ADDON(3214, enhance_anti_def_addon);
+    INSERT_ADDON(3215, enhance_anti_def_addon);
+    INSERT_ADDON(3216, enhance_anti_def_addon);
+
+    INSERT_ADDON(3217, enhance_anti_resist_addon);
+    INSERT_ADDON(3218, enhance_anti_resist_addon);
+    INSERT_ADDON(3219, enhance_anti_resist_addon);
+    INSERT_ADDON(3220, enhance_anti_resist_addon);
 
 	return true;
 }

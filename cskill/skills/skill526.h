@@ -137,9 +137,9 @@ namespace GNET
       Skill526Stub ():SkillStub (526)
         {
             cls = 4;
-            name = L"真·排山倒海";
-            nativename = "真·排山倒海";
-            icon = "排山倒海1.dds";
+            name = L"鐪熉锋帓灞卞�掓捣";
+            nativename = "鐪熉锋帓灞卞�掓捣";
+            icon = "鎺掑北鍊掓捣1.dds";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -166,7 +166,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "1排山倒海.sgc";
+            effect = "1鎺掑北鍊掓捣.sgc";
             range.type = 3;
             doenchant = true;
             dobless = false;

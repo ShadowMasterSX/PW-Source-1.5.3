@@ -95,8 +95,8 @@ namespace GNET
       Skill1925Stub ():SkillStub (1925)
         {
             cls = 127;
-            name = L"无定B路线特效";
-            nativename = "无定B路线特效";
+            name = L"鏃犲畾B璺嚎鐗规晥";
+            nativename = "鏃犲畾B璺嚎鐗规晥";
             icon = "";
             max_level = 10;
             type = 2;
@@ -118,7 +118,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "怪物自爆.sgc";
+            effect = "鎬墿鑷垎.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

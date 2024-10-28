@@ -34,7 +34,7 @@
 #include "disabled_system.h"
 #include "playerprofileman.h"
 #include "autoteamman.h"
-
+#include "waitqueue.h"
 //cross related
 #include "disabled_system.h"
 #include "centraldeliveryserver.hpp"
@@ -147,6 +147,15 @@ UserInfo::~UserInfo()
 		delete acstate;
 }
 
+bool UserInfo::FillBrief(UserInfoBrief& brief)
+{
+	brief.isvip = is_vip;
+	brief.isgm  = (gmstatus&GMSTATE_ACTIVE) != 0;
+	brief.linksid = linksid;
+	brief.localsid = localsid;
+	return true;	
+}
+
 void UserContainer::UserLogin(int userid, const Octets& account, int linksid, int localsid, bool isgm, int type, int data, int ip, const Octets& iseckey, const Octets& oseckey, bool notify_client)
 {
 	UserInfo ui(userid, account, linksid,localsid,_STATUS_READYLOGIN);
@@ -246,6 +255,7 @@ void UserContainer::UserLogout(UserInfo * pinfo, char kicktype, bool force)
 	if(!is_central) {
 		StockExchange::Instance()->OnLogout(pinfo->userid);
 		SysAuctionManager::GetInstance().OnLogout(pinfo->userid);
+		WaitQueueManager::GetInstance()->OnLogout(pinfo->userid);
 	}
 	
 	EraseRemoteOnline(pinfo->userid);
@@ -445,6 +455,21 @@ CrossInfoData* UserContainer::GetRoleCrossInfo(int roleid)
 	if(pUser == NULL) return NULL;
 
 	return pUser->GetCrossInfo(roleid);
+}
+
+bool UserContainer::FillUserBrief(int userid, UserInfoBrief& brief)
+{
+	UserInfo* pUser = FindUser(userid);
+	if(pUser == NULL) return false;
+	return pUser->FillBrief(brief);
+}
+
+int UserContainer::GetRemoteRoleid(int roleid)
+{
+	CrossInfoData* data = GetRoleCrossInfo(roleid);
+	if(data == NULL) return 0;
+
+	return data->remote_roleid;
 }
 
 };

@@ -1,0 +1,132 @@
+#ifndef __GNET_MNFACTIONINFO_RPCDATA
+#define __GNET_MNFACTIONINFO_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class MNFactionInfo : public GNET::Rpc::Data
+	{
+	public:
+		int64_t unifid;
+		unsigned int fid;
+		Octets faction_name;
+		Octets master_name;
+		int zoneid;
+		std::vector<char> domain_num;
+		int credit;
+		int credit_this_week;
+		int credit_get_time;
+		unsigned int invite_count;
+		unsigned int accept_sn;
+		unsigned int bonus_sn;
+		unsigned int version;
+
+	public:
+		MNFactionInfo (int64_t l_unifid = 0,unsigned int l_fid = 0,const Octets& l_faction_name = Octets()
+			,const Octets& l_master_name = Octets(),int l_zoneid = 0,const std::vector<char>& l_domain_num = std::vector<char>()
+			,int l_credit = 0,int l_credit_this_week = 0,int l_credit_get_time = 0
+			,unsigned int l_invite_count = 0,unsigned int l_accept_sn = 0,unsigned int l_bonus_sn = 0
+			,unsigned int l_version = 0)
+			: unifid(l_unifid),fid(l_fid),faction_name(l_faction_name)
+			,master_name(l_master_name),zoneid(l_zoneid),domain_num(l_domain_num)
+			,credit(l_credit),credit_this_week(l_credit_this_week),credit_get_time(l_credit_get_time)
+			,invite_count(l_invite_count),accept_sn(l_accept_sn),bonus_sn(l_bonus_sn)
+			,version(l_version)
+		{
+		}
+
+		MNFactionInfo(const MNFactionInfo &rhs)
+			: unifid(rhs.unifid),fid(rhs.fid),faction_name(rhs.faction_name),
+			master_name(rhs.master_name),zoneid(rhs.zoneid),domain_num(rhs.domain_num),
+			credit(rhs.credit),credit_this_week(rhs.credit_this_week),credit_get_time(rhs.credit_get_time),
+			invite_count(rhs.invite_count),accept_sn(rhs.accept_sn),bonus_sn(rhs.bonus_sn),
+			version(rhs.version) { }
+
+		Rpc::Data *Clone() const { return new MNFactionInfo(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const MNFactionInfo *r = dynamic_cast<const MNFactionInfo *>(&rhs);
+			if (r && r != this)
+			{
+				unifid = r->unifid;
+				fid = r->fid;
+				faction_name = r->faction_name;
+				master_name = r->master_name;
+				zoneid = r->zoneid;
+				domain_num = r->domain_num;
+				credit = r->credit;
+				credit_this_week = r->credit_this_week;
+				credit_get_time = r->credit_get_time;
+				invite_count = r->invite_count;
+				accept_sn = r->accept_sn;
+				bonus_sn = r->bonus_sn;
+				version = r->version;
+			}
+			return *this;
+		}
+
+		MNFactionInfo& operator = (const MNFactionInfo &rhs)
+		{
+			const MNFactionInfo *r = &rhs;
+			if (r && r != this)
+			{
+				unifid = r->unifid;
+				fid = r->fid;
+				faction_name = r->faction_name;
+				master_name = r->master_name;
+				zoneid = r->zoneid;
+				domain_num = r->domain_num;
+				credit = r->credit;
+				credit_this_week = r->credit_this_week;
+				credit_get_time = r->credit_get_time;
+				invite_count = r->invite_count;
+				accept_sn = r->accept_sn;
+				bonus_sn = r->bonus_sn;
+				version = r->version;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << unifid;
+			os << fid;
+			os << faction_name;
+			os << master_name;
+			os << zoneid;
+			os << domain_num;
+			os << credit;
+			os << credit_this_week;
+			os << credit_get_time;
+			os << invite_count;
+			os << accept_sn;
+			os << bonus_sn;
+			os << version;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> unifid;
+			os >> fid;
+			os >> faction_name;
+			os >> master_name;
+			os >> zoneid;
+			os >> domain_num;
+			os >> credit;
+			os >> credit_this_week;
+			os >> credit_get_time;
+			os >> invite_count;
+			os >> accept_sn;
+			os >> bonus_sn;
+			os >> version;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<MNFactionInfo>	MNFactionInfoVector;
+};
+#endif

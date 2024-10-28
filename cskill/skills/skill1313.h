@@ -60,7 +60,7 @@ namespace GNET
             cls = 5;
             name = L"69";
             nativename = "69";
-            icon = "ÈËÓã±äÄ§¼¼ÄÜ.dds";
+            icon = "äººé±¼å˜é­”æŠ€èƒ½.dds";
             max_level = 1;
             type = 2;
             apcost = 0;
@@ -85,7 +85,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (23749);
             }
-            effect = "ÈËÓã±ä.sgc";
+            effect = "äººé±¼å˜.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

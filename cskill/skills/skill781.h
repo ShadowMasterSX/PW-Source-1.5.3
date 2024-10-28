@@ -132,8 +132,8 @@ namespace GNET
       Skill781Stub ():SkillStub (781)
         {
             cls = 127;
-            name = L"1级城战BOSS狂暴";
-            nativename = "1级城战BOSS狂暴";
+            name = L"1绾у煄鎴楤OSS鐙傛毚";
+            nativename = "1绾у煄鎴楤OSS鐙傛毚";
             icon = "";
             max_level = 5;
             type = 2;
@@ -153,7 +153,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "蓄气.sgc";
+            effect = "钃勬皵.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

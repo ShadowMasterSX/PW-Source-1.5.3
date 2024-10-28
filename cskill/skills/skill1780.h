@@ -132,9 +132,9 @@ namespace GNET
       Skill1780Stub ():SkillStub (1780)
         {
             cls = 127;
-            name = L"°ïÅÉ_×Ô²Ğ";
-            nativename = "°ïÅÉ_×Ô²Ğ";
-            icon = "³èÎïËºÒ§.dds";
+            name = L"å¸®æ´¾_è‡ªæ®‹";
+            nativename = "å¸®æ´¾_è‡ªæ®‹";
+            icon = "å® ç‰©æ’•å’¬.dds";
             max_level = 10;
             type = 2;
             apcost = 0;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "Á÷ĞÇ´¸.sgc";
+            effect = "æµæ˜Ÿé”¤.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

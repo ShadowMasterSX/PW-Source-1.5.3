@@ -172,9 +172,9 @@ namespace GNET
       Skill123Stub ():SkillStub (123)
         {
             cls = 7;
-            name = L"天地无极";
-            nativename = "天地无极";
-            icon = "天地无极.dds";
+            name = L"澶╁湴鏃犳瀬";
+            nativename = "澶╁湴鏃犳瀬";
+            icon = "澶╁湴鏃犳瀬.dds";
             max_level = 1;
             type = 2;
             apcost = 100;
@@ -201,7 +201,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "天地无级.sgc";
+            effect = "澶╁湴鏃犵骇.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

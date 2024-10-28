@@ -93,8 +93,8 @@ private:
 	virtual int GetRank(){ return _ess.rank; }
 	virtual int GetRebirthTimes(){ return _ess.rebirth_times; }
 	virtual bool CheckRebirthCondition(int material_rebirth_times);
-	virtual void DoRebirth();
-	virtual bool InsertExp(int exp, bool ischeck);
+	virtual bool DoRebirth(int arg);
+	virtual bool InsertExp(int& exp, bool ischeck);
 	virtual int GetSwallowExp();
 	virtual bool IsGeneralCardMatchPos(size_t pos)
 	{

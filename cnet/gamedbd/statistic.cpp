@@ -29,6 +29,8 @@
 #include "gwebtradedetail"
 #include "crossinfodata"
 #include "pshopdetail"
+#include "grewardstore" 
+#include "gcashvipinfo"
 namespace GNET
 {
 
@@ -89,8 +91,12 @@ namespace GNET
 		unsigned int cash_used;
 		unsigned int cash_used_2;
 		bool obsolete;
+		int          cash_vip_level;
+		unsigned int cash_vip_score_add;
+		unsigned int cash_vip_score_daily_reduce;
+		unsigned int cash_vip_score_consume;
 		TRoleItems userstore; /*存储账号仓库中的人民币物品*/
-		UserData():logintime(0),logicuid(0),cash_add(0),cash_buy(0),cash_sell(0),cash_used(0),cash_used_2(0),obsolete(0) { }
+		UserData():logintime(0),logicuid(0),cash_add(0),cash_buy(0),cash_sell(0),cash_used(0),cash_used_2(0),obsolete(0),cash_vip_level(0),cash_vip_score_add(0),cash_vip_score_daily_reduce(0),cash_vip_score_consume(0) { }
 	};
 	typedef std::map<unsigned int, UserData>  UserMap;
 
@@ -593,6 +599,7 @@ namespace GNET
 				std::cout << ",0,0,0";
 			std::cout << ",add:" << data.cash_add << ";buy:" << data.cash_buy << ";sell:"
 					<< data.cash_sell << ";used:" << data.cash_used + data.cash_used_2 << ";";
+			std::cout << "cash_vip_level:" << data.cash_vip_level << ";cash_vip_score_add:" << data.cash_vip_score_add << ";cash_vip_score_reduce:" << data.cash_vip_score_daily_reduce << ";cash_vip_score_consume:" << data.cash_vip_score_consume << ";";
 		}
 
 		void Dump()
@@ -660,7 +667,7 @@ namespace GNET
 				it = role_map.insert(std::make_pair(roleid, TRoleData())).first;
 
 			TRoleData& roledata = it->second;
-			roledata.cross_locked = (base.status == _ROLE_STATUS_CROSS_LOCKED);
+			roledata.cross_locked = (base.status == _ROLE_STATUS_CROSS_LOCKED || base.status == _ROLE_STATUS_CROSS_RECYCLE);
 			
 			if (base.cross_data.size() > 0)
 			{
@@ -688,7 +695,23 @@ namespace GNET
 			GSysAuctionCash sa_cash;
 			if(user.cash_sysauction.size())
 				Marshal::OctetsStream(user.cash_sysauction)>>sa_cash;
-			data.cash_used_2 = sa_cash.cash_used_2; 
+			data.cash_used_2 = sa_cash.cash_used_2;
+			if(user.consume_reward.size())
+			{
+				GRewardStore reward_store;
+				Marshal::OctetsStream os_reward(user.consume_reward);
+				os_reward >> reward_store;
+				if(reward_store.cash_vip_info.size())
+				{
+					GCashVipInfo vipinfo;
+					Marshal::OctetsStream os_vip_info(reward_store.cash_vip_info);
+					os_vip_info >> vipinfo;
+					data.cash_vip_level              = vipinfo.cash_vip_level;
+					data.cash_vip_score_add          = vipinfo.score_add;
+					data.cash_vip_score_daily_reduce = vipinfo.score_cost;
+					data.cash_vip_score_consume      = vipinfo.score_consume;
+				}
+			}
 			user_map[userid] = data;
 		}
 		void ReadUserStore(int userid, const GUserStorehouse & store)

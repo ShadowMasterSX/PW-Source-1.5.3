@@ -132,9 +132,9 @@ namespace GNET
       Skill2343Stub ():SkillStub (2343)
         {
             cls = 255;
-            name = L"¼±ËÙ×°µ¯";
-            nativename = "¼±ËÙ×°µ¯";
-            icon = "¼±ËÙ×°µ¯.dds";
+            name = L"æ€¥é€Ÿè£…å¼¹";
+            nativename = "æ€¥é€Ÿè£…å¼¹";
+            icon = "æ€¥é€Ÿè£…å¼¹.dds";
             max_level = 10;
             type = 2;
             apcost = 0;

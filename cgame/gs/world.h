@@ -76,6 +76,9 @@ class  world_data_ctrl
 	virtual void AddChariot(int type, int chariot) {}
 	virtual void DelChariot(int type, int chariot) {}
 	virtual void GetChariots(int type, abase::hash_map<int, int> & chariot_map) {}
+
+	//跨服帮派战场相关
+	virtual int PlayerTransmitInMNFaction(gplayer_imp * pImp, int index, A3DVECTOR &pos){return S2C::ERR_MNFACTION_NOT_IN_BATTLE;}
 };
 
 class world
@@ -160,6 +163,7 @@ public:
 	void 	InitManager(world_manager * man) { w_world_man = man;}
 	bool 	InitNPCGenerator(CNPCGenMan & npcgen);
 	bool    InitNPCGenerator(CNPCGenMan & ctrldata, npcgen_data_list& npcgen_list);
+	bool    InitNPCGeneratorByClone(CNPCGenMan & ctrldata, npcgen_data_list& npcgen_list);
 	bool	TriggerSpawn(int condition, bool notify_world_ctrl = true);
 	bool 	ClearSpawn(int condition, bool notify_world_ctrl = true);
 	void 	InitTimerTick();
@@ -383,6 +387,7 @@ public:
 		unsigned int object_state;		//仅player npc有效
 		unsigned int object_state2;		//仅player npc有效
 		int mafia_id;
+		int master_id;//宠物的主人id
 	};
 
 	bool QueryObject(const XID & id,object_info & info);	//查询一个其他对象的状态
@@ -409,7 +414,10 @@ public:
 	
 	inline const map_generator* GetMapGen() const { return w_map_generator; }
 
-	inline int GetBlockID(float x, float z) const {	return w_map_generator ? w_map_generator->GetBlockID(x,z) : 0;}
+	inline int GetBlockID(float x, float z) 
+	{
+		return w_map_generator ? w_map_generator->GetBlockID(x,z,this) : 0;
+	}
 	inline int GetRoomIndex(float x, float z) const { return w_map_generator ? w_map_generator->GetRoomIndex(x,z) : 0;}
 	inline bool GetTownPosition(gplayer_imp *pImp, const A3DVECTOR &opos, A3DVECTOR &pos, int & tag) const { return w_map_generator ? w_map_generator->GetTownPosition(pImp,opos,pos,tag) : false; }
 	inline bool SetIncomingPlayerPos(gplayer * pPlayer, const A3DVECTOR & origin_pos) const { return w_map_generator ? w_map_generator->SetIncomingPlayerPos(pPlayer,origin_pos) : false; }	

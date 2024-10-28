@@ -19,9 +19,9 @@ namespace GNET
         Skill2443Stub ():SkillStub (2443)
         {
             cls = 255;
-            name = L"²»ÖÜÇ§·ç";
-            nativename = "²»ÖÜÇ§·ç";
-            icon = "¼¼ÄÜÉËº¦Ìá¸ß.dds";
+            name = L"ä¸å‘¨åƒé£";
+            nativename = "ä¸å‘¨åƒé£";
+            icon = "æŠ€èƒ½ä¼¤å®³æé«˜.dds";
             max_level = 10;
             type = 5;
             apcost = 0;

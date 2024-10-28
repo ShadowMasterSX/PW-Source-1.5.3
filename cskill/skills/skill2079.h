@@ -133,9 +133,9 @@ namespace GNET
       Skill2079Stub ():SkillStub (2079)
         {
             cls = 127;
-            name = L"金甲天神";
-            nativename = "金甲天神";
-            icon = "宠物强化.dds";
+            name = L"閲戠敳澶╃";
+            nativename = "閲戠敳澶╃";
+            icon = "瀹犵墿寮哄寲.dds";
             max_level = 10;
             type = 1;
             apcost = 0;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "大力神_普攻_击中.sgc";
+            effect = "澶у姏绁瀇鏅敾_鍑讳腑.sgc";
             range.type = 1;
             doenchant = true;
             dobless = true;

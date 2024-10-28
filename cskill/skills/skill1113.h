@@ -134,9 +134,9 @@ namespace GNET
       Skill1113Stub ():SkillStub (1113)
         {
             cls = 5;
-            name = L"Éî¶È±ù´Ì";
-            nativename = "Éî¶È±ù´Ì";
-            icon = "±ù½£»¤Ìå.dds";
+            name = L"æ·±åº¦å†°åˆº";
+            nativename = "æ·±åº¦å†°åˆº";
+            icon = "å†°å‰‘æŠ¤ä½“.dds";
             max_level = 10;
             type = 2;
             apcost = 0;
@@ -160,7 +160,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (23749);
             }
-            effect = "¿Õ.sgc";
+            effect = "ç©º.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;
@@ -236,7 +236,7 @@ namespace GNET
         {
             skill->GetVictim ()->SetProbability (1.0 * 100);
             skill->GetVictim ()->SetTime (600000);
-            skill->GetVictim ()->SetRatio (0.5 + 0.05 * skill->GetLevel ());
+            skill->GetVictim ()->SetRatio (0.2);//skill->GetVictim ()->SetRatio (0.5 + 0.05 * skill->GetLevel ());
             skill->GetVictim ()->SetValue (15 + 1.5 * skill->GetLevel ());
             skill->GetVictim ()->SetDeepicethrust (1);
             return true;

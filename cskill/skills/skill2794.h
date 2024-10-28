@@ -260,9 +260,9 @@ namespace GNET
       Skill2794Stub ():SkillStub (2794)
         {
             cls = 11;
-            name = L"狂·蜓水引";
-            nativename = "狂·蜓水引";
-            icon = "魔蜓水引.dds";
+            name = L"鐙偮疯湏姘村紩";
+            nativename = "鐙偮疯湏姘村紩";
+            icon = "榄旇湏姘村紩.dds";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -290,7 +290,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "月仙_蜓水引_击中.sgc";
+            effect = "鏈堜粰_铚撴按寮昣鍑讳腑.sgc";
             range.type = 1;
             doenchant = true;
             dobless = false;

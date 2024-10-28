@@ -137,9 +137,9 @@ namespace GNET
       Skill108Stub ():SkillStub (108)
         {
             cls = 4;
-            name = L"兽王无敌";
-            nativename = "兽王无敌";
-            icon = "兽王无敌.dds";
+            name = L"鍏界帇鏃犳晫";
+            nativename = "鍏界帇鏃犳晫";
+            icon = "鍏界帇鏃犳晫.dds";
             max_level = 10;
             type = 1;
             apcost = 0;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (9);
             }
-            effect = "兽王无敌.sgc";
+            effect = "鍏界帇鏃犳晫.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

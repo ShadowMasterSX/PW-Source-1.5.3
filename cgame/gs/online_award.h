@@ -4,6 +4,7 @@
 
 #include <vector>
 
+class gplayer_imp;
 class online_award
 {
 public:
@@ -32,13 +33,13 @@ public:
 public:
 	online_award() : _version(CUR_VERSION), _refresh_timestamp(0), _total_award_time(0), _award_list(MAX_AWARD_TYPE,award_data()){}
 
-	void Update(gactive_imp* imp, int cur_time);
-	bool ActivateAward(gactive_imp* imp, int type);
-	bool DeactivateAward(gactive_imp* imp, int type);
-	bool IncAwardTime(gactive_imp* imp, int type, int time); 
-	int SpendAwardTime(gactive_imp* imp, int type, int time);
-	void NotifyClientAllData(gactive_imp* imp);
-	void NotifyClientData(gactive_imp* imp, int type);
+	void Update(gplayer_imp* imp, int cur_time);
+	bool ActivateAward(gplayer_imp* imp, int type);
+	bool DeactivateAward(gplayer_imp* imp, int type);
+	bool IncAwardTime(gplayer_imp* imp, int type, int time); 
+	int  SpendAwardTime(gplayer_imp* imp, int type, int time);
+	void NotifyClientAllData(gplayer_imp* imp);
+	void NotifyClientData(gplayer_imp* imp, int type);
 
 	bool DBLoadData(archive& ar);
 	bool DBSaveData(archive& ar);

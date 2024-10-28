@@ -132,9 +132,9 @@ namespace GNET
       Skill2106Stub ():SkillStub (2106)
         {
             cls = 127;
-            name = L"魔音";
-            nativename = "魔音";
-            icon = "流水.dds";
+            name = L"榄旈煶";
+            nativename = "榄旈煶";
+            icon = "娴佹按.dds";
             max_level = 10;
             type = 10;
             apcost = 0;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "巨灵神力.sgc";
+            effect = "宸ㄧ伒绁炲姏.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

@@ -134,9 +134,9 @@ namespace GNET
       Skill4Stub ():SkillStub (4)
         {
             cls = 0;
-            name = L"ʨ�Ӻ�";
-            nativename = "ʨ�Ӻ�";
-            icon = "ʨ�Ӻ�.dds";
+            name = L"狮子吼";
+            nativename = "狮子吼";
+            icon = "狮子吼.dds";
             max_level = 10;
             type = 3;
             apcost = 35;
@@ -175,7 +175,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (9);
             }
-            effect = "ʨ�Ӻ�.sgc";
+            effect = "狮子吼.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

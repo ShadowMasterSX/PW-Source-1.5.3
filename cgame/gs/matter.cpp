@@ -337,6 +337,13 @@ int gmatter_mine_imp::MessageHandler(world * pPlane ,const MSG & msg)
 					return 0;
 				}
 
+				int ret_code = world_manager::GetInstance()->CanBeGathered(faction, GetParent()->matter_type,_plane,msg.source);
+				if(ret_code != 0) 
+				{
+					SendErrMessage<0>(msg.source,ret_code);
+					return 0;
+				}
+
 				//_lock = true;
 				//是否考虑采集时间为0则不进行锁定操作?
 				_lock_time_out = _gather_time_max + 15;

@@ -132,8 +132,8 @@ namespace GNET
       Skill2048Stub ():SkillStub (2048)
         {
             cls = 127;
-            name = L"ÕÏ°­Çò¼¼ÄÜ1";
-            nativename = "ÕÏ°­Çò¼¼ÄÜ1";
+            name = L"éšœç¢çƒæŠ€èƒ½1";
+            nativename = "éšœç¢çƒæŠ€èƒ½1";
             icon = "";
             max_level = 10;
             type = 3;

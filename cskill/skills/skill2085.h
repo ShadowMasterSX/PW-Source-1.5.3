@@ -134,9 +134,9 @@ namespace GNET
       Skill2085Stub ():SkillStub (2085)
         {
             cls = 127;
-            name = L"海啸";
-            nativename = "海啸";
-            icon = "宠物强化.dds";
+            name = L"娴峰暩";
+            nativename = "娴峰暩";
+            icon = "瀹犵墿寮哄寲.dds";
             max_level = 10;
             type = 1;
             apcost = 0;
@@ -157,7 +157,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "巫师_冥王乐土.sgc";
+            effect = "宸笀_鍐ョ帇涔愬湡.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

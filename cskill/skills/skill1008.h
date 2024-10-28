@@ -60,9 +60,9 @@ namespace GNET
       Skill1008Stub ():SkillStub (1008)
         {
             cls = 258;
-            name = L"火炼真金";
-            nativename = "火炼真金";
-            icon = "火炼真金.dds";
+            name = L"鐏偧鐪熼噾";
+            nativename = "鐏偧鐪熼噾";
+            icon = "鐏偧鐪熼噾.dds";
             max_level = 10;
             type = 1;
             apcost = 78094;
@@ -81,7 +81,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 1;
-            effect = "火炼真金.sgc";
+            effect = "鐏偧鐪熼噾.sgc";
             range.type = 2;
             doenchant = true;
             dobless = true;

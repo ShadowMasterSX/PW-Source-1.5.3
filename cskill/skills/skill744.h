@@ -57,8 +57,8 @@ namespace GNET
       Skill744Stub ():SkillStub (744)
         {
             cls = 127;
-            name = L"ÎïÆ·¼¼ÄÜ-°ÙºÏ»·ÈÆ";
-            nativename = "ÎïÆ·¼¼ÄÜ-°ÙºÏ»·ÈÆ";
+            name = L"ç‰©å“æŠ€èƒ½-ç™¾åˆç¯ç»•";
+            nativename = "ç‰©å“æŠ€èƒ½-ç™¾åˆç¯ç»•";
             icon = "";
             max_level = 10;
             type = 4;

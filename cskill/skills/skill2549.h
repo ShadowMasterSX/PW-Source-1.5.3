@@ -136,9 +136,9 @@ namespace GNET
       Skill2549Stub ():SkillStub (2549)
         {
             cls = 10;
-            name = L"双合";
-            nativename = "双合";
-            icon = "双合.dds";
+            name = L"鍙屽悎";
+            nativename = "鍙屽悎";
+            icon = "鍙屽悎.dds";
             max_level = 10;
             type = 1;
             apcost = 20;
@@ -162,7 +162,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (44878);
             }
-            effect = "夜影_双合_击中.sgc";
+            effect = "澶滃奖_鍙屽悎_鍑讳腑.sgc";
             range.type = 0;
             doenchant = true;
             dobless = true;

@@ -12,6 +12,7 @@ namespace CHAT_S2C
 		CHAT_EQUIP_ITEM,
 		CHAT_GENERALCARD_COLLECTION,
 		CHAT_AIPOLICY_VALUE,
+        CHAT_PROPERTY_SCORE,
 	};
 
 	struct chat_equip_item
@@ -36,6 +37,21 @@ namespace CHAT_S2C
 		int mask;
 		char val[];
 	};
+
+    struct chat_property_score
+    {
+        short cmd_id;
+        char name[40];
+        int cls;
+        short level;
+        int fighting_score;
+        int viability_score;
+
+        size_t state_num;
+        unsigned short* state;
+    };
+
+
 }
 
 namespace CHAT_C2S
@@ -45,6 +61,8 @@ namespace CHAT_C2S
 	{
 		CHAT_EQUIP_ITEM,
 		CHAT_GENERALCARD_COLLECTION,
+        CHAT_AIPOLICY_VALUE,
+        CHAT_PROPERTY_SCORE,
 	};
 
 	struct chat_equip_item
@@ -59,6 +77,13 @@ namespace CHAT_C2S
 		short cmd_id;
 		int card_id;
 	};
+
+    struct chat_property_score
+    {
+        short cmd_id;
+    };
+
+
 }
 
 #pragma pack()

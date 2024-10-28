@@ -137,9 +137,9 @@ namespace GNET
       Skill494Stub ():SkillStub (494)
         {
             cls = 4;
-            name = L"真·绞杀";
-            nativename = "真·绞杀";
-            icon = "绞杀1.dds";
+            name = L"鐪熉风粸鏉�";
+            nativename = "鐪熉风粸鏉�";
+            icon = "缁炴潃1.dds";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -164,7 +164,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (9);
             }
-            effect = "1绞杀.sgc";
+            effect = "1缁炴潃.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

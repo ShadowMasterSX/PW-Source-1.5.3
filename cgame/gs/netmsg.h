@@ -76,5 +76,8 @@ void notify_serverforbid(std::vector<int> &ctrl_list,std::vector<int> &item_list
 void notify_mafia_pvp_status(int status,std::vector<int> &ctrl_list);
 void request_mafia_pvp_elements(unsigned int version);
 
+void mnfaction_battle_start(int domain_id, unsigned char domain_type, int64_t attacker_faction_id, int64_t defender_faction_id, int end_timestamp);
+bool player_join_mnfaction(int retcode, int role, int64_t faction_id, int world_tag, int domain_id);
+
 #endif
 

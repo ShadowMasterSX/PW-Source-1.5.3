@@ -166,7 +166,8 @@ bool PlayerWrapper::SetPerform(int inform)
 			if(ap)
 				object.ModifyAP(ap);
 		}
-		skillwrapper->OnSkillPerform(skill->GetId(),skill->GetComboPreSkill(),object);
+		if(!skill->IsElfSkill())	
+			skillwrapper->OnSkillPerform(skill->GetId(),skill->GetComboPreSkill(),object);
 		return true;
 	}
 
@@ -222,7 +223,8 @@ bool PlayerWrapper::SetPerform(int inform)
 					if(ap)
 						object.ModifyAP(ap);
 				}
-				skillwrapper->OnSkillPerform(skill->GetId(),skill->GetComboPreSkill(),object);
+				if(!skill->IsElfSkill()) 
+					skillwrapper->OnSkillPerform(skill->GetId(),skill->GetComboPreSkill(),object);
 			}
 		}
 		return true;
@@ -536,7 +538,8 @@ bool PlayerWrapper::SetPerform(int inform)
 			if(ap)
 				object.ModifyAP(ap);
 		}
-		skillwrapper->OnSkillPerform(skill->GetId(),skill->GetComboPreSkill(),object);
+		if(!skill->IsElfSkill()) 
+			skillwrapper->OnSkillPerform(skill->GetId(),skill->GetComboPreSkill(),object);
 	}
 	return false;
 }
@@ -1821,6 +1824,40 @@ bool PlayerWrapper::SetIncfarskilldmgreduce(float inc)
 	return true;
 }
 
+bool PlayerWrapper::SetAddmaxhp(float inc)
+{
+	if(enable)
+		object.EnhanceScaleMaxHP((int)(inc*100+0.00001f),intarg == -1);
+	else	
+		object.ImpairScaleMaxHP((int)(inc*100+0.00001f),intarg == -1);
+
+	return true;
+}
+
+bool PlayerWrapper::SetDisturbrecover(int val)
+{
+	const int DISTURBRECOVER_SKILL_ID = 2932;
+	if(enable)
+		object.SetInfectSkill(DISTURBRECOVER_SKILL_ID,val);
+	else 
+		object.ClrInfectSkill(DISTURBRECOVER_SKILL_ID);
+
+	return true;
+}
+
+bool PlayerWrapper::SetIncswimspeed(float inc)
+{
+	if(inc == 0) return false;
+	if(enable)	
+		object.EnhanceSwimSpeed((int)(inc*100+0.00001f));
+	else
+		object.ImpairSwimSpeed((int)(inc*100+0.00001f));
+
+	object.UpdateSpeedData();
+	object.SendClientCurSpeed();
+	return true;
+}
+
 bool PlayerWrapper::SetReturntown(bool m)
 {
 	success = false;
@@ -2052,6 +2089,15 @@ bool PlayerWrapper::SetInvincible7(bool)
 		object.SetInvincibleFilter2(true, time, true);
 		if(showicon)
 			object.AddFilter(new filter_Icon(object,time,HSTATE_INVINCIBLE));
+	}
+	return true; 
+}
+
+bool PlayerWrapper::SetInvincible8(bool)//单人副本专用
+{
+	if(ThrowDice())
+	{
+        object.AddFilter(new filter_solo_invincible(object, GetTime()));
 	}
 	return true; 
 }
@@ -2476,6 +2522,17 @@ bool PlayerWrapper::SetFlower4(bool)
 	object.AddFilter(new filter_Icon(object,time,0,VSTATE_FLOWER4,FILTER_FLOWER,filter::FILTER_MASK_UNIQUE));
 	return true; 
 }
+
+bool PlayerWrapper::SetMnfactionDecresist(bool)
+	{
+		if (object.GetImmuneMask() & IMMUNEALL)
+		{
+			immune |= 0x80;
+			return false;
+		}
+		//object.AddFilter(new filter_MnfactionDecresist(object,(int)(ratio*100),time));
+		return true;
+	}
 
 bool PlayerWrapper::SetFastride(bool)
 {	
@@ -3379,6 +3436,16 @@ bool PlayerWrapper::SetAurabless2(bool)
 	return true;
 }
 	
+bool PlayerWrapper::SetAurabless3(bool)	
+{
+	filter_Aurabless * pfilter 
+		= new filter_Aurabless(object,time,ratio,GetValueInt(),GetAmountInt(),(int)(probability+0.1f),true);
+	pfilter->SetTalent(skill->GetT0(),skill->GetT1(),skill->GetT2());
+	object.AddFilter(pfilter);
+	
+	return true;
+}
+	
 bool PlayerWrapper::SetAuracurse2(bool)
 {
 	filter_Auracurse * pfilter 
@@ -3391,6 +3458,8 @@ bool PlayerWrapper::SetAuracurse2(bool)
 
 bool PlayerWrapper::SetInvisible(bool)
 {
+	if (object.GetNoInvisible()) return true;	
+
 	if(object.IsInvisible())
 	{   
 		object.RemoveFilter(FILTER_AURAFIREATTACK);
@@ -3476,6 +3545,18 @@ bool PlayerWrapper::SetWeakenbless(bool)
 			immune |= 0x80;
 		else
 			object.AddFilter(new filter_Weakenbless(object,time,ratio,amount,int(value)));	
+	}
+	return true;
+}
+
+bool PlayerWrapper::SetWeakenbless2(bool)
+{
+	if(ThrowDice())
+	{
+		if(object.GetImmuneMask()&IMMUNEALL)
+			immune |= 0x80;
+		else
+			object.AddFilter(new filter_Weakenbless2(object,time,GetValueInt()));	
 	}
 	return true;
 }
@@ -4892,6 +4973,21 @@ bool PlayerWrapper::SetSummonmobs(bool)
 		param.remain_time = time;
 		param.die_with_who = GetRatioInt();	
 
+		if(GetRatioInt()==1)//随召唤者死亡而死亡
+		{
+			param.parent_is_leader = false;
+			param.spec_leader_id = skill->GetPerformerid();
+		}
+		else if(GetRatioInt()==2)//随目标死亡而死亡
+		{
+			param.target_id = object.GetSelfID();
+		}
+		else if(GetRatioInt()==3)//随召唤者和目标之一死亡而死亡
+		{
+			param.parent_is_leader = false;
+			param.spec_leader_id = skill->GetPerformerid();
+			param.target_id = object.GetSelfID();
+		}
 		for(int n = 0; n < GetAmountInt(); ++n)
 		{
 			object.CreateMinors(param,5.f);
@@ -5346,5 +5442,319 @@ bool PlayerWrapper::SetGenhpap(bool)
     return true;
 }
 
+bool PlayerWrapper::SetDetaindart(bool)
+{
+	if(ThrowDice())
+	{
+		bool is_lighting_effect=false;
+		if(GetValueInt()!=0)
+		     is_lighting_effect=true;
+		
+		object.AddFilter(new filter_Detaindart(object,time,showicon,is_lighting_effect));		
+	}
+	return true;
+}
+
+
+bool PlayerWrapper::SetExtraexpfactor(bool)
+{
+    if (ThrowDice())
+    {
+        object.AddFilter(new filter_Extraexpfactor(object, time, GetValue(), GetRatio()));
+    }
+
+    return true;
+}
+
+bool PlayerWrapper::SetSoloIncAttackAndMagic(bool)
+{
+    if (ThrowDice())
+    {
+        object.AddFilter(new filter_solo_IncAttackAndMagic(object, GetAmountInt(), GetValueInt(), GetTime()));
+    }
+    return true;
+}
+
+bool PlayerWrapper::SetSoloIncDefence(bool)
+{
+    if (ThrowDice())
+    {
+        object.AddFilter(new filter_solo_Incdefence(object, GetAmountInt(), GetTime()));
+    }
+    return true;
+}
+
+bool PlayerWrapper::SetSoloEnhanceResist(bool)
+{
+    if (ThrowDice())
+    {
+        object.AddFilter(new filter_solo_Enhanceresist(object, GetAmountInt(), GetTime()));
+    }
+    return true;
+}
+
+bool PlayerWrapper::SetSoloIncMaxHP(bool)
+{
+    if (ThrowDice())
+    {
+        object.AddFilter(new filter_solo_IncMaxhp(object, GetAmountInt(), GetTime()));
+    }
+    return true;
+}
+
+bool PlayerWrapper::SetSoloHpGen(bool)
+{
+    if (ThrowDice())
+    {
+        object.AddFilter(new filter_solo_Hpgen(object, GetAmountInt(), GetTime()));
+    }
+    return true;
+}
+
+bool PlayerWrapper::SetSoloDecHurt(bool)
+{
+    if (ThrowDice())
+    {
+        object.AddFilter(new filter_solo_Dechurt(object, GetRatioInt(), GetTime()));
+    }
+    return true;
+}
+
+bool PlayerWrapper::SetSoloAddAttackRange(bool)
+{
+    if (ThrowDice())
+    {
+        object.AddFilter(new filter_solo_Addattackrange(object, GetAmountInt(), GetTime()));
+    }
+    return true;
+}
+
+bool PlayerWrapper::SetThunder3(bool)
+{
+	if(!ThrowDice())
+		return false;
+	if(object.GetImmuneMask()&(IMMUNEMETAL|IMMUNEALL))
+	{
+		immune |= 0x80;
+		return false;
+	}
+	int thunder_damage = GetAmountInt();
+	int physic_damage = GetValueInt();
+	thunder_damage = object.CalcMagicDamage(0, thunder_damage, skill->GetPlayerlevel());
+	physic_damage  = object.CalcPhysicDamage(physic_damage, skill->GetPlayerlevel());
+	int damage = thunder_damage + physic_damage;
+	if(!object.IsPlayerClass())
+	{
+		damage = object.CalcPenetrationEnhanceDamage(skill->GetPenetration(),damage);
+	}
+		
+	//if(damage>3)
+	//{
+		filter_Thunder3* pfilter;
+        int mask = (amount > 1.0f ? 0 : (amount > 0.5f ? filter::FILTER_MASK_BUFF : filter::FILTER_MASK_DEBUFF));
+		if(object.IsPlayerClass())
+		{
+			if(skill->GetPerformerid().IsPlayerClass())
+			{
+				damage = (int)(0.25*damage);
+				if(damage == 0)
+				  damage = 1;
+			}
+			pfilter =  new filter_Thunder3(object,time,damage,mask);
+		}
+		else
+		{
+			damage = (int)(object.CalcLevelDamagePunish(skill->GetPlayerlevel(),object.GetBasicProp().level)*damage);
+			pfilter =  new filter_Thunder3(object,time,damage,mask);
+		}
+		pfilter->SetUp(skill->GetPerformerid(),skill->GetPerformerinfo(),skill->GetAttackerMode(),invader);
+		object.AddFilter(pfilter);
+	//}
+	return true;
+}
+
+bool PlayerWrapper::SetToxic3(bool)
+{
+	if(!ThrowDice())
+		return false;
+	if(object.GetImmuneMask()&(IMMUNEWOOD|IMMUNEALL))
+	{
+		immune |= 0x80;
+		return false;
+	}
+	int thunder_damage = GetAmountInt();
+	int physic_damage = GetValueInt();
+	thunder_damage = object.CalcMagicDamage(1, thunder_damage, skill->GetPlayerlevel());
+	physic_damage  = object.CalcPhysicDamage(physic_damage, skill->GetPlayerlevel());
+	int damage = thunder_damage + physic_damage;
+	if(!object.IsPlayerClass())
+	{
+		damage = object.CalcPenetrationEnhanceDamage(skill->GetPenetration(),damage);
+	}
+		
+	//if(damage>3)
+	//{
+		filter_Toxic3* pfilter;
+        int mask = (amount > 1.0f ? 0 : (amount > 0.5f ? filter::FILTER_MASK_BUFF : filter::FILTER_MASK_DEBUFF));
+		if(object.IsPlayerClass())
+		{
+			if(skill->GetPerformerid().IsPlayerClass())
+			{
+				damage = (int)(0.25*damage);
+				if(damage == 0)
+				  damage = 1;
+			}
+			pfilter =  new filter_Toxic3(object,time,damage,mask);
+		}
+		else
+		{
+			damage = (int)(object.CalcLevelDamagePunish(skill->GetPlayerlevel(),object.GetBasicProp().level)*damage);
+			pfilter =  new filter_Toxic3(object,time,damage,mask);
+		}
+		pfilter->SetUp(skill->GetPerformerid(),skill->GetPerformerinfo(),skill->GetAttackerMode(),invader);
+		object.AddFilter(pfilter);
+	//}
+	return true;
+}
+
+bool PlayerWrapper::SetFlood3(bool)
+{
+	if(!ThrowDice())
+		return false;
+	if(object.GetImmuneMask()&(IMMUNEWATER|IMMUNEALL))
+	{
+		immune |= 0x80;
+		return false;
+	}
+	int thunder_damage = GetAmountInt();
+	int physic_damage = GetValueInt();
+	thunder_damage = object.CalcMagicDamage(2, thunder_damage, skill->GetPlayerlevel());
+	physic_damage  = object.CalcPhysicDamage(physic_damage, skill->GetPlayerlevel());
+	int damage = thunder_damage + physic_damage;
+	if(!object.IsPlayerClass())
+	{
+		damage = object.CalcPenetrationEnhanceDamage(skill->GetPenetration(),damage);
+	}
+		
+	//if(damage>3)
+	//{
+		filter_Flood3* pfilter;
+        int mask = (amount > 1.0f ? 0 : (amount > 0.5f ? filter::FILTER_MASK_BUFF : filter::FILTER_MASK_DEBUFF));
+		if(object.IsPlayerClass())
+		{
+			if(skill->GetPerformerid().IsPlayerClass())
+			{
+				damage = (int)(0.25*damage);
+				if(damage == 0)
+				  damage = 1;
+			}
+			pfilter =  new filter_Flood3(object,time,damage,mask);
+		}
+		else
+		{
+			damage = (int)(object.CalcLevelDamagePunish(skill->GetPlayerlevel(),object.GetBasicProp().level)*damage);
+			pfilter =  new filter_Flood3(object,time,damage,mask);
+		}
+		pfilter->SetUp(skill->GetPerformerid(),skill->GetPerformerinfo(),skill->GetAttackerMode(),invader);
+		object.AddFilter(pfilter);
+	//}
+	return true;
+}
+
+bool PlayerWrapper::SetBurning3(bool)
+{
+	if(!ThrowDice())
+		return false;
+	if(object.GetImmuneMask()&(IMMUNEFIRE|IMMUNEALL))
+	{
+		immune |= 0x80;
+		return false;
+	}
+	int thunder_damage = GetAmountInt();
+	int physic_damage = GetValueInt();
+	thunder_damage = object.CalcMagicDamage(3, thunder_damage, skill->GetPlayerlevel());
+	physic_damage  = object.CalcPhysicDamage(physic_damage, skill->GetPlayerlevel());
+	int damage = thunder_damage + physic_damage;
+	if(!object.IsPlayerClass())
+	{
+		damage = object.CalcPenetrationEnhanceDamage(skill->GetPenetration(),damage);
+	}
+		
+	//if(damage>3)
+	//{
+		filter_Burning3* pfilter;
+        int mask = (amount > 1.0f ? 0 : (amount > 0.5f ? filter::FILTER_MASK_BUFF : filter::FILTER_MASK_DEBUFF));
+		if(object.IsPlayerClass())
+		{
+			if(skill->GetPerformerid().IsPlayerClass())
+			{
+				damage = (int)(0.25*damage);
+				if(damage == 0)
+				  damage = 1;
+			}
+			pfilter =  new filter_Burning3(object,time,damage,mask);
+		}
+		else
+		{
+			damage = (int)(object.CalcLevelDamagePunish(skill->GetPlayerlevel(),object.GetBasicProp().level)*damage);
+			pfilter =  new filter_Burning3(object,time,damage,mask);
+		}
+		pfilter->SetUp(skill->GetPerformerid(),skill->GetPerformerinfo(),skill->GetAttackerMode(),invader);
+		object.AddFilter(pfilter);
+	//}
+	return true;
+}
+bool PlayerWrapper::SetFallen3(bool)
+{
+	if(!ThrowDice())
+		return false;
+	if(object.GetImmuneMask()&(IMMUNESOIL|IMMUNEALL))
+	{
+		immune |= 0x80;
+		return false;
+	}
+	int thunder_damage = GetAmountInt();
+	int physic_damage = GetValueInt();
+	thunder_damage = object.CalcMagicDamage(4, thunder_damage, skill->GetPlayerlevel());
+	physic_damage  = object.CalcPhysicDamage(physic_damage, skill->GetPlayerlevel());
+	int damage = thunder_damage + physic_damage;
+	if(!object.IsPlayerClass())
+	{
+		damage = object.CalcPenetrationEnhanceDamage(skill->GetPenetration(),damage);
+	}
+		
+	//if(damage>3)
+	//{
+		filter_Fallen3* pfilter;
+        int mask = (amount > 1.0f ? 0 : (amount > 0.5f ? filter::FILTER_MASK_BUFF : filter::FILTER_MASK_DEBUFF));
+		if(object.IsPlayerClass())
+		{
+			if(skill->GetPerformerid().IsPlayerClass())
+			{
+				damage = (int)(0.25*damage);
+				if(damage == 0)
+				  damage = 1;
+			}
+			pfilter =  new filter_Fallen3(object,time,damage,mask);
+		}
+		else
+		{
+			damage = (int)(object.CalcLevelDamagePunish(skill->GetPlayerlevel(),object.GetBasicProp().level)*damage);
+			pfilter =  new filter_Fallen3(object,time,damage,mask);
+		}
+		pfilter->SetUp(skill->GetPerformerid(),skill->GetPerformerinfo(),skill->GetAttackerMode(),invader);
+		object.AddFilter(pfilter);
+	//}
+	return true;
+}
+
+// Speed
+	
+bool PlayerWrapper::SetNewSpeedBuff(bool)
+{
+	if (ThrowDice())
+		object.AddFilter(new filter_NewBuffSpeed(object, (int)(ratio * 100), time));
+	return true;
+}
 
 }

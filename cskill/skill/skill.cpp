@@ -90,7 +90,7 @@ bool SkillStub::Learn(Skill * skill) const
 	{
 		if(GetEventFlag()==EVENT_RESET
 			|| GetEventFlag()==EVENT_WIELD
-			|| (GetEventFlag()==EVENT_CHANGE && player->GetForm()==FORM_CLASS))
+			|| GetEventFlag()==EVENT_CHANGE && player->GetForm()==FORM_CLASS)
 		{
 			if(next_level>1)
 			{
@@ -99,6 +99,17 @@ bool SkillStub::Learn(Skill * skill) const
 				skill->SetLevel(next_level);
 			}
 			skill->TakeEffect(player, -1);
+		}
+		else if( GetEventFlag() == EVENT_ENTER)
+		{
+			int worldtag = player->GetWorldTag();
+			if(next_level>1)
+			{
+				skill->SetLevel(next_level-1);
+				skill->UndoEffect(player, worldtag);
+				skill->SetLevel(next_level);
+			}
+			skill->TakeEffect(player, worldtag);
 		}
 	}
 	return true;
@@ -139,7 +150,7 @@ int SkillStub::Condition(Skill *skill) const
 		return 11;
 
 	//if( !range.NoTarget()) 
-	if( !(range.IsSelf() || (range.IsSelfBall()&&!IsAttack()&&!IsCurse()) ))
+	if( !(range.IsSelf() || range.IsSelfBall()&&!IsAttack()&&!IsCurse() ))
 	{
 		if(skill->GetPlayer()->CheckTarget(1.0f+GetPraydistance(skill), restrict_corpse)==false) 
 			return 6;
@@ -183,7 +194,7 @@ int SkillStub::ElfCondition(Skill *skill) const
 		return 10;
 	
 	//if( !range.NoTarget()) 
-	if( !(range.IsSelf() || (range.IsSelfBall()&&!IsAttack()&&!IsCurse()) ))
+	if( !(range.IsSelf() || range.IsSelfBall()&&!IsAttack()&&!IsCurse() ))
 	{
 		if(skill->GetPlayer()->CheckTarget(1.0f+GetPraydistance(skill), restrict_corpse)==false) 
 			return 6;
@@ -813,7 +824,7 @@ int Skill::Run( int & next_interval )
 	next_interval = -1;
 	int newindex = GetNextindex();
 	SetStateindex(newindex);
-	assert(newindex < int(stub->GetStateSize()));
+	ASSERT(newindex < int(stub->GetStateSize()));
 	if( newindex < 0 )
 		return -1;
 

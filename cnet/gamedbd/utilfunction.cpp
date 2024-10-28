@@ -9,6 +9,8 @@
 #include "utilfunction.h"
 #include "gamedbmanager.h"
 #include "greincarnationdata"
+#include "grolestatusextraprop"
+#include "mnfactioninfo"
 namespace GNET
 {
 int WriteRestSyncData(StorageEnv::Storage *pstore,StorageEnv::Storage *plog,int roleid,
@@ -110,9 +112,54 @@ void GetRoleRealmDetail(const Octets & odata,int& level)
 	}
 }
 
+void GetRoleVisaDetail(const Octets & odata, short& type,int64_t& ufid)
+{
+	type = -1; ufid = 0;
+	if(!odata.size()) return;
+
+	try{
+		GRoleStatusExtraProp extraprop;
+		Marshal::OctetsStream(odata) >> extraprop;
+
+		std::map<int,Octets>::iterator it=extraprop.data.find(GROLE_STATUS_EXTRAPROP_VISA_INFO);
+		if(it != extraprop.data.end())
+		{
+			int temp_type = -1;
+			Marshal::OctetsStream(it->second) >> temp_type;
+			type = (short)temp_type;
+		}
+
+		it=extraprop.data.find(GROLE_STATUS_EXTRAPROP_MNFACTION_INFO);
+		if(it != extraprop.data.end())
+		{
+			Marshal::OctetsStream(it->second) >> ufid;
+		}
+	}
+	catch(Marshal::Exception)  
+	{
+		return ;
+	}
+}
+
+void IncMNFactionVersion(int64_t ufid,StorageEnv::Storage* pmnfaction,StorageEnv::Transaction& txn)
+{
+	Marshal::OctetsStream key, value; 
+	key << ufid;
+	if(pmnfaction->find(key, value, txn))
+	{
+		MNFactionInfo mnfinfo;
+		value >> mnfinfo;
+		++mnfinfo.version;
+		pmnfaction->insert(key,Marshal::OctetsStream()<<mnfinfo,txn);
+	}
+}
+
 static PShopFunc::PSHOP_OP limits_normal[] = {};
 static PShopFunc::PSHOP_OP limits_expired[] = { PShopFunc::PSHOP_OP_TRADE, PShopFunc::PSHOP_OP_SAVE_MONEY, PShopFunc::PSHOP_OP_SET_TYPE};
 std::set<PShopFunc::PSHOP_OP> PShopFunc::_limits_normal(limits_normal, limits_normal+ sizeof(limits_normal)/sizeof(PShopFunc::PSHOP_OP));
 std::set<PShopFunc::PSHOP_OP> PShopFunc::_limits_expired(limits_expired, limits_expired+ sizeof(limits_expired)/sizeof(PShopFunc::PSHOP_OP));
+
+int CashVip::cash_vip_score[CASH_VIP_MAX_LEVEL] = {0};
+int CashVip::cash_vip_reduce_score[CASH_VIP_MAX_LEVEL+1] = {0};
 
 };

@@ -21,7 +21,7 @@ class FactionListOnline : public GNET::Protocol
 		// TODO
 		FactionListOnline_Re re;
 		re.localsid = localsid;
-		Factiondb::GetInstance()->ListOnlineFaction(re.fid_list);
+		Factiondb::GetInstance()->ListOnlineFaction(re.fid_list, re.fid_master, re.proclaim);
 		manager->Send( sid,re );
 	}
 };

@@ -1,0 +1,82 @@
+#ifndef __GNET_GUNIQUEINFO_RPCDATA
+#define __GNET_GUNIQUEINFO_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GUniqueInfo : public GNET::Rpc::Data
+	{
+	public:
+		int64_t unifid;
+		int reserved1;
+		int reserved2;
+		int reserved3;
+		int reserved4;
+
+	public:
+		GUniqueInfo (int64_t l_unifid = 0,int l_reserved1 = 0,int l_reserved2 = 0
+			,int l_reserved3 = 0,int l_reserved4 = 0)
+			: unifid(l_unifid),reserved1(l_reserved1),reserved2(l_reserved2)
+			,reserved3(l_reserved3),reserved4(l_reserved4)
+		{
+		}
+
+		GUniqueInfo(const GUniqueInfo &rhs)
+			: unifid(rhs.unifid),reserved1(rhs.reserved1),reserved2(rhs.reserved2),
+			reserved3(rhs.reserved3),reserved4(rhs.reserved4) { }
+
+		Rpc::Data *Clone() const { return new GUniqueInfo(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GUniqueInfo *r = dynamic_cast<const GUniqueInfo *>(&rhs);
+			if (r && r != this)
+			{
+				unifid = r->unifid;
+				reserved1 = r->reserved1;
+				reserved2 = r->reserved2;
+				reserved3 = r->reserved3;
+				reserved4 = r->reserved4;
+			}
+			return *this;
+		}
+
+		GUniqueInfo& operator = (const GUniqueInfo &rhs)
+		{
+			const GUniqueInfo *r = &rhs;
+			if (r && r != this)
+			{
+				unifid = r->unifid;
+				reserved1 = r->reserved1;
+				reserved2 = r->reserved2;
+				reserved3 = r->reserved3;
+				reserved4 = r->reserved4;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << unifid;
+			os << reserved1;
+			os << reserved2;
+			os << reserved3;
+			os << reserved4;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> unifid;
+			os >> reserved1;
+			os >> reserved2;
+			os >> reserved3;
+			os >> reserved4;
+			return os;
+		}
+
+	};
+};
+#endif

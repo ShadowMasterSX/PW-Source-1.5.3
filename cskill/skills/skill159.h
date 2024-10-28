@@ -19,9 +19,9 @@ namespace GNET
         Skill159Stub ():SkillStub (159)
         {
             cls = 255;
-            name = L"�÷쾫ͨ";
-            nativename = "�÷쾫ͨ";
-            icon = "�÷쾫ͨ.dds";
+            name = L"裁缝精通";
+            nativename = "裁缝精通";
+            icon = "裁缝精通.dds";
             max_level = 10;
             type = 9;
             apcost = 0;

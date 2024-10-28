@@ -19,8 +19,8 @@ namespace GNET
         Skill210Stub ():SkillStub (210)
         {
             cls = 255;
-            name = L"ף��";
-            nativename = "ף��";
+            name = L"祝福";
+            nativename = "祝福";
             icon = "";
             max_level = 1;
             type = 6;
@@ -41,7 +41,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "�׽.sgc";
+            effect = "易筋经.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

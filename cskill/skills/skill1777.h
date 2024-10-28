@@ -132,9 +132,9 @@ namespace GNET
       Skill1777Stub ():SkillStub (1777)
         {
             cls = 127;
-            name = L"帮派_自晕";
-            nativename = "帮派_自晕";
-            icon = "宠物强体.dds";
+            name = L"甯淳_鑷檿";
+            nativename = "甯淳_鑷檿";
+            icon = "瀹犵墿寮轰綋.dds";
             max_level = 10;
             type = 2;
             apcost = 0;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "兽王鼓舞.sgc";
+            effect = "鍏界帇榧撹垶.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

@@ -132,8 +132,8 @@ namespace GNET
       Skill2720Stub ():SkillStub (2720)
         {
             cls = 127;
-            name = L"双子站立";
-            nativename = "双子站立";
+            name = L"鍙屽瓙绔欑珛";
+            nativename = "鍙屽瓙绔欑珛";
             icon = "";
             max_level = 10;
             type = 2;

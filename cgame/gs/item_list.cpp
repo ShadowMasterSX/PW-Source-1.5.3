@@ -255,9 +255,15 @@ item_list::EmbedItem(size_t source, size_t target)
 	{
 		case DT_WEAPON_ESSENCE:
 		if(st_ess->level > ((WEAPON_ESSENCE*)pess)->level) return false;
+        if (!IsStoneFit(DT_WEAPON_ESSENCE, st_ess->combined_switch)) return false;
 		break;
 		case DT_ARMOR_ESSENCE:
 		if(st_ess->level > ((ARMOR_ESSENCE*)pess)->level) return false;
+        if (!IsStoneFit(DT_ARMOR_ESSENCE, st_ess->combined_switch)) return false;
+		break;
+        case DT_DECORATION_ESSENCE:
+        if (st_ess->level > ((DECORATION_ESSENCE*)pess)->level) return false;
+        if (!IsStoneFit(DT_DECORATION_ESSENCE, st_ess->combined_switch)) return false;
 		break;
 		default:
 		return false;

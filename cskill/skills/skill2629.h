@@ -58,9 +58,9 @@ namespace GNET
       Skill2629Stub ():SkillStub (2629)
         {
             cls = 11;
-            name = L"ÉñÁ­·¥¹ğ";
-            nativename = "ÉñÁ­·¥¹ğ";
-            icon = "ÉñÁ­·¥¹ğ.dds";
+            name = L"ç¥é•°ä¼æ¡‚";
+            nativename = "ç¥é•°ä¼æ¡‚";
+            icon = "ç¥é•°ä¼æ¡‚.dds";
             max_level = 1;
             type = 2;
             apcost = 50;
@@ -87,7 +87,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (44879);
             }
-            effect = "ÔÂÏÉ_ÉñÁ­·¥¹ğ_»÷ÖĞ.sgc";
+            effect = "æœˆä»™_ç¥é•°ä¼æ¡‚_å‡»ä¸­.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

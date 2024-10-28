@@ -211,12 +211,12 @@ gplayer_battleground::TurretOutOfControl()
 }
 
 void 
-gplayer_battleground::PlayerEnterServer()
+gplayer_battleground::PlayerEnterServer(int source_tag)
 {
 	//提前设置FACTION，因为playerenterserver函数会用到
 	SetBattleFaction();
 
-	gplayer_imp::PlayerEnterServer();
+	gplayer_imp::PlayerEnterServer(source_tag);
 	gplayer * pPlayer = GetParent();
 
 	battleground_ctrl * pCtrl = (battleground_ctrl*)_plane->w_ctrl;
@@ -304,9 +304,9 @@ gplayer_battleground::PlayerLeaveServer()
 }
 
 int
-gplayer_battleground::Resurrect(const A3DVECTOR & pos,bool nomove,float exp_reduce,int target_tag,float hp_factor, float mp_factor, int param)
+gplayer_battleground::Resurrect(const A3DVECTOR & pos,bool nomove,float exp_reduce,int target_tag,float hp_factor, float mp_factor, int param, float ap_factor, int extra_invincible_time)
 {
-	gplayer_imp::Resurrect(pos,nomove,exp_reduce, target_tag,hp_factor,mp_factor,param);
+	gplayer_imp::Resurrect(pos,nomove,exp_reduce, target_tag,hp_factor,mp_factor,param,ap_factor,extra_invincible_time);
 
 	//设置30秒封印状态
 	_skill.SetSealed(object_interface(this),30);

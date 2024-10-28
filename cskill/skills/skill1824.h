@@ -135,9 +135,9 @@ namespace GNET
       Skill1824Stub ():SkillStub (1824)
         {
             cls = 2;
-            name = L"�ٻ�";
-            nativename = "�ٻ�";
-            icon = "ڤͫ.dds";
+            name = L"召唤";
+            nativename = "召唤";
+            icon = "冥瞳.dds";
             max_level = 1;
             type = 2;
             apcost = 0;

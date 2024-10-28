@@ -132,9 +132,9 @@ namespace GNET
       Skill228Stub ():SkillStub (228)
         {
             cls = 1;
-            name = L"真元爆发";
-            nativename = "真元爆发";
-            icon = "爆气1.dds";
+            name = L"鐪熷厓鐖嗗彂";
+            nativename = "鐪熷厓鐖嗗彂";
+            icon = "鐖嗘皵1.dds";
             max_level = 1;
             type = 2;
             apcost = 100;

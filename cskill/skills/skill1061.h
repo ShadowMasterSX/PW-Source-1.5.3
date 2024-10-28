@@ -132,9 +132,9 @@ namespace GNET
       Skill1061Stub ():SkillStub (1061)
         {
             cls = 127;
-            name = L"�ط��";
-            nativename = "�ط��";
-            icon = "�ط��.dds";
+            name = L"回风诀";
+            nativename = "回风诀";
+            icon = "回风诀.dds";
             max_level = 20;
             type = 2;
             apcost = 0;
@@ -153,7 +153,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 1;
-            effect = "�ط��.sgc";
+            effect = "回风诀.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

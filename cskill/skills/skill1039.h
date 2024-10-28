@@ -59,9 +59,9 @@ namespace GNET
       Skill1039Stub ():SkillStub (1039)
         {
             cls = 258;
-            name = L"绝对领域";
-            nativename = "绝对领域";
-            icon = "绝对领域.dds";
+            name = L"缁濆棰嗗煙";
+            nativename = "缁濆棰嗗煙";
+            icon = "缁濆棰嗗煙.dds";
             max_level = 10;
             type = 2;
             apcost = 999000;
@@ -80,7 +80,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 1;
-            effect = "绝对领域.sgc";
+            effect = "缁濆棰嗗煙.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

@@ -137,9 +137,9 @@ namespace GNET
       Skill1351Stub ():SkillStub (1351)
         {
             cls = 8;
-            name = L"破风剑气";
-            nativename = "破风剑气";
-            icon = "破风剑气.dds";
+            name = L"鐮撮鍓戞皵";
+            nativename = "鐮撮鍓戞皵";
+            icon = "鐮撮鍓戞皵.dds";
             max_level = 10;
             type = 1;
             apcost = 0;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (1);
             }
-            effect = "剑灵_破风剑气.sgc";
+            effect = "鍓戠伒_鐮撮鍓戞皵.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

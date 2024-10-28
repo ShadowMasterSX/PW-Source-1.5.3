@@ -136,9 +136,9 @@ namespace GNET
       Skill2547Stub ():SkillStub (2547)
         {
             cls = 10;
-            name = L"无式";
-            nativename = "无式";
-            icon = "无式.dds";
+            name = L"鏃犲紡";
+            nativename = "鏃犲紡";
+            icon = "鏃犲紡.dds";
             max_level = 10;
             type = 1;
             apcost = 0;
@@ -162,7 +162,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (44878);
             }
-            effect = "夜影_无式_击中.sgc";
+            effect = "澶滃奖_鏃犲紡_鍑讳腑.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

@@ -136,9 +136,9 @@ namespace GNET
       Skill2761Stub ():SkillStub (2761)
         {
             cls = 10;
-            name = L"�񡤾Ÿ�";
-            nativename = "�񡤾Ÿ�";
-            icon = "ħ�Ÿ�.dds";
+            name = L"狂·九歌";
+            nativename = "狂·九歌";
+            icon = "魔九歌.dds";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (44878);
             }
-            effect = "ҹӰ_�Ÿ�_����.sgc";
+            effect = "夜影_九歌_击中.sgc";
             range.type = 4;
             doenchant = true;
             dobless = false;

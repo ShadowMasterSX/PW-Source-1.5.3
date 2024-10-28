@@ -59,9 +59,9 @@ namespace GNET
       Skill1030Stub ():SkillStub (1030)
         {
             cls = 258;
-            name = L"水火护甲";
-            nativename = "水火护甲";
-            icon = "水火护甲.dds";
+            name = L"姘寸伀鎶ょ敳";
+            nativename = "姘寸伀鎶ょ敳";
+            icon = "姘寸伀鎶ょ敳.dds";
             max_level = 10;
             type = 2;
             apcost = 310010;
@@ -81,7 +81,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 1;
-            effect = "水火护甲.sgc";
+            effect = "姘寸伀鎶ょ敳.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

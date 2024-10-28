@@ -59,9 +59,9 @@ namespace GNET
       Skill1033Stub ():SkillStub (1033)
         {
             cls = 258;
-            name = L"法师之星";
-            nativename = "法师之星";
-            icon = "法师之星.dds";
+            name = L"娉曞笀涔嬫槦";
+            nativename = "娉曞笀涔嬫槦";
+            icon = "娉曞笀涔嬫槦.dds";
             max_level = 10;
             type = 2;
             apcost = 480000;
@@ -81,7 +81,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 1;
-            effect = "法师之星.sgc";
+            effect = "娉曞笀涔嬫槦.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

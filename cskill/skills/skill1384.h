@@ -134,9 +134,9 @@ namespace GNET
       Skill1384Stub ():SkillStub (1384)
         {
             cls = 9;
-            name = L"ÂúµØÖ¦";
-            nativename = "ÂúµØÖ¦";
-            icon = "ÂúµØÖ¦.dds";
+            name = L"æ»¡åœ°æ";
+            nativename = "æ»¡åœ°æ";
+            icon = "æ»¡åœ°æ.dds";
             max_level = 10;
             type = 3;
             apcost = 200;

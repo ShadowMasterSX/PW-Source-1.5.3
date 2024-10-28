@@ -137,9 +137,9 @@ namespace GNET
       Skill3Stub ():SkillStub (3)
         {
             cls = 0;
-            name = L"凌风";
-            nativename = "凌风";
-            icon = "凌风.dds";
+            name = L"鍑岄";
+            nativename = "鍑岄";
+            icon = "鍑岄.dds";
             max_level = 10;
             type = 1;
             apcost = 0;
@@ -178,7 +178,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "凌风.sgc";
+            effect = "鍑岄.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

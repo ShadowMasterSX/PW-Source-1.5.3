@@ -134,9 +134,9 @@ namespace GNET
       Skill1724Stub ():SkillStub (1724)
         {
             cls = 9;
-            name = L"自然障壁";
-            nativename = "自然障壁";
-            icon = "自然障壁.dds";
+            name = L"鑷劧闅滃";
+            nativename = "鑷劧闅滃";
+            icon = "鑷劧闅滃.dds";
             max_level = 1;
             type = 2;
             apcost = 30;

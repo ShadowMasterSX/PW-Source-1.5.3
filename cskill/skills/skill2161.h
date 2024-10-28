@@ -57,9 +57,9 @@ namespace GNET
       Skill2161Stub ():SkillStub (2161)
         {
             cls = 127;
-            name = L"魔影无形";
-            nativename = "魔影无形";
-            icon = "天师护法.dds";
+            name = L"榄斿奖鏃犲舰";
+            nativename = "榄斿奖鏃犲舰";
+            icon = "澶╁笀鎶ゆ硶.dds";
             max_level = 10;
             type = 4;
             apcost = 0;
@@ -80,7 +80,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "巫师_冥王乐土.sgc";
+            effect = "宸笀_鍐ョ帇涔愬湡.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

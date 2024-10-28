@@ -96,8 +96,8 @@ namespace GNET
       Skill1926Stub ():SkillStub (1926)
         {
             cls = 127;
-            name = L"无定B路线陷阱的逆袭";
-            nativename = "无定B路线陷阱的逆袭";
+            name = L"鏃犲畾B璺嚎闄烽槺鐨勯�嗚";
+            nativename = "鏃犲畾B璺嚎闄烽槺鐨勯�嗚";
             icon = "";
             max_level = 10;
             type = 3;
@@ -119,7 +119,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "妖兽_兽灵之力.sgc";
+            effect = "濡栧吔_鍏界伒涔嬪姏.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

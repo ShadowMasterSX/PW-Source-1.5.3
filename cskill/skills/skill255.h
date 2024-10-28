@@ -19,9 +19,9 @@ namespace GNET
         Skill255Stub ():SkillStub (255)
         {
             cls = 6;
-            name = L"百步穿杨";
-            nativename = "百步穿杨";
-            icon = "百步穿杨.dds";
+            name = L"鐧炬绌挎潹";
+            nativename = "鐧炬绌挎潹";
+            icon = "鐧炬绌挎潹.dds";
             max_level = 10;
             type = 5;
             apcost = 0;

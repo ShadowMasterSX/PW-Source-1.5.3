@@ -134,9 +134,9 @@ namespace GNET
       Skill612Stub ():SkillStub (612)
         {
             cls = 6;
-            name = L"Õæ¡¤ÁÒÑæÖ®Ê¸";
-            nativename = "Õæ¡¤ÁÒÑæÖ®Ê¸";
-            icon = "ÁÒÑæÖ®Ê¸1.dds";
+            name = L"çœŸÂ·çƒˆç„°ä¹‹çŸ¢";
+            nativename = "çœŸÂ·çƒˆç„°ä¹‹çŸ¢";
+            icon = "çƒˆç„°ä¹‹çŸ¢1.dds";
             max_level = 1;
             type = 2;
             apcost = 0;

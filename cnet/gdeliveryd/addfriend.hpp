@@ -6,6 +6,8 @@
 #include "callid.hxx"
 #include "state.hxx"
 #include "mapuser.h"
+#include "genemylist"
+
 namespace GNET
 {
 
@@ -43,6 +45,20 @@ class AddFriend : public GNET::Protocol
 				ret = ERR_FS_NOTINITIALIZED;
 			else if(dstroleid>0)
 			{
+                const GEnemyListVector& enemylist = pinfosrc->enemylistinfo;
+                GEnemyListVector::const_iterator it = enemylist.begin(), it_end = enemylist.end();
+
+                for (; it != it_end; ++it)
+                {
+                    if (it->rid == dstroleid)
+                    {
+                        Log::log(LOG_INFO, "AddFriend, friend in enemylist. srcroleid=%d, dstroleid=%d.",
+                            srcroleid, dstroleid);
+
+                        return;
+                    }
+                }
+
 				GFriendInfoVector* plist = &(pinfosrc->friends);
 				PlayerInfo * pinfodst = UserContainer::GetInstance().FindRoleOnline(dstroleid);
 				if (NULL != pinfodst)

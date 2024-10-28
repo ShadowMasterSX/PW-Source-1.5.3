@@ -11,8 +11,9 @@ namespace GNET
 	class FactionOPSyncInfo;
 	class OperWrapper::wref_t;
 	*/
+	void gfs_update_factionunifidannounce(int fid,unsigned char mask,int64_t unifid);
 	//update faction member's info for faction pvpmask change
-	void gfs_update_factionpvpmask( int fid ,unsigned char mask);
+	void gfs_update_factionpvpmask( int fid ,unsigned char mask,int64_t unifid);
 	//update faction member's info for faction dismiss
 	void gfs_update_factiondismiss( int fid );
 	//send factionoprequest_re to linkserver or deliveryserver

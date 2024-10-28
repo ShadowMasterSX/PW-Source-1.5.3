@@ -74,6 +74,13 @@ int MailBox::HaveNewMail(unsigned char & present_type)
 				else if ((present_type & 0x02) == 0 && mail_container_[i].sender == PLAYERPRESENT_ASK)
 					present_type |= 0x02;
 			}
+			else if ( mail_container_[i].sndr_type == _MST_FRIENDCALLBACK)
+			{
+				if(mail_container_[i].sender == PLAYERREQUITE_CALL)
+					present_type |= 0x04;
+				else if(mail_container_[i].sender ==PLAYERREQUITE_ANSWER)
+					present_type |= 0x08;
+			}
 		}
 	}
 	int now=time(NULL);
@@ -148,7 +155,26 @@ bool MailBox::DeleteMail( unsigned char mail_id )
 		}
 	return false;
 }
-void MailBox::CheckExpireMail( GMailIDVector& maillist )
+bool MailBox::DeleteMail(const IntVector& maillist)
+{
+	if ( !m_blInit_ ) return false;
+	IntVector::const_iterator idit=maillist.begin(),idite=maillist.end();
+	for( ; idit!=idite;++idit )
+	{
+		GMailHeaderVector::iterator it=mail_container_.begin(),ite=mail_container_.end();
+		for ( ;it!=ite;++it )
+		{
+			if ( (*it).id == (*idit) )
+			{
+				mail_container_.erase(it);
+				break;
+			}
+		}
+	}
+	return true;
+}
+
+void MailBox::CheckExpireMail(GMailIDVector& maillist )
 {
 	if ( !m_blInit_ ) return;
 	time_t now=time(NULL);
@@ -201,5 +227,56 @@ bool MailBox::HasBit( unsigned char data,unsigned char pos )
 	if ( pos > 7 ) return false;
 	return data & (1<<pos);
 }
+
+void MailBox::FindMail(IntVector& maillist ,int type,int special_sender, int except_sender)
+{
+	if ( !m_blInit_ ) return;
+    GMailHeaderVector::iterator it=mail_container_.begin(),ite=mail_container_.end();
+    for ( ;it!=ite;++it )
+	{
+		if((*it).sndr_type != type) continue;
+		if(-1 != special_sender && (*it).sender != special_sender) continue;
+		if(-1 != except_sender && (*it).sender == except_sender) continue;
+		maillist.add((*it).id);
+	}
+
+}
+
+bool MailBox::TitlePolicy( const GMailHeader& mail,int arg)
+{
+	switch(mail.sndr_type)
+	{
+		case _MST_FRIENDCALLBACK:
+		{
+			Marshal::OctetsStream os(mail.title);
+			int roleid;
+			os >> roleid;
+			return roleid == arg;
+		}break;
+	}
+	
+	return false;
+}
+
+bool MailBox::CheckSpecialTitle(const IntVector& maillist, int arg)
+{
+	if ( !m_blInit_ ) return false;
+	IntVector::const_iterator idit=maillist.begin(),idite=maillist.end();
+	for( ; idit!=idite;++idit )
+	{
+		GMailHeaderVector::iterator it=mail_container_.begin(),ite=mail_container_.end();
+		for ( ;it!=ite;++it )
+		{
+			if ( (*it).id == (*idit) )
+			{
+				if(TitlePolicy(*it,arg)) 
+					return true;
+			}
+		}
+	}
+	return false;
+}
+
+
 
 }

@@ -125,6 +125,7 @@ void GProviderClient::OnAddSession(Session::ID sid)
 	Thread::Mutex::Scoped l(locker_state);
 	if (conn_state)
 	{
+		Log::log(LOG_ERR,"gamed(%d):: OnAddSession %d fail",GetGameServerID(),sid);
 		Close(sid);
 		return;
 	}

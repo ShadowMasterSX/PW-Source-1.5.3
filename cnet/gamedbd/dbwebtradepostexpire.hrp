@@ -23,7 +23,7 @@ class DBWebTradePostExpire : public Rpc
 		DBWebTradePostExpireArg *arg = (DBWebTradePostExpireArg *)argument;
 		DBWebTradePostExpireRes *res = (DBWebTradePostExpireRes *)result;
 
-		Marshal::OctetsStream key, title;
+		Marshal::OctetsStream key, title, value_detail;
 		try
 		{
 			StorageEnv::Storage * pwebtrade = StorageEnv::GetStorage("webtrade");
@@ -37,34 +37,39 @@ class DBWebTradePostExpire : public Rpc
 
 				GWebTradeDetail detail;
 				key << arg->sn;
-				Marshal::OctetsStream(pwebtrade->find(key,txn)) >> detail;
-				if(detail.info.seller_roleid != arg->roleid)
-					throw DbException(DB_VERIFY_BAD);
-				Log::formatlog("webtradepostexpire","role=%d:sn=%lld:type=%d:itemid=%d:item_count=%d:money=%d:role=%d:petid=%d:pet_count=%d", 
-						arg->roleid,arg->sn,detail.info.posttype,detail.info.item_id,detail.info.item_count,detail.info.money,arg->roleid,0,0);
-				//存盘	
-				title << detail.info.sn << detail.info.posttype << detail.info.money << detail.info.item_id << detail.info.item_count << detail.info.commodity_id;
-				res->inform_seller.receiver = detail.info.seller_roleid;
-				res->inform_seller.sndr_type = _MST_WEBTRADE;
-				res->inform_seller.sender = WEBTRADE_POST_EXPIRE;
-				res->inform_seller.title = title;
-				if(detail.info.posttype == 1)
-					MailSender::Send(pmailbox,res->inform_seller, detail.info.money, txn);
-				else if(detail.info.posttype == 2)
-					MailSender::Send(pmailbox,res->inform_seller, detail.item, 0, txn); 
-				else if(detail.info.posttype == 4)
-				{
-					MailSender::Send(pmailbox,res->inform_seller, 0, txn);
-					Marshal::OctetsStream krole;
-					krole << arg->roleid;
-					GRoleBase base;
-					Marshal::OctetsStream(pbase->find(krole,txn)) >> base;
-					base.status = _ROLE_STATUS_NORMAL;
-					pbase->insert(krole, Marshal::OctetsStream()<<base, txn);
-				}
-				
-				pwebtrade->del(key, txn);
-				res->retcode = ERR_SUCCESS;
+
+				if(pwebtrade->find(key,value_detail,txn)){
+					value_detail >> detail;
+					if(detail.info.seller_roleid != arg->roleid)
+						throw DbException(DB_VERIFY_BAD);
+					Log::formatlog("webtradepostexpire","role=%d:sn=%lld:type=%d:itemid=%d:item_count=%d:money=%d:role=%d:petid=%d:pet_count=%d", 
+							arg->roleid,arg->sn,detail.info.posttype,detail.info.item_id,detail.info.item_count,detail.info.money,arg->roleid,0,0);
+					//存盘	
+					title << detail.info.sn << detail.info.posttype << detail.info.money << detail.info.item_id << detail.info.item_count << detail.info.commodity_id;
+					res->inform_seller.receiver = detail.info.seller_roleid;
+					res->inform_seller.sndr_type = _MST_WEBTRADE;
+					res->inform_seller.sender = WEBTRADE_POST_EXPIRE;
+					res->inform_seller.title = title;
+					if(detail.info.posttype == 1)
+						MailSender::Send(pmailbox,res->inform_seller, detail.info.money, txn);
+					else if(detail.info.posttype == 2)
+						MailSender::Send(pmailbox,res->inform_seller, detail.item, 0, txn); 
+					else if(detail.info.posttype == 4)
+					{
+						MailSender::Send(pmailbox,res->inform_seller, 0, txn);
+						Marshal::OctetsStream krole;
+						krole << arg->roleid;
+						GRoleBase base;
+						Marshal::OctetsStream(pbase->find(krole,txn)) >> base;
+						base.status = _ROLE_STATUS_NORMAL;
+						pbase->insert(krole, Marshal::OctetsStream()<<base, txn);
+					}
+					
+					pwebtrade->del(key, txn);
+				}else
+					Log::log( LOG_WARNING, "DBWebTradePostExpire half-completed, role=%d sn=%lld \n",arg->roleid, arg->sn);
+
+				res->retcode = ERR_SUCCESS; // 收到此rpc证明delivery缓存存在，不论sn存在与否返回成功
 			}
 			catch ( DbException e ) { throw; }
 			catch ( ... )

@@ -57,8 +57,8 @@ namespace GNET
       Skill1087Stub ():SkillStub (1087)
         {
             cls = 127;
-            name = L"真视药水";
-            nativename = "真视药水";
+            name = L"鐪熻鑽按";
+            nativename = "鐪熻鑽按";
             icon = "";
             max_level = 5;
             type = 4;
@@ -79,7 +79,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "蓄气.sgc";
+            effect = "钃勬皵.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

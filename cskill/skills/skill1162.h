@@ -132,8 +132,8 @@ namespace GNET
       Skill1162Stub ():SkillStub (1162)
         {
             cls = 127;
-            name = L"神威狱小怪群无敌";
-            nativename = "神威狱小怪群无敌";
+            name = L"绁炲▉鐙卞皬鎬兢鏃犳晫";
+            nativename = "绁炲▉鐙卞皬鎬兢鏃犳晫";
             icon = "";
             max_level = 10;
             type = 3;
@@ -154,7 +154,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "乾坤借法.sgc";
+            effect = "涔惧潳鍊熸硶.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

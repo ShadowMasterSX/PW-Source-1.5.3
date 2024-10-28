@@ -19,9 +19,9 @@ namespace GNET
         Skill1150Stub ():SkillStub (1150)
         {
             cls = 2;
-            name = L"封印（光环专用）";
-            nativename = "封印（光环专用）";
-            icon = "霸王龙飞.dds";
+            name = L"灏佸嵃锛堝厜鐜笓鐢級";
+            nativename = "灏佸嵃锛堝厜鐜笓鐢級";
+            icon = "闇哥帇榫欓.dds";
             max_level = MAX_LEVEL;
             type = 1;
             apcost = 0;

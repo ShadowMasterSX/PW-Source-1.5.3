@@ -256,9 +256,9 @@ namespace GNET
       Skill2567Stub ():SkillStub (2567)
         {
             cls = 10;
-            name = L"恨天";
-            nativename = "恨天";
-            icon = "恨天.dds";
+            name = L"鎭ㄥぉ";
+            nativename = "鎭ㄥぉ";
+            icon = "鎭ㄥぉ.dds";
             max_level = 10;
             type = 1;
             apcost = 30;
@@ -282,7 +282,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (44878);
             }
-            effect = "夜影_恨天_击中.sgc";
+            effect = "澶滃奖_鎭ㄥぉ_鍑讳腑.sgc";
             range.type = 0;
             doenchant = true;
             dobless = true;

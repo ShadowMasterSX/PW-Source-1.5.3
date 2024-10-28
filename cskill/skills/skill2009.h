@@ -132,8 +132,8 @@ namespace GNET
       Skill2009Stub ():SkillStub (2009)
         {
             cls = 127;
-            name = L"Ò»ÃëÖÓ±äMT";
-            nativename = "Ò»ÃëÖÓ±äMT";
+            name = L"ä¸€ç§’é’Ÿå˜MT";
+            nativename = "ä¸€ç§’é’Ÿå˜MT";
             icon = "";
             max_level = 10;
             type = 3;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "ÑıÊŞ_»¢Ğ¥.sgc";
+            effect = "å¦–å…½_è™å•¸.sgc";
             range.type = 0;
             doenchant = true;
             dobless = true;

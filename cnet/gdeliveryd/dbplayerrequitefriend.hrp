@@ -1,0 +1,58 @@
+
+#ifndef __GNET_DBPLAYERREQUITEFRIEND_HPP
+#define __GNET_DBPLAYERREQUITEFRIEND_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbplayerrequitefriendarg"
+#include "dbplayerrequitefriendres"
+#include "localmacro.h"
+#include "mapuser.h"
+#include "postoffice.h"
+#include "friendextinfomanager.h"
+
+namespace GNET
+{
+
+class DBPlayerRequiteFriend : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbplayerrequitefriend"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBPlayerRequiteFriendArg *arg = (DBPlayerRequiteFriendArg *)argument;
+		// DBPlayerRequiteFriendRes *res = (DBPlayerRequiteFriendRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		DBPlayerRequiteFriendArg *arg = (DBPlayerRequiteFriendArg *)argument;
+		DBPlayerRequiteFriendRes *res = (DBPlayerRequiteFriendRes *)result;
+		if(res->retcode == ERR_SUCCESS)
+		{
+			if(arg->opttype == PLAYERREQUITE_ANSWER)
+			{
+				Thread::RWLock::WRScoped l(UserContainer::GetInstance().GetLocker());
+				PlayerInfo * pinfo = UserContainer::GetInstance().FindRoleOnline(arg->roleid);
+				if (NULL == pinfo || pinfo->roleid!=arg->roleid)
+					return;
+				FriendextinfoManager::GetInstance()->PostSendRequite(pinfo,arg->friendid,arg->mail_list);
+				PostOffice::GetInstance().AddNewMail(arg->friendid, res->sysheader);		
+			}
+		}
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

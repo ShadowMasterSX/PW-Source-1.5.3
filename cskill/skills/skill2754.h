@@ -134,9 +134,9 @@ namespace GNET
       Skill2754Stub ():SkillStub (2754)
         {
             cls = 10;
-            name = L"Õæ¡¤ÔÂÒû";
-            nativename = "Õæ¡¤ÔÂÒû";
-            icon = "ÏÉÔÂÒû.dds";
+            name = L"çœŸÂ·æœˆé¥®";
+            nativename = "çœŸÂ·æœˆé¥®";
+            icon = "ä»™æœˆé¥®.dds";
             max_level = 1;
             type = 2;
             apcost = 50;

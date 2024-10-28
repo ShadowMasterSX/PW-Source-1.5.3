@@ -1,0 +1,32 @@
+	public:
+		MNDomainInfoVector domaininfo_list;
+		enum { PROTOCOL_TYPE = PROTOCOL_MNDOMAININFOGSNOTICE };
+	public:
+		MNDomainInfoGSNotice() { type = PROTOCOL_MNDOMAININFOGSNOTICE; }
+		MNDomainInfoGSNotice(void*) : Protocol(PROTOCOL_MNDOMAININFOGSNOTICE) { }
+		MNDomainInfoGSNotice (const MNDomainInfoVector& l_domaininfo_list)
+			 : domaininfo_list(l_domaininfo_list)
+		{
+			type = PROTOCOL_MNDOMAININFOGSNOTICE;
+		}
+
+		MNDomainInfoGSNotice(const MNDomainInfoGSNotice &rhs)
+			: Protocol(rhs),domaininfo_list(rhs.domaininfo_list) { }
+
+		GNET::Protocol *Clone() const { return new MNDomainInfoGSNotice(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << domaininfo_list;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> domaininfo_list;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 4096; }

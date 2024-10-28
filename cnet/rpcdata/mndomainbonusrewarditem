@@ -1,0 +1,78 @@
+#ifndef __GNET_MNDOMAINBONUSREWARDITEM_RPCDATA
+#define __GNET_MNDOMAINBONUSREWARDITEM_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class MNDomainBonusRewardItem : public GNET::Rpc::Data
+	{
+	public:
+		int item_id;
+		unsigned int item_num;
+		int proc_type;
+		int max_count;
+
+	public:
+		MNDomainBonusRewardItem (int l_item_id = 0,unsigned int l_item_num = 0,int l_proc_type = 0
+			,int l_max_count = 0)
+			: item_id(l_item_id),item_num(l_item_num),proc_type(l_proc_type)
+			,max_count(l_max_count)
+		{
+		}
+
+		MNDomainBonusRewardItem(const MNDomainBonusRewardItem &rhs)
+			: item_id(rhs.item_id),item_num(rhs.item_num),proc_type(rhs.proc_type),
+			max_count(rhs.max_count) { }
+
+		Rpc::Data *Clone() const { return new MNDomainBonusRewardItem(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const MNDomainBonusRewardItem *r = dynamic_cast<const MNDomainBonusRewardItem *>(&rhs);
+			if (r && r != this)
+			{
+				item_id = r->item_id;
+				item_num = r->item_num;
+				proc_type = r->proc_type;
+				max_count = r->max_count;
+			}
+			return *this;
+		}
+
+		MNDomainBonusRewardItem& operator = (const MNDomainBonusRewardItem &rhs)
+		{
+			const MNDomainBonusRewardItem *r = &rhs;
+			if (r && r != this)
+			{
+				item_id = r->item_id;
+				item_num = r->item_num;
+				proc_type = r->proc_type;
+				max_count = r->max_count;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << item_id;
+			os << item_num;
+			os << proc_type;
+			os << max_count;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> item_id;
+			os >> item_num;
+			os >> proc_type;
+			os >> max_count;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<MNDomainBonusRewardItem>	MNDomainBonusRewardItemVector;
+};
+#endif

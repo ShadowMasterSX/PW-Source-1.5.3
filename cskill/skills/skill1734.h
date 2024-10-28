@@ -58,9 +58,9 @@ namespace GNET
       Skill1734Stub ():SkillStub (1734)
         {
             cls = 8;
-            name = L"¹éÈĞ¾÷";
-            nativename = "¹éÈĞ¾÷";
-            icon = "¹éÈĞ¾÷.dds";
+            name = L"å½’åˆƒè¯€";
+            nativename = "å½’åˆƒè¯€";
+            icon = "å½’åˆƒè¯€.dds";
             max_level = 1;
             type = 2;
             apcost = 20;
@@ -84,7 +84,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (1);
             }
-            effect = "½£Áé_¹éÈĞ¾÷.sgc";
+            effect = "å‰‘çµ_å½’åˆƒè¯€.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

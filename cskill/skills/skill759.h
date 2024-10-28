@@ -132,9 +132,9 @@ namespace GNET
       Skill759Stub ():SkillStub (759)
         {
             cls = 127;
-            name = L"ӲƤ";
-            nativename = "ӲƤ";
-            icon = "����ӲƤ.dds";
+            name = L"硬皮";
+            nativename = "硬皮";
+            icon = "宠物硬皮.dds";
             max_level = 5;
             type = 10;
             apcost = 0;
@@ -154,7 +154,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "��׷�.sgc";
+            effect = "坚甲符.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

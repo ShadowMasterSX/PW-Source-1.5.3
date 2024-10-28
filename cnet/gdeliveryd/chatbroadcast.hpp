@@ -8,6 +8,7 @@
 #include "worldchat.hpp"
 #include "battlechallenge.hpp"
 #include "forwardchat.hpp"
+#include "crosssystem.h"
 
 namespace GNET
 {
@@ -19,6 +20,7 @@ class ChatBroadCast : public GNET::Protocol
 	void Process(Manager *manager, Manager::Session::ID sid)
 	{
 		LOG_TRACE("ChatBroadCast: challel=%d roleid=%d emotion=%d", channel, srcroleid, emotion);
+		
 		GDeliveryServer* dsm = GDeliveryServer::GetInstance();
 		WorldChat chat;
 		chat.channel = channel;
@@ -34,6 +36,12 @@ class ChatBroadCast : public GNET::Protocol
 			{
 				ForwardChat data(dsm->zoneid,pinfo->gameid,pinfo->userid,srcroleid,pinfo->name,msg);
 				dsm->Send(dsm->iweb_sid, data);
+			}
+
+			if(channel == GN_CHAT_CHANNEL_GLOBAL)
+			{
+				CrossChatClient::GetInstance()->OnSend(srcroleid,channel,emotion,pinfo->name,msg,data);
+				chat.roleid = GDeliveryServer::GetInstance()->GetZoneid();
 			}
 		}
 		chat.emotion = emotion;

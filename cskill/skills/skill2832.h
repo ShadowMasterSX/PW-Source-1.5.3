@@ -19,9 +19,9 @@ namespace GNET
         Skill2832Stub ():SkillStub (2832)
         {
             cls = 11;
-            name = L"�񡤽�ͨ";
-            nativename = "�񡤽�ͨ";
-            icon = "��ͨ2.dds";
+            name = L"狂·金精通";
+            nativename = "狂·金精通";
+            icon = "金精通2.dds";
             max_level = 1;
             type = 5;
             apcost = 0;

@@ -134,8 +134,8 @@ namespace GNET
       Skill846Stub ():SkillStub (846)
         {
             cls = 127;
-            name = L"土系群体魔伤";
-            nativename = "土系群体魔伤";
+            name = L"鍦熺郴缇や綋榄斾激";
+            nativename = "鍦熺郴缇や綋榄斾激";
             icon = "";
             max_level = 10;
             type = 3;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "泰山压顶.sgc";
+            effect = "娉板北鍘嬮《.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

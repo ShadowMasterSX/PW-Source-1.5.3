@@ -133,8 +133,8 @@ namespace GNET
       Skill2693Stub ():SkillStub (2693)
         {
             cls = 127;
-            name = L"地蛇自爆";
-            nativename = "地蛇自爆";
+            name = L"鍦拌泧鑷垎";
+            nativename = "鍦拌泧鑷垎";
             icon = "";
             max_level = 10;
             type = 3;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "怪物自爆.sgc";
+            effect = "鎬墿鑷垎.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

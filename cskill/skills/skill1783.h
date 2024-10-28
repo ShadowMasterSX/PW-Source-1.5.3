@@ -132,8 +132,8 @@ namespace GNET
       Skill1783Stub ():SkillStub (1783)
         {
             cls = 127;
-            name = L"∞Ô≈…_ÀÆ√‚";
-            nativename = "∞Ô≈…_ÀÆ√‚";
+            name = L"Â∏ÆÊ¥æ_Ê∞¥ÂÖç";
+            nativename = "Â∏ÆÊ¥æ_Ê∞¥ÂÖç";
             icon = "";
             max_level = 10;
             type = 3;

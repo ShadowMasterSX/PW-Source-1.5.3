@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBPLAYERCHANGEGENDER_HPP
+#define __GNET_DBPLAYERCHANGEGENDER_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbplayerchangegenderarg"
+#include "dbplayerchangegenderres"
+
+namespace GNET
+{
+
+class DBPlayerChangeGender : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbplayerchangegender"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBPlayerChangeGenderArg *arg = (DBPlayerChangeGenderArg *)argument;
+		// DBPlayerChangeGenderRes *res = (DBPlayerChangeGenderRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBPlayerChangeGenderArg *arg = (DBPlayerChangeGenderArg *)argument;
+		// DBPlayerChangeGenderRes *res = (DBPlayerChangeGenderRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

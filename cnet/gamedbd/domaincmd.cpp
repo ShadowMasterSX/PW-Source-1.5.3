@@ -169,7 +169,7 @@ void DomainCmd::Process(Manager *manager, Manager::Session::ID sid)
 	if(!Validate(cmd, stamp))
 		return;
 
-	if(cmd.size() > 1 && (*(char*)cmd.begin()) == ':')
+	/*if(cmd.size() > 1 && (*(char*)cmd.begin()) == ':')
 	{
 		//gamedbd×Ô¶¨ÒåÃüÁî
 		char * cmd_begin = (char*)cmd.begin() + 1;
@@ -193,7 +193,7 @@ void DomainCmd::Process(Manager *manager, Manager::Session::ID sid)
 		if(output.size())
 			manager->Send(sid, DomainCmd_Re(output, 0, 0));
 		return;
-	}
+	}*/
 	
 	Octets output;
 	std::string line((char*)cmd.begin(), length);

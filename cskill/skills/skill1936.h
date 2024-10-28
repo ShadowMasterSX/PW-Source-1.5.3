@@ -132,8 +132,8 @@ namespace GNET
       Skill1936Stub ():SkillStub (1936)
         {
             cls = 127;
-            name = L"µ¥Ìå»÷ÍË";
-            nativename = "µ¥Ìå»÷ÍË";
+            name = L"å•ä½“å‡»é€€";
+            nativename = "å•ä½“å‡»é€€";
             icon = "";
             max_level = 10;
             type = 3;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "1°ÔÍõ±©Å­.sgc";
+            effect = "1éœ¸ç‹æš´æ€’.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

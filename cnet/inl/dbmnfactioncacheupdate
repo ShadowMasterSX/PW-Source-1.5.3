@@ -1,0 +1,32 @@
+	public:
+		MNFactionInfoVector factioninfo_list;
+		enum { PROTOCOL_TYPE = PROTOCOL_DBMNFACTIONCACHEUPDATE };
+	public:
+		DBMNFactionCacheUpdate() { type = PROTOCOL_DBMNFACTIONCACHEUPDATE; }
+		DBMNFactionCacheUpdate(void*) : Protocol(PROTOCOL_DBMNFACTIONCACHEUPDATE) { }
+		DBMNFactionCacheUpdate (const MNFactionInfoVector& l_factioninfo_list)
+			 : factioninfo_list(l_factioninfo_list)
+		{
+			type = PROTOCOL_DBMNFACTIONCACHEUPDATE;
+		}
+
+		DBMNFactionCacheUpdate(const DBMNFactionCacheUpdate &rhs)
+			: Protocol(rhs),factioninfo_list(rhs.factioninfo_list) { }
+
+		GNET::Protocol *Clone() const { return new DBMNFactionCacheUpdate(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << factioninfo_list;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> factioninfo_list;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1048576; }

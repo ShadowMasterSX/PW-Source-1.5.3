@@ -133,9 +133,9 @@ namespace GNET
       Skill2142Stub ():SkillStub (2142)
         {
             cls = 127;
-            name = L"五指断岳";
-            nativename = "五指断岳";
-            icon = "破天.dds";
+            name = L"浜旀寚鏂渤";
+            nativename = "浜旀寚鏂渤";
+            icon = "鐮村ぉ.dds";
             max_level = 10;
             type = 1;
             apcost = 0;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "鲲鹏_五指断岳击中.sgc";
+            effect = "椴查箯_浜旀寚鏂渤鍑讳腑.sgc";
             range.type = 3;
             doenchant = true;
             dobless = false;

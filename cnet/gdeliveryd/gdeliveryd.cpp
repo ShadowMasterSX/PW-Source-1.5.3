@@ -46,6 +46,11 @@
 #include "tankbattlemanager.h"
 #include "factionresourcebattleman.h"
 #include "mappasswd.h"
+#include "waitqueue.h"
+#include "crosssystem.h"
+#include "solochallengerank.h"
+#include "cdcmnfbattleman.h"
+#include "cdsmnfbattleman.h"
 
 #include "centraldeliveryserver.hpp"
 #include "centraldeliveryclient.hpp"
@@ -117,6 +122,12 @@ int main(int argc, char *argv[])
 	if(!CheckIPAddress(conf->find(GameTalkClient::GetInstance()->Identification(), "address").c_str()))
 		DisabledSystem::SetDisabled(SYS_GAMETALK);
 
+	int mnfbattle = atoi(conf->find("MNFBATTLE", "is_mnfbattle_open").c_str());
+	if(!mnfbattle) DisabledSystem::SetDisabled(SYS_MNFACTIONBATTLE);	
+	
+	int forbid_cross = atoi(conf->find(GDeliveryServer::GetInstance()->Identification(), "forbid_cross").c_str());
+	if(forbid_cross) DisabledSystem::SetDisabled(SYS_FORBIDCROSS);
+
 	if(is_central) {
 		DisabledSystem::SetDisabled(SYS_AUCTION);
 		DisabledSystem::SetDisabled(SYS_STOCK);
@@ -177,9 +188,15 @@ int main(int argc, char *argv[])
 		if(!max_name_len.empty())
 			manager->max_name_len = atoi(max_name_len.c_str());
 
+		int max_login_wait_num=atoi(conf->find(manager->Identification(), "max_login_wait_num").c_str());
+		max_login_wait_num = max_login_wait_num>0 && !is_central ? max_login_wait_num : 0; // 跨服不能排队
+
 		int max_player_num=atoi(conf->find(manager->Identification(), "max_player_num").c_str());
-		max_player_num=max_player_num<MAX_PLAYER_NUM_DEFAULT ? MAX_PLAYER_NUM_DEFAULT:max_player_num;
-		UserContainer::GetInstance().SetPlayerLimit( max_player_num,max_player_num );
+		if(max_player_num == 0 || max_login_wait_num == 0) // 有排队时认配置 //todo ddr
+			max_player_num=max_player_num<MAX_PLAYER_NUM_DEFAULT ? MAX_PLAYER_NUM_DEFAULT:max_player_num;
+		int total_player_num=max_login_wait_num+max_player_num;
+
+		UserContainer::GetInstance().SetPlayerLimit(total_player_num,total_player_num,max_player_num );
 		DEBUG_PRINT("gdeliveryd::Max player allowed is %d\n",UserContainer::GetInstance().GetPlayerLimit());
 		
 		//读取内网ip列表
@@ -203,7 +220,7 @@ int main(int argc, char *argv[])
 			GameTalkManager::GetInstance()->OnStartUp((int)manager->aid, (unsigned char)manager->zoneid);
 		}
 	}
-	
+
 	if (!is_central) 
 	{
 		GAuthClient *manager = GAuthClient::GetInstance();
@@ -231,6 +248,23 @@ int main(int argc, char *argv[])
 		Protocol::Client(manager);
 		Thread::HouseKeeper::AddTimerTask(new KeepAliveTask(30),30); 
 	}
+ 	
+	if(is_central)
+		CrossGuardServer::GetInstance()->Initialize();
+	else if(!DisabledSystem::GetDisabled(SYS_FORBIDCROSS)) 
+		CrossGuardClient::GetInstance()->Initialize();
+
+	if(is_central)
+	{
+		CrossChatServer::GetInstance()->Initialize();
+		CrossSoloRankServer::GetInstance()->Initialize();
+	}
+	else
+	{
+		CrossChatClient::GetInstance()->Initialize();
+		CrossSoloRankClient::GetInstance()->Initialize();
+	}
+
 	if(!DisabledSystem::GetDisabled(SYS_WEBTRADE))
 	{
 		GWebTradeClient *manager = GWebTradeClient::GetInstance();
@@ -323,6 +357,11 @@ int main(int argc, char *argv[])
         Log::log(LOG_ERR, "Fatal: Initialize mappassword failed.");
         exit(EXIT_FAILURE);
     }
+    if (!DisabledSystem::GetDisabled(SYS_SOLOCHALLENGERANK) && !SoloChallengeRank::GetInstance().Initialize())
+    {
+        Log::log(LOG_ERR, "Fatal: Initialize solochallengerank failed.");
+        exit(EXIT_FAILURE);
+    }
 	if(!DisabledSystem::GetDisabled(SYS_TANKBATTLE) && !TankBattleManager::GetInstance()->Initialize())
 	{
 		Log::log(LOG_ERR,"Fatal: Initialize tankbattlemanager failed.");
@@ -334,6 +373,23 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
+	if(is_central)
+	{
+		if(!DisabledSystem::GetDisabled(SYS_MNFACTIONBATTLE) && !CDS_MNFactionBattleMan::GetInstance()->Initialize())
+		{
+			Log::log(LOG_ERR,"Fatal: Initialize CDS_MNFactionBattleMan failed.");
+			exit(EXIT_FAILURE);
+		}
+	}
+	else
+	{
+		if(!DisabledSystem::GetDisabled(SYS_MNFACTIONBATTLE) && !CDC_MNFactionBattleMan::GetInstance()->Initialize())
+		{
+			Log::log(LOG_ERR,"Fatal: Initialize CDC_MNFactionBattleMan failed.");
+			exit(EXIT_FAILURE);
+		}
+	}
+
 	FriendextinfoManager::GetInstance()->Initialize(!DisabledSystem::GetDisabled(SYS_RECALLOLDPLAYER));
 	
 	if (is_central) {
@@ -343,13 +399,13 @@ int main(int argc, char *argv[])
 		Protocol::Server(cds);
 
 		//读取允许连接到跨服中央服务器的zone列表
-		std::string zone_list_str = conf->find(cds->Identification(), "accepted_zone_list");
+/*		std::string zone_list_str = conf->find(cds->Identification(), "accepted_zone_list");
 		int cnt = cds->InitAcceptedZoneList( zone_list_str );
 		if(cnt < 2 || cnt > 4) {
 			Log::log(LOG_ERR,"Fatal: Initialize central delivery failed. invalid accepted zoned count. count=%d\n", cnt);	
 			exit(EXIT_FAILURE);
 		}
-		
+*/		
 		Thread::Pool::AddTask(new LoadExchangeTask(15));
 		Thread::HouseKeeper::AddTimerTask(new CrsSvrCheckTimer(30), 30);
 	} 
@@ -380,14 +436,22 @@ int main(int argc, char *argv[])
 	}
 	
 	//由于跨服的国战系统，需要读取CentralDelivery允许连接的zone_list，所以国战系统的初始化必须放在CentralDelivery初始化后面
-	bool arrange_country_by_zoneid = false;
+/*	bool arrange_country_by_zoneid = false;
 	if(is_central) arrange_country_by_zoneid = true;
-	if(!DisabledSystem::GetDisabled(SYS_COUNTRYBATTLE) && !CountryBattleMan::GetInstance()->Initialize(arrange_country_by_zoneid))
+	if(!DisabledSystem::GetDisabled(SYS_COUNTRYBATTLE) && !CountryBattleMan::Initialize(arrange_country_by_zoneid))
 	{
 		Log::log(LOG_ERR,"Fatal: Initialize domain2 data failed.");
    		exit(EXIT_FAILURE);
 	}
-	
+ //todo ddr	*/
+ //
+
+	if(UserContainer::GetInstance().GetWaitLimit() && !WaitQueueManager::GetInstance()->Initialize())
+	{
+		Log::log(LOG_ERR,"Fatal: Initialize waitqueue failed.");
+   		exit(EXIT_FAILURE);
+	}
+
 	Thread::Pool::AddTask(PollIO::Task::GetInstance());
 	
 	int interval=atoi( conf->find("Intervals","account_interval").c_str() );

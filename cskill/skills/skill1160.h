@@ -132,8 +132,8 @@ namespace GNET
       Skill1160Stub ():SkillStub (1160)
         {
             cls = 127;
-            name = L"ÉñÍşÓüĞ¡¹ÖÈºÃë";
-            nativename = "ÉñÍşÓüĞ¡¹ÖÈºÃë";
+            name = L"ç¥å¨ç‹±å°æ€ªç¾¤ç§’";
+            nativename = "ç¥å¨ç‹±å°æ€ªç¾¤ç§’";
             icon = "";
             max_level = 10;
             type = 3;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "ÖÎÓú.sgc";
+            effect = "æ²»æ„ˆ.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

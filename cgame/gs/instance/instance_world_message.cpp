@@ -150,7 +150,7 @@ instance_world_message_handler::PlayerComeIn(instance_world_manager *pManager, w
 	gplayer_imp * pImp = ((gplayer_imp*)pPlayer->imp);
 	PlayerPreEnterServer(pPlayer, pImp,ikey);
 
-	pImp->PlayerEnterServer();
+	pImp->PlayerEnterServer(source_tag);
 
 	//设定存盘的时刻， 加快了存盘的速度 现在是提前存盘了
 //	pImp->_write_timer = abase::Rand(3, 30);

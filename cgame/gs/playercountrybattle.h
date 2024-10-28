@@ -65,7 +65,7 @@ public:
 	virtual void FillAttackMsg(const XID & target,attack_msg & attack,int dec_arrow);
 	virtual void FillEnchantMsg(const XID & target,enchant_msg & enchant);
 	virtual void PlayerEnterWorld();  
-	virtual void PlayerEnterServer(); 
+	virtual void PlayerEnterServer(int source_tag); 
 	virtual void PlayerLeaveServer(); 
 	virtual void PlayerLeaveWorld();
 	virtual int GetFaction();
@@ -78,7 +78,7 @@ public:
 	virtual void OnHurt(const XID & attacker,const attacker_info_t&info,int damage,bool invader);
 	virtual void OnDeath(const XID & lastattack,bool is_pariah, char attacker_mode, int taskdead);
 	virtual bool CanResurrect(int param);
-	virtual int  Resurrect(const A3DVECTOR & pos,bool nomove,float exp_reduce,int target_tag,float hp_factor, float mp_factor, int param);
+	virtual int  Resurrect(const A3DVECTOR & pos,bool nomove,float exp_reduce,int target_tag,float hp_factor, float mp_factor, int param, float ap_factor, int extra_invincible_time);
 	virtual void SyncScoreToPlane();
 	virtual void SetFlagCarrier(bool b);
 

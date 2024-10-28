@@ -134,9 +134,9 @@ namespace GNET
       Skill425Stub ():SkillStub (425)
         {
             cls = 0;
-            name = L"��ʨ�Ӻ�";
-            nativename = "��ʨ�Ӻ�";
-            icon = "ʨ�Ӻ�2.dds";
+            name = L"狂·狮子吼";
+            nativename = "狂·狮子吼";
+            icon = "狮子吼2.dds";
             max_level = 1;
             type = 3;
             apcost = 35;
@@ -175,7 +175,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (9);
             }
-            effect = "2ʨ�Ӻ�.sgc";
+            effect = "2狮子吼.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

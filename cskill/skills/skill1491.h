@@ -133,8 +133,8 @@ namespace GNET
       Skill1491Stub ():SkillStub (1491)
         {
             cls = 127;
-            name = L"游荡灵魂1攻击";
-            nativename = "游荡灵魂1攻击";
+            name = L"娓歌崱鐏甸瓊1鏀诲嚮";
+            nativename = "娓歌崱鐏甸瓊1鏀诲嚮";
             icon = "";
             max_level = 10;
             type = 1;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "BOSS深海纳加领主_击中.sgc";
+            effect = "BOSS娣辨捣绾冲姞棰嗕富_鍑讳腑.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

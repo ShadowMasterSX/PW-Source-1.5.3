@@ -132,8 +132,8 @@ namespace GNET
       Skill2658Stub ():SkillStub (2658)
         {
             cls = 127;
-            name = L"¸½¼ÓÄ¾ÉËº¦";
-            nativename = "¸½¼ÓÄ¾ÉËº¦";
+            name = L"é™„åŠ æœ¨ä¼¤å®³";
+            nativename = "é™„åŠ æœ¨ä¼¤å®³";
             icon = "";
             max_level = 10;
             type = 3;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "¶¾³æ_»÷ÖÐ.sgc";
+            effect = "æ¯’è™«_å‡»ä¸­.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

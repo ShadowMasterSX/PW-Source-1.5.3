@@ -137,9 +137,9 @@ namespace GNET
       Skill2234Stub ():SkillStub (2234)
         {
             cls = 3;
-            name = L"Ðþ¡¤ÑýÚ¤»÷";
-            nativename = "Ðþ¡¤ÑýÚ¤»÷";
-            icon = "Ðþ¡¤ÑýÚ¤»÷.dds";
+            name = L"çŽ„Â·å¦–å†¥å‡»";
+            nativename = "çŽ„Â·å¦–å†¥å‡»";
+            icon = "çŽ„Â·å¦–å†¥å‡».dds";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -167,7 +167,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (292);
             }
-            effect = "Ñý¾«_Ñý»ê»÷¸Ä_»÷ÖÐ.sgc";
+            effect = "å¦–ç²¾_å¦–é­‚å‡»æ”¹_å‡»ä¸­.sgc";
             range.type = 0;
             doenchant = false;
             dobless = true;

@@ -137,9 +137,9 @@ namespace GNET
       Skill1840Stub ():SkillStub (1840)
         {
             cls = 6;
-            name = L"�Ͽշ�ħʸ";
-            nativename = "�Ͽշ�ħʸ";
-            icon = "����֮ʸ.DDS";
+            name = L"断空封魔矢";
+            nativename = "断空封魔矢";
+            icon = "软骨之矢.DDS";
             max_level = 1;
             type = 1;
             apcost = 100;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (13);
             }
-            effect = "��â_����֮ʸ.sgc";
+            effect = "羽芒_软骨之矢.sgc";
             range.type = 1;
             doenchant = true;
             dobless = false;

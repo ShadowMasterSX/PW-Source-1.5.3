@@ -1,0 +1,38 @@
+	public:
+		char optype;
+		int srcroleid;
+		int dstroleid;
+		enum { PROTOCOL_TYPE = PROTOCOL_UPDATEENEMYLIST };
+	public:
+		UpdateEnemyList() { type = PROTOCOL_UPDATEENEMYLIST; }
+		UpdateEnemyList(void*) : Protocol(PROTOCOL_UPDATEENEMYLIST) { }
+		UpdateEnemyList (char l_optype,int l_srcroleid,int l_dstroleid)
+			 : optype(l_optype),srcroleid(l_srcroleid),dstroleid(l_dstroleid)
+		{
+			type = PROTOCOL_UPDATEENEMYLIST;
+		}
+
+		UpdateEnemyList(const UpdateEnemyList &rhs)
+			: Protocol(rhs),optype(rhs.optype),srcroleid(rhs.srcroleid),dstroleid(rhs.dstroleid) { }
+
+		GNET::Protocol *Clone() const { return new UpdateEnemyList(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << optype;
+			os << srcroleid;
+			os << dstroleid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> optype;
+			os >> srcroleid;
+			os >> dstroleid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

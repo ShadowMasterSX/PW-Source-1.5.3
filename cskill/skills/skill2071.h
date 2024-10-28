@@ -132,8 +132,8 @@ namespace GNET
       Skill2071Stub ():SkillStub (2071)
         {
             cls = 127;
-            name = L"ÏÉ99±äÍ¯ÄĞ";
-            nativename = "ÏÉ99±äÍ¯ÄĞ";
+            name = L"ä»™99å˜ç«¥ç”·";
+            nativename = "ä»™99å˜ç«¥ç”·";
             icon = "";
             max_level = 10;
             type = 3;

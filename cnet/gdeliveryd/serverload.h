@@ -29,7 +29,7 @@ public:
 
 	int CheckLimit() const 
 	{
-		if(server_count >= server_limit) return ERR_SERVEROVERLOAD;
+		if(server_count >= server_limit) return ERR_SERVEROVERLOAD ;
 		return ERR_SUCCESS; 
 	}
 };

@@ -103,6 +103,7 @@
 #include "announcecentraldelivery.hpp"
 #include "notifyfactionplayerrename.hpp"
 #include "factionresourcebattlelimitnotice.hpp"
+#include "factionuniqueidannounce.hpp"
 #include "battleenter.hpp"
 #include "sendbattlechallenge.hpp"
 #include "createfactionfortress.hpp"
@@ -213,6 +214,7 @@ static NotifyFactionFortressID __stub_NotifyFactionFortressID((void*)0);
 static AnnounceCentralDelivery __stub_AnnounceCentralDelivery((void*)0);
 static NotifyFactionPlayerRename __stub_NotifyFactionPlayerRename((void*)0);
 static FactionResourceBattleLimitNotice __stub_FactionResourceBattleLimitNotice((void*)0);
+static FactionUniqueIdAnnounce __stub_FactionUniqueIdAnnounce((void*)0);
 static BattleEnter __stub_BattleEnter((void*)0);
 static SendBattleChallenge __stub_SendBattleChallenge((void*)0);
 static CreateFactionFortress __stub_CreateFactionFortress((void*)0);

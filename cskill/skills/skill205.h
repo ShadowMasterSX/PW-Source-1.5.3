@@ -19,8 +19,8 @@ namespace GNET
         Skill205Stub ():SkillStub (205)
         {
             cls = 255;
-            name = L"利刃";
-            nativename = "利刃";
+            name = L"鍒╁垉";
+            nativename = "鍒╁垉";
             icon = "";
             max_level = 1;
             type = 6;
@@ -41,7 +41,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "巨灵神力.sgc";
+            effect = "宸ㄧ伒绁炲姏.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

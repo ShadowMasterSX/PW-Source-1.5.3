@@ -359,7 +359,7 @@ protected:
 #define	ELEMENTDATAMAN_EQUIP_MASK_STALLCARD		0x1000000
 #define	ELEMENTDATAMAN_EQUIP_MASK_FORCE_TICKET	0x4000000
 #define	ELEMENTDATAMAN_EQUIP_MASK_DYNSKILL_ALL	0x18000000
-
+#define ELEMENTDATAMAN_EQUIP_MASK_ASTROLABE	   0x0000004000000000LL
 //
 #define ELEMENTDATAMAN_EQUIP_MASK_HAS_ADDON    0x40000000
 #define ELEMENTDATAMAN_EQUIP_MASK_EXTEND64     0x80000000
@@ -692,6 +692,14 @@ protected:
 		int level;
 	};
 
+	struct _astrolabe_essence
+	{
+		int   exp;
+		unsigned char  level;
+		unsigned short  slot;			// 属性位上是否有属性 顺时针
+		unsigned short aptit[ELEMENTDATA_MAX_ASTROLABE_ADDON_COUNT]; // 1/1000
+	};
+
 #pragma pack()
 	
 	struct _wedding_bookcard_essence
@@ -756,6 +764,7 @@ protected:
 		bool generate_addon(unsigned int addon_id, addon_data & data);
 		int generate_addon(unsigned int item_id, unsigned int addon_id, addon_data & data);
 		int generate_addon_from_rands(unsigned int item_id, unsigned int addon_id, addon_data & data);
+		int generate_astrolabe_addonlist(const char * candidate_header, size_t candidate_num, addon_data* addon_list,size_t addon_num, unsigned int default_addon_id);
 
 		item_data * generate_item_for_shop(unsigned int id,const void * tag, size_t tag_size);
 		item_data * generate_item_for_drop(unsigned int id,const void * tag, size_t tag_size);

@@ -261,6 +261,27 @@ public:
 	void add_structure(unsigned int id, FASHION_BEST_COLOR_CONFIG & data);
 	void add_structure(unsigned int id, SIGN_AWARD_CONFIG & data);
 
+	void add_structure(unsigned int id, ASTROLABE_ESSENCE & data);
+	void add_structure(unsigned int id, ASTROLABE_RANDOM_ADDON_ESSENCE & data);
+	void add_structure(unsigned int id, ASTROLABE_INC_INNER_POINT_VALUE_ESSENCE & data);
+	void add_structure(unsigned int id, ASTROLABE_INC_EXP_ESSENCE & data);
+	void add_structure(unsigned int id, ITEM_PACKAGE_BY_PROFESSION_ESSENCE & data);
+
+	void add_structure(unsigned int id, ASTROLABE_LEVELEXP_CONFIG & data);
+	void add_structure(unsigned int id, ASTROLABE_ADDON_RANDOM_CONFIG & data);
+	void add_structure(unsigned int id, ASTROLABE_APPEARANCE_CONFIG & data);
+	void add_structure(unsigned int id, EQUIP_MAKE_HOLE_CONFIG & data);
+	void add_structure(unsigned int id, SOLO_TOWER_CHALLENGE_LEVEL_CONFIG & data);
+
+	void add_structure(unsigned int id, SOLO_TOWER_CHALLENGE_AWARD_PAGE_CONFIG & data);
+	void add_structure(unsigned int id, SOLO_TOWER_CHALLENGE_AWARD_LIST_CONFIG & data);
+	void add_structure(unsigned int id, SOLO_TOWER_CHALLENGE_SCORE_COST_CONFIG & data);
+	void add_structure(unsigned int id, MNFACTION_WAR_CONFIG & data);
+	void add_structure(unsigned int id, NPC_CROSS_SERVER_SERVICE & data);
+
+	void add_structure(unsigned int id,  FIREWORKS2_ESSENCE & data);
+	void add_structure(unsigned int id,  FIX_POSITION_TRANSMIT_ESSENCE & data);
+
 	//////////////////////////////////////////////////////////////////////////
 public:
 	unsigned int get_data_id(ID_SPACE idspace, unsigned int index, DATA_TYPE & datatype);
@@ -563,6 +584,28 @@ protected:
 	array<FASHION_SUITE_ESSENCE>		fashion_suite_essence_array;
 	array<FASHION_BEST_COLOR_CONFIG>	fashion_best_color_config_array;
 	array<SIGN_AWARD_CONFIG>			sign_award_config_array;
+	
+	array<ASTROLABE_ESSENCE>			astrolabe_essence_array;
+	array<ASTROLABE_RANDOM_ADDON_ESSENCE>	astrolabe_random_addon_essence_array;
+	array<ASTROLABE_INC_INNER_POINT_VALUE_ESSENCE>	astrolabe_inc_inner_point_value_essence_array;
+	array<ASTROLABE_INC_EXP_ESSENCE>	astrolabe_inc_exp_essence_array;
+	array<ITEM_PACKAGE_BY_PROFESSION_ESSENCE>	item_package_by_profession_essence_array;
+
+	array<ASTROLABE_LEVELEXP_CONFIG>	astrolabe_levelexp_config_array;
+	array<ASTROLABE_ADDON_RANDOM_CONFIG>	astrolabe_addon_random_config_array;
+	array<ASTROLABE_APPEARANCE_CONFIG>		astrolabe_appearance_config_array;
+	array<EQUIP_MAKE_HOLE_CONFIG>		equip_make_hole_config_array;
+	array<SOLO_TOWER_CHALLENGE_LEVEL_CONFIG>		solo_tower_challenge_level_config_array;
+
+	array<SOLO_TOWER_CHALLENGE_AWARD_PAGE_CONFIG>	solo_tower_challenge_award_page_config_array;
+	array<SOLO_TOWER_CHALLENGE_AWARD_LIST_CONFIG>	solo_tower_challenge_award_list_config_array;
+	array<SOLO_TOWER_CHALLENGE_SCORE_COST_CONFIG>	solo_tower_challenge_score_cost_config_array;
+	array<MNFACTION_WAR_CONFIG> mnfaction_war_config_array;
+	array<NPC_CROSS_SERVER_SERVICE> npc_cross_server_service_array;
+	
+	
+	array<FIREWORKS2_ESSENCE>		fireworks2_essence_array;
+	array<FIX_POSITION_TRANSMIT_ESSENCE> fix_position_transmit_essence_array;
 
 	// the global hash_map for each id space
 private:

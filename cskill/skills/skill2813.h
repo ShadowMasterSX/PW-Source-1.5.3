@@ -176,9 +176,9 @@ namespace GNET
       Skill2813Stub ():SkillStub (2813)
         {
             cls = 11;
-            name = L"Õæ¡¤ÏşÔÂÒø¹â";
-            nativename = "Õæ¡¤ÏşÔÂÒø¹â";
-            icon = "ÏÉÏşÔÂÒø¹â.dds";
+            name = L"çœŸÂ·æ™“æœˆé“¶å…‰";
+            nativename = "çœŸÂ·æ™“æœˆé“¶å…‰";
+            icon = "ä»™æ™“æœˆé“¶å…‰.dds";
             max_level = 1;
             type = 1;
             apcost = 150;
@@ -206,7 +206,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "ÔÂÏÉ_ÏşÔÂÒø¹â_»÷ÖĞ.sgc";
+            effect = "æœˆä»™_æ™“æœˆé“¶å…‰_å‡»ä¸­.sgc";
             range.type = 0;
             doenchant = true;
             dobless = true;

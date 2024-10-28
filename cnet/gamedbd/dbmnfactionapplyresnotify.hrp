@@ -1,0 +1,124 @@
+
+#ifndef __GNET_DBMNFACTIONAPPLYRESNOTIFY_HPP
+#define __GNET_DBMNFACTIONAPPLYRESNOTIFY_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include <vector>
+#include "utilfunction.h"
+
+#include "dbmnfactionapplyresnotifyarg"
+#include "dbmnfactionapplyresnotifyres"
+
+
+namespace GNET
+{
+
+class DBMNFactionApplyResNotify : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbmnfactionapplyresnotify"
+#undef	RPC_BASECLASS
+
+    void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+    {
+        DBMNFactionApplyResNotifyArg *arg = (DBMNFactionApplyResNotifyArg *)argument;
+        DBMNFactionApplyResNotifyRes *res = (DBMNFactionApplyResNotifyRes *)result;
+
+        try
+        {
+            StorageEnv::Storage* pappinfo = StorageEnv::GetStorage("mnfactionapplyinfo");
+            StorageEnv::Storage* pmailbox = StorageEnv::GetStorage("mailbox");
+            StorageEnv::AtomTransaction txn;
+
+            try
+            {
+                std::vector<int64_t>::const_iterator iter = arg->rejected_list.begin(), iter_end = arg->rejected_list.end();
+                for (; iter != iter_end; ++iter)
+                {
+                    Marshal::OctetsStream fid_key, info_value;
+                    fid_key << (*iter);
+
+                    if (pappinfo->find(fid_key, info_value, txn))
+                    {
+                        MNFactionApplyInfo info;
+                        info_value >> info;
+
+                        if ((info.applicant_id <= 0) || (info.cost <= 0))
+                        {
+                            pappinfo->del(fid_key, txn);
+                            Log::log(LOG_ERR, "DBMNFactionApplyResNotify, applicant_id or cost error. unifid=%lld, applicant_id=%d, cost=%d.\n",
+                                (*iter), info.applicant_id, info.cost);
+
+                            continue;
+                        }
+
+                        GMailHeader header;
+                        header.id = 0;
+                        header.sender = arg->status;
+                        header.sndr_type = _MST_MNFBATTLE;
+                        header.receiver = info.applicant_id;
+                        MailSender::Send(pmailbox, header, info.cost, txn);
+
+                        pappinfo->del(fid_key, txn);
+                        Log::formatlog("dbmnfactionapplyresnotify", "rejected_list:unifid=%lld:sender=%d:sendertype=%d:receiver=%d:money=%d",
+                            (*iter), header.sender, header.sndr_type, header.receiver, info.cost);
+                    }
+                    else
+                    {
+                        Log::log(LOG_ERR, "DBMNFactionApplyResNotify, rejected_list faction not found. unifid=%lld.\n", (*iter));
+                    }
+                }
+
+                iter = arg->chosen_list.begin();
+                iter_end = arg->chosen_list.end();
+                for (; iter != iter_end; ++iter)
+                {
+                    Marshal::OctetsStream fid_key, info_value;
+                    fid_key << (*iter);
+
+                    if (pappinfo->find(fid_key, info_value, txn))
+                    {
+                        pappinfo->del(fid_key, txn);
+                        Log::formatlog("dbmnfactionapplyresnotify", "chosen_list:unifid=%lld", (*iter));
+                    }
+                    else
+                    {
+                        Log::log(LOG_ERR, "DBMNFactionApplyResNotify, chosen_list faction not found. unifid=%lld.\n", (*iter));
+                    }
+                }
+
+                res->retcode = ERR_SUCCESS;
+            }
+            catch (DbException e) {throw;}
+            catch (...)
+            {
+                DbException e(DB_OLD_VERSION);
+                txn.abort(e);
+                throw e;
+            }
+        }
+        catch (DbException e)
+        {
+            Log::log(LOG_ERR, "DBMNFactionApplyResNotify, what=%s.\n", e.what());
+        }
+    }
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBMNFactionApplyResNotifyArg *arg = (DBMNFactionApplyResNotifyArg *)argument;
+		// DBMNFactionApplyResNotifyRes *res = (DBMNFactionApplyResNotifyRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

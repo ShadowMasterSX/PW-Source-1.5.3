@@ -135,9 +135,9 @@ namespace GNET
       Skill2586Stub ():SkillStub (2586)
         {
             cls = 11;
-            name = L"广寒之护";
-            nativename = "广寒之护";
-            icon = "广寒之护.dds";
+            name = L"骞垮瘨涔嬫姢";
+            nativename = "骞垮瘨涔嬫姢";
+            icon = "骞垮瘨涔嬫姢.dds";
             max_level = 10;
             type = 2;
             apcost = 0;
@@ -164,7 +164,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "月仙_广寒之护_击中.sgc";
+            effect = "鏈堜粰_骞垮瘨涔嬫姢_鍑讳腑.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

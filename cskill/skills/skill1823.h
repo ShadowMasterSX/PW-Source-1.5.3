@@ -134,9 +134,9 @@ namespace GNET
       Skill1823Stub ():SkillStub (1823)
         {
             cls = 2;
-            name = L"灾祸之源";
-            nativename = "灾祸之源";
-            icon = "复仇之魂.dds";
+            name = L"鐏剧ジ涔嬫簮";
+            nativename = "鐏剧ジ涔嬫簮";
+            icon = "澶嶄粐涔嬮瓊.dds";
             max_level = 1;
             type = 2;
             apcost = 200;

@@ -137,9 +137,9 @@ namespace GNET
       Skill2602Stub ():SkillStub (2602)
         {
             cls = 10;
-            name = L"水月镜花·天火狂龙";
-            nativename = "水月镜花·天火狂龙";
-            icon = "天火狂龙.dds";
+            name = L"姘存湀闀滆姳路澶╃伀鐙傞緳";
+            nativename = "姘存湀闀滆姳路澶╃伀鐙傞緳";
+            icon = "澶╃伀鐙傞緳.dds";
             max_level = 1;
             type = 1;
             apcost = 200;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (44878);
             }
-            effect = "霸王献鼎.sgc";
+            effect = "闇哥帇鐚紟.sgc";
             range.type = 3;
             doenchant = true;
             dobless = false;

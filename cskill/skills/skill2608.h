@@ -137,9 +137,9 @@ namespace GNET
       Skill2608Stub ():SkillStub (2608)
         {
             cls = 10;
-            name = L"水月镜花·狂雷天鹰";
-            nativename = "水月镜花·狂雷天鹰";
-            icon = "狂雷天鹰.dds";
+            name = L"姘存湀闀滆姳路鐙傞浄澶╅拱";
+            nativename = "姘存湀闀滆姳路鐙傞浄澶╅拱";
+            icon = "鐙傞浄澶╅拱.dds";
             max_level = 1;
             type = 1;
             apcost = 200;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (44878);
             }
-            effect = "狂雷天鹰.sgc";
+            effect = "鐙傞浄澶╅拱.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

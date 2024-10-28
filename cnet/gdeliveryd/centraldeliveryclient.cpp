@@ -5,6 +5,8 @@
 #include "gdeliveryserver.hpp"
 #include "dsannounceidentity.hpp"
 #include "mapuser.h"
+#include "cdcmnfbattleman.h"
+#include "disabled_system.h"
 
 namespace GNET
 {
@@ -59,6 +61,63 @@ public:
 	}	
 };
 
+class GetMNFactionCacheTask: public Thread::Runnable
+{
+	Protocol::Manager::Session::ID _sid;
+	unsigned int _delay;
+public:
+	GetMNFactionCacheTask(Protocol::Manager::Session::ID sid, unsigned int delay, unsigned int priority=1) 
+			: Runnable(priority), _sid(sid), _delay(delay){}
+
+	void Run()
+	{
+		CentralDeliveryClient * cdc = CentralDeliveryClient::GetInstance();
+		if(cdc->ValidSid(_sid))
+		{
+			if(CDC_MNFactionBattleMan::GetInstance()->NeedUpdateBattleCache())
+			{
+				CDC_MNFactionBattleMan::GetInstance()->GetCDSBattleCache();
+				Thread::HouseKeeper::AddTimerTask(this, _delay);
+			}
+			else
+			{
+				delete this;
+			}
+		}
+		else
+		{
+			delete this;	
+		}
+	}	
+};
+
+class GetMNTopListTask: public Thread::Runnable
+{
+	Protocol::Manager::Session::ID _sid;
+	unsigned int _delay;
+public:
+	GetMNTopListTask(Protocol::Manager::Session::ID sid, unsigned int delay, unsigned int priority=1) 
+			: Runnable(priority), _sid(sid), _delay(delay){}
+
+	void Run()
+	{
+		CentralDeliveryClient * cdc = CentralDeliveryClient::GetInstance();
+		if(cdc->ValidSid(_sid))
+		{
+			if(CDC_MNToplistMan::GetInstance()->NeedFetchToplist())
+			{
+				CDC_MNToplistMan::GetInstance()->GetMNToplist();
+				Thread::HouseKeeper::AddTimerTask(this, _delay);
+			}
+			else
+			{
+				delete this;
+			}
+		}
+	}
+	
+};
+
 void CentralDeliveryClient::OnAddSession(Session::ID sid)
 {
 	Thread::Mutex::Scoped l(locker_state);
@@ -86,6 +145,11 @@ void CentralDeliveryClient::OnAddSession(Session::ID sid)
 		Close(sid);
 		return;
 	}*/
+	if(!DisabledSystem::GetDisabled(SYS_MNFACTIONBATTLE))
+	{
+		Thread::HouseKeeper::AddTimerTask(new GetMNFactionCacheTask(sid, 5), 5);
+		Thread::HouseKeeper::AddTimerTask(new GetMNTopListTask(sid, 5), 5);
+	}
 }
 
 void CentralDeliveryClient::OnDelSession(Session::ID sid)
@@ -97,6 +161,7 @@ void CentralDeliveryClient::OnDelSession(Session::ID sid)
 	cache_server_load.ClearLoad();
 	int count = UserContainer::GetInstance().ClearRemoteUsers();
 
+	CDC_MNFactionBattleMan::GetInstance()->EnableUpdateBattleCacheFlag(); //add by guoshi
 	Log::log(LOG_ERR, "CrossRelated Disconnect from central delivery, clear %d users", count);
 }
 

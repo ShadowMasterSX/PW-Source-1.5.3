@@ -68,6 +68,13 @@ struct attack_msg
 	unsigned char section;  //技能阶段
 	int weapon_class;
 	int feedback_filter;
+	int anti_defense_degree; //无视物防等级
+	int anti_resistance_degree; // 无视法防等级
+	struct
+	{
+		int skill;
+		int level;
+	} infected_skill;
 
 	enum 
 	{
@@ -112,6 +119,11 @@ struct enchant_msg
 	int _attack_state;		//0x01 重击  0x02 攻击优化符  0x80 免疫此次公鸡
 	int vigour;				//气魄
 	unsigned char section;  //技能阶段
+	struct
+	{
+		int skill;
+		int level;
+	} infected_skill;
 };
 
 struct damage_entry

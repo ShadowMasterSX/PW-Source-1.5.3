@@ -1,0 +1,70 @@
+#ifndef __GNET_DBSOLOCHALLENGERANKLOADRES_RPCDATA
+#define __GNET_DBSOLOCHALLENGERANKLOADRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "solochallengerankdataext"
+
+namespace GNET
+{
+	class DBSoloChallengeRankLoadRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		SoloChallengeRankDataExt data_ext_local;
+		SoloChallengeRankDataExt data_ext_global;
+
+	public:
+		DBSoloChallengeRankLoadRes (int l_retcode = -1,const SoloChallengeRankDataExt& l_data_ext_local = SoloChallengeRankDataExt(),const SoloChallengeRankDataExt& l_data_ext_global = SoloChallengeRankDataExt())
+			: retcode(l_retcode),data_ext_local(l_data_ext_local),data_ext_global(l_data_ext_global)
+		{
+		}
+
+		DBSoloChallengeRankLoadRes(const DBSoloChallengeRankLoadRes &rhs)
+			: retcode(rhs.retcode),data_ext_local(rhs.data_ext_local),data_ext_global(rhs.data_ext_global) { }
+
+		Rpc::Data *Clone() const { return new DBSoloChallengeRankLoadRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBSoloChallengeRankLoadRes *r = dynamic_cast<const DBSoloChallengeRankLoadRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				data_ext_local = r->data_ext_local;
+				data_ext_global = r->data_ext_global;
+			}
+			return *this;
+		}
+
+		DBSoloChallengeRankLoadRes& operator = (const DBSoloChallengeRankLoadRes &rhs)
+		{
+			const DBSoloChallengeRankLoadRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				data_ext_local = r->data_ext_local;
+				data_ext_global = r->data_ext_global;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << data_ext_local;
+			os << data_ext_global;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> data_ext_local;
+			os >> data_ext_global;
+			return os;
+		}
+
+	};
+};
+#endif

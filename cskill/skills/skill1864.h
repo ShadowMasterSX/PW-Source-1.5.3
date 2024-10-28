@@ -42,7 +42,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "法师_冰晶世界.sgc";
+            effect = "娉曞笀_鍐版櫠涓栫晫.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

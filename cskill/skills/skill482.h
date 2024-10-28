@@ -134,9 +134,9 @@ namespace GNET
       Skill482Stub ():SkillStub (482)
         {
             cls = 1;
-            name = L"�桤ʯ���쾪";
-            nativename = "�桤ʯ���쾪";
-            icon = "ʯ���쾪1.dds";
+            name = L"真·石破天惊";
+            nativename = "真·石破天惊";
+            icon = "石破天惊1.dds";
             max_level = 1;
             type = 3;
             apcost = 0;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "1ʯ���쾪.sgc";
+            effect = "1石破天惊.sgc";
             range.type = 3;
             doenchant = true;
             dobless = false;

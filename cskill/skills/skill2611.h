@@ -134,9 +134,9 @@ namespace GNET
       Skill2611Stub ():SkillStub (2611)
         {
             cls = 10;
-            name = L"水月镜花·落英缤纷";
-            nativename = "水月镜花·落英缤纷";
-            icon = "回风回柳.dds";
+            name = L"姘存湀闀滆姳路钀借嫳缂ょ悍";
+            nativename = "姘存湀闀滆姳路钀借嫳缂ょ悍";
+            icon = "鍥為鍥炴煶.dds";
             max_level = 1;
             type = 2;
             apcost = 0;
@@ -160,7 +160,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (44878);
             }
-            effect = "魅灵_回风拂柳.sgc";
+            effect = "榄呯伒_鍥為鎷傛煶.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

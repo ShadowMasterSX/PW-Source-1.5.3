@@ -8,7 +8,7 @@
 
 #include "gamedbserver.hpp"
 #include "gamedbmanager.h"
-
+#include "utilfunction.h"
 #include "saveplayerdataarg"
 #include "saveplayerdatares"
 #include "crossinfodata"
@@ -161,14 +161,35 @@ class SavePlayerData : public Rpc
 					int r = rolelist.AddRole();
 					if(r < 0)
 					{
-						//跨服角色已满
-						res->retcode = -3;
-						return;
+						//开始找废弃的角色
+						while( (r=rolelist.GetNextRole()) >= 0)
+						{
+							int rid = db_user.logicuid + r;
+							GRoleBase tmp_base;
+							Marshal::OctetsStream(pbase->find(Marshal::OctetsStream()<<rid, txn)) >> tmp_base;
+							if( tmp_base.status == _ROLE_STATUS_CROSS_RECYCLE)
+							{
+								//情况符合，使用该id
+								predict_roleid = rid;
+								db_name = tmp_base.name;
+								break;
+							}
+						}
+
+						if(predict_roleid <= 0)	
+						{
+							//跨服角色已满
+							res->retcode = -3;
+							return;
+						}
 					}
-					predict_roleid = db_user.logicuid + r;
-					//db_name = Octets();
-					db_user.rolelist = rolelist.GetRoleList();
-					if(!db_user_new) db_user_changed = true;
+					else
+					{
+						predict_roleid = db_user.logicuid + r;
+						//db_name = Octets();
+						db_user.rolelist = rolelist.GetRoleList();
+						if(!db_user_new) db_user_changed = true;
+					}
 				}
 
 				GRoleBase roledata_base;
@@ -385,6 +406,7 @@ class SavePlayerData : public Rpc
 				Marshal::OctetsStream(pstatus->find(key_roleid, txn)) >> db_status;
 
 				AbstractPlayerData(arg->data.base, arg->data.status, db_base, db_status);
+				GetRoleVisaDetail(db_status.extraprop,res->cross_type,res->unifid);
 				db_base.status = _ROLE_STATUS_NORMAL;
 				db_cross_info.data_timestamp = arg->data_timestamp + 1;
 				db_cross_info.cross_timestamp = Timer::GetTime();

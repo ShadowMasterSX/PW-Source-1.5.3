@@ -137,9 +137,9 @@ namespace GNET
       Skill1242Stub ():SkillStub (1242)
         {
             cls = 2;
-            name = L"Õæ¡¤¿ñÉ³´©¿ÕÖä";
-            nativename = "Õæ¡¤¿ñÉ³´©¿ÕÖä";
-            icon = "ÑïÉ³ÏÉ¼¼ÄÜ.dds";
+            name = L"çœŸÂ·ç‹‚æ²™ç©¿ç©ºå’’";
+            nativename = "çœŸÂ·ç‹‚æ²™ç©¿ç©ºå’’";
+            icon = "æ‰¬æ²™ä»™æŠ€èƒ½.dds";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -164,7 +164,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (25333);
             }
-            effect = "Î×Ê¦_ÑïÉ³.sgc";
+            effect = "å·«å¸ˆ_æ‰¬æ²™.sgc";
             range.type = 3;
             doenchant = true;
             dobless = false;

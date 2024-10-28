@@ -1,0 +1,650 @@
+#ifndef	__GNET_LOCALMACRO_H
+#define	__GNET_LOCALMACRO_H
+
+#include "groleinventory"
+#include "gshoplog"
+#include "gmailsyncdata"
+
+namespace GNET
+{
+
+#define LOGICUID_START    1024
+#define LOGICUID_MAX      0x7FFFFFFF 
+#define LOGICUID(rid)     (int)((rid) & 0xFFFFFFF0)
+#define MAX_NAME_SIZE     40
+#define USER_CLASS_COUNT  12
+
+enum 
+{
+	CMSG_BIDSTART        = 1,  //城战开始竞价
+	CMSG_BIDEND          = 2,  //城战竞价结束
+	CMSG_BATTLESTART     = 3,  //城战开始
+	CMSG_BATTLEEND       = 4,  //城战结束
+	CMSG_BATTLEBID       = 5,  //城战竞价
+	CMSG_BONUSSEND       = 6,  //领土收益已经发送
+	CMSG_SPECIAL		 = 7, //special bonus sent
+
+	CMSG_CARDONSALE      = 10, //点卡开始寄售
+	CMSG_CARDSOLD        = 11, //点卡已经售出
+	CMSG_SELLCARDDONE    = 12, //点卡售出(离线)
+	CMSG_BUYCARDDONE     = 13, //购买点卡成功(离线)
+	CMSG_BUYCARDFAILED   = 14, //购买点卡失败(离线)
+	CMSG_MONEYOVERFLOW   = 15, //包裹金钱超过上限(离线)
+	CMSG_MONEYRECEIVED   = 16, //售卡收入已到帐(离线)
+	CMSG_CARDTIMEOUT     = 17, //点卡寄售超时(离线)
+
+	CMSG_SYSAUCTION_FORENOTICE 	= 18,	//预告竞拍时间
+	CMSG_SYSAUCTION_START 	= 19,	//竞拍开启
+	CMSG_SYSAUCTION_BID   	= 20,	//竞拍竞价
+	CMSG_SYSAUCTION_BIDINFO = 21,	//竞拍竞价信息
+	CMSG_SYSAUCTION_END		= 22,	//竞拍结束
+											//24已经被任务占用
+	CMSG_FACTION_BECAME_ALLIANCE	= 25,	//建立帮派同盟
+	CMSG_FACTION_REMOVE_ALLIANCE	= 26,	//解除帮派同盟
+	CMSG_FACTION_BECAME_HOSTILE		= 27,	//建立帮派敌对
+	CMSG_FACTION_REMOVE_HOSTILE		= 28,	//解除帮派敌对
+
+	CMSG_FF_CHALLENGESTART 		= 29,	//帮派基地宣战开始
+	CMSG_FF_BATTLESTART 		= 30,	//帮派基地战斗开始
+	CMSG_FF_CREATE				= 31,	//帮派基地创建(帮派内喊话)
+	CMSG_FF_HEALTHNOTIFY		= 32,	//帮派基地健康度(帮派内喊话)
+	CMSG_FF_BECHALLENGED 		= 33,	//帮派基地被取得战斗权(帮派内喊话)
+	CMSG_FF_CHALLENGESUCCESS 	= 34,	//帮派基地取得战斗权(帮派内喊话)
+	CMSG_FF_BATTLESTARTNOTIFY	= 35,	//帮派基地战斗开始(帮派内喊话)
+	CMSG_FF_BATTLEENDNOTIFY		= 36,	//帮派基地战斗结束(帮派内喊话)
+	//以下帮派基地喊话由gs使用，必须与gsp_if.h中一致，且其中的msg解析方式与上不同
+	CMSG_FF_LEVELUP 			= 37,	//帮派基地升级(帮派内喊话)
+	CMSG_FF_TECHNOLOGYUP		= 38,	//帮派基地科技升级(帮派内喊话)
+	CMSG_FF_CONSTRUCT			= 39,	//帮派基地建造(帮派内喊话)
+	CMSG_FF_CONSTRUCTCOMPLETE 	= 40,	//帮派基地建造完成(帮派内喊话)
+	CMSG_FF_HANDINCONTRIB		= 41,	//帮派基地上交贡献(帮派内喊话)
+	CMSG_FF_HANDINMATERIAL		= 42,	//帮派基地上交材料(帮派内喊话)
+	CMSG_FF_BATTLEPREPARECLEAR 	= 43,	//帮派基地战斗前清场(帮派内喊话)
+	CMSG_FF_KEYBUILDINGDESTROY 	= 44,	//帮派基地摧毁主基地建筑
+	CMSG_FF_DISMANTLE			= 45,	//帮派基地设施拆除
+
+	CMSG_COUNTRYBATTLE_ATTACK	= 46,	//进攻其他国家领地
+	CMSG_COUNTRYBATTLE_DEFEND	= 47,	//防御其他国家的进攻
+	CMSG_COUNTRYBATTLE_WIN		= 48,	//赢得一场国战战场胜利
+	CMSG_COUNTRYBATTLE_LOSE		= 49,	//一场国战战场失败
+	CMSG_COUNTRYBATTLE_KING_ASSIGN_ASSAULT = 50,	//国战国王使用疾援令
+	CMSG_COUNTRYBATTLE_KING_SET_BATTLE_LIMIT = 51,	//国战国王设置战场条件
+
+	CMSG_KE_CANDIDATE_APPLY_ANNOUNCE= 52,
+	CMSG_KE_CANDIDATE_APPLY_START	= 53,
+	CMSG_KE_CANDIDATE_APPLY_END		= 54,
+	CMSG_KE_VOTE_ANNOUNCE			= 55,
+	CMSG_KE_VOTE_START				= 56,
+	CMSG_KE_VOTE_END				= 57,
+	CMSG_KE_CANDIDATE_VOTES_100		= 58,
+	CMSG_KE_CANDIDATE_VOTES_TOP		= 59,
+
+    CMSG_FRB_MINECAR_LIMIT	= 60,
+    CMSG_FRB_MINEBASE_LIMIT	= 61,
+    CMSG_FRB_BATTLE_ON_PVP	= 62,
+    CMSG_FRB_BATTLE_OPEN	= 63,
+    CMSG_FRB_BATTLE_CLOSE	= 64,
+};
+
+enum
+{
+	//需要与db_if.h 中的DBMASK_PUT_*保持一致
+	CDB_PUT_STOREHOUSE   =  0x00000001,
+	CDB_PUT_INVENTORY    =  0x00000002,
+	CDB_PUT_TASK         =  0x00000004,
+	CDB_PUT_EQUIPMENT    =  0x00000008,
+	CDB_PUT_CASH         =  0x00000010,
+//	CDB_PUT_ALL          =  0x0000001F,
+	CDB_PUT_USERSTORE    =  0x00000020,
+	CDB_PUT_ALL          =  0x0000003F,
+};
+
+enum{
+	GMSTATE_ACTIVE   = 0x01, 
+};
+
+enum
+{
+	CASH_GETSERIAL_FAILED = -16,
+	CASH_ADD_FAILED       = -17,
+	CASH_NOT_ENOUGH       = -18,
+	CASH_USER_NOT_EXIST   = -19,	//AU冲值收到服务器返回-19,则不再进行冲值重试.
+};
+
+#define MAX_USER_CASH           2000000000
+#define CASH_BALANCE_THRESHOLD  10000000
+#define STOCK_TAX_RATE    1.02
+#define STOCK_BALANCE_ID  1
+
+enum{
+        SYNC_STOTEHOUSE  = 0x01,
+        SYNC_CASHUSED    = 0x02,
+        SYNC_CASHTOTAL   = 0x04,
+		SYNC_SHOPLOG     = 0x08,
+		SYNC_MODIFYCASHUSED     = 0x10,
+};
+
+enum ERR_STOCK
+{
+        ERR_STOCK_CLOSED        = 1,
+        ERR_STOCK_ACCOUNTBUSY   = 2,
+        ERR_STOCK_INVALIDINPUT  = 3,
+        ERR_STOCK_OVERFLOW      = 4,
+        ERR_STOCK_DATABASE      = 5,
+        ERR_STOCK_NOTENOUGH     = 6,
+        ERR_STOCK_MAXCOMMISSION = 7,
+        ERR_STOCK_NOTFOUND      = 8,
+	ERR_STOCK_CASHLOCKED    = 9,
+	ERR_STOCK_CASHUNLOCKFAILED= 10,
+};
+
+enum ORDER_RESULT
+{
+        STOCK_ORDER_DONE        = 0,
+        STOCK_ORDER_CANCEL      = 1,
+        STOCK_ORDER_TIMEOUT     = 2,
+};
+
+class Utility
+{
+public:
+        static void SwapSyncData(GMailSyncData& data1, GMailSyncData& data2)
+        {
+                std::swap(data1.data_mask, data2.data_mask);
+                std::swap(data1.cash_total, data2.cash_total);
+                std::swap(data1.cash_used, data2.cash_used);
+                std::swap(data1.cash_serial, data2.cash_serial);
+                std::swap(data1.inventory.capacity, data2.inventory.capacity);
+                std::swap(data1.inventory.timestamp, data2.inventory.timestamp);
+                std::swap(data1.inventory.money, data2.inventory.money);
+
+                data1.inventory.items.swap(data2.inventory.items);
+		data1.equipment.swap(data2.equipment);
+
+                std::swap(data1.storehouse.capacity, data2.storehouse.capacity);
+                std::swap(data1.storehouse.money, data2.storehouse.money);
+                data1.storehouse.items.swap(data2.storehouse.items);
+                std::swap(data1.storehouse.size1, data2.storehouse.size1);
+                std::swap(data1.storehouse.size2, data2.storehouse.size2);
+                data1.storehouse.dress.swap(data2.storehouse.dress);
+                data1.storehouse.material.swap(data2.storehouse.material);
+		data1.logs.swap(data2.logs);
+        }
+};
+
+enum CHALLENGE_ALGO
+{
+	ALGO_NONE = -1,
+	ALGO_MD5 = 0,
+	ALGO_SHA = 1,
+};
+
+enum AC_LOGIN_STATUS
+{
+	AC_LOGIN_STATUS_CLIENT,
+	AC_LOGIN_STATUS_WEB = 0x10,
+	AC_LOGIN_STATUS_MOBILE = 0x20,
+};
+
+enum ERR_KOREALOGIN
+{
+	CMD_LOGIN_DENY_CANT = 231,
+	CMD_FAULT_AGECHECK = 232,
+	CMD_LOGIN_DENY_SERVERBUSY = 233,
+	CMD_FAULT_BETA_TESTER = 234,
+	CMD_LOGIN_DENY_IDERR = 235,
+	CMD_LOGIN_DENY_PASSERRLIMIT = 236,
+	CMD_LOGIN_DENY_PASSERR = 237,
+	CMD_LOGIN_DENY_AGE = 238,
+};
+
+enum FORBID
+{
+	FORBID_USER_LOGIN=100,
+	FORBID_CHEATER_LOGIN=105,
+};
+
+enum USER_STATUS
+{
+	STATUS_CASHINVISIBLE   =   0x01,
+};
+
+enum REF_ERRCODE
+{
+        REF_ERR_NOREFERRALFOUND =	281,
+        REF_ERR_REFERRERNOTLOADED,
+        REF_ERR_REFERRERINTRANSACTION,
+        REF_ERR_NOBONUSAVAILABLE,
+        REF_ERR_SUBMITTODB,
+        REF_ERR_INVALIDSPREADCODE,
+        REF_ERR_REFERRERNOTINSERVER,
+        REF_ERR_REFREFERRERLEVEL,
+        REF_ERR_REFERRERNOTINDISTRICT,
+        REF_ERR_REFERRER_DUPLICATE,
+	REF_ERR_REPUTATION,
+};
+
+enum ERR_REWARD
+{
+	ERR_REWARD_PLAYER_NOT_ONLINE 	=	301,
+	ERR_REWARD_DB_BUSY,
+	ERR_REWARD_DB_ERR,
+	ERR_REWARD_POINTS_INADEQUATE,
+	ERR_REWARD_NOT_ACTIVE,
+	ERR_REWARD_INVALID_TYPE,
+	ERR_REWARD_EXCHANGE_REACH_UPLIMIT,
+};
+
+enum REWARD_LIMIT
+{
+	REWARD_NUM_PER_PAGE	= 	15,
+};
+
+enum REF_LIMIT
+{
+	REF_LIMIT_REFERRERLEVEL   = 20,
+        REF_LIMIT_REFERRALPERPAGE = 15,
+	REF_LIMIT_REPUTATION      = 20,	
+};
+
+enum MAIL_LIMIT
+{
+	PLAYER_MAIL_LIMIT	= 32,
+	SYS_MAIL_LIMIT		= 64, //除了玩家发来的邮件，都被认为是系统邮件 上限设为64
+};
+
+enum		//聊天频道,与gsp_if.h中定义的顺序相同
+{
+	GN_CHAT_CHANNEL_LOCAL = 0,		//普通频道
+	GN_CHAT_CHANNEL_FARCRY ,		//世界频道
+	GN_CHAT_CHANNEL_TEAM ,			//队伍频道
+	GN_CHAT_CHANNEL_FACTION ,		//帮派频道
+	GN_CHAT_CHANNEL_WHISPER ,		//密语信息
+	GN_CHAT_CHANNEL_DAMAGE,			//伤害信息
+	GN_CHAT_CHANNEL_FIGHT,			//战斗信息
+	GN_CHAT_CHANNEL_TRADE ,			//交易频道
+	GN_CHAT_CHANNEL_SYSTEM,			//系统信息
+	GN_CHAT_CHANNEL_BROADCAST,		//广播信息
+	GN_CHAT_CHANNEL_MISC,			//其它信息
+	GN_CHAT_CHANNEL_INSTANCE,		//副本频道
+	GN_CHAT_CHANNEL_SUPERFARCRY,	//超级世界频道
+	GN_CHAT_CHANNEL_BATTLE,			//战场己方
+	GN_CHAT_CHANNEL_COUNTRY,		//国家
+};
+
+enum ERR_WEBTRADE
+{
+	ERR_WT_UNOPEN			=	311,
+	ERR_WT_SN_EXHAUSE,
+	ERR_WT_CANNOT_POST,
+	ERR_WT_CANNOT_CANCELPOST,
+	ERR_WT_NOT_ENOUGH_DEPOSIT,
+	ERR_WT_ILLEGAL_SELL_PERIOD,
+	ERR_WT_ENTRY_NOT_FOUND,
+	ERR_WT_ENTRY_IS_BUSY,
+	ERR_WT_SN_ROLEID_MISMATCH,
+	ERR_WT_TIMESTAMP_MISMATCH,	
+	ERR_WT_ENTRY_HAS_BEEN_SOLD,
+	ERR_WT_BUYER_NOT_EXIST,
+	ERR_WT_SN_USERID_MISMATCH,
+	ERR_WT_ILLEGAL_SELL_PRICE,
+	ERR_WT_TOO_MANY_ATTEND_SELL,
+	ERR_WT_MAILBOX_FULL,
+	ERR_WT_BUYER_STATUS_INAPPROPRIATE,
+	ERR_WT_BUYER_NOT_EXIST_2,
+	ERR_WT_SELLER_NOT_EXIST,
+	ERR_WT_BUYER_CONDITION_NOT_MATCH,
+	ERR_WT_HAS_ATTEND_SELL,
+	ERR_WT_USER_OTHER_ROLE_ON_SALE,
+};
+
+enum ERR_SYSAUCTION
+{
+	ERR_SA_ENTRY_NOT_FOUND = 341,
+	ERR_SA_ENTRY_IS_BUSY,
+	ERR_SA_CANNOT_BID,
+	ERR_SA_LOW_BIDPRICE,
+	ERR_SA_BID_FAILED,
+	ERR_SA_USER_NOT_FOUND,
+	ERR_SA_USER_IS_BUSY,
+	ERR_SA_CASH_NOT_ENOUGH,
+	ERR_SA_CASH_OVERFLOW,
+	ERR_SA_CASH_NOT_ENOUGH_FOR_TRANSFER,
+};
+
+enum ERR_FACTIONFORTRESS
+{
+	ERR_FF_UNOPEN = 361,
+	ERR_FF_FORTRESS_ALREADY_EXIST,
+	ERR_FF_FORTRESS_NOT_EXIST, 
+	ERR_FF_FORTRESS_DESTROYED,
+	ERR_FF_CANNOT_CHALLENGE,
+	ERR_FF_TARGET_ALREADY_CHALLENGED,
+	ERR_FF_FORTRESS_IN_SYNC,
+};
+
+enum ERR_FACTIONRELATION
+{
+	ERR_FR_LEVEL_NOT_MATCH = 381,
+	ERR_FR_OP_IN_COOLDOWN,
+	ERR_FR_OP_DENY_IN_CUR_RELATION,
+	ERR_FR_NO_MATCH_APPLY,
+};
+
+enum ERR_COUPON
+{
+	ERR_COUPON_NOT_ENOUGH = 401,
+	ERR_COUPON_EXCHANGE_ONGOING,
+	ERR_COUPON_EXCHANGE_DAYLIMIT,
+	ERR_COUPON_EXCHANGE_SERVER_FORBID,
+	ERR_COUPON_EXCHANGE_NOT_ACTIVE,
+	ERR_COUPON_EXCHANGE_TOO_OFTEN,
+};
+
+enum ERR_CASH
+{
+	ERR_CASH_CARD_NUM_PASSWD_WRONG = 411,
+	ERR_CASH_CARD_EXPIRED,
+	ERR_CASH_CARD_USED_TOO_OFTEN,
+	ERR_CASH_ACCOUNT_BUSY,
+};
+
+enum
+{
+	ERR_AUMAIL_TENCD = 421 , //10天CD
+	ERR_AUMAIL_FIVECD,//5个限制
+	ERR_AUMAIL_NOTFOUND ,//没有找到好友
+	ERR_AUMAIL_NOTSOLONG,//离开时间不满足
+	ERR_AUMAIL_LEVELLOW,//等级过低
+	ERR_AUMAIL_NOTENABLE,//召回功能未开
+};
+
+enum __MAIL_SENDER_TYPE		//与rpc/macros.h下的MAIL_SENDER_TYPE一致
+{
+	_MST_WEBTRADE = 5,
+	_MST_SYSAUCTION = 6,
+	_MST_COUNTRYBATTLE = 7,
+	_MST_PLAYERPRESENT = 8,
+	_MST_PLAYERSHOP = 9,
+	_MST_TANKBATTLE = 10,
+	_MST_ANTICHEAT = 11,
+    _MST_FACTIONRESOURCEBATTLE = 12,
+};
+
+enum MASS_MAIL_TYPE
+{
+	MMT_FACTION,
+
+	MMT_TYPECOUNT,
+};
+
+enum WEBTRADE_INFORM
+{
+	WEBTRADE_CANCEL_POST,		
+	WEBTRADE_POST_EXPIRE,
+	WEBTRADE_SOLD,
+	WEBTRADE_BUY,
+	WEBTRADE_POST_FAILED,
+};
+
+enum SYSAUCTION_INFORM
+{
+	SYSAUCTION_BID_SUCCESS,
+};
+
+enum COUNTRYBATTLE_INFORM
+{
+	COUNTRYBATTLE_BONUS,
+	COUNTRYBATTLE_NO_BONUS,
+};
+
+enum TANKBATTLE_INFORM
+{
+	TANKBATTLE_BONUS,
+	TANKBATTLE_NO_BONUS,
+};
+
+enum FACTIONRESOURCEBATTLE_INFORM
+{
+	FACTIONRESOURCEBATTLE_BONUS,
+	FACTIONRESOURCEBATTLE_NO_BONUS,
+};
+
+enum PLAYERPRESENT_INFORM
+{
+	PLAYERPRESENT_GIVE,
+	PLAYERPRESENT_ASK,
+};
+
+enum PLAYERSHOP_INFORM
+{
+	PLAYERSHOP_TIMEOUT,			//店铺过期
+	PLAYERSHOP_DELETED,			//删除店铺
+	PLAYERSHOP_RETURN_ITEM,		//过期返回物品
+	PLAYERSHOP_RETURN_MONEY,	//过期返回金钱
+};
+
+enum
+{
+	//需要与db_if.h 中的DBMASK_SERVERDATA_*保持一致
+	CDBMASK_SERVERDATA_WEDDING	= 0x00000001,
+	CDBMASK_SERVERDATA_DPSRANK	= 0x00000002,
+	CDBMASK_SERVERDATA_ALL		= 0x00000003,
+
+};
+
+enum
+{
+	LINK_TYPE_IWEB,		//iweb的link
+	LINK_TYPE_PC,		//pc端连接的link
+	LINK_TYPE_PHONE,	//手机端连接的link
+};
+
+#define FACTION_FORTRESS_CHALLENGE_FEE  5000000
+
+enum FACTIONRELATION_APPLY_TYPE
+{
+	ALLIANCE_FROM_OTHER = 0,	//其他人发来的同盟申请
+	ALLIANCE_TO_OTHER,			//发给其他人的同盟申请
+	HOSTILE_FROM_OTHER,			//其他人发来的敌对申请
+	HOSTILE_TO_OTHER,			//发给其他人的敌对申请
+	REMOVE_RELATION_FROM_OTHER,	//其他人发来的解除关系申请
+	REMOVE_RELATION_TO_OTHER	//发给其他人的解除关系申请
+};
+
+enum FACTIONRELATION_TYPE
+{
+	NONE_RELATION = 0,		//无关系
+	ALLIANCE,				//已经是同盟
+	HOSTILE,				//已经是敌对
+	ALLIANCE_HALF,			//一方进行了同盟申请，另一方还未回复
+	HOSTILE_HALF,			//一方进行了敌对申请，另一方还未回复
+	REMOVE_RELATION_HALF,	//一方已进行了解除关系申请,另一方还未回复
+};
+
+enum ERR_MISC
+{
+	ERR_PRP_RESETPOS_OK 			= 431,  //位置重置完成 允许再次登录
+	ERR_MATRIXFAILURE_PHONETOKEN 	= 432,	//手机令牌验证失败
+	ERR_OBSOLETE_NAME 				= 433,	//客户端根据名字查找角色id的时候发送的是废弃的名字
+	ERR_FC_DELAYEXPEL = 434, 		//工会成员预删除
+	ERR_FC_ALREADY_DELAYEXPEL = 435, 		//工会成员预删除中
+	ERR_UNIQUE_CLASH = 436,         // 唯一值设置冲突 
+	ERR_UNIQUE_TYPE_INVALID = 437,  // 唯一值类型错误
+	ERR_UNIQUE_VERSION_FAIL = 438,  // 唯一值版本错误
+	ERR_NOT_RECALL_USER = 439,		// 没有在回流服创建角色的资格
+	ERR_RECALL_ROLE_EXCEED = 440,	// 在回流活动期间，超过创建角色数量的限制(目前仅能创建一个角色)
+	ERR_FC_PVP_OPERATE_RESTRICTED = 441,	// 帮派PVP活动期操作受限
+};
+
+enum ALGORITHM
+{
+	ALGORITHM_MASK_OPT    		= 0x0000FF00,
+	ALGORITHM_OPT_NOCACHE		= 0x00000100,	//不要缓存帐号密码,用于电话密保用户
+	ALGORITHM_PASSWORD_OBSOLETE	= 0x00000200,	//密码长期未更换,用于提醒玩家改密码
+	ALGORITHM_CARD_OBSOLETE		= 0x00000400,	//密保卡长期未更换
+	ALGORITHM_GM_ACCOUNT		= 0x00000800,	//管理员帐号
+	ALGORITHM_SSO				= 0x00001000,	//single sign on单点登录
+	ALGORITHM_MASK_HIGH 		= 0xFFFF0000,
+	ALGORITHM_NONE        		= 0x0,
+	ALGORITHM_CARD 				= 0x00010000,	//密保卡
+	ALGORITHM_HANDSET 			= 0x00020000,	//手机密保
+	ALGORITHM_USBKEY			= 0x00030000,	//一代神盾
+	ALGORITHM_PHONE				= 0x00040000,	//电话密保
+	ALGORITHM_USBKEY2			= 0x00050000,	//二代神盾
+	ALGORITHM_PHONETOKEN		= 0x00060000,	//手机令牌
+	
+	ALGORITHM_MISSING_ACCOUNTINFO1 	= 0x00000001,		//需要补填身份证姓名
+	ALGORITHM_MISSING_ACCOUNTINFO2 	= 0x00000002,		//需要补填账号密码邮箱
+	ALGORITHM_FILLIN_ACCOUNTINFO1_REWARD = 0x00000010,	//补填身份证姓名的奖励
+	ALGORITHM_FILLIN_ACCOUNTINFO2_REWARD = 0x00000020,	//补填账号密码邮箱的奖励
+};
+
+#define _SECONDS_ONE_DAY 86400
+enum SYNMUTADATAMASK
+{
+	SYNMUTADATAMASK_NONE 	= 0x0,
+	SYNMUTADATAMASK_LEVEL	= 0x00000001,
+};
+
+//用于贵重物品扫描的加密key
+const char arc4_key_buf[128] = {0xbf, 0x61, 0x09, 0x72, 0x1d, 0xbb, 0x6e, 0xe9, 0x9a, 0x01, 0x3d, 0x47, 0x0a, 0x11, 0x60, 0xbe, 
+	0xf8, 0x48, 0x36, 0x3f, 0xdf, 0xf5, 0x9a, 0xc5, 0xca, 0x1c, 0x79, 0xcb, 0xbb, 0x90, 0x96, 0xde, 
+	0x58, 0xff, 0x60, 0xbe, 0x8d, 0x4e, 0xd8, 0xe1, 0x83, 0x47, 0xd0, 0x57, 0x6d, 0x62, 0x49, 0x66, 
+	0x71, 0x0d, 0x6a, 0xfe, 0x3b, 0xdc, 0xd2, 0x33, 0xd7, 0x8f, 0x5c, 0x5e, 0x4b, 0x86, 0x25, 0xd0, 
+	0x6f, 0xd2, 0xd0, 0x8c, 0x53, 0x46, 0xd0, 0xc4, 0x3a, 0x10, 0xae, 0xcf, 0x75, 0xcd, 0xfd, 0x74, 
+	0xe8, 0xfe, 0x80, 0x0b, 0x14, 0xf9, 0x94, 0x66, 0xcc, 0x19, 0x7d, 0xda, 0x89, 0x27, 0x91, 0xab, 
+	0x5c, 0x73, 0xb0, 0x78, 0xc9, 0x1c, 0x48, 0xd9, 0xe2, 0xc3, 0xfc, 0xfa, 0x3e, 0x74, 0xb9, 0xec, 
+	0x81, 0x66, 0x5f, 0x5b, 0x3e, 0x73, 0x1e, 0xd2, 0x31, 0x99, 0xc7, 0xb5, 0xe7, 0x3e, 0xbc, 0x02,}; 
+
+//玩家店铺相关宏
+#define	PSHOP_BLIST_CAP				20				//收购栏容量
+#define	PSHOP_SLIST_CAP				20				//出售栏容量
+#define	PSHOP_STORE_CAP				40				//仓库容量
+#define PSHOP_MONEY_CAP				200000000u		//店铺金钱上限
+#define PSHOP_YINPIAO_CAP			10000u			//店铺银票上限
+#define PSHOP_YP_LIST_CAP			10				//银票栏容量
+#define PSHOP_DELETE_DELAY			7*24*3600u		//延迟删除时间 7天
+#define PSHOP_ITEM_PRICE_LIMIT		4000000000u		//物品单价上限
+#define PSHOP_PAGE_SIZE				20u				//每页显示个数
+#define WANMEI_YINPIAO_PRICE		10000000u		//完美银票单价
+#define WANMEI_YINPIAO_PILELIMIT	1000u			//银票堆叠上限
+#define WANMEI_YINPIAO_ID			21652u			//银票物品ID
+#define PSHOP_CONSUME_ITEM_1		39176u			//创建店铺消耗物品type1
+#define PSHOP_CONSUME_ITEM_2		39177u			//创建店铺消耗物品type2
+#define PSHOP_CONSUME_ITEM_3		40065u			//创建店铺消耗物品type3
+
+//玩家店铺状态
+enum PLAYER_SHOP_STATUS
+{
+	PSHOP_STATUS_NORMAL,
+	PSHOP_STATUS_EXPIRED,
+};
+
+} // namespace GNET
+
+#define PWRD_SILVER_NOTE_ID 21652
+
+enum
+{
+	SSO_GET_TICKET_EXTRA_INFO_NONE 	= 0,	//不需要额外信息
+	SSO_GET_TICKET_EXTRA_INFO1 		= 1,	//需要额外信息1(等级修真声望等)
+};
+
+#define  _ROLE_STATUS_CROSS_LOCKED 5 //由于跨服，角色冻结
+
+enum
+{
+	KICKOUT_LOCAL = 1,
+	KICKOUT_REMOTE = 2,
+};
+
+enum
+{	
+	DS_TO_CENTRALDS = 1,
+	CENTRALDS_TO_DS = 2,
+	DIRECT_TO_CENTRALDS = 3,
+	//DIRECT_TO_RAID = 4,//direct login raid line
+};
+
+enum
+{
+	FC_DELAYEXPEL_EXECUTE = 1,
+	FC_DELAYEXPEL_CANCEL = 2,
+	FC_DELAYEXPEL_TIMEOUT = 3,
+};
+
+enum ErrCode_Local
+{	
+	ERR_IDENTITY_TIMEOUT = 451, //跨服 验证码超时
+	ERR_IDENTITY_NOTMATCH = 452, //跨服 验证码不匹配	
+	ERR_REMOTE_VERIFYFAILED = 453, //跨服 跨服中玩家数据错误	
+	ERR_CDS_COMMUNICATION = 454, //跨服服务器正在维护
+	ERR_REMOTE_DATA_INVALID = 455, //跨服 跨服数据异常
+};
+
+enum ErrCode_Rename
+{
+	ERR_PR_OUTOFSERVICE	= 461,	//付费改名服务不可用
+	ERR_PR_DUPLICATE	= 462,	//付费改名时新名字已经存在
+	ERR_PR_VALIDNAME	= 463,	//付费改名时新名字包含屏蔽字
+};
+
+enum ERR_KINGELECTION
+{
+	ERR_KE_CANNOT_APPLY_CANDIDATE 	= 471,
+	ERR_KE_CANDIDATE_APPLY_EXCEED_UPPER_LIMIT,
+	ERR_KE_ALREADY_APPLY_CANDIDATE,
+	ERR_KE_CANNOT_VOTE,
+	ERR_KE_CANDIDATE_NOT_EXIST,
+};
+
+enum ERR_PRESENT
+{
+	ERR_GP_OUTOFSERVICE	= 481,				//赠送礼物服务不可用
+	ERR_GP_MAIL_ERR = 482,					//根据索取邮件赠送礼物重复
+	ERR_GP_GIVE_TARGET_MAILBOX_FULL	= 483,	//赠送对象的邮箱满了
+	ERR_GP_ASK_TARGET_MAILBOX_FULL = 484,	//索取对象的邮箱满了
+	ERR_GP_ASK_TARGET_TOO_MUCH = 485,		//已经向索取对象索取超过3次了
+};
+
+enum ErrCode_PlayerShop
+{
+	ERR_PLAYERSHOP_VERIFY_FAILED	= 500,	//店铺验证失败
+	ERR_SHOPMARKET_NOT_INIT			= 501,	//店铺数据尚未从DB加载完成
+	ERR_PLAYERSHOP_NOTFIND			= 502,	//店铺不存在
+	ERR_PLAYERSHOP_EXIST			= 503,	//店铺已存在
+	ERR_PLAYERSHOP_BLIST_FULL		= 504,	//店铺收购栏满
+	ERR_PLAYERSHOP_SLIST_FULL		= 505,	//店铺出售栏满
+	ERR_PLAYERSHOP_STORE_FULL		= 507,	//店铺仓库满
+	ERR_PLAYERSHOP_MONEY_FULL		= 508,	//店铺金钱满
+	ERR_PLAYERSHOP_NO_MONEY			= 509,	//店铺金钱不足
+	ERR_PLAYERSHOP_EXPIRED			= 510,	//店铺已过期
+	ERR_PLAYERSHOP_BUSY				= 511,	//店铺忙(正在被操作)
+	ERR_PLAYERSHOP_ITEM_NOTFOUND	= 512,	//物品不存在
+	ERR_PLAYERSHOP_ITEM_NOTMATCH	= 513,	//物品不匹配
+};
+
+enum ERR_TANKBATTLE
+{
+	ERR_TANK_BATTLE_NOT_OPEN		= 490,	//战车战场还没有开启
+	ERR_TANK_BATTLE_ALREADY_APPLY	= 491,	//已经申请过战场了
+	ERR_TANK_BATTLE_SWITCH_TIMEOUT	= 492,	//跳转失败，重新报名
+	ERR_TANK_BATTLE_NOT_APPLY_MAP	= 493,	//报名之后跳转地图了，需要重新报名
+};
+
+enum UNIQUE_DATA_TYPE
+{
+	UDT_INVALID,
+	UDT_INT,
+	UDT_DOUBLE,
+	UDT_OCTETS
+};
+
+enum
+{
+	CNET_CONFIG_COUNTRYBATTLE_BONUS = 0,
+	CNET_CONFIG_MAX,
+};
+
+#endif

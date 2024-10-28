@@ -9,7 +9,7 @@ class online_award_exp_filter : public filter
 {
 	enum
 	{
-		MASK = FILTER_MASK_HEARTBEAT | FILTER_MASK_NOSAVE | FILTER_MASK_UNIQUE | FILTER_MASK_REMOVE_ON_DEATH
+		MASK = FILTER_MASK_HEARTBEAT/* | FILTER_MASK_NOSAVE*/ | FILTER_MASK_UNIQUE | FILTER_MASK_REMOVE_ON_DEATH
 	};
 
 	int _type;
@@ -19,13 +19,17 @@ class online_award_exp_filter : public filter
 
 	virtual bool Save(archive & ar)
 	{
-		ASSERT(false);
+//		ASSERT(false);
+		filter::Save(ar);
+		ar << _type << _interval << _exp << _counter;
 		return true;
 	}
 
 	virtual bool Load(archive & ar)
 	{
-		ASSERT(false);
+//		ASSERT(false);
+		filter::Load(ar);
+		ar >> _type >> _interval >> _exp >> _counter;
 		return true;
 	}
 	

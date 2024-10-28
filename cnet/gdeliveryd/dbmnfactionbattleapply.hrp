@@ -1,0 +1,82 @@
+
+#ifndef __GNET_DBMNFACTIONBATTLEAPPLY_HPP
+#define __GNET_DBMNFACTIONBATTLEAPPLY_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbmnfactionbattleapplyarg"
+#include "dbmnfactionbattleapplyres"
+
+#include "cdcmnfbattleman.h"
+#include "factionuniqueidannounce.hpp"
+#include "mnfactionbattleapply_re.hpp"
+namespace GNET
+{
+
+class DBMNFactionBattleApply : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbmnfactionbattleapply"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBMNFactionBattleApplyArg *arg = (DBMNFactionBattleApplyArg *)argument;
+		// DBMNFactionBattleApplyRes *res = (DBMNFactionBattleApplyRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBMNFactionBattleApplyArg *arg = (DBMNFactionBattleApplyArg *)argument;
+		DBMNFactionBattleApplyRes *res = (DBMNFactionBattleApplyRes *)result;
+		DEBUG_PRINT("file=%s\tfunc=%s\tline=%d\tretcode=%d\troleid=%d\n", __FILE__, __FUNCTION__, __LINE__, res->retcode, res->roleid);
+
+		PlayerInfo* pInfo = UserContainer::GetInstance().FindRoleOnline(res->roleid);
+		if(!pInfo) return;
+		GProviderServer::GetInstance()->DispatchProtocol(pInfo->gameid, GMailEndSync(0, res->retcode, res->roleid, res->syncdata));
+		if(res->retcode == ERR_SUCCESS)
+		{
+			CDC_MNFactionBattleMan::GetInstance()->UpdateMNFactionInfo(res->factioninfo);
+			CDC_MNFactionBattleMan::GetInstance()->UpdateMNFApplyInfo(res->applyinfo);
+			//CDC_MNFactionBattleMan::GetInstance()->UpdateCandidatesFaction(arg->fid, res->factioninfo.unifid);
+
+			//debug guoshi
+			if(arg->unifid == -1)
+			{
+				CDC_MNFactionBattleMan::GetInstance()->DebugFiltrateApplyInfo(res->factioninfo, res->applyinfo);
+			}
+
+			if(arg->unifid == 0 && res->factioninfo.unifid != 0)
+			{
+				DEBUG_PRINT("file=%s\tfunc=%s\tline=%d\tfactionid=%d\tunifid=%lld\n", __FILE__, __FUNCTION__, __LINE__, res->factioninfo.fid, res->factioninfo.unifid);
+				FactionUniqueIdAnnounce pro;
+				pro.factionid	= res->factioninfo.fid;
+				pro.unifid		= res->factioninfo.unifid;
+				GFactionClient::GetInstance()->SendProtocol(pro);
+			}
+		}
+		//通知客户端
+		PlayerInfo * pinfo = UserContainer::GetInstance().FindRoleOnline(arg->roleid);
+		if(pinfo == NULL) return; 
+
+		unsigned int linksid = pinfo->linksid;
+		unsigned int localsid = pinfo->localsid;
+		MNFactionBattleApply_Re re;
+		re.retcode		= res->retcode;
+		re.target		= arg->target;
+		re.localsid     = localsid;
+		GDeliveryServer::GetInstance()->Send(linksid, re); 
+
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

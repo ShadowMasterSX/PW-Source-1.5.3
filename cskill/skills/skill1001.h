@@ -59,9 +59,9 @@ namespace GNET
       Skill1001Stub ():SkillStub (1001)
         {
             cls = 258;
-            name = L"׾��";
-            nativename = "׾��";
-            icon = "׾��.dds";
+            name = L"拙火定";
+            nativename = "拙火定";
+            icon = "拙火定.dds";
             max_level = 10;
             type = 2;
             apcost = 300000;
@@ -81,7 +81,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 1;
-            effect = "׾��.sgc";
+            effect = "拙火定.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

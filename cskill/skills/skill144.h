@@ -19,8 +19,8 @@ namespace GNET
         Skill144Stub ():SkillStub (144)
         {
             cls = 255;
-            name = L"∑‚”°";
-            nativename = "∑‚”°";
+            name = L"Â∞ÅÂç∞";
+            nativename = "Â∞ÅÂç∞";
             icon = "";
             max_level = 1;
             type = 6;

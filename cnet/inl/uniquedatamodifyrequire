@@ -4,17 +4,17 @@
 		int vtype;
 		Octets value;
 		Octets oldvalue;
-		bool exclusive;
-		bool broadcast;
+		char exclusive;
+		char broadcast;
 		int version;
-		bool timeout;
+		char timeout;
 		enum { PROTOCOL_TYPE = PROTOCOL_UNIQUEDATAMODIFYREQUIRE };
 	public:
 		UniqueDataModifyRequire() { type = PROTOCOL_UNIQUEDATAMODIFYREQUIRE; }
 		UniqueDataModifyRequire(void*) : Protocol(PROTOCOL_UNIQUEDATAMODIFYREQUIRE) { }
 		UniqueDataModifyRequire (int l_worldtag,int l_key,int l_vtype,
-			const Octets& l_value,const Octets& l_oldvalue,bool l_exclusive,
-			bool l_broadcast,int l_version,bool l_timeout)
+			const Octets& l_value,const Octets& l_oldvalue,char l_exclusive,
+			char l_broadcast,int l_version,char l_timeout)
 			 : worldtag(l_worldtag),key(l_key),vtype(l_vtype)
 			,value(l_value),oldvalue(l_oldvalue),exclusive(l_exclusive)
 			,broadcast(l_broadcast),version(l_version),timeout(l_timeout)

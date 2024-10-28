@@ -34,7 +34,7 @@ void printhelp( const char * cmd )
 			<< "\t| exportcsvlogicuid | exportcsvroleid | exportcsvrolename | exportcsvfaction | exportcsvfamily" << std::endl
 			<< "\t| importcsvlogicuid filename | importcsvrole filename" << std::endl
 			<< "\t| importcsvfaction filename | importcsvfamily filename" << std::endl
-			<< "\t| merge dbdatapath ]" << std::endl;
+			<< "\t| merge dbdatapath | importrolelist userid rolelist ]" << std::endl;
 }
 
 int main(int argc, char *argv[])
@@ -209,6 +209,18 @@ int main(int argc, char *argv[])
 		StorageEnv::Close();
 		return 0;
 	}
+    else if ((argc == 5) && (0 == strcmp(argv[2], "importrolelist")))
+    {
+        unsigned int userid = 0;
+        unsigned int rolelist = 0;
+        sscanf(argv[3], "%u", &userid);
+        sscanf(argv[4], "%x", &rolelist);
+
+        ImportRoleList(userid, rolelist);
+        StorageEnv::checkpoint();
+        StorageEnv::Close();
+        return 0;
+    }
 	else if( argc >= 3 )
 	{
 		printhelp( argv[0] );

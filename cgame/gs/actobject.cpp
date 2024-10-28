@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include <arandomgen.h>
-#include "world.h"
 #include "actobject.h"
 #include "object.h"
+#include "world.h"
 #include "usermsg.h"
 #include "actsession.h"
 #include "property_ar.h"
@@ -36,7 +36,7 @@ ai_actobject::SendMessage(const XID & id, int message)
 	_imp->_plane->PostLazyMessage(msg);
 }
 
-gactive_imp::gactive_imp():_session_id(0),_switch_dest(-1),_direction(-1,0,0),_session_state(STATE_SESSION_IDLE),_cur_session(NULL),_hp_gen_counter(0),_mp_gen_counter(0),_moving_action_env(this)
+gactive_imp::gactive_imp():_session_id(0),_session_process(false),_switch_dest(-1),_direction(-1,0,0),_session_state(STATE_SESSION_IDLE),_cur_session(NULL),_hp_gen_counter(0),_mp_gen_counter(0),_moving_action_env(this)
 {
 	memset(&_basic,0,sizeof(_basic));
 	memset(&_base_prop,0,sizeof(_base_prop));
@@ -46,6 +46,7 @@ gactive_imp::gactive_imp():_session_id(0),_switch_dest(-1),_direction(-1,0,0),_s
 	memset(&_en_point,0,sizeof(_en_point));
 	memset(&_en_percent,0,sizeof(_en_percent));
 	memset(&_elf_en, 0, sizeof(_elf_en));	//lgc
+	memset(&_plus_enhanced_param, 0, sizeof(_plus_enhanced_param));
 	
 	_server_notify_timestamp = 0;
 	_damage_reduce = 0;
@@ -102,6 +103,12 @@ gactive_imp::gactive_imp():_session_id(0),_switch_dest(-1),_direction(-1,0,0),_s
 	_far_normal_dmg_reduce = 0;
 	_far_skill_dmg_reduce = 0;
 	_mount_speed_en = 0;
+    _exp_sp_factor = 0;
+    _realm_exp_factor = 0;
+	_anti_defense_degree = 0;
+	_anti_resistance_degree = 0;
+	_infected_skill_id = 0;
+	_infected_skill_lvl = 0;
 	_idle_seal_mode_counter.insert(_idle_seal_mode_counter.end(),4,0);//lgc
 	_immune_state_adj_counter.insert(_immune_state_adj_counter.end(),32,0);
 	//	_skill_list.SetImp(this);
@@ -185,7 +192,7 @@ gactive_imp::MessageHandler(world *pPlane,const MSG & msg)
 			{
 				int guid = _cur_session->GetGUID();
 				int p = _session_state;
-				if(!_cur_session->RepeatSession())		
+				if(!RepeatSession())		
 				{
 					if(_cur_session == NULL)
 					{
@@ -212,7 +219,7 @@ gactive_imp::MessageHandler(world *pPlane,const MSG & msg)
 			{
 				int guid = _cur_session->GetGUID();
 				int p = _session_state;
-				if(!_cur_session->RepeatSession())
+				if(!RepeatSession())
 				{
 					if(_cur_session == NULL)
 					{
@@ -531,7 +538,9 @@ gactive_imp::AttackJudgement(attack_msg * attack,damage_entry &dmg,bool is_short
 		{
 			float damage = attack->physic_damage;
 			//进行攻击比例修正，未完成，还是使用原公式
-			float reduce = player_template::GetDamageReduce(_cur_prop.defense,alevel);
+			int def = attack->anti_defense_degree == 0 ? _cur_prop.defense :
+				player_template::CalcAntiDef(attack->anti_defense_degree,_cur_prop.defense);
+			float reduce = player_template::GetDamageReduce(def,alevel);
 			damage = damage * (1 - reduce);
 			DoDamageReduce(damage);
 			if(damage <0) damage = 0;
@@ -551,7 +560,9 @@ gactive_imp::AttackJudgement(attack_msg * attack,damage_entry &dmg,bool is_short
 			else
 			{
 				float damage =attack->magic_damage[i];
-				float reduce = player_template::GetDamageReduce(_cur_prop.resistance[i],alevel);
+				int def = attack->anti_resistance_degree == 0 ? _cur_prop.resistance[i] :
+					player_template::CalcAntiDef(attack->anti_resistance_degree,_cur_prop.resistance[i]);
+				float reduce = player_template::GetDamageReduce(def,alevel);
 				damage = damage * (1-reduce);
 				DoMagicDamageReduce(i,damage);
 				if(damage <0) damage = 0;
@@ -631,6 +642,12 @@ gactive_imp::HandleEnchantMsg(world * pPlane,const MSG & msg, enchant_msg * ench
 	}
 
 	_filters.EF_DoEnchant(msg.source, *enchant);
+
+	 // 感染优先计算
+	if(enchant->infected_skill.skill && !enchant->helpful)
+	{
+		_skill.Infect(this,msg.source,msg.pos,*enchant,orange_name);
+	}
 
 	_skill.Attack(this,msg.source,msg.pos,*enchant,orange_name);
 	if(orange_name)
@@ -768,6 +785,12 @@ gactive_imp::HandleAttackMsg(world * pPlane,const MSG & msg, attack_msg * attack
 	}
 	else
 	{
+		 // 感染优先计算
+		if(attack->infected_skill.skill)
+		{
+			_skill.Infect(this,msg.source,msg.pos,*attack,orange_name);
+		}
+
 		//调用技能的处理接口
 		if(attack->attached_skill.skill)
 		{
@@ -838,7 +861,8 @@ bool gactive_imp::Save(archive & ar)
 		_session_state << _session_id << _seal_mode_flag << _idle_mode_flag << _expire_item_date << _last_attack_target << 
 		_attack_degree << _defend_degree << _invisible_passive << _invisible_active << _anti_invisible_passive << _anti_invisible_active << 
 		_damage_dodge_rate << _debuff_dodge_rate << _hp_steal_rate << 
-		_heal_cool_time_adj << _skill_enhance << _penetration << _resilience << _attack_monster << _vigour_base << _vigour_en << _skill_enhance2 << _crit_damage_reduce << _near_normal_dmg_reduce << _near_skill_dmg_reduce << _far_normal_dmg_reduce << _far_skill_dmg_reduce << _mount_speed_en;
+		_heal_cool_time_adj << _skill_enhance << _penetration << _resilience << _attack_monster << _vigour_base << _vigour_en << _skill_enhance2 << _crit_damage_reduce << _near_normal_dmg_reduce << _near_skill_dmg_reduce << _far_normal_dmg_reduce << _far_skill_dmg_reduce << _mount_speed_en << _exp_sp_factor << _realm_exp_factor
+		<< _anti_defense_degree << _anti_resistance_degree << _infected_skill_id << _infected_skill_lvl;
 	
 	ar.push_back(_magic_damage_reduce,sizeof(_magic_damage_reduce));
 	_skill.Store(ar);
@@ -852,6 +876,8 @@ bool gactive_imp::Save(archive & ar)
 	SaveSetAddon(ar);
 	ASSERT(_immune_state_adj_counter.size() == 32);
 	ar.push_back(_immune_state_adj_counter.begin(), 32*sizeof(int));
+
+	ar << _plus_enhanced_param;
 	return true;
 }
 
@@ -865,7 +891,8 @@ bool gactive_imp::Load(archive & ar)
 		_session_state >> _session_id >> _seal_mode_flag >> _idle_mode_flag >> _expire_item_date >> _last_attack_target >> 
 		_attack_degree >> _defend_degree >> _invisible_passive >> _invisible_active >> _anti_invisible_passive >> _anti_invisible_active >> 
 		_damage_dodge_rate >> _debuff_dodge_rate >> _hp_steal_rate >> 
-		_heal_cool_time_adj >> _skill_enhance >> _penetration >> _resilience >> _attack_monster >> _vigour_base >> _vigour_en >> _skill_enhance2 >> _crit_damage_reduce >> _near_normal_dmg_reduce >> _near_skill_dmg_reduce >> _far_normal_dmg_reduce >> _far_skill_dmg_reduce >> _mount_speed_en;
+		_heal_cool_time_adj >> _skill_enhance >> _penetration >> _resilience >> _attack_monster >> _vigour_base >> _vigour_en >> _skill_enhance2 >> _crit_damage_reduce >> _near_normal_dmg_reduce >> _near_skill_dmg_reduce >> _far_normal_dmg_reduce >> _far_skill_dmg_reduce >> _mount_speed_en >> _exp_sp_factor >> _realm_exp_factor 
+		>> _anti_defense_degree >> _anti_resistance_degree >> _infected_skill_id >> _infected_skill_lvl;
 		
 	ar.pop_back(_magic_damage_reduce,sizeof(_magic_damage_reduce));
 	_skill.Load(ar);
@@ -887,6 +914,8 @@ bool gactive_imp::Load(archive & ar)
 	LoadSetAddon(ar);
 	ASSERT(_immune_state_adj_counter.size() == 32);
 	ar.pop_back(_immune_state_adj_counter.begin(), 32*sizeof(int));
+
+	ar >> _plus_enhanced_param;
 	return true;
 }
 void 
@@ -1049,10 +1078,13 @@ bool gactive_imp::StartSession()
 			_cur_session = NULL;
 			continue;
 		}
+		_session_process = true;
 		if(!(rst = _cur_session->StartSession(HasNextSession())))
 		{
+			_session_process = false;
 			EndCurSession();
 		}
+		_session_process = false;
 	}
 	return rst;
 }
@@ -1063,10 +1095,16 @@ bool gactive_imp::EndCurSession()
 	//这里不校验_session_state的目的是有些session不会改state
 	if(_cur_session == NULL) return false;
 	_cur_session->EndSession();
-	_session_state = STATE_SESSION_IDLE;
-	delete _cur_session;
-	_cur_session = NULL;
-	return true;
+	return SafeDeleteCurSession();
+}
+
+bool gactive_imp::RepeatSession()
+{
+	ASSERT(_cur_session );
+	_session_process = true;
+	bool flag = _cur_session->RepeatSession();
+	_session_process = false;
+	return flag;
 }
 
 void gactive_imp::ClearNextSession()
@@ -1074,14 +1112,28 @@ void gactive_imp::ClearNextSession()
 	abase::clear_ptr_vector(_session_list);
 }
 
+bool gactive_imp::SafeDeleteCurSession()
+{
+	if(_session_process)
+	{
+		GLog::log(GLOG_ERR,"world[%d] session %s 存在嵌套释放",world_manager::GetWorldTag(),_cur_session->GetRunTimeClass()->GetName());
+		return false;
+	}
+	else
+	{
+		_session_state = STATE_SESSION_IDLE;
+		delete _cur_session;
+		_cur_session = NULL;
+		return true;
+	}
+}
+
 void gactive_imp::ClearSession()
 {
 	if(_cur_session)
 	{
 		_cur_session->TerminateSession();
-		_session_state = STATE_SESSION_IDLE;
-		delete _cur_session;
-		_cur_session = NULL;
+		SafeDeleteCurSession();
 	}
 
 	if(_session_list.size())
@@ -1096,9 +1148,7 @@ gactive_imp::ResetSession()
 	{
 		//这里不应该调用TerminateSession了，因为会引发额外的消息发送
 		//_cur_session->TerminateSession();
-		_session_state = STATE_SESSION_IDLE;
-		delete _cur_session;
-		_cur_session = NULL;
+		SafeDeleteCurSession();
 	}
 
 	if(_session_list.size())
@@ -1112,9 +1162,7 @@ gactive_imp::TryStopCurSession()
 {
 	if(_cur_session && _cur_session->TerminateSession(false))
 	{
-		_session_state = STATE_SESSION_IDLE;
-		delete _cur_session;
-		_cur_session = NULL;
+		if(SafeDeleteCurSession())
 		StartSession();
 	}
 }
@@ -1451,6 +1499,10 @@ gactive_imp::FillAttackMsg(const XID & target,attack_msg & attack,int dec_arrow)
 	attack.attack_degree += _attack_degree;
 	attack.penetration = _penetration;
 	attack.vigour = GetVigour();
+	attack.anti_defense_degree = _anti_defense_degree;
+	attack.anti_resistance_degree = _anti_resistance_degree;
+	attack.infected_skill.skill = _infected_skill_id;
+	attack.infected_skill.level = _infected_skill_lvl;
 	if((attack.attack_attr == attack_msg::PHYSIC_ATTACK || attack.attack_attr == attack_msg::PHYSIC_ATTACK_HIT_DEFINITE)
 			&& attack.short_range <= 0.f) attack.hp_steal_rate = _hp_steal_rate;
 }
@@ -1469,6 +1521,8 @@ gactive_imp::FillEnchantMsg(const XID & target,enchant_msg & enchant)
 	enchant.vigour = GetVigour();
 	enchant._attack_state = __at_attack_state;
 	__at_attack_state = 0;
+	enchant.infected_skill.skill = _infected_skill_id;
+	enchant.infected_skill.level = _infected_skill_lvl;
 }
 
 
@@ -1645,6 +1699,12 @@ void gactive_imp::Swap(gactive_imp * rhs)
 	Set(_far_normal_dmg_reduce, rhs);
 	Set(_far_skill_dmg_reduce, rhs);
 	Set(_mount_speed_en, rhs);
+    Set(_exp_sp_factor, rhs);
+    Set(_realm_exp_factor, rhs);
+	Set(_anti_defense_degree, rhs);
+	Set(_anti_resistance_degree, rhs);
+	Set(_infected_skill_id, rhs);
+	Set(_infected_skill_lvl, rhs);
 
 	memcpy(_magic_damage_reduce, rhs->_magic_damage_reduce, sizeof(_magic_damage_reduce));
 	_skill.Swap(rhs->_skill);

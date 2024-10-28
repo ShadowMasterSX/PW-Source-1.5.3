@@ -19,8 +19,8 @@ namespace GNET
         Skill222Stub ():SkillStub (222)
         {
             cls = 255;
-            name = L"°ËÕó";
-            nativename = "°ËÕó";
+            name = L"å…«é˜µ";
+            nativename = "å…«é˜µ";
             icon = "";
             max_level = 1;
             type = 6;
@@ -41,7 +41,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "¸ß¼¶¹ÖÎïË®Ä§·¨¹¥»÷.sgc";
+            effect = "é«˜çº§æ€ªç‰©æ°´é­”æ³•æ”»å‡».sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

@@ -132,8 +132,8 @@ namespace GNET
       Skill858Stub ():SkillStub (858)
         {
             cls = 127;
-            name = L"土系群体持续魔伤";
-            nativename = "土系群体持续魔伤";
+            name = L"鍦熺郴缇や綋鎸佺画榄斾激";
+            nativename = "鍦熺郴缇や綋鎸佺画榄斾激";
             icon = "";
             max_level = 10;
             type = 3;
@@ -153,7 +153,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "怪物掷石.sgc";
+            effect = "鎬墿鎺风煶.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

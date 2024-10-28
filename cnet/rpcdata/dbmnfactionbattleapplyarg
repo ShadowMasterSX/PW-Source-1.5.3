@@ -1,0 +1,96 @@
+#ifndef __GNET_DBMNFACTIONBATTLEAPPLYARG_RPCDATA
+#define __GNET_DBMNFACTIONBATTLEAPPLYARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailsyncdata"
+
+namespace GNET
+{
+	class DBMNFactionBattleApplyArg : public GNET::Rpc::Data
+	{
+	public:
+		unsigned int fid;
+		int64_t unifid;
+		int roleid;
+		unsigned char target;
+		unsigned int cost;
+		int zoneid;
+		GMailSyncData syncdata;
+
+	public:
+		DBMNFactionBattleApplyArg (unsigned int l_fid = 0,int64_t l_unifid = 0,int l_roleid = 0
+			,unsigned char l_target = 0,unsigned int l_cost = 0,int l_zoneid = 0
+			,const GMailSyncData& l_syncdata = GMailSyncData())
+			: fid(l_fid),unifid(l_unifid),roleid(l_roleid)
+			,target(l_target),cost(l_cost),zoneid(l_zoneid)
+			,syncdata(l_syncdata)
+		{
+		}
+
+		DBMNFactionBattleApplyArg(const DBMNFactionBattleApplyArg &rhs)
+			: fid(rhs.fid),unifid(rhs.unifid),roleid(rhs.roleid),
+			target(rhs.target),cost(rhs.cost),zoneid(rhs.zoneid),
+			syncdata(rhs.syncdata) { }
+
+		Rpc::Data *Clone() const { return new DBMNFactionBattleApplyArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBMNFactionBattleApplyArg *r = dynamic_cast<const DBMNFactionBattleApplyArg *>(&rhs);
+			if (r && r != this)
+			{
+				fid = r->fid;
+				unifid = r->unifid;
+				roleid = r->roleid;
+				target = r->target;
+				cost = r->cost;
+				zoneid = r->zoneid;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		DBMNFactionBattleApplyArg& operator = (const DBMNFactionBattleApplyArg &rhs)
+		{
+			const DBMNFactionBattleApplyArg *r = &rhs;
+			if (r && r != this)
+			{
+				fid = r->fid;
+				unifid = r->unifid;
+				roleid = r->roleid;
+				target = r->target;
+				cost = r->cost;
+				zoneid = r->zoneid;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << fid;
+			os << unifid;
+			os << roleid;
+			os << target;
+			os << cost;
+			os << zoneid;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> fid;
+			os >> unifid;
+			os >> roleid;
+			os >> target;
+			os >> cost;
+			os >> zoneid;
+			os >> syncdata;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -19,9 +19,9 @@ namespace GNET
         Skill2690Stub ():SkillStub (2690)
         {
             cls = 11;
-            name = L"��ͨ";
-            nativename = "��ͨ";
-            icon = "��ͨ.dds";
+            name = L"金精通";
+            nativename = "金精通";
+            icon = "金精通.dds";
             max_level = 10;
             type = 5;
             apcost = 0;

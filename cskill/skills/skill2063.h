@@ -56,9 +56,9 @@ namespace GNET
       Skill2063Stub ():SkillStub (2063)
         {
             cls = 127;
-            name = L"嗜血专用";
-            nativename = "嗜血专用";
-            icon = "宠物鼓舞.dds";
+            name = L"鍡滆涓撶敤";
+            nativename = "鍡滆涓撶敤";
+            icon = "瀹犵墿榧撹垶.dds";
             max_level = 10;
             type = 10;
             apcost = 0;
@@ -79,7 +79,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "宠物治疗.sgc";
+            effect = "瀹犵墿娌荤枟.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

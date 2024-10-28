@@ -138,9 +138,9 @@ namespace GNET
       Skill2620Stub ():SkillStub (2620)
         {
             cls = 11;
-            name = L"¿ñ¡¤Ë·¹âÓ½";
-            nativename = "¿ñ¡¤Ë·¹âÓ½";
-            icon = "Ä§Ë·¹âÓ½.dds";
+            name = L"ç‹‚Â·æœ”å…‰å’";
+            nativename = "ç‹‚Â·æœ”å…‰å’";
+            icon = "é­”æœ”å…‰å’.dds";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -168,7 +168,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (44879);
             }
-            effect = "ÔÂÏÉ_Ë·¹âÓ½_»÷ÖĞ.sgc";
+            effect = "æœˆä»™_æœ”å…‰å’_å‡»ä¸­.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

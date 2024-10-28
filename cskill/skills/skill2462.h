@@ -132,8 +132,8 @@ namespace GNET
       Skill2462Stub ():SkillStub (2462)
         {
             cls = 127;
-            name = L"巨龙光环";
-            nativename = "巨龙光环";
+            name = L"宸ㄩ緳鍏夌幆";
+            nativename = "宸ㄩ緳鍏夌幆";
             icon = "";
             max_level = 10;
             type = 2;

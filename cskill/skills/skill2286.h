@@ -174,9 +174,9 @@ namespace GNET
       Skill2286Stub ():SkillStub (2286)
         {
             cls = 255;
-            name = L"剑神无敌";
-            nativename = "剑神无敌";
-            icon = "剑神无敌.dds";
+            name = L"鍓戠鏃犳晫";
+            nativename = "鍓戠鏃犳晫";
+            icon = "鍓戠鏃犳晫.dds";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -200,7 +200,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (1);
             }
-            effect = "剑灵_剑神无敌_击中.sgc";
+            effect = "鍓戠伒_鍓戠鏃犳晫_鍑讳腑.sgc";
             range.type = 2;
             doenchant = false;
             dobless = false;

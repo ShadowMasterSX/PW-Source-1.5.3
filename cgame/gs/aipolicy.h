@@ -114,6 +114,7 @@ public:
 	virtual void StartPlayAction(char action_name[128], int play_times, int action_last_time, int interval_time) = 0;
 	virtual void StopPlayAction() = 0;
 	virtual void SetTargetCache(const XID& target) = 0;
+	virtual int GetPetMaster(const XID& target) = 0;
 public:
 	//global function
 	struct  target_info

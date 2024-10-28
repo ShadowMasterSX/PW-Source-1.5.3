@@ -133,8 +133,8 @@ namespace GNET
       Skill2386Stub ():SkillStub (2386)
         {
             cls = 127;
-            name = L"暴君步兵火焰吐息";
-            nativename = "暴君步兵火焰吐息";
+            name = L"鏆村悰姝ュ叺鐏劙鍚愭伅";
+            nativename = "鏆村悰姝ュ叺鐏劙鍚愭伅";
             icon = "";
             max_level = 10;
             type = 1;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "炎索.sgc";
+            effect = "鐐庣储.sgc";
             range.type = 1;
             doenchant = true;
             dobless = false;

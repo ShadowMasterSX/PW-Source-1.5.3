@@ -134,9 +134,9 @@ namespace GNET
       Skill1657Stub ():SkillStub (1657)
         {
             cls = 9;
-            name = L"¿ñ¡¤ÎäÉñÏÖÊÀ";
-            nativename = "¿ñ¡¤ÎäÉñÏÖÊÀ";
-            icon = "Ä§Éñò¿ÓÈÄ§¼¼ÄÜ.dds";
+            name = L"ç‹‚Â·æ­¦ç¥ç°ä¸–";
+            nativename = "ç‹‚Â·æ­¦ç¥ç°ä¸–";
+            icon = "é­”ç¥èš©å°¤é­”æŠ€èƒ½.dds";
             max_level = 1;
             type = 2;
             apcost = 0;

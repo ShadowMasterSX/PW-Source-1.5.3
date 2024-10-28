@@ -96,8 +96,8 @@ namespace GNET
       Skill2162Stub ():SkillStub (2162)
         {
             cls = 127;
-            name = L"ÒşÁú¿ß×îÖÕBOSSË²·¢AOE";
-            nativename = "ÒşÁú¿ß×îÖÕBOSSË²·¢AOE";
+            name = L"éšé¾™çªŸæœ€ç»ˆBOSSç¬å‘AOE";
+            nativename = "éšé¾™çªŸæœ€ç»ˆBOSSç¬å‘AOE";
             icon = "";
             max_level = 10;
             type = 1;
@@ -119,7 +119,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "1°ÔÍõ±©Å­.sgc";
+            effect = "1éœ¸ç‹æš´æ€’.sgc";
             range.type = 2;
             doenchant = true;
             dobless = true;

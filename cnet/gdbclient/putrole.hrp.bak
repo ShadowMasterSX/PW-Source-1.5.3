@@ -1,0 +1,54 @@
+
+#ifndef __GNET_PUTROLE_HPP
+#define __GNET_PUTROLE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#ifdef USE_BDB
+#include "dbbuffer.h"
+#endif
+#include "rolepair"
+#include "db_if.h"
+
+
+namespace GNET
+{
+
+class PutRole : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "putrole"
+#undef	RPC_BASECLASS
+
+	GDB::Result *_callback;
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// RolePair2 *arg = (RolePair2 *)argument;
+		RpcRetcode *res = (RpcRetcode *)result;
+		if(_callback) 
+		{
+			if(res->retcode)
+			{
+				_callback->OnFailed();
+			}
+			else
+			{
+				_callback->OnPutRole(0);
+			}
+		}
+	}
+
+	void OnTimeout()
+	{
+		if(_callback) _callback->OnTimeOut();
+	}
+
+};
+
+};
+#endif

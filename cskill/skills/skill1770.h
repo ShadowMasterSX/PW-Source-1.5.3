@@ -96,8 +96,8 @@ namespace GNET
       Skill1770Stub ():SkillStub (1770)
         {
             cls = 127;
-            name = L"PKÈü_±©»÷ÌáÉı";
-            nativename = "PKÈü_±©»÷ÌáÉı";
+            name = L"PKèµ›_æš´å‡»æå‡";
+            nativename = "PKèµ›_æš´å‡»æå‡";
             icon = "";
             max_level = 1;
             type = 3;
@@ -118,7 +118,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "¹ÖÎï³Ù»º¼¼ÄÜ¹¥»÷.sgc";
+            effect = "æ€ªç‰©è¿Ÿç¼“æŠ€èƒ½æ”»å‡».sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

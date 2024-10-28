@@ -364,6 +364,8 @@ gplayer_imp::MarketHandler(world * pPlane, const MSG & msg)
 		case GM_MSG_GM_MQUERY_MOVE_POS:
 		case GM_MSG_GM_DEBUG_COMMAND:
 		case GM_MSG_GM_QUERY_SPEC_ITEM:
+        case GM_MSG_LOOKUP_ENEMY:
+        case GM_MSG_LOOKUP_ENEMY_REPLY:
 
 			//这些消息是和普通的时候拥有一样的处理
 			return DispatchNormalMessage(pPlane,msg);
@@ -382,7 +384,7 @@ gplayer_imp::MarketHandler(world * pPlane, const MSG & msg)
 
 		case GM_MSG_SERVICE_HELLO:
 		{
-			if(msg.pos.squared_distance(_parent->pos) < 36.f)	//六米限制
+			if(msg.pos.squared_distance(_parent->pos) < 100000.f)	// Alien alterado de 36.f para 400.f (20 metros de distancia)
 			{
 				SendTo<0>(GM_MSG_SERVICE_GREETING,msg.source,0);
 			}
@@ -390,7 +392,7 @@ gplayer_imp::MarketHandler(world * pPlane, const MSG & msg)
 		return 0;
 
 		case GM_MSG_SERVICE_REQUEST:
-		if(msg.pos.squared_distance(_parent->pos) > 36.f)	//6米限制
+		if(msg.pos.squared_distance(_parent->pos) > 100000.f)	// Alien alterado de 36.f para 400.f (20 metros de distancia)
 		{
 			SendTo<0>(GM_MSG_ERROR_MESSAGE,msg.source,S2C::ERR_SERVICE_UNAVILABLE);
 			return 0;
@@ -465,7 +467,7 @@ gplayer_imp::MarketHandler(world * pPlane, const MSG & msg)
 		return 0;
 
 		case GM_MSG_SERVICE_QUIERY_CONTENT:
-		if(msg.pos.squared_distance(_parent->pos) > 36.f)	//6米限制
+		if(msg.pos.squared_distance(_parent->pos) > 100000.f)	// Alien alterado de 36.f para 400.f (20 metros de distancia)
 		{
 			SendTo<0>(GM_MSG_ERROR_MESSAGE,msg.source,S2C::ERR_SERVICE_UNAVILABLE);
 			return 0;

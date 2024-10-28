@@ -130,9 +130,9 @@ namespace GNET
       Skill539Stub ():SkillStub (539)
         {
             cls = 4;
-            name = L"¿ñ¡¤±äÉíÇ¿»¯";
-            nativename = "¿ñ¡¤±äÉíÇ¿»¯";
-            icon = "±äÉíÇ¿»¯2.dds";
+            name = L"ç‹‚Â·å˜èº«å¼ºåŒ–";
+            nativename = "ç‹‚Â·å˜èº«å¼ºåŒ–";
+            icon = "å˜èº«å¼ºåŒ–2.dds";
             max_level = 1;
             type = 5;
             apcost = 0;

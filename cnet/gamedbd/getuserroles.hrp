@@ -25,6 +25,12 @@ class GetUserRoles : public Rpc
 
 		LOG_TRACE( "GetUserRoles, userid=%d.\n", arg->userid );
 
+		if(arg->userid == -1) // au touch state
+		{
+			res->retcode = ERR_DATANOTFIND;
+			return;
+		}
+
 		try
 		{
 			StorageEnv::Storage * puser = StorageEnv::GetStorage("user");

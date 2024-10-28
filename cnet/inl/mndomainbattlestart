@@ -1,0 +1,56 @@
+	public:
+		int domain_id;
+		unsigned int sn;
+		unsigned char domain_type;
+		int64_t owner;
+		int64_t attacker;
+		int64_t defender;
+		int expiretime;
+		enum { PROTOCOL_TYPE = PROTOCOL_MNDOMAINBATTLESTART };
+	public:
+		MNDomainBattleStart() { type = PROTOCOL_MNDOMAINBATTLESTART; }
+		MNDomainBattleStart(void*) : Protocol(PROTOCOL_MNDOMAINBATTLESTART) { }
+		MNDomainBattleStart (int l_domain_id,unsigned int l_sn,unsigned char l_domain_type,
+			int64_t l_owner,int64_t l_attacker,int64_t l_defender,
+			int l_expiretime)
+			 : domain_id(l_domain_id),sn(l_sn),domain_type(l_domain_type)
+			,owner(l_owner),attacker(l_attacker),defender(l_defender)
+			,expiretime(l_expiretime)
+		{
+			type = PROTOCOL_MNDOMAINBATTLESTART;
+		}
+
+		MNDomainBattleStart(const MNDomainBattleStart &rhs)
+			: Protocol(rhs),domain_id(rhs.domain_id),sn(rhs.sn),domain_type(rhs.domain_type)
+			,owner(rhs.owner),attacker(rhs.attacker),defender(rhs.defender)
+			,expiretime(rhs.expiretime) { }
+
+		GNET::Protocol *Clone() const { return new MNDomainBattleStart(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << domain_id;
+			os << sn;
+			os << domain_type;
+			os << owner;
+			os << attacker;
+			os << defender;
+			os << expiretime;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> domain_id;
+			os >> sn;
+			os >> domain_type;
+			os >> owner;
+			os >> attacker;
+			os >> defender;
+			os >> expiretime;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 256; }

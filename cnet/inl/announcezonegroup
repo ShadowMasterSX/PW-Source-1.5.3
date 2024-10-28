@@ -1,0 +1,38 @@
+	public:
+		std::map<int,int> accepted_zone_list;
+		char is_central;
+		int group;
+		enum { PROTOCOL_TYPE = PROTOCOL_ANNOUNCEZONEGROUP };
+	public:
+		AnnounceZoneGroup() { type = PROTOCOL_ANNOUNCEZONEGROUP; }
+		AnnounceZoneGroup(void*) : Protocol(PROTOCOL_ANNOUNCEZONEGROUP) { }
+		AnnounceZoneGroup (const std::map<int,int>& l_accepted_zone_list,char l_is_central = 0,int l_group = 0)
+			 : accepted_zone_list(l_accepted_zone_list),is_central(l_is_central),group(l_group)
+		{
+			type = PROTOCOL_ANNOUNCEZONEGROUP;
+		}
+
+		AnnounceZoneGroup(const AnnounceZoneGroup &rhs)
+			: Protocol(rhs),accepted_zone_list(rhs.accepted_zone_list),is_central(rhs.is_central),group(rhs.group) { }
+
+		GNET::Protocol *Clone() const { return new AnnounceZoneGroup(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << accepted_zone_list;
+			os << is_central;
+			os << group;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> accepted_zone_list;
+			os >> is_central;
+			os >> group;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 4096; }

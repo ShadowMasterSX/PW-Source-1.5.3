@@ -88,6 +88,10 @@ int generate_item(unsigned int id, item_data ** item, size_t& size, RAND_CLASS c
 		ret = generate_generalcard(id,ID_SPACE_ESSENCE,(char **)item,size,cls);
 		break;
 	
+	case DT_ASTROLABE_ESSENCE: 	
+		ret = generate_astrolabe(id,ID_SPACE_ESSENCE,(char **)item,size);
+		break;
+
 	case DT_WINGMANWING_ESSENCE:
 	case DT_MEDICINE_ESSENCE:
 	case DT_MATERIAL_ESSENCE:
@@ -124,6 +128,12 @@ int generate_item(unsigned int id, item_data ** item, size_t& size, RAND_CLASS c
 	case DT_MONSTER_SPIRIT_ESSENCE:
 	case DT_SHOP_TOKEN_ESSENCE:
 	case DT_UNIVERSAL_TOKEN_ESSENCE:
+	case DT_ASTROLABE_RANDOM_ADDON_ESSENCE:
+	case DT_ASTROLABE_INC_INNER_POINT_VALUE_ESSENCE:
+	case DT_ASTROLABE_INC_EXP_ESSENCE:
+	case DT_ITEM_PACKAGE_BY_PROFESSION_ESSENCE:
+	case DT_FIREWORKS2_ESSENCE:
+	case DT_FIX_POSITION_TRANSMIT_ESSENCE:
 		ret = duplicate_static_item(id, (char **)item, size);
 		break;
 
@@ -835,8 +845,12 @@ int generate_stone(unsigned int id, ID_SPACE idspace, char ** data, size_t& size
 
 	char addon_buf[ELEMENTDATAMAN_MAX_NUM_ADDONS*sizeof(_addon)];
 	int *pBuf = (int*)addon_buf;
+    size_t addon_size = 0;
+
+    if (ess->id_addon_damage != 0)
+    {
 	*pBuf = 1;	//only one weapon addon now
-	size_t addon_size = generate_addon_buffer(datatype,ess->id_addon_damage, (char*)(pBuf + 1));
+	    addon_size = generate_addon_buffer(datatype,ess->id_addon_damage, (char*)(pBuf + 1));
 	if(addon_size)
 	{
 		pBuf = (int*)(((char*)(pBuf+1)) + addon_size);
@@ -846,7 +860,14 @@ int generate_stone(unsigned int id, ID_SPACE idspace, char ** data, size_t& size
 		ASSERT(false);
 		return -1;
 	}
+    }
+    else
+    {
+        *pBuf++ = 0;
+    }
 
+    if (ess->id_addon_defence != 0)
+    {
 	*pBuf = 1;	//only one armor addon now
 	addon_size = generate_addon_buffer(datatype,ess->id_addon_defence, (char*)(pBuf + 1));
 	if(addon_size)
@@ -858,6 +879,11 @@ int generate_stone(unsigned int id, ID_SPACE idspace, char ** data, size_t& size
 		ASSERT(false);
 		return -1;
 	}
+    }
+    else
+    {
+        *pBuf++ = 0;
+    }
 	
 	size_t ess_size = ((char*)pBuf) - addon_buf;
 	size = sizeof(item_data) + ess_size;
@@ -3244,6 +3270,86 @@ int generate_soul(unsigned int id, ID_SPACE idspace, char ** data, size_t& size)
 	return 0;
 }
 
+int generate_astrolabe(unsigned int id, ID_SPACE idspace, char ** data, size_t& size)
+{
+	DATA_TYPE datatype;
+	ASTROLABE_ESSENCE * ess = (ASTROLABE_ESSENCE *)get_data_ptr(id, idspace, datatype);
+	if(ess == NULL || datatype != DT_ASTROLABE_ESSENCE)	return -1;
+
+	size = sizeof(item_data) + sizeof(_astrolabe_essence) + sizeof(int);
+	
+	// allocate the buffer with exact length
+	*data = (char *)abase::fastalloc(size);	
+	char * buf = (*data);
+	
+	*(unsigned int*)buf = id;				buf += sizeof(unsigned int);	//物品的模板ID
+	*(size_t*)buf = 1;						buf += sizeof(size_t);			//物品的数量
+	*(size_t*)buf = ess->pile_num_max;		buf += sizeof(size_t);			//物品的堆叠上限
+	*(int*)buf = equip_mask_64_to_32(ELEMENTDATAMAN_EQUIP_MASK_ASTROLABE);							buf += sizeof(int);				//物品的可装备标志
+	*(int*)buf = ess->proc_type;			buf += sizeof(int);				//物品的处理方式
+	*(int*)buf = DT_ASTROLABE_ESSENCE;		buf += sizeof(int);				//物品对应的类别ID	
+	if(ess->has_guid == 1){
+		int g1,g2;
+		get_item_guid(id,g1,g2);
+		*(int*)buf = g1;			buf += sizeof(int);				//物品对应的类别ID	guid
+		*(int*)buf = g2;			buf += sizeof(int);				//物品对应的类别ID	guid
+	}
+	else{
+		*(int*)buf = 0;						buf += sizeof(int);				//物品对应的类别ID	guid
+		*(int*)buf = 0;						buf += sizeof(int);				//物品对应的类别ID	guid
+	}
+	*(int*)buf = ess->price;				buf += sizeof(int);				//物品的价格
+	*(int*)buf = 0;	buf += sizeof(int);   //过期时间
+	size_t* content_length = (size_t*)buf;	buf += sizeof(size_t);			//记住buf的指针，以后再填
+	char ** item_content = (char **)buf;	buf += sizeof(char *);			//记住buf的指针，以后再填
+	*content_length = (char*)(*data)+size-buf;
+	*item_content = buf;
+	// 星盘白板
+	memset(buf,0,sizeof(_astrolabe_essence) + sizeof(int));
+
+	set_to_classid(DT_ASTROLABE_ESSENCE, (item_data*)(*data), -1);
+	return 0;
+}
+
+int generate_occup_package(unsigned int id, ID_SPACE idspace, char ** data, size_t& size)
+{
+	DATA_TYPE datatype;
+	ITEM_PACKAGE_BY_PROFESSION_ESSENCE * ess = (ITEM_PACKAGE_BY_PROFESSION_ESSENCE *)get_data_ptr(id, idspace, datatype);
+	if(ess == NULL || datatype != DT_ITEM_PACKAGE_BY_PROFESSION_ESSENCE)	return -1;
+
+	size = sizeof(item_data);
+
+	// allocate the buffer with exact length
+	*data = (char *)abase::fastalloc(size);	
+	char * buf = (*data);
+
+	*(unsigned int*)buf = id;				buf += sizeof(unsigned int);	//物品的模板ID
+	*(size_t*)buf = 1;						buf += sizeof(size_t);			//物品的数量
+	*(size_t*)buf = ess->pile_num_max;		buf += sizeof(size_t);			//物品的堆叠上限
+	*(int*)buf = 0;							buf += sizeof(int);				//物品的可装备标志
+	*(int*)buf = ess->proc_type;			buf += sizeof(int);				//物品的处理方式
+	*(int*)buf = DT_ITEM_PACKAGE_BY_PROFESSION_ESSENCE;		buf += sizeof(int);				//物品对应的类别ID	
+	if(ess->has_guid == 1){
+		int g1,g2;
+		get_item_guid(id,g1,g2);
+		*(int*)buf = g1;			buf += sizeof(int);				//物品对应的类别ID	guid
+		*(int*)buf = g2;			buf += sizeof(int);				//物品对应的类别ID	guid
+	}
+	else{
+		*(int*)buf = 0;						buf += sizeof(int);				//物品对应的类别ID	guid
+		*(int*)buf = 0;						buf += sizeof(int);				//物品对应的类别ID	guid
+	}
+	*(int*)buf = ess->price;				buf += sizeof(int);				//物品的价格
+	*(int*)buf = 0;							buf += sizeof(int);   			//过期时间
+	size_t* content_length = (size_t*)buf;	buf += sizeof(size_t);			//记住buf的指针，以后再填
+	char ** item_content = (char **)buf;	buf += sizeof(char *);			//记住buf的指针，以后再填
+	*content_length = (char*)(*data)+size-buf;
+	*item_content = buf;
+
+	set_to_classid(DT_ITEM_PACKAGE_BY_PROFESSION_ESSENCE, (item_data*)(*data), -1);
+	return 0;
+}
+
 int generate_shoptoken(unsigned int id, ID_SPACE idspace, char ** data, size_t& size)
 {
 	DATA_TYPE datatype;
@@ -3322,3 +3428,82 @@ int generate_universal_token(unsigned int id, ID_SPACE idspace, char ** data, si
 	return 0;
 }
 
+template <typename RAND_CLASS>
+int generate_fireworks2(unsigned int id, ID_SPACE idspace, char ** data, size_t& size, RAND_CLASS cls)
+{
+	DATA_TYPE datatype;
+	FIREWORKS2_ESSENCE * ess = (FIREWORKS2_ESSENCE *)get_data_ptr(id, idspace, datatype);
+	if(ess == NULL || datatype != DT_FIREWORKS2_ESSENCE)	return -1;
+
+	size = sizeof(item_data);
+		
+	// allocate the buffer with exact length
+	*data = (char *)abase::fastalloc(size);	
+	char * buf = (*data);
+
+	*(unsigned int*)buf = id;				buf += sizeof(unsigned int);	//物品的模板ID
+	*(size_t*)buf = 1;						buf += sizeof(size_t);			//物品的数量
+	*(size_t*)buf = ess->pile_num_max;		buf += sizeof(size_t);			//物品的堆叠上限
+	*(int*)buf = 0;							buf += sizeof(int);				//物品的可装备标志
+	*(int*)buf = ess->proc_type;			buf += sizeof(int);				//物品的处理方式
+	*(int*)buf = DT_FIREWORKS2_ESSENCE;			buf += sizeof(int);				//物品对应的类别ID	
+	if(ess->has_guid == 1){
+		int g1,g2;
+		get_item_guid(id,g1,g2);
+		*(int*)buf = g1;			buf += sizeof(int);				//物品对应的类别ID	guid
+		*(int*)buf = g2;			buf += sizeof(int);				//物品对应的类别ID	guid
+	}
+	else{
+		*(int*)buf = 0;						buf += sizeof(int);				//物品对应的类别ID	guid
+		*(int*)buf = 0;						buf += sizeof(int);				//物品对应的类别ID	guid
+	}
+	*(int*)buf = ess->price;				buf += sizeof(int);				//物品的价格
+	*(int*)buf = 0;	buf += sizeof(int);   //过期时间
+	size_t* content_length = (size_t*)buf;	buf += sizeof(size_t);			//记住buf的指针，以后再填
+	char ** item_content = (char **)buf;	buf += sizeof(char *);			//记住buf的指针，以后再填
+	*content_length = (char*)(*data)+size-buf;
+	*item_content = buf;
+
+	set_to_classid(DT_FIREWORKS2_ESSENCE, (item_data*)(*data), -1);
+	return 0;
+}
+
+template <typename RAND_CLASS>
+int generate_fixpositiontransmit(unsigned int id, ID_SPACE idspace, char ** data, size_t& size, RAND_CLASS cls)
+{
+	DATA_TYPE datatype;
+	FIX_POSITION_TRANSMIT_ESSENCE * ess = (FIX_POSITION_TRANSMIT_ESSENCE *)get_data_ptr(id, idspace, datatype);
+	if(ess == NULL || datatype != DT_FIX_POSITION_TRANSMIT_ESSENCE)	return -1;
+
+	size = sizeof(item_data);
+		
+	// allocate the buffer with exact length
+	*data = (char *)abase::fastalloc(size);	
+	char * buf = (*data);
+
+	*(unsigned int*)buf = id;				buf += sizeof(unsigned int);	//物品的模板ID
+	*(size_t*)buf = 1;						buf += sizeof(size_t);			//物品的数量
+	*(size_t*)buf = ess->pile_num_max;		buf += sizeof(size_t);			//物品的堆叠上限
+	*(int*)buf = 0;							buf += sizeof(int);				//物品的可装备标志
+	*(int*)buf = ess->proc_type;			buf += sizeof(int);				//物品的处理方式
+	*(int*)buf = DT_FIX_POSITION_TRANSMIT_ESSENCE;			buf += sizeof(int);				//物品对应的类别ID	
+	if(ess->has_guid == 1){
+		int g1,g2;
+		get_item_guid(id,g1,g2);
+		*(int*)buf = g1;			buf += sizeof(int);				//物品对应的类别ID	guid
+		*(int*)buf = g2;			buf += sizeof(int);				//物品对应的类别ID	guid
+	}
+	else{
+		*(int*)buf = 0;						buf += sizeof(int);				//物品对应的类别ID	guid
+		*(int*)buf = 0;						buf += sizeof(int);				//物品对应的类别ID	guid
+	}
+	*(int*)buf = ess->price;				buf += sizeof(int);				//物品的价格
+	*(int*)buf = 0;	buf += sizeof(int);   //过期时间
+	size_t* content_length = (size_t*)buf;	buf += sizeof(size_t);			//记住buf的指针，以后再填
+	char ** item_content = (char **)buf;	buf += sizeof(char *);			//记住buf的指针，以后再填
+	*content_length = (char*)(*data)+size-buf;
+	*item_content = buf;
+
+	set_to_classid(DT_FIX_POSITION_TRANSMIT_ESSENCE, (item_data*)(*data), -1);
+	return 0;
+}

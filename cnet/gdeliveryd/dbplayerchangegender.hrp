@@ -1,0 +1,110 @@
+
+#ifndef __GNET_DBPLAYERCHANGEGENDER_HPP
+#define __GNET_DBPLAYERCHANGEGENDER_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "dbplayerchangegenderarg"
+#include "dbplayerchangegenderres"
+#include "gamedbclient.hpp"
+
+#include "gmailendsync.hpp"
+#include "playerprofileman.h"
+
+namespace GNET
+{
+
+class DBPlayerChangeGender : public ProxyRpc
+{
+#define	RPC_BASECLASS	ProxyRpc
+	#include "dbplayerchangegender"
+#undef	RPC_BASECLASS
+
+    void SyncGameServer(int roleid, int gsid, const GMailSyncData& syncdata, int retcode)
+    {
+        GProviderServer::GetInstance()->DispatchProtocol(gsid,
+            GMailEndSync(0/*tid, must be 0*/, retcode, roleid, syncdata));
+    }
+
+    bool Delivery(Manager::Session::ID proxy_sid, const OctetsStream& osArg)
+    {
+        DBPlayerChangeGenderArg arg;
+        osArg >> arg;
+
+        LOG_TRACE("DBPlayerChangeGender, roleid=%d, item_id=%d, item_num=%d, item_pos=%d", arg.roleid, arg.item_id, arg.item_num, arg.item_pos);
+
+        PlayerInfo* pinfo = UserContainer::GetInstance().FindRoleOnline(arg.roleid);
+        if (pinfo == NULL)
+            return false;
+
+        GMailSyncData sync(arg.syncdata);
+        GDeliveryServer* dsm = GDeliveryServer::GetInstance();
+        if (dsm->IsCentralDS())
+        {
+            sync.inventory.items.clear();
+            SyncGameServer(arg.roleid, pinfo->gameid, sync, ERR_PR_OUTOFSERVICE);
+            return false;
+        }
+
+        if (PlayerProfileMan::GetInstance()->HasMatchOptionMask(arg.roleid))
+        {
+            SetResult(DBPlayerChangeGenderRes(ERR_PR_PROFILE));
+            SendToSponsor();
+
+            sync.inventory.items.clear();
+            SyncGameServer(arg.roleid, pinfo->gameid, sync, ERR_PR_PROFILE);
+            return false;
+        }
+
+        if (GameDBClient::GetInstance()->SendProtocol(*this))
+        {
+            return true;
+        }
+        else
+        {
+            SetResult(DBPlayerChangeGenderRes(ERR_DELIVER_SEND));
+            SendToSponsor();
+
+            SyncGameServer(arg.roleid, pinfo->gameid, arg.syncdata, ERR_DELIVER_SEND);
+            return false;
+        }
+    }
+
+    void PostProcess(Manager::Session::ID proxy_sid, const OctetsStream& osArg, const OctetsStream& osRes)
+    {
+        DBPlayerChangeGenderArg arg;
+        osArg >> arg;
+        DBPlayerChangeGenderRes res;
+        osRes >> res;
+
+        PlayerInfo* pinfo = UserContainer::GetInstance().FindRoleOnline(arg.roleid);
+        if (pinfo != NULL)
+        {
+            SyncGameServer(arg.roleid, pinfo->gameid, res.syncdata, res.retcode);
+        }
+
+        if (res.retcode == ERR_SUCCESS)
+        {
+            GDeliveryServer* dsm = GDeliveryServer::GetInstance();
+            dsm->rbcache.Lock();
+
+            GRoleBase* grb = dsm->rbcache.GetDirectly(arg.roleid);
+            if (grb != NULL)
+            {
+                grb->gender = arg.newgender;
+                grb->custom_data = res.custom_data;
+            }
+            dsm->rbcache.UnLock();
+        }
+    }
+
+    void OnTimeout()
+    {
+        // TODO Client Only
+    }
+
+};
+
+};
+#endif

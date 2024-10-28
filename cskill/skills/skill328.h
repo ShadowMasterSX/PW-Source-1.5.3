@@ -133,9 +133,9 @@ namespace GNET
       Skill328Stub ():SkillStub (328)
         {
             cls = 3;
-            name = L"驯服宠物";
-            nativename = "驯服宠物";
-            icon = "驯服宠物.dds";
+            name = L"椹湇瀹犵墿";
+            nativename = "椹湇瀹犵墿";
+            icon = "椹湇瀹犵墿.dds";
             max_level = 10;
             type = 3;
             apcost = 0;
@@ -162,7 +162,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "驯服宠物.sgc";
+            effect = "椹湇瀹犵墿.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

@@ -57,8 +57,8 @@ namespace GNET
       Skill2509Stub ():SkillStub (2509)
         {
             cls = 127;
-            name = L"±äÉí·ç·¨Ê¦";
-            nativename = "±äÉí·ç·¨Ê¦";
+            name = L"å˜èº«é£æ³•å¸ˆ";
+            nativename = "å˜èº«é£æ³•å¸ˆ";
             icon = "";
             max_level = 10;
             type = 4;
@@ -80,7 +80,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 3;
-            effect = "¹ÖÎï×Ô±¬.sgc";
+            effect = "æ€ªç‰©è‡ªçˆ†.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

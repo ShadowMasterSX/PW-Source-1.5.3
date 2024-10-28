@@ -116,7 +116,7 @@ global_world_message_handler::PlayerComeIn(world * pPlane,const MSG &msg)
 		pImp->_runner->end_transfer();
 		pImp->_runner->server_config_data();
 	}
-	pImp->PlayerEnterServer();
+	pImp->PlayerEnterServer(source_tag);
 	if(world_manager::GetWorldLimit().clearap)
 	{
 		pImp->ModifyAP(-100000);

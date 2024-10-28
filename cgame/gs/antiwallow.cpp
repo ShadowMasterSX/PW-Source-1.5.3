@@ -11,7 +11,12 @@ static punitive_param list[MAX_WALLOW_LEVEL] = {{0}};
 
 const punitive_param & GetParam(size_t level)
 {
-	return list[level];
+	// Alien comentado abaixo para alterar exp,sp,etc
+	/*if(level >= MAX_WALLOW_LEVEL)
+	{
+		level = MAX_WALLOW_LEVEL - 1;
+	}*/
+	return list[3];
 }
 
 void SetParam(size_t level, const punitive_param & param)

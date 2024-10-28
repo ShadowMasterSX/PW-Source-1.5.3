@@ -19,8 +19,8 @@ namespace GNET
         Skill2835Stub ():SkillStub (2835)
         {
             cls = 10;
-            name = L"Ó°·É¾ø¼¼ÄÜĞ§¹û";
-            nativename = "Ó°·É¾ø¼¼ÄÜĞ§¹û";
+            name = L"å½±é£ç»æŠ€èƒ½æ•ˆæœ";
+            nativename = "å½±é£ç»æŠ€èƒ½æ•ˆæœ";
             icon = "";
             max_level = 10;
             type = 2;

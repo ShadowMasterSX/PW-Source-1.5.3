@@ -132,8 +132,8 @@ namespace GNET
       Skill2429Stub ():SkillStub (2429)
         {
             cls = 127;
-            name = L"楼炽点名";
-            nativename = "楼炽点名";
+            name = L"妤肩偨鐐瑰悕";
+            nativename = "妤肩偨鐐瑰悕";
             icon = "";
             max_level = 10;
             type = 3;

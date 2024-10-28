@@ -132,8 +132,8 @@ namespace GNET
       Skill1944Stub ():SkillStub (1944)
         {
             cls = 127;
-            name = L"±ÌÀ¶¼§½¥Òş";
-            nativename = "±ÌÀ¶¼§½¥Òş";
+            name = L"ç¢§è“å§¬æ¸éš";
+            nativename = "ç¢§è“å§¬æ¸éš";
             icon = "";
             max_level = 10;
             type = 2;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "¿Õ.sgc";
+            effect = "ç©º.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

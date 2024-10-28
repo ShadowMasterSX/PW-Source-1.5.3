@@ -57,8 +57,8 @@ namespace GNET
       Skill1744Stub ():SkillStub (1744)
         {
             cls = 127;
-            name = L"ĞŞÂŞµÀ_±¬Õ¨";
-            nativename = "ĞŞÂŞµÀ_±¬Õ¨";
+            name = L"ä¿®ç½—é“_çˆ†ç‚¸";
+            nativename = "ä¿®ç½—é“_çˆ†ç‚¸";
             icon = "";
             max_level = 1;
             type = 4;
@@ -80,7 +80,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "¹ÖÎï×Ô±¬.sgc";
+            effect = "æ€ªç‰©è‡ªçˆ†.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

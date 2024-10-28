@@ -58,9 +58,9 @@ namespace GNET
       Skill76Stub ():SkillStub (76)
         {
             cls = 0;
-            name = L"¼²ÔÆ²½";
-            nativename = "¼²ÔÆ²½";
-            icon = "¼²ÔÆ²½.dds";
+            name = L"ç–¾äº‘æ­¥";
+            nativename = "ç–¾äº‘æ­¥";
+            icon = "ç–¾äº‘æ­¥.dds";
             max_level = 10;
             type = 2;
             apcost = 0;
@@ -99,7 +99,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (9);
             }
-            effect = "¼²ÔÆ²½.sgc";
+            effect = "ç–¾äº‘æ­¥.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

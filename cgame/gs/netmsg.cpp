@@ -27,6 +27,7 @@
 #include "gt_award_filter.h"
 #include "global_controller.h"
 #include "uniquedataclient.h"
+#include "instance/mnfaction_manager.h"
 
 inline static bool check_player(gplayer *pPlayer,int cs_index,int sid,int uid)
 {
@@ -199,6 +200,10 @@ void handle_user_msg(int cs_index,int sid, int uid, const void * msg, size_t siz
 
 		case GMSV::CHAT_CHANNEL_COUNTRY:
 			pImp->SendCountryChat(channel,msg,size,buffer, dsize);
+			return;
+		
+		case GMSV::CHAT_CHANNEL_GLOBAL:
+			pImp->SendGlobalChat(channel,msg,size,buffer, dsize); 
 			return;
 	}
 
@@ -549,7 +554,7 @@ void FactionUnLockPlayer(unsigned int tid,int roleid,const syncdata_t& syncdata)
 	__PRINTF("faction unlock player\n");
 	faction_trade_end(tid, roleid,syncdata);
 }
-void ReceivePlayerFactionInfo(int roleid,unsigned int faction_id,char faction_role,unsigned char faction_pvp_mask)
+void ReceivePlayerFactionInfo(int roleid,unsigned int faction_id,char faction_role,unsigned char faction_pvp_mask,int64_t unifid)
 {
 	__PRINTF("recv player faction info\n");
 	int index;
@@ -562,10 +567,11 @@ void ReceivePlayerFactionInfo(int roleid,unsigned int faction_id,char faction_ro
 	{
 		return;
 	}
-	if(pPlayer->id_mafia != (int)faction_id || pPlayer->rank_mafia != faction_role || pPlayer->mafia_pvp_mask != faction_pvp_mask)
+	gplayer_imp* pImp = (gplayer_imp*)pPlayer->imp;
+	if(pPlayer->id_mafia != (int)faction_id || pPlayer->rank_mafia != faction_role || pPlayer->mafia_pvp_mask != faction_pvp_mask || unifid != pImp->GetMNFactionID())
 	{
 		//帮派信息有变
-		pPlayer->imp->UpdateMafiaInfo(faction_id, faction_role, faction_pvp_mask);
+		pPlayer->imp->UpdateMafiaInfo(faction_id, faction_role, faction_pvp_mask, unifid);
 	}
 }
 void ReceivePlayerFactionRelation(int roleid,unsigned int faction_id,int* alliance,size_t asize,int* hostile, size_t hsize)
@@ -724,14 +730,14 @@ void player_add_cash_notify(int role)
 		virtual void OnTimeOut()
 		{
 			__PRINTF("玩家(%d)更新元宝超时了\n",_roleid);
-			OnGetCashTotal(-1);
+			OnGetCashTotal(-1, -1, -1);
 		}
 		virtual void OnFailed()
 		{
 			__PRINTF("玩家(%d)更新元宝失败了\n",_roleid);
-			OnGetCashTotal(-1);
+			OnGetCashTotal(-1, -1, -1);
 		}
-		virtual void OnGetCashTotal(int cash_total)
+		virtual void OnGetCashTotal(int cash_total, int cash_vip_score_add, int cash_vip_level)
 		{
 			int index;
 			gplayer *pPlayer = world_manager::GetInstance()->FindPlayer(_roleid,index);
@@ -748,6 +754,7 @@ void player_add_cash_notify(int role)
 			{
 				int old_cash = pImp->GetMallCash();
 				pImp->DeliveryNotifyCash(cash_total);	
+				pImp->GetCashVipInfo().DeliveryNotifyCashVip(cash_vip_score_add, cash_vip_level, pPlayer);
 				GLog::log(GLOG_INFO,"用户%d更新元宝完成，元宝改变为%d",_roleid, pImp->GetMallCash()-old_cash);
 			}
 
@@ -853,6 +860,37 @@ void player_rename_ret(int roleid, const void *new_name, size_t name_len, int re
 	}
 	gplayer_imp * pImp = (gplayer_imp*)pPlayer->imp;
 	pImp->PlayerRenameRet(new_name, name_len, ret);
+}
+
+void player_change_gender_ret(int roleid, int ret)
+{
+    int index = 0;
+    gplayer* pPlayer = world_manager::GetInstance()->FindPlayer(roleid, index);
+    if (pPlayer == NULL) return;
+
+    spin_autolock keeper(pPlayer->spinlock);
+    if ((pPlayer->ID.id != roleid) || !(pPlayer->IsActived()) || (pPlayer->imp == NULL) || (pPlayer->login_state != gplayer::LOGIN_OK)) return;
+
+    // ErrorCode: 1 - ERR_PR_PROFILE
+    if (ret == 1) ret = S2C::ERR_CHANGE_GENDER_PROFILE;
+
+    gplayer_imp* pImp = (gplayer_imp*)(pPlayer->imp);
+    pImp->_runner->error_message(ret);
+}
+
+void player_change_gender_logout(int roleid)
+{
+    int index = 0;
+    gplayer* pPlayer = world_manager::GetInstance()->FindPlayer(roleid, index);
+    if (pPlayer == NULL) return;
+
+    spin_autolock keeper(pPlayer->spinlock);
+    if ((pPlayer->ID.id != roleid) || !(pPlayer->IsActived()) || (pPlayer->imp == NULL) || (pPlayer->login_state != gplayer::LOGIN_OK)) return;
+
+    MSG msg;
+    BuildMessage(msg, GM_MSG_CHANGE_GENDER_LOGOUT, pPlayer->ID, pPlayer->ID, pPlayer->pos, 0, NULL, 0);
+    gplayer_imp* pImp = (gplayer_imp*)(pPlayer->imp);
+    pImp->_plane->PostLazyMessage(msg, 2);
 }
 
 static void single_divorce(int role)
@@ -1424,3 +1462,31 @@ void request_mafia_pvp_elements(unsigned int version)
 	world_manager::GetInstance()->OnMafiaPvPElementRequest(version);
 }
 
+void mnfaction_battle_start(int domain_id, unsigned char domain_type, int64_t owner_faction_id, int64_t attacker_faction_id, int64_t defender_faction_id, int end_timestamp)
+{
+	mnfaction_battle_param param;
+	memset(&param,0,sizeof(param));
+	param.domain_id = domain_id;
+	param.domain_type = domain_type;
+	param.owner_faction_id    = owner_faction_id;
+	param.attacker_faction_id = attacker_faction_id;
+	param.defender_faction_id = defender_faction_id;
+	param.end_timestamp = end_timestamp;
+	int ret_code = world_manager::GetInstance()->CreateMNFactionBattle(param);
+	GMSV::ResponseMnfactionBattleStart(ret_code, domain_id, world_manager::GetWorldTag());
+}
+
+bool player_join_mnfaction(int retcode, int role, int64_t faction_id, int world_tag, int domain_id)
+{
+	int index;
+	gplayer *pPlayer = world_manager::GetInstance()->FindPlayer(role,index);
+	if(!pPlayer) return false;
+	spin_autolock keeper(pPlayer->spinlock);
+
+	if(pPlayer->ID.id != role||!pPlayer->IsActived()||!pPlayer->imp||pPlayer->login_state!=gplayer::LOGIN_OK)
+	{
+		return false;
+	}
+	gplayer_imp * pImp = (gplayer_imp*)pPlayer->imp;
+	return pImp->MnfactionJoinStep1(retcode, faction_id, domain_id, world_tag);
+}

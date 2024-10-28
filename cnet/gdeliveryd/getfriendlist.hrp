@@ -56,6 +56,7 @@ class GetFriendList : public Rpc
 		pinfo->friends.swap(res->value.friends);
 		pinfo->friendextinfo.swap(res->extra_info);
 		pinfo->sendaumailinfo.swap(res->sendmail_info);
+        pinfo->enemylistinfo.swap(res->enemylist_info);
 
 		GameTalkManager *gtm = GameTalkManager::GetInstance();
 		gtm->GameRoleOnline((int)arg->id);

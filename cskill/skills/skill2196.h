@@ -133,8 +133,8 @@ namespace GNET
       Skill2196Stub ():SkillStub (2196)
         {
             cls = 127;
-            name = L"单体土远";
-            nativename = "单体土远";
+            name = L"鍗曚綋鍦熻繙";
+            nativename = "鍗曚綋鍦熻繙";
             icon = "";
             max_level = 10;
             type = 1;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "怪物掷石.sgc";
+            effect = "鎬墿鎺风煶.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

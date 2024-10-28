@@ -241,6 +241,8 @@ InitMall(netgame::mall & __mall, itemdataman & dataman, const abase::vector<MALL
 				sale_time_active = true;
 			if(group_id != 0)
 				group_active = true;
+
+			node.entry[slot_count].min_vip_level = __list[i].list[j].min_vip_level;
 			//
 			slot_count ++;
 		}
@@ -392,6 +394,10 @@ InitMall(netgame::mall & __mall, itemdataman & dataman, const abase::vector<MALL
 				__PRINTINFO("百宝阁中的物品%d,暂不开放购买方式的组控制", id);
 				return false;				
 		}
+
+		node.buy_times_limit = __list[i].buy_times_limit;
+		node.buy_times_limit_mode = __list[i].buy_times_limit_mode;
+		
 		__mall.AddGoods(node);
 		if(group_active || sale_time_active)
 			__mall.AddLimitGoods(node, i);

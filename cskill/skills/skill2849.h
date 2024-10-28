@@ -19,9 +19,9 @@ namespace GNET
         Skill2849Stub ():SkillStub (2849)
         {
             cls = 10;
-            name = L"¿ñ¡¤åãÔÆºº¼¼ÄÜĞ§¹û";
-            nativename = "¿ñ¡¤åãÔÆºº¼¼ÄÜĞ§¹û";
-            icon = "ÎŞÊ½.dds";
+            name = L"ç‹‚Â·é‚ˆäº‘æ±‰æŠ€èƒ½æ•ˆæœ";
+            nativename = "ç‹‚Â·é‚ˆäº‘æ±‰æŠ€èƒ½æ•ˆæœ";
+            icon = "æ— å¼.dds";
             max_level = 10;
             type = 2;
             apcost = 0;
@@ -42,7 +42,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 1;
-            effect = "2´çÁ¦.sgc";
+            effect = "2å¯¸åŠ›.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

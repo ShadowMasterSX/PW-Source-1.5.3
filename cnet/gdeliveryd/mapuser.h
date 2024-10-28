@@ -19,9 +19,11 @@
 #include "gsendaumailrecord"
 #include "crossinfodata"
 #include "roleinfo"
+#include "genemylist"
 
 #define ROLELIST_DEFAULT	0x80000000
 #define MAX_ROLE_COUNT		16
+#define VIP_CASH_LIMIT		5000
 
 namespace GNET
 {
@@ -73,6 +75,7 @@ public:
 	}
 };
 
+class UserInfoBrief;
 class PlayerInfo;
 class PlayerLogout;
 class UserInfo
@@ -193,6 +196,7 @@ public:
 	int au_suggest_districtid; //上线所在区号
 	int au_suggest_referrer; //au发来的推广上线 的 roleid
 	bool is_phone;	//是否使用手机进行登录
+	bool is_vip;  //是否是vip
 	
 	std::set<int> activated_merchants; // 已开通快捷支付的商家
 
@@ -230,7 +234,7 @@ public:
 		au_suggest_districtid = 0;
 		au_suggest_referrer = 0;
 		is_phone = false;
-
+		is_vip = false;
 		//cross server related
 		src_zoneid = 0;
 	}
@@ -258,7 +262,7 @@ public:
 		au_suggest_districtid = 0;
 		au_suggest_referrer = 0;
 		is_phone = false;
-		
+		is_vip = false;	
 		//cross server related
 		src_zoneid = 0;
 	}
@@ -402,6 +406,7 @@ public:
 		return false;
 	}
 	//cross server end
+	bool FillBrief(UserInfoBrief& brief);
 };
 
 class PlayerInfo
@@ -427,7 +432,8 @@ public:
 	GFriendInfoVector friends;
 	GFriendExtInfoVector friendextinfo;
 	GSendAUMailRecordVector sendaumailinfo;
-	
+    GEnemyListVector enemylistinfo;
+
 	PlayerInfo(UserInfo* u, int rid) : roleid(rid), user(u), ingame(0)
 	{
 		userid = u->userid;
@@ -464,8 +470,9 @@ class UserContainer
 	RolenameMap rolenamemap;
 	Thread::Mutex	locker_rolename;
 
-	size_t		max_player_num;
+	size_t		max_player_num;				// 限制登录账号数
 	size_t		fake_max_player_num;
+	size_t 		max_ingame_player_num;		// 限制进入本服场景人数
 	Thread::Mutex locker_maxplayer;
 
 	//cross server related
@@ -473,7 +480,7 @@ class UserContainer
 	
 	static UserContainer	instance;
 public:
-	UserContainer() : max_player_num(MAX_PLAYER_NUM_DEFAULT), fake_max_player_num(MAX_PLAYER_NUM_DEFAULT)
+	UserContainer() : max_player_num(MAX_PLAYER_NUM_DEFAULT), fake_max_player_num(MAX_PLAYER_NUM_DEFAULT), max_ingame_player_num(MAX_PLAYER_NUM_DEFAULT)
 	{ }
 	~UserContainer() { }
 	static UserContainer & GetInstance() { return instance; }
@@ -610,11 +617,12 @@ public:
 	
 	std::string GetUserIP( int userid );
 
-	void SetPlayerLimit(size_t num,size_t fake_num)
+	void SetPlayerLimit(size_t num,size_t fake_num,size_t ingame_num)
 	{
 		Thread::Mutex::Scoped l(locker_maxplayer);	
 		max_player_num = num; 
 		fake_max_player_num = fake_num;
+		max_ingame_player_num = ingame_num;
 	}
 
 	size_t GetPlayerLimit() 
@@ -627,6 +635,18 @@ public:
 	{
 		Thread::Mutex::Scoped l(locker_maxplayer);	
 		return fake_max_player_num;
+	}
+
+	size_t GetInGameLimit() 
+	{ 
+		Thread::Mutex::Scoped l(locker_maxplayer);
+		return max_ingame_player_num;
+	}
+
+	size_t GetWaitLimit()
+	{
+		Thread::Mutex::Scoped l(locker_maxplayer);  
+		return max_player_num > max_ingame_player_num ? max_player_num - max_ingame_player_num : 0;
 	}
 
 	void UserLogin(int userid, const Octets & account, int linksid, int localsid, bool isgm, int type, int data, int ip, const Octets& iseckey, const Octets& oseckey, bool notify_client = true);
@@ -708,6 +728,10 @@ public:
 	}
 	
 	CrossInfoData* GetRoleCrossInfo(int roleid);
+
+	bool FillUserBrief(int userid, UserInfoBrief& brief);
+
+	int GetRemoteRoleid(int roleid);
 };
 
 };

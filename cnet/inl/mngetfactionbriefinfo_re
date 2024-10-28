@@ -1,0 +1,47 @@
+	public:
+		int retcode;
+		int rank;
+		int credit_this_week;
+		MNFactionBriefInfo info;
+		unsigned int localsid;
+		enum { PROTOCOL_TYPE = PROTOCOL_MNGETFACTIONBRIEFINFO_RE };
+	public:
+		MNGetFactionBriefInfo_Re() { type = PROTOCOL_MNGETFACTIONBRIEFINFO_RE; }
+		MNGetFactionBriefInfo_Re(void*) : Protocol(PROTOCOL_MNGETFACTIONBRIEFINFO_RE) { }
+		MNGetFactionBriefInfo_Re (int l_retcode,int l_rank,int l_credit_this_week,
+			MNFactionBriefInfo l_info,unsigned int l_localsid)
+			 : retcode(l_retcode),rank(l_rank),credit_this_week(l_credit_this_week)
+			,info(l_info),localsid(l_localsid)
+		{
+			type = PROTOCOL_MNGETFACTIONBRIEFINFO_RE;
+		}
+
+		MNGetFactionBriefInfo_Re(const MNGetFactionBriefInfo_Re &rhs)
+			: Protocol(rhs),retcode(rhs.retcode),rank(rhs.rank),credit_this_week(rhs.credit_this_week)
+			,info(rhs.info),localsid(rhs.localsid) { }
+
+		GNET::Protocol *Clone() const { return new MNGetFactionBriefInfo_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << rank;
+			os << credit_this_week;
+			os << info;
+			os << localsid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> rank;
+			os >> credit_this_week;
+			os >> info;
+			os >> localsid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 4096; }

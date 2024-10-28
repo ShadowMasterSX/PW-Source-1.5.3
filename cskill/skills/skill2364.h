@@ -132,9 +132,9 @@ namespace GNET
       Skill2364Stub ():SkillStub (2364)
         {
             cls = 255;
-            name = L"人间大炮";
-            nativename = "人间大炮";
-            icon = "炎龙出击.dds";
+            name = L"浜洪棿澶х偖";
+            nativename = "浜洪棿澶х偖";
+            icon = "鐐庨緳鍑哄嚮.dds";
             max_level = 10;
             type = 3;
             apcost = 0;
@@ -191,7 +191,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (44879);
             }
-            effect = "人间大炮.sgc";
+            effect = "浜洪棿澶х偖.sgc";
             range.type = 1;
             doenchant = true;
             dobless = false;

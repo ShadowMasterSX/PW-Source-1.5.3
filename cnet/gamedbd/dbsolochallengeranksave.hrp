@@ -1,0 +1,91 @@
+
+#ifndef __GNET_DBSOLOCHALLENGERANKSAVE_HPP
+#define __GNET_DBSOLOCHALLENGERANKSAVE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "gamedbmanager.h"
+
+#include "dbsolochallengeranksavearg"
+#include "dbsolochallengeranksaveres"
+
+
+namespace GNET
+{
+
+class DBSoloChallengeRankSave : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbsolochallengeranksave"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+        DBSoloChallengeRankSaveArg* arg = (DBSoloChallengeRankSaveArg*)argument;
+        DBSoloChallengeRankSaveRes* res = (DBSoloChallengeRankSaveRes*)result;
+
+        try
+        {
+            StorageEnv::Storage* pdata = StorageEnv::GetStorage("solochallengerank");
+            StorageEnv::AtomTransaction txn;
+
+            try
+            {
+                if (!GameDBManager::GetInstance()->IsCentralDB())
+                {
+                    if (arg->ranktype == 0)
+                    {
+                        pdata->insert((Marshal::OctetsStream() << 0),
+                                      (Marshal::OctetsStream() << (arg->data_ext)),
+                                      txn);
+                    }
+                }
+                else
+                {
+                    if (arg->ranktype == 1)
+                    {
+                        pdata->insert((Marshal::OctetsStream() << 1),
+                                      (Marshal::OctetsStream() << (arg->data_ext)),
+                                      txn);
+                    }
+                }
+
+                res->retcode = ERR_SUCCESS;
+            }
+            catch (DbException e) { throw; }
+            catch (...)
+            {
+                DbException e(DB_OLD_VERSION);
+                txn.abort(e);
+                throw e;
+            }
+        }
+        catch (DbException e)
+        {
+            if (e.get_errno() == DB_LOCK_DEADLOCK)
+                res->retcode = ERR_AGAIN;
+            else
+                res->retcode = ERR_EXCEPTION;
+
+            Log::log(LOG_ERR, "DBSoloChallengeRankSave, what=%s.", e.what());
+        }
+    }
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBSoloChallengeRankSaveArg *arg = (DBSoloChallengeRankSaveArg *)argument;
+		// DBSoloChallengeRankSaveRes *res = (DBSoloChallengeRankSaveRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

@@ -1,0 +1,115 @@
+
+#ifndef __GNET_DBPLAYERREQUITEFRIEND_HPP
+#define __GNET_DBPLAYERREQUITEFRIEND_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbplayerrequitefriendarg"
+#include "dbplayerrequitefriendres"
+
+namespace GNET
+{
+
+class DBPlayerRequiteFriend : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbplayerrequitefriend"
+#undef	RPC_BASECLASS
+	GMailVector::iterator FindMail(unsigned char mid, GMailBox& box)
+	{
+		for(GMailVector::iterator it=box.mails.begin(),ie=box.mails.end();it!=ie;it++)
+			if(it->header.id==mid)
+				return it;
+		return box.mails.end();
+	}
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBPlayerRequiteFriendArg *arg = (DBPlayerRequiteFriendArg *)argument;
+		DBPlayerRequiteFriendRes *res = (DBPlayerRequiteFriendRes *)result;
+
+		res->retcode = ERR_SUCCESS;
+
+		try
+		{
+			StorageEnv::Storage * pmailbox = StorageEnv::GetStorage("mailbox");
+			StorageEnv::CommonTransaction txn;
+			
+			res->sysheader.sndr_type = _MST_FRIENDCALLBACK;
+			res->sysheader.sender = arg->opttype;
+			res->sysheader.sender_name = arg->rolename;
+			res->sysheader.receiver = arg->friendid;
+			res->sysheader.title = Marshal::OctetsStream() << arg->roleid;
+
+			if(arg->opttype == PLAYERREQUITE_CALL)	//  ÕÙ»Ø
+			{
+				MailSender::Send(pmailbox, res->sysheader, 0, txn);
+			}
+			else if(arg->opttype == PLAYERREQUITE_ANSWER) // »ØÔù
+			{				
+				if(0 == arg->mail_list.size())
+				{
+					throw DbException(DB_VERIFY_BAD);	
+				}
+				try
+				{
+					Marshal::OctetsStream key;
+					key << arg->roleid; 
+					GMailBox box;  
+					Marshal::OctetsStream(pmailbox->find(key,txn)) >> box;
+					box.timestamp = Timer::GetTime();
+					for(size_t i=0;i<arg->mail_list.size();i++)
+					{
+						GMailVector::iterator it = FindMail(arg->mail_list[i], box);
+						if(it==box.mails.end())
+						{
+							Log::log( LOG_ERR, "DBPlayerRequiteFriend, verify bad roleid=%d\n", arg->roleid);
+
+							DbException e(DB_VERIFY_BAD);
+							txn.abort(e);
+							throw e;
+						}
+						Log::formatlog("requite mail","type=delete:src=%d:dst=%d:mid=%d:money=%d:item=%d:"
+							"count=%d:pos=%d",
+							it->header.sender, arg->roleid, it->header.id, it->attach_money, 
+							it->attach_obj.id, it->attach_obj.count, it->attach_obj.pos);
+						box.mails.erase(it);
+					}
+					pmailbox->insert( key, Marshal::OctetsStream()<<box, txn );
+
+					MailSender::Send(pmailbox, res->sysheader, arg->item , 0, txn);
+				}
+				catch ( DbException e ) { throw; }
+				catch ( ... )
+				{
+					DbException e( DB_OLD_VERSION );
+					txn.abort( e );
+					throw e;
+				}
+			}	
+		}
+		catch( DbException e )
+		{
+			Log::log( LOG_ERR, "DBPlayerRequiteFriend, roleid=%d, what=%s\n", arg->roleid, e.what() );
+			res->retcode = -1;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBPlayerRequiteFriendArg *arg = (DBPlayerRequiteFriendArg *)argument;
+		// DBPlayerRequiteFriendRes *res = (DBPlayerRequiteFriendRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

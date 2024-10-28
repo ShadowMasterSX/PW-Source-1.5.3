@@ -132,8 +132,8 @@ namespace GNET
       Skill2719Stub ():SkillStub (2719)
         {
             cls = 127;
-            name = L"ÃÏ¸ç¼ÓÎï¹¥";
-            nativename = "ÃÏ¸ç¼ÓÎï¹¥";
+            name = L"å­Ÿå“¥åŠ ç‰©æ”»";
+            nativename = "å­Ÿå“¥åŠ ç‰©æ”»";
             icon = "";
             max_level = 10;
             type = 3;

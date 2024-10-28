@@ -17,7 +17,7 @@ class CountryBattleApply : public GNET::Protocol
 
 	void Process(Manager *manager, Manager::Session::ID sid)
 	{
-		CountryBattleMan::GetInstance()->OnPlayersApplyBattle(list, sid);	
+		CountryBattleMan::OnPlayersApplyBattle(list, sid);	
 	}
 };
 

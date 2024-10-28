@@ -1,0 +1,303 @@
+
+#ifndef __GNET_DBMNFACTIONBATTLEAPPLY_HPP
+#define __GNET_DBMNFACTIONBATTLEAPPLY_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "timer.h"
+#include "gamedbserver.hpp"
+#include "mnfactioninfoupdate.hpp"
+
+#include "dbmnfactionbattleapplyarg"
+#include "dbmnfactionbattleapplyres"
+
+#include "gfactionextenddata"
+#include "guniqueinfo"
+
+
+namespace GNET
+{
+
+class DBMNFactionBattleApply : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbmnfactionbattleapply"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+        DBMNFactionBattleApplyArg *arg = (DBMNFactionBattleApplyArg *)argument;
+        DBMNFactionBattleApplyRes *res = (DBMNFactionBattleApplyRes *)result;
+
+        res->retcode = ERR_SUCCESS;
+        res->roleid = arg->roleid;
+        res->syncdata = arg->syncdata;
+        unsigned int orignal_money = arg->syncdata.inventory.money;
+
+        try
+        {
+            StorageEnv::Storage* pfaction = StorageEnv::GetStorage("factioninfo");
+            StorageEnv::Storage* pmnfaction = StorageEnv::GetStorage("mnfactioninfo");
+            StorageEnv::Storage* pmnappinfo = StorageEnv::GetStorage("mnfactionapplyinfo");
+
+            StorageEnv::Storage* pinventory = StorageEnv::GetStorage("inventory");
+            StorageEnv::Storage* pstorehouse = StorageEnv::GetStorage("storehouse");
+            StorageEnv::Storage* plog = (arg->syncdata.logs.size() > 0 ? StorageEnv::GetStorage("shoplog") : NULL);
+            StorageEnv::AtomTransaction txn;
+
+            Marshal::OctetsStream fid_key, rid_key, faction_value;
+
+            try
+            {
+                fid_key << (arg->fid);
+                rid_key << (arg->roleid);
+                if (!pfaction->find(fid_key, faction_value, txn))
+                {
+                    Log::log(LOG_ERR, "DBMNFactionBattleApply, faction not found. fid=%d, rid=%d.\n", (arg->fid), (arg->roleid));
+
+                    res->retcode = ERR_MNF_DATA_NOT_FOUND;
+                    throw DbException(DB_NOTFOUND);
+                }
+
+                // factioninfo
+                GFactionInfo info;
+                faction_value >> info;
+                GFactionExtendData extenddata;
+
+                if (info.extenddata.size() > 0)
+                    Marshal::OctetsStream(info.extenddata) >> extenddata; 
+
+                Octets master_name;
+                int64_t unifid = extenddata.unifid;
+                bool first_generate = false;
+
+                if (unifid == 0)
+                {
+                    unsigned int sn = 0;
+                    Marshal::OctetsStream spec_key, sn_value;
+
+                    spec_key << (unsigned int)0;
+                    if (pfaction->find(spec_key, sn_value, txn))
+                        sn_value >> sn;
+
+                    unifid = GenerateUnifid(arg->zoneid, sn);
+
+                    extenddata.unifid = unifid;
+                    info.extenddata = (Marshal::OctetsStream() << extenddata);
+
+                    pfaction->insert(fid_key, (Marshal::OctetsStream() << info), txn);
+                    pfaction->insert(spec_key, (Marshal::OctetsStream() << (sn + 1)), txn);
+                    first_generate = true;
+
+                    if (info.member.size() > 0)
+                        UpdateMemberUnifid(info.member, unifid, txn);
+
+                    Log::formatlog("dbmnfactionbattleapply", "fid=%d:rid=%d:unifid=%lld:sn=%d", (arg->fid), (arg->roleid), unifid, sn);
+                }
+
+                master_name = GetMasterName(info.member, txn);
+                Marshal::OctetsStream mnfid_key, mnfaction_value;
+                mnfid_key << unifid;
+
+                // mnfactioninfo
+                MNFactionInfo mninfo;
+                if (pmnfaction->find(mnfid_key, mnfaction_value, txn))
+                {
+                    mnfaction_value >> mninfo;
+                }
+                else
+                {
+                    mninfo.domain_num.reserve(3);
+                    mninfo.domain_num.push_back(0);
+                    mninfo.domain_num.push_back(0);
+                    mninfo.domain_num.push_back(0);
+
+                    Log::log(LOG_INFO, "DBMNFactionBattleApply, faction not found. fid=%d, unifid=%lld.\n", (arg->fid), unifid);
+                }
+
+                mninfo.unifid = unifid;
+                mninfo.fid = arg->fid;
+                mninfo.faction_name = info.name;
+                mninfo.master_name = master_name;
+                mninfo.zoneid = arg->zoneid;
+                pmnfaction->insert(mnfid_key, (Marshal::OctetsStream() << mninfo), txn);
+                res->factioninfo = mninfo;
+
+                /*
+                if (first_generate)
+                {
+                    MNFactionInfoUpdate proto;
+                    proto.factioninfo_list.push_back(mninfo);
+                    GameDBServer::GetInstance()->Send2Delivery(proto);
+                }
+                */
+
+                // mnfactionapplyinfo
+                MNFactionApplyInfo mnappinfo;
+                mnappinfo.unifid = unifid;
+                mnappinfo.applicant_id = arg->roleid;
+                mnappinfo.dest = arg->target;
+                mnappinfo.cost = arg->cost;
+                pmnappinfo->insert(mnfid_key, (Marshal::OctetsStream() << mnappinfo), txn);
+                res->applyinfo = mnappinfo;
+
+                // gmailsyncdata
+                Marshal::OctetsStream inventory_value;
+                if (pinventory->find(rid_key, inventory_value, txn))
+                {
+                    GRolePocket pocket;
+                    inventory_value >> pocket;
+                    if (arg->syncdata.inventory.timestamp <= pocket.timestamp)
+                    {
+                        Log::log(LOG_ERR, "DBMNFactionBattleApply, timestamp error. fid=%d, rid=%d, inventory.timestamp=%u, pocket.timestamp=%u.\n",
+                            (arg->fid), (arg->roleid), (arg->syncdata.inventory.timestamp), (pocket.timestamp));
+
+                        res->retcode = ERR_DATANOTFIND;
+                        throw DbException(DB_VERIFY_BAD);
+                    }
+
+                    if (arg->syncdata.inventory.money < arg->cost)
+                    {
+                        Log::log(LOG_ERR, "DBMNFactionBattleApply, money error. fid=%d, rid=%d, inventory.money=%u, cost=%u.\n",
+                            (arg->fid), (arg->roleid), (arg->syncdata.inventory.money), (arg->cost));
+
+                        res->retcode = ERR_MNF_APPLY_MONEY_NOT_ENOUGH;
+                        throw DbException(DB_VERIFY_BAD);
+                    }
+
+                    arg->syncdata.inventory.money -= arg->cost;
+                    int money_delta = arg->syncdata.inventory.money - pocket.money;
+
+                    pinventory->insert(rid_key, (Marshal::OctetsStream() << (arg->syncdata.inventory)), txn);
+                    WriteRestSyncData(pstorehouse, plog, arg->roleid, arg->syncdata, money_delta, txn);
+                    res->syncdata.inventory.money = arg->syncdata.inventory.money;
+                    res->syncdata.data_mask = arg->syncdata.data_mask;
+                }
+
+                res->retcode = ERR_SUCCESS;
+                Log::formatlog("dbmnfactionbattleapply", "fid=%d:rid=%d:unifid=%lld:zoneid=%d:targettype=%d:cost=%d",
+                    (arg->fid), (arg->roleid), unifid, (arg->zoneid), (arg->target), (arg->cost));
+            }
+            catch (DbException e) {throw;}
+            catch (...)
+            {
+                DbException ee(DB_OLD_VERSION);
+                txn.abort(ee);
+                throw ee;
+            }
+        }
+        catch (DbException e)
+        {
+            if (res->retcode == ERR_SUCCESS) res->retcode = ERR_DATANOTFIND;
+            res->syncdata.inventory.money = orignal_money;
+        }
+    }
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBMNFactionBattleApplyArg *arg = (DBMNFactionBattleApplyArg *)argument;
+		// DBMNFactionBattleApplyRes *res = (DBMNFactionBattleApplyRes *)result;
+	}
+
+    int64_t GenerateUnifid(int zone_id, unsigned int sn)
+    {
+        int64_t unifid = 0;
+        int64_t id = (zone_id & 0xff);
+        int64_t tm = Timer::GetTime();
+
+        // unifid = ( zone_id(8bit) | time(32bit) | sn(24bit) )
+        unifid |= (id << (32 + 24));
+        unifid |= (tm << 24);
+        unifid |= (sn & 0xffffff);
+
+        return unifid;
+    }
+
+    void UpdateMemberUnifid(const GMemberVector& member, int64_t unifid, StorageEnv::AtomTransaction& txn)
+    {
+        try
+        {
+            StorageEnv::Storage* puser = StorageEnv::GetStorage("userfaction");
+            GMemberVector::const_iterator iter = member.begin(), iter_end = member.end();
+            for (; iter != iter_end; ++iter)
+            {
+                Marshal::OctetsStream rid_key, user_value;
+                rid_key << (iter->rid);
+
+                // userfaction
+                if (puser->find(rid_key, user_value, txn))
+                {
+                    GUserFaction user;
+                    user_value >> user;
+                    if (user.extend.size() == 0) continue;
+
+                    GFactionExtend ext;
+                    Marshal::OctetsStream(user.extend) >> ext;
+
+                    GUniqueInfo uni;
+                    if (ext.uniqueinfo.size() > 0)
+                        Marshal::OctetsStream(ext.uniqueinfo) >> uni;
+
+                    uni.unifid = unifid;
+                    ext.uniqueinfo = (Marshal::OctetsStream() << uni);
+                    user.extend = (Marshal::OctetsStream() << ext);
+                    puser->insert(rid_key, (Marshal::OctetsStream() << user), txn);
+                }
+                else
+                {
+                    Log::log(LOG_ERR, "DBMNFactionBattleApply, UpdateMemberUnifid, member not found. unifid=%lld, rid=%d.\n", unifid, (iter->rid));
+                }
+            }
+        }
+        catch (...)
+        {
+            DbException ee(DB_OLD_VERSION);
+            txn.abort(ee);
+            throw ee;
+        }
+    }
+
+    Octets GetMasterName(const GMemberVector& member, StorageEnv::AtomTransaction& txn)
+    {
+        try
+        {
+            StorageEnv::Storage* puser = StorageEnv::GetStorage("userfaction");
+            GMemberVector::const_iterator iter = member.begin(), iter_end = member.end();
+            for (; iter != iter_end; ++iter)
+            {
+                Marshal::OctetsStream rid_key, user_value;
+                rid_key << (iter->rid);
+
+                // userfaction
+                if (puser->find(rid_key, user_value, txn))
+                {
+                    GUserFaction user;
+                    user_value >> user;
+
+                    // 2 - _R_MASTER
+                    if (iter->role == 2) return user.name;
+                }
+            }
+        }
+        catch (...)
+        {
+            DbException ee(DB_OLD_VERSION);
+            txn.abort(ee);
+            throw ee;
+        }
+
+        return Octets();
+    }
+
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

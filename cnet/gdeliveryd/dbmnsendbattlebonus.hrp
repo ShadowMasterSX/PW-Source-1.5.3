@@ -1,0 +1,58 @@
+
+#ifndef __GNET_DBMNSENDBATTLEBONUS_HPP
+#define __GNET_DBMNSENDBATTLEBONUS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbmnsendbattlebonusarg"
+#include "dbmnsendbattlebonusres"
+
+#include "mndomainsendbonusdata_re.hpp"
+#include "centraldeliveryclient.hpp"
+#include "postoffice.h"
+namespace GNET
+{
+
+class DBMNSendBattleBonus : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbmnsendbattlebonus"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBMNSendBattleBonusArg *arg = (DBMNSendBattleBonusArg *)argument;
+		// DBMNSendBattleBonusRes *res = (DBMNSendBattleBonusRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBMNSendBattleBonusArg *arg = (DBMNSendBattleBonusArg *)argument;
+		DBMNSendBattleBonusRes *res = (DBMNSendBattleBonusRes *)result;
+		DEBUG_PRINT("file=%s\tfunc=%s\tline=%dunifid=%lld\tretcode=%d\n", __FILE__, __FUNCTION__, __LINE__, arg->bonus.unifid, res->retcode);
+		MNDomainSendBonusData_Re re;
+		re.retcode = res->retcode;
+		re.unifid = arg->bonus.unifid;
+		CentralDeliveryClient::GetInstance()->SendProtocol(re);
+
+		if(res->retcode == ERR_SUCCESS)
+		{
+			for(size_t i = 0; i<res->maillist.size(); ++i)
+			{
+				const GMailHeader &header = res->maillist[i];
+				PostOffice::GetInstance().AddNewMail(header.receiver, header);
+			}
+		}
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

@@ -132,9 +132,9 @@ namespace GNET
       Skill2363Stub ():SkillStub (2363)
         {
             cls = 255;
-            name = L"赤炎护体";
-            nativename = "赤炎护体";
-            icon = "赤炎护体.dds";
+            name = L"璧ょ値鎶や綋";
+            nativename = "璧ょ値鎶や綋";
+            icon = "璧ょ値鎶や綋.dds";
             max_level = 10;
             type = 2;
             apcost = 0;

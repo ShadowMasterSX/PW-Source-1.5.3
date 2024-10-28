@@ -1,0 +1,147 @@
+
+#ifndef __GNET_UPDATEUSERFACTION_HPP
+#define __GNET_UPDATEUSERFACTION_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "updateuserfactionarg"
+#include "userfactionres"
+
+namespace GNET
+{
+
+class UpdateUserFaction : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "updateuserfaction"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		UpdateUserFactionArg *arg = (UpdateUserFactionArg *)argument;
+		UserFactionRes *res = (UserFactionRes *)result;
+
+		Marshal::OctetsStream key;
+
+		try
+		{
+			GUserFaction user;
+			GFactionInfo info;
+			StorageEnv::Storage * puser = StorageEnv::GetStorage("userfaction");
+			StorageEnv::Storage * pinfo = StorageEnv::GetStorage("factioninfo");
+			StorageEnv::CommonTransaction txn;
+			try{
+				key << arg->rid;
+				Marshal::OctetsStream(puser->find(key, txn)) >> user;
+				if(arg->fid==0 || user.fid!=arg->fid)
+				{
+					res->retcode = ERR_FC_DATAERROR;
+					return;
+				}
+				if(arg->operation==1)
+				{
+					user.nickname = arg->nickname;
+				}else
+				{
+					Log::formatlog("faction","type=promote:roleid=%d:factionid=%d:role=%d", 
+						arg->rid, arg->fid, arg->role);
+					user.role = arg->role;
+					key.clear();
+					key << arg->fid;
+					Marshal::OctetsStream(pinfo->find(key, txn)) >> info;
+
+					GMemberVector::iterator itu = info.member.end();
+					int count = 0;
+					for(GMemberVector::iterator its=info.member.begin();its!=info.member.end();++its)
+					{
+						if(its->role==arg->role)
+							count++;
+						if(its->rid==arg->rid)
+							itu = its;
+					}
+					if(itu==info.member.end())
+					{
+						res->retcode = ERR_FC_DATAERROR;
+						Log::log(LOG_ERR,"UpdateUserFaction: user not found in list rid=%d fid=%d.", arg->rid, arg->fid);
+						return;
+					}
+					switch(arg->role)
+					{
+						case _R_VICEMASTER:
+							if(count>=1)
+							{
+								res->retcode = ERR_FC_FULL;
+								return;
+							}
+							break;
+						case _R_BODYGUARD:
+							if(count>=4)
+							{
+								res->retcode = ERR_FC_FULL;
+								return;
+							}
+							break;
+						case _R_POINEER:
+							if(count>=12)
+							{
+								res->retcode = ERR_FC_FULL;
+								return;
+							}
+							break;
+					}
+					itu->role = arg->role;
+
+					if(arg->role==_R_MASTER)
+					{
+						GUserFaction master;
+						unsigned int old = info.master.rid;
+						info.master.rid = arg->rid;
+						for(GMemberVector::iterator i=info.member.begin();i!=info.member.end();i++)
+						{
+							if((*i).rid==old)
+							{
+								i->role = _R_MEMBER;
+								break;
+							}
+						}
+						key.clear();
+						key << old;
+						Marshal::OctetsStream(puser->find(Marshal::OctetsStream()<<old, txn)) >> master;
+						master.role = _R_MEMBER;
+						puser->insert(key, Marshal::OctetsStream()<<master, txn);
+					}
+					pinfo->insert(Marshal::OctetsStream()<<arg->fid, Marshal::OctetsStream()<<info, txn);
+				}
+				puser->insert(Marshal::OctetsStream()<<arg->rid, Marshal::OctetsStream()<<user, txn);
+				res->retcode = ERR_SUCCESS;
+				res->value = user;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "UpdateUserFaction, fid=%d, rid=%d, what=%s\n", arg->fid, arg->rid, e.what() );
+			res->retcode = -1;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

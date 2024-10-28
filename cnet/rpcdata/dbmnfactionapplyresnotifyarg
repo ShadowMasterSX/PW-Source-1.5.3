@@ -1,0 +1,69 @@
+#ifndef __GNET_DBMNFACTIONAPPLYRESNOTIFYARG_RPCDATA
+#define __GNET_DBMNFACTIONAPPLYRESNOTIFYARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBMNFactionApplyResNotifyArg : public GNET::Rpc::Data
+	{
+	public:
+		unsigned char status;
+		std::vector<int64_t> rejected_list;
+		std::vector<int64_t> chosen_list;
+
+	public:
+		DBMNFactionApplyResNotifyArg (const std::vector<int64_t>& l_rejected_list = std::vector<int64_t>(),const std::vector<int64_t>& l_chosen_list = std::vector<int64_t>())
+			: rejected_list(l_rejected_list),chosen_list(l_chosen_list)
+		{
+		}
+
+		DBMNFactionApplyResNotifyArg(const DBMNFactionApplyResNotifyArg &rhs)
+			: status(rhs.status),rejected_list(rhs.rejected_list),chosen_list(rhs.chosen_list) { }
+
+		Rpc::Data *Clone() const { return new DBMNFactionApplyResNotifyArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBMNFactionApplyResNotifyArg *r = dynamic_cast<const DBMNFactionApplyResNotifyArg *>(&rhs);
+			if (r && r != this)
+			{
+				status = r->status;
+				rejected_list = r->rejected_list;
+				chosen_list = r->chosen_list;
+			}
+			return *this;
+		}
+
+		DBMNFactionApplyResNotifyArg& operator = (const DBMNFactionApplyResNotifyArg &rhs)
+		{
+			const DBMNFactionApplyResNotifyArg *r = &rhs;
+			if (r && r != this)
+			{
+				status = r->status;
+				rejected_list = r->rejected_list;
+				chosen_list = r->chosen_list;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << status;
+			os << rejected_list;
+			os << chosen_list;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> status;
+			os >> rejected_list;
+			os >> chosen_list;
+			return os;
+		}
+
+	};
+};
+#endif

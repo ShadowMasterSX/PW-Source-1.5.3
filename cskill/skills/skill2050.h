@@ -132,8 +132,8 @@ namespace GNET
       Skill2050Stub ():SkillStub (2050)
         {
             cls = 127;
-            name = L"正面吐息";
-            nativename = "正面吐息";
+            name = L"姝ｉ潰鍚愭伅";
+            nativename = "姝ｉ潰鍚愭伅";
             icon = "";
             max_level = 10;
             type = 3;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "避水诀.sgc";
+            effect = "閬挎按璇�.sgc";
             range.type = 1;
             doenchant = true;
             dobless = false;

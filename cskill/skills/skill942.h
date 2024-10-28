@@ -57,8 +57,8 @@ namespace GNET
       Skill942Stub ():SkillStub (942)
         {
             cls = 127;
-            name = L"Ê±¿ÕËéÆ¬.±©";
-            nativename = "Ê±¿ÕËéÆ¬.±©";
+            name = L"æ—¶ç©ºç¢Žç‰‡.æš´";
+            nativename = "æ—¶ç©ºç¢Žç‰‡.æš´";
             icon = "";
             max_level = MAX_LEVEL;
             type = 4;

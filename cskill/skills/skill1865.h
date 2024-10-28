@@ -134,9 +134,9 @@ namespace GNET
       Skill1865Stub ():SkillStub (1865)
         {
             cls = 1;
-            name = L"太虚·逆流诀";
-            nativename = "太虚·逆流诀";
-            icon = "静谧之术2.dds";
+            name = L"澶櫄路閫嗘祦璇�";
+            nativename = "澶櫄路閫嗘祦璇�";
+            icon = "闈欒哀涔嬫湳2.dds";
             max_level = 1;
             type = 3;
             apcost = 20;
@@ -164,7 +164,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "静谧之术2_击中.sgc";
+            effect = "闈欒哀涔嬫湳2_鍑讳腑.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

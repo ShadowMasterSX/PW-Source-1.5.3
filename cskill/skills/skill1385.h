@@ -134,9 +134,9 @@ namespace GNET
       Skill1385Stub ():SkillStub (1385)
         {
             cls = 9;
-            name = L"武神现世";
-            nativename = "武神现世";
-            icon = "魔神蚩尤.dds";
+            name = L"姝︾鐜颁笘";
+            nativename = "姝︾鐜颁笘";
+            icon = "榄旂铓╁挨.dds";
             max_level = 10;
             type = 2;
             apcost = 0;

@@ -19,9 +19,9 @@ namespace GNET
         Skill2844Stub ():SkillStub (2844)
         {
             cls = 11;
-            name = L"Ä§ÔÂÉñÖ®Ìå¼¼ÄÜĞ§¹û";
-            nativename = "Ä§ÔÂÉñÖ®Ìå¼¼ÄÜĞ§¹û";
-            icon = "Ë·¹âÓ½.dds";
+            name = L"é­”æœˆç¥ä¹‹ä½“æŠ€èƒ½æ•ˆæœ";
+            nativename = "é­”æœˆç¥ä¹‹ä½“æŠ€èƒ½æ•ˆæœ";
+            icon = "æœ”å…‰å’.dds";
             max_level = 1;
             type = 2;
             apcost = 0;

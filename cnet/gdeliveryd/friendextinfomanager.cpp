@@ -16,6 +16,8 @@
 #include "aumailsended.hpp"
 #include "gauthclient.hpp"
 #include <algorithm>
+#include "dbplayerrequitefriend.hrp"
+#include "getmaillist_re.hpp"
 //在cache里面查询role的登录时间
 namespace GNET
 {
@@ -24,32 +26,55 @@ namespace GNET
 	{
 		int now = Timer::GetTime();
 		std::vector<int> roleidlist;//需要更新上线时间的好友id表，会去cache或者数据库中取
-		if(!pinfo->friends.size())
-			return;
-		
-		GFriendInfoVector::iterator gfriend_iter = pinfo->friends.begin();
-		for(;gfriend_iter!=pinfo->friends.end();gfriend_iter++)
-		{
-			GFriendExtInfoVector::iterator gfriendext_iter = pinfo->friendextinfo.begin();
-			for(;gfriendext_iter != pinfo->friendextinfo.end();gfriendext_iter++)
-			{
-				if(gfriend_iter->rid == gfriendext_iter->rid)
-				{
-					break;
-				}
-			}
-			//玩家好友额外信息列表中没有该好友数据
-			if(gfriendext_iter == pinfo->friendextinfo.end())  
-			{
-				roleidlist.push_back(gfriend_iter->rid);
-			}
-			//有该好友数据但是过旧
-			else if(now - gfriendext_iter->update_time > _SECONDS_ONE_DAY)
-			{
-				roleidlist.push_back(gfriend_iter->rid);
-			}
+
+        if (pinfo->friends.size() > 0)
+        {
+		    GFriendInfoVector::iterator gfriend_iter = pinfo->friends.begin();
+		    for(;gfriend_iter!=pinfo->friends.end();gfriend_iter++)
+		    {
+			    GFriendExtInfoVector::iterator gfriendext_iter = pinfo->friendextinfo.begin();
+			    for(;gfriendext_iter != pinfo->friendextinfo.end();gfriendext_iter++)
+			    {
+				    if(gfriend_iter->rid == gfriendext_iter->rid)
+				    {
+					    break;
+				    }
+			    }
+			    //玩家好友额外信息列表中没有该好友数据
+			    if(gfriendext_iter == pinfo->friendextinfo.end())  
+			    {
+				    roleidlist.push_back(gfriend_iter->rid);
+			    }
+			    //有该好友数据但是过旧
+			    else if(now - gfriendext_iter->update_time > _SECONDS_ONE_DAY)
+			    {
+				    roleidlist.push_back(gfriend_iter->rid);
+			    }
+            }
 		}
-		
+
+        if (pinfo->enemylistinfo.size() > 0)
+        {
+            GEnemyListVector::const_iterator iter = pinfo->enemylistinfo.begin(), iter_end = pinfo->enemylistinfo.end();
+            for (; iter != iter_end; ++iter)
+            {
+                GFriendExtInfoVector::const_iterator iter_ext = pinfo->friendextinfo.begin(), iter_ext_end = pinfo->friendextinfo.end();
+                for (; iter_ext != iter_ext_end; ++iter_ext)
+                {
+                    if (iter->rid == iter_ext->rid) break;
+                }
+
+                if (iter_ext == iter_ext_end)
+                {
+                    roleidlist.push_back(iter->rid);
+                }
+                else if (now - iter_ext->update_time > _SECONDS_ONE_DAY)
+                {
+                    roleidlist.push_back(iter->rid);
+                }
+            }
+        }
+
 		if(!roleidlist.size()) //如果没有需要向cache或者数据库中查找的玩家数据
 		{
 			SendFriendExt2Client(pinfo);
@@ -207,7 +232,7 @@ namespace GNET
 		int count = 0;
 		//通过cache更新一次玩家的friendextinfo，防止数据过老出现bug
 		UpdateLoginTimeFromCache(pinfo);
-		if(pinfo->level < 90)
+		if(pinfo->level < 90 && !pinfo->reincarnation_times)
 		{
 			return;
 		}
@@ -226,13 +251,13 @@ namespace GNET
 			return;
 		}
 		//好友等级过低
-		if(gfeiv_iter->level < AUMAIL_LEVEL_LIMIT)
+		if(gfeiv_iter->level < AUMAIL_LEVEL_LIMIT && !gfeiv_iter->reincarnation_times)
 		{
 			SendMailResult2Client(pinfo,ERR_AUMAIL_LEVELLOW,friend_id);	
 			return;
 		}
 		//离开时间限制
-		if(((now-gfeiv_iter->last_logintime)/_SECONDS_ONE_DAY) < 16)
+		if(((now-gfeiv_iter->last_logintime)/_SECONDS_ONE_DAY) < 20)
 		{
 			SendMailResult2Client(pinfo,ERR_AUMAIL_NOTSOLONG,friend_id);
 			return;
@@ -353,9 +378,54 @@ namespace GNET
 		ams.level = send_lvl;
 		ams.ext_reward = ex_reward;
 		GProviderServer::GetInstance()->DispatchProtocol(pinfo->user->gameid,ams);
+		//发送邀请邮件到角色邮箱
+		DBPlayerRequiteFriend * rpc = (DBPlayerRequiteFriend*)Rpc::Call( RPC_DBPLAYERREQUITEFRIEND,
+				DBPlayerRequiteFriendArg(pinfo->roleid,gfeiv_iter->rid,pinfo->name,PLAYERREQUITE_CALL));
+		GameDBClient::GetInstance()->SendProtocol(rpc);
 
 		return;
 	}
+
+	bool FriendextinfoManager::PreSendRequite(PlayerInfo *pinfo,int friend_id)
+	{
+		IntVector mail_list;
+		PostOffice::GetInstance().FindMail(pinfo->roleid,mail_list,_MST_FRIENDCALLBACK,PLAYERREQUITE_CALL,-1);
+		if(0 == mail_list.size()) return false;
+		bool rst = PostOffice::GetInstance().CheckSpecialTitle(pinfo->roleid,mail_list,friend_id);
+		if(!rst) return false;
+
+		//发送邀请邮件到角色邮箱
+		GRoleInventory item;
+		item.id = AUMAIL_REQUITE_ITEM;
+		item.count = 1;
+		item.max_count = 9999;
+		item.proctype = 16435;
+		
+		DBPlayerRequiteFriend * rpc = (DBPlayerRequiteFriend*)Rpc::Call( RPC_DBPLAYERREQUITEFRIEND,
+				DBPlayerRequiteFriendArg(pinfo->roleid,friend_id,pinfo->name,PLAYERREQUITE_ANSWER,item,mail_list));
+		GameDBClient::GetInstance()->SendProtocol(rpc);
+
+		Log::formatlog("PreSendRequite","send_role=%d:received_roleid=%d",pinfo->roleid,friend_id);	
+		return true;
+	}
+	void FriendextinfoManager::PostSendRequite(PlayerInfo *pinfo,int friend_id,const IntVector& maillist)
+	{
+		//删除千里传情邀请邮件更新客户端
+		PostOffice::GetInstance().DeleteMail(pinfo->roleid,maillist);
+		GetMailList_Re gml_re(0,pinfo->roleid,pinfo->localsid);
+		PostOffice::GetInstance().GetMailList(pinfo->roleid,gml_re.maillist);
+		GDeliveryServer::GetInstance()->Send( pinfo->linksid,gml_re );
+	
+		//发送到gamed 触发回流第二奖励
+		AUMailSended ams;
+		ams.roleid = pinfo->roleid;
+		ams.level = 5;
+		ams.ext_reward = 0;
+		GProviderServer::GetInstance()->DispatchProtocol(pinfo->user->gameid,ams);
+		
+		Log::formatlog("PostSendRequite","send_role=%d:received_roleid=%d",pinfo->roleid,friend_id);	
+	}
+
 	void FriendextinfoManager::SendMailResult2Client(const PlayerInfo *pinfo,const int result,const int friend_id)
 	{
 		SendAUMail_Re re;
@@ -377,15 +447,15 @@ namespace GNET
 
 	int FriendextinfoManager::GetBonusLevel(const int day)
 	{
-		if(day <=20 && day > 15)
+		if(day <=30 && day >= 20)
 		{
 			return 1;
 		}
-		if(day <=30 && day > 20)
+		if(day <=45 && day > 30)
 		{
 			return 2;
 		}
-		if(day > 30)
+		if(day > 45)
 		{
 			return 3;	
 		}

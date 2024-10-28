@@ -35,7 +35,7 @@ class GetCNetServerConfig : public GNET::Protocol
 				{
 					bool is_open = !DisabledSystem::GetDisabled(SYS_COUNTRYBATTLE);
 					if(is_open) { //国战开启
-						int total_bonus = CountryBattleMan::GetInstance()->GetTotalBonus();
+						int total_bonus = CountryBattleMan::GetDefault()->GetTotalBonus();
 						re.result.push_back(IntOctets(keys[i], Marshal::OctetsStream() << total_bonus));
 					} else { //国战未开
 						bool is_central = ((GDeliveryServer*)manager)->IsCentralDS();
@@ -55,7 +55,7 @@ class GetCNetServerConfig : public GNET::Protocol
 		if(re.result.size() > 0) manager->Send(sid, re);
 		
 		if(need_get_remote_config) {
-			GetRemoteCNetServerConfig pro(remote_keys, pInfo->linksid, pInfo->localsid);
+			GetRemoteCNetServerConfig pro(remote_keys, pInfo->linksid, pInfo->localsid, GDeliveryServer::GetInstance()->GetZoneid());
 			CentralDeliveryClient::GetInstance()->SendProtocol(pro);
 		}
 	}

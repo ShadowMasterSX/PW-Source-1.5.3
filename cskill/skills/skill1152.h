@@ -139,7 +139,7 @@ namespace GNET
             cls = 2;
             name = L"664363443";
             nativename = "664363443";
-            icon = "º®±ù±¬.dds";
+            icon = "å¯’å†°çˆ†.dds";
             max_level = 10;
             type = 1;
             apcost = 0;
@@ -166,7 +166,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "¼²·çÅùö¨.sgc";
+            effect = "ç–¾é£Žéœ¹é›³.sgc";
             range.type = 2;
             doenchant = false;
             dobless = false;

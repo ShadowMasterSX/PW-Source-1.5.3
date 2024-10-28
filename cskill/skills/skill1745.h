@@ -57,8 +57,8 @@ namespace GNET
       Skill1745Stub ():SkillStub (1745)
         {
             cls = 127;
-            name = L"修罗道_中毒";
-            nativename = "修罗道_中毒";
+            name = L"淇綏閬揰涓瘨";
+            nativename = "淇綏閬揰涓瘨";
             icon = "";
             max_level = 1;
             type = 4;
@@ -80,7 +80,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "怪物自爆.sgc";
+            effect = "鎬墿鑷垎.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

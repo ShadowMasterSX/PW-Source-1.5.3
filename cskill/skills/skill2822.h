@@ -58,9 +58,9 @@ namespace GNET
       Skill2822Stub ():SkillStub (2822)
         {
             cls = 10;
-            name = L"Ì°ÀÇÈÐ";
-            nativename = "Ì°ÀÇÈÐ";
-            icon = "Ì°ÀÇÈÐ.dds";
+            name = L"è´ªç‹¼åˆƒ";
+            nativename = "è´ªç‹¼åˆƒ";
+            icon = "è´ªç‹¼åˆƒ.dds";
             max_level = 1;
             type = 2;
             apcost = 0;
@@ -87,7 +87,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "Ò¹Ó°_Ì°ÀÇÈÐ_»÷ÖÐ.sgc";
+            effect = "å¤œå½±_è´ªç‹¼åˆƒ_å‡»ä¸­.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

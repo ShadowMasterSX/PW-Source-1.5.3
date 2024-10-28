@@ -1,0 +1,35 @@
+	public:
+		int domain_id;
+		int64_t winner_fid;
+		enum { PROTOCOL_TYPE = PROTOCOL_MNDOMAINBATTLEEND };
+	public:
+		MNDomainBattleEnd() { type = PROTOCOL_MNDOMAINBATTLEEND; }
+		MNDomainBattleEnd(void*) : Protocol(PROTOCOL_MNDOMAINBATTLEEND) { }
+		MNDomainBattleEnd (int l_domain_id,int64_t l_winner_fid)
+			 : domain_id(l_domain_id),winner_fid(l_winner_fid)
+		{
+			type = PROTOCOL_MNDOMAINBATTLEEND;
+		}
+
+		MNDomainBattleEnd(const MNDomainBattleEnd &rhs)
+			: Protocol(rhs),domain_id(rhs.domain_id),winner_fid(rhs.winner_fid) { }
+
+		GNET::Protocol *Clone() const { return new MNDomainBattleEnd(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << domain_id;
+			os << winner_fid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> domain_id;
+			os >> winner_fid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 16; }

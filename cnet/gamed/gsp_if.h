@@ -12,6 +12,9 @@ void user_login(int cs_index,int sid,int uid,const void * auth_buf, size_t auth_
 void report_cheater(int roleid, int cheattype, const void *cheatinfo, size_t size);
 void acquestion_ret(int roleid, int ret); // ret: 0 ?yè·, 1 ′í?ó, 2 3?ê±
 void player_rename_ret(int roleid, const void *new_name, size_t name_len, int ret);
+void player_change_gender_ret(int roleid, int ret);
+void player_change_gender_logout(int roleid);
+
 
 namespace GNET
 {
@@ -47,7 +50,7 @@ namespace GMSV
 		CHAT_CHANNEL_SUPERFARCRY,	//超级世界频道
 		CHAT_CHANNEL_BATTLE,		//战场己方
 		CHAT_CHANNEL_COUNTRY,		//国家
-
+		CHAT_CHANNEL_GLOBAL,		//全服频道
 	};
 	enum
 	{
@@ -174,6 +177,12 @@ namespace GMSV
 
 	bool SendPlayerRename(int roleid, int item_pos, int item_id, int item_num, const void * new_name, size_t new_name_len, object_interface & obj_if);
 
+    bool SendPlayerChangeGender(int roleid, int item_pos, int item_id, int item_num, unsigned char new_gender, const void* custom_data, size_t custom_data_len, object_interface& obj_if);
+
+    bool SendUpdateSoloChallengeRank(int roleid, int total_time);
+    bool SendGetSoloChallengeRank(int roleid, char ranktype, char cls);
+    bool SendUpdateEnemyList(char optype, int srcroleid, int dstroleid);
+
 	bool SendPlayerGivePresent(int roleid, int target_roleid, unsigned int cash_cost, char has_gift, int log_price1,
 		   	int log_price2, int mail_id, GDB::itemlist & ilist, object_interface & obj_if);
 
@@ -192,7 +201,7 @@ namespace GMSV
 		CHDS_FLAG_CENTRALDS_TO_DS = 2,
 		CHDS_FLAG_DIRECT_TO_CENTRALDS = 3,
 	};
-	bool SendTryChangeDS(int roleid, int flag);
+	bool SendTryChangeDS(int roleid, int flag, short type, int64_t mnfid);
 	bool SendPlayerChangeDSRe(int retcode, int roleid, int flag);
 	void SendMobileServerRegister(int world_index, int world_tag);
 
@@ -255,6 +264,39 @@ namespace GMSV
 		unsigned short rob_minecar_limit;
 	};
 	void SendMafiaDomainConfig(MPDomainConfig* dlist, size_t dsize, int* clist, size_t csize);
+
+
+	//跨服帮派战相关内容
+	struct MnfactionEnterEntry
+	{
+		int roleid;
+		int64_t faction_id;
+		int domain_id;
+	};
+	void MnfactionEnter(MnfactionEnterEntry *ent);
+	void ResponseMnfactionBattleStart(int ret_code, int domain_id, int world_tag);
+	void MnfactionLeaveNotify(int roleid, int64_t faction_id, int domain_id);
+	void SendMNFactionServerRegister(int world_index, int world_tag);
+	void MNDomainBattleLeaveNotice(int roleid, int64_t unifid, int domain_id);
+	int MNDomainBattleEnterSuccessNotice(int roleid, int64_t unifid, int domain_id);
+	void SendMnfactionBattleEnd(int domain_id, int64_t win_unifid);
+
+	struct mnfaction_domain_entry
+	{
+		int _domain_id;
+		unsigned char _domain_type;
+		int64_t _owner_unifid;
+		int64_t _attacker_unifid;
+		int64_t _defender_unifid;
+		int _expiretime;
+	};
+	void SetMnDomain(int domain_id, unsigned char domain_type, int64_t owner_unifid, int64_t attacker_unifid, int64_t defender_unifid/*, int expiretime*/);
+	int GetMnDomainCount(int64_t unifid, unsigned char domain_type);
+	int64_t GetMnDomainOwner(int domain_id);
+
+	int MnFactionSignUp(unsigned char domain_type, int id_mafia, int64_t unifid, object_interface& obj_if, int roleid, size_t cost);
+	void MnFactionRank(int roleid);
+	void MnFactionGetDomainData(int roleid);
 
 	/*
 		下面的函数一般不需要调用

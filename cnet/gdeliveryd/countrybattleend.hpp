@@ -17,7 +17,7 @@ class CountryBattleEnd : public GNET::Protocol
 
 	void Process(Manager *manager, Manager::Session::ID sid)
 	{
-		CountryBattleMan::GetInstance()->OnBattleEnd(battle_id, battle_result, defender, attacker, defender_score, attacker_score);
+		CountryBattleMan::OnBattleEnd(battle_id, battle_result, defender, attacker, defender_score, attacker_score);
 	}
 };
 

@@ -1,0 +1,35 @@
+	public:
+		int retcode;
+		int64_t unifid;
+		enum { PROTOCOL_TYPE = PROTOCOL_MNDOMAINSENDBONUSDATA_RE };
+	public:
+		MNDomainSendBonusData_Re() { type = PROTOCOL_MNDOMAINSENDBONUSDATA_RE; }
+		MNDomainSendBonusData_Re(void*) : Protocol(PROTOCOL_MNDOMAINSENDBONUSDATA_RE) { }
+		MNDomainSendBonusData_Re (int l_retcode,int64_t l_unifid)
+			 : retcode(l_retcode),unifid(l_unifid)
+		{
+			type = PROTOCOL_MNDOMAINSENDBONUSDATA_RE;
+		}
+
+		MNDomainSendBonusData_Re(const MNDomainSendBonusData_Re &rhs)
+			: Protocol(rhs),retcode(rhs.retcode),unifid(rhs.unifid) { }
+
+		GNET::Protocol *Clone() const { return new MNDomainSendBonusData_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << unifid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> unifid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 16; }

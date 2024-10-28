@@ -302,6 +302,7 @@ public:
 	void AddForFinishCount(unsigned long ulID, bool bSuccess);
 	void RemoveAll() { memset(this, 0, sizeof(*this)); }
 	bool IsValid() const { return m_FnshHeader.m_uTaskCount <= TASK_FINISHED_LIST_MAX_LEN; }
+	bool IsFull()const{ return m_FnshHeader.m_uTaskCount >= TASK_FINISHED_LIST_MAX_LEN; }
 };
 
 struct TaskPreservedData
@@ -348,6 +349,7 @@ public:
 	void AddOrUpdate(unsigned long ulID, unsigned long ulTime);
 	void RemoveAll() { memset(this, 0, sizeof(*this)); }
 	bool IsValid() const { return m_uCount <= TASK_FINISH_TIME_MAX_LEN; }
+	bool IsFull()const{ return m_uCount >= TASK_FINISH_TIME_MAX_LEN; }
 };
 
 struct TaskFinishCountEntry
@@ -371,6 +373,7 @@ public:
 	void AddOrUpdate(unsigned long ulID,unsigned long ulFinishTime);
 	void RemoveAll() { memset(this, 0, sizeof(*this)); }
 	bool IsValid() const { return m_uCount <= TASK_FINISH_COUNT_MAX_LEN; }
+	bool IsFull()const{ return m_uCount >= TASK_FINISH_COUNT_MAX_LEN; }
 };
 
 struct StorageTaskList

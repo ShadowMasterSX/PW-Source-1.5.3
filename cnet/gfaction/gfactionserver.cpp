@@ -122,7 +122,7 @@ void GFactionServer::UpdatePlayer(int roleid, int level, int reputation , unsign
 		{
 	 		//send player's new faction info to gameserver
 			PlayerFactionInfo_Re pfi_re(ERR_SUCCESS,PFactionInfoVector());
-			pfi_re.faction_info.add(PFactionInfo(roleid,user.fid,user.role,Factiondb::GetInstance()->GetPvpMask(user.fid)));
+			pfi_re.faction_info.add(PFactionInfo(roleid,user.fid,user.role,Factiondb::GetInstance()->GetPvpMask(user.fid),Factiondb::GetInstance()->GetUnifid(user.fid)));
 			GProviderServer::GetInstance()->DispatchProtocol((*it).second->gsid,pfi_re);
 		}
 	}
@@ -172,7 +172,7 @@ void GFactionServer::UpdatePlayer(int roleid, unsigned int fid,char froleid,bool
 		{
 	 		//send player's new faction info to gameserver
 			PlayerFactionInfo_Re pfi_re(ERR_SUCCESS,PFactionInfoVector());
-			pfi_re.faction_info.add(PFactionInfo(roleid,fid,froleid/*faction role*/,Factiondb::GetInstance()->GetPvpMask(fid)));
+			pfi_re.faction_info.add(PFactionInfo(roleid,fid,froleid/*faction role*/,Factiondb::GetInstance()->GetPvpMask(fid),Factiondb::GetInstance()->GetUnifid(fid)));
 			GProviderServer::GetInstance()->DispatchProtocol((*it).second->gsid,pfi_re);
 		}
 	}
@@ -294,7 +294,7 @@ void GFactionServer::AddMember(int fid, int superior, int roleid, int level, cha
 		factionmembermap.insert( std::make_pair(fid,HardReference<Player>((*it).second)) );
 
 		PlayerFactionInfo_Re pfi_re(ERR_SUCCESS,PFactionInfoVector());
-		pfi_re.faction_info.add(PFactionInfo(roleid,fid,_R_MEMBER,Factiondb::GetInstance()->GetPvpMask(fid)));
+		pfi_re.faction_info.add(PFactionInfo(roleid,fid,_R_MEMBER,Factiondb::GetInstance()->GetPvpMask(fid),Factiondb::GetInstance()->GetUnifid(fid)));
 		GProviderServer::GetInstance()->DispatchProtocol((*it).second->gsid,pfi_re);
 
 		gfs_broadcast_factionacceptjoin_re(fid,superior,roleid,level,cls,reputation,reincarn_times,gender,name);

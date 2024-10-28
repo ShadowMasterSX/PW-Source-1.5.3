@@ -132,8 +132,8 @@ namespace GNET
       Skill2407Stub ():SkillStub (2407)
         {
             cls = 127;
-            name = L"暴君之子光环";
-            nativename = "暴君之子光环";
+            name = L"鏆村悰涔嬪瓙鍏夌幆";
+            nativename = "鏆村悰涔嬪瓙鍏夌幆";
             icon = "";
             max_level = 10;
             type = 2;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "武侠_龙依.sgc";
+            effect = "姝︿緺_榫欎緷.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

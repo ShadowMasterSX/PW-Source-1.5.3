@@ -134,9 +134,9 @@ namespace GNET
       Skill329Stub ():SkillStub (329)
         {
             cls = 3;
-            name = L"复活宠物";
-            nativename = "复活宠物";
-            icon = "复活宠物.dds";
+            name = L"澶嶆椿瀹犵墿";
+            nativename = "澶嶆椿瀹犵墿";
+            icon = "澶嶆椿瀹犵墿.dds";
             max_level = 10;
             type = 2;
             apcost = 0;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "宠物复活.sgc";
+            effect = "瀹犵墿澶嶆椿.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

@@ -132,8 +132,8 @@ namespace GNET
       Skill2322Stub ():SkillStub (2322)
         {
             cls = 127;
-            name = L"°Ğ×Ó³°·í";
-            nativename = "°Ğ×Ó³°·í";
+            name = L"é¶å­å˜²è®½";
+            nativename = "é¶å­å˜²è®½";
             icon = "";
             max_level = 10;
             type = 3;

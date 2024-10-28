@@ -19,9 +19,9 @@ namespace GNET
         Skill1259Stub ():SkillStub (1259)
         {
             cls = 2;
-            name = L"¿ñ¡¤ÍÁ¾«Í¨";
-            nativename = "¿ñ¡¤ÍÁ¾«Í¨";
-            icon = "ÍÁÏµÄ§·¨¾«Í¨Ä§¼¼ÄÜ.dds";
+            name = L"ç‹‚Â·åœŸç²¾é€š";
+            nativename = "ç‹‚Â·åœŸç²¾é€š";
+            icon = "åœŸç³»é­”æ³•ç²¾é€šé­”æŠ€èƒ½.dds";
             max_level = 1;
             type = 5;
             apcost = 0;

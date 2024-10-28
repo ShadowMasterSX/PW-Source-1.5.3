@@ -24,14 +24,15 @@ namespace GNET
 		GFactionAllianceVector alliance;
 		GFactionHostileVector hostile;
 		GFactionRelationApplyVector apply;
+		int64_t unifid;
 
 	public:
 		GFactionDetail (unsigned int l_fid = 0,const Octets& l_name = Octets(0),char l_level = 0
 			,unsigned int l_master = 0,int l_last_op_time = 0,const GFactionAllianceVector& l_alliance = GFactionAllianceVector()
-			,const GFactionHostileVector& l_hostile = GFactionHostileVector(),const GFactionRelationApplyVector& l_apply = GFactionRelationApplyVector())
+			,const GFactionHostileVector& l_hostile = GFactionHostileVector(),const GFactionRelationApplyVector& l_apply = GFactionRelationApplyVector(),int64_t l_unifid = 0)
 			: fid(l_fid),name(l_name),level(l_level)
 			,master(l_master),last_op_time(l_last_op_time),alliance(l_alliance)
-			,hostile(l_hostile),apply(l_apply)
+			,hostile(l_hostile),apply(l_apply),unifid(l_unifid)
 		{
 		}
 
@@ -39,7 +40,7 @@ namespace GNET
 			: fid(rhs.fid),name(rhs.name),level(rhs.level),
 			master(rhs.master),announce(rhs.announce),sysinfo(rhs.sysinfo),
 			member(rhs.member),last_op_time(rhs.last_op_time),alliance(rhs.alliance),
-			hostile(rhs.hostile),apply(rhs.apply) { }
+			hostile(rhs.hostile),apply(rhs.apply),unifid(rhs.unifid) { }
 
 		Rpc::Data *Clone() const { return new GFactionDetail(*this); }
 
@@ -59,6 +60,7 @@ namespace GNET
 				alliance = r->alliance;
 				hostile = r->hostile;
 				apply = r->apply;
+				unifid = r->unifid;
 			}
 			return *this;
 		}
@@ -79,6 +81,7 @@ namespace GNET
 				alliance = r->alliance;
 				hostile = r->hostile;
 				apply = r->apply;
+				unifid = r->unifid;
 			}
 			return *this;
 		}
@@ -96,6 +99,7 @@ namespace GNET
 			os << alliance;
 			os << hostile;
 			os << apply;
+			os << unifid;
 			return os;
 		}
 
@@ -112,6 +116,7 @@ namespace GNET
 			os >> alliance;
 			os >> hostile;
 			os >> apply;
+			os >> unifid;
 			return os;
 		}
 

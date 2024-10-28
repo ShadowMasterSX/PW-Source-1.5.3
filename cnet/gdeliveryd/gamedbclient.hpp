@@ -34,6 +34,12 @@ public:
 	bool SendProtocol(		Protocol &protocol) { return conn_state && Send(sid, protocol); }
 	bool SendProtocol(		Protocol *protocol) { return conn_state && Send(sid, protocol); }
 
+	bool IsConnect()
+	{
+		Thread::Mutex::Scoped l(locker_state); 
+		return conn_state;
+	}
+
 };
 
 };

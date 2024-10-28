@@ -1,0 +1,32 @@
+	public:
+		int retcode;
+		enum { PROTOCOL_TYPE = PROTOCOL_MNFACTIONPROCLAIM_RE };
+	public:
+		MNFactionProclaim_Re() { type = PROTOCOL_MNFACTIONPROCLAIM_RE; }
+		MNFactionProclaim_Re(void*) : Protocol(PROTOCOL_MNFACTIONPROCLAIM_RE) { }
+		MNFactionProclaim_Re (int l_retcode)
+			 : retcode(l_retcode)
+		{
+			type = PROTOCOL_MNFACTIONPROCLAIM_RE;
+		}
+
+		MNFactionProclaim_Re(const MNFactionProclaim_Re &rhs)
+			: Protocol(rhs),retcode(rhs.retcode) { }
+
+		GNET::Protocol *Clone() const { return new MNFactionProclaim_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 256; }

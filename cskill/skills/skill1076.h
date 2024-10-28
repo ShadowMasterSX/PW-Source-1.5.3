@@ -57,8 +57,8 @@ namespace GNET
       Skill1076Stub ():SkillStub (1076)
         {
             cls = 127;
-            name = L"ÎÒÊÇÓğÁéÖ®¾«Æ·BUFF4ºÏ1";
-            nativename = "ÎÒÊÇÓğÁéÖ®¾«Æ·BUFF4ºÏ1";
+            name = L"æˆ‘æ˜¯ç¾½çµä¹‹ç²¾å“BUFF4åˆ1";
+            nativename = "æˆ‘æ˜¯ç¾½çµä¹‹ç²¾å“BUFF4åˆ1";
             icon = "";
             max_level = MAX_LEVEL;
             type = 4;

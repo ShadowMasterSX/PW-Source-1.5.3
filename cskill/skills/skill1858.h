@@ -132,8 +132,8 @@ namespace GNET
       Skill1858Stub ():SkillStub (1858)
         {
             cls = 127;
-            name = L"ÏòÖ÷ÈË´«ÊäÉËº¦";
-            nativename = "ÏòÖ÷ÈË´«ÊäÉËº¦";
+            name = L"å‘ä¸»äººä¼ è¾“ä¼¤å®³";
+            nativename = "å‘ä¸»äººä¼ è¾“ä¼¤å®³";
             icon = "";
             max_level = 10;
             type = 2;

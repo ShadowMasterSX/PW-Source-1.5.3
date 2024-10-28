@@ -505,6 +505,7 @@ ai_target_task::ChangeTarget(const XID & target)
 	ASSERT(target.type != -1);
 	if(_target == target) return true;
 	_target = target;
+    _self->SetTargetCache(target);
 	_self->AddSession(new session_npc_empty());
 	Execute();
 	return true;
@@ -619,8 +620,8 @@ ai_melee_task::Execute()
 	attack->SetTarget(_target,false);
 	attack->SetShortRange(short_range);
 	attack->SetAITask(_apolicy->GetTaskID());
-	_self->AddSession(attack);
 	ClearChaseInfo();
+	_self->AddSession(attack);
 }
 
 void
@@ -834,6 +835,7 @@ bool
 ai_runaway_task::ChangeTarget(const XID & target)
 {
 	_target = target;
+    _self->SetTargetCache(target);
 	return true;
 }
 
@@ -898,11 +900,12 @@ ai_magic_task::Execute()
 		session_npc_skill *pSession = new session_npc_skill(_self);
 		pSession->SetTarget(_skill,_skill_level,_target);
 		pSession->SetAITask(_apolicy->GetTaskID());
-		_self->AddSession(pSession);
 
 		//随机取得下一次技能
 		_skill_type = _apolicy->GetPrimarySkill(_skill,_skill_level);
 		_skill_range = _self->GetMagicRange(_skill,_skill_level) + _self->GetBodySize();
+		
+		_self->AddSession(pSession); // 可能会delete掉当前的task 即this
 		return ;
 	}
 
@@ -953,12 +956,12 @@ ai_magic_task::Execute()
 		session_npc_skill *pSession = new session_npc_skill(_self);
 		pSession->SetTarget(_skill,_skill_level,_target);
 		pSession->SetAITask(_apolicy->GetTaskID());
-		_self->AddSession(pSession);
 		
 		ClearChaseInfo();
 		//随机取得下一次技能
 		_skill_type = _apolicy->GetPrimarySkill(_skill,_skill_level);
 		_skill_range = _self->GetMagicRange(_skill,_skill_level) + _self->GetBodySize();
+		_self->AddSession(pSession);
 		return ;
 	}
 }
@@ -1014,11 +1017,11 @@ ai_magic_melee_task::Execute()
 		session_npc_skill *pSession = new session_npc_skill(_self);
 		pSession->SetTarget(_skill,_skill_level,_target);
 		pSession->SetAITask(_apolicy->GetTaskID());
-		_self->AddSession(pSession);
 
 		//随机取得下一次技能
 		_skill_type = _apolicy->GetPrimarySkill(_skill,_skill_level);
 		_skill_range = _self->GetMagicRange(_skill,_skill_level) + _self->GetBodySize();
+		_self->AddSession(pSession);
 		return ;
 	}
 
@@ -1064,12 +1067,12 @@ ai_magic_melee_task::Execute()
 			session_npc_skill *pSession = new session_npc_skill(_self);
 			pSession->SetTarget(_skill,_skill_level,_target);
 			pSession->SetAITask(_apolicy->GetTaskID());
-			_self->AddSession(pSession);
 
 			ClearChaseInfo();
 			//随机取得下一次技能
 			_skill_type = _apolicy->GetPrimarySkill(_skill,_skill_level);
 			_skill_range = _self->GetMagicRange(_skill,_skill_level) + _self->GetBodySize();
+			_self->AddSession(pSession);
 			return ;
 		}
 	}
@@ -1096,8 +1099,8 @@ ai_magic_melee_task::Execute()
 	attack->SetAITask(_apolicy->GetTaskID());
 	attack->SetShortRange(short_range);
 	attack->SetAttackTimes( (195 + abase::Rand(10,20)) / (_self->GetAttackSpeed() + 1));
-	_self->AddSession(attack);
 	ClearChaseInfo();
+	_self->AddSession(attack);
 }
 
 
@@ -1210,6 +1213,7 @@ bool
 ai_skill_task::ChangeTarget(const XID & target)
 {
 	_target = target;
+    _self->SetTargetCache(target);
 	return true;
 }
 
@@ -2038,9 +2042,9 @@ ai_skill_task_2::Execute()
 	pSession->SetAITask(_apolicy->GetTaskID());
 	pSession->SetUseCoolDown(UseCoolDown());
 	pSession->SetUseMp(UseMp());
-	_self->AddSession(pSession);
 
 	ClearChaseInfo();
+	_self->AddSession(pSession);
 	return ;
 }
 

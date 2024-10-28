@@ -1,0 +1,60 @@
+#ifndef __GNET_DBMNFACTIONINFOUPDATEARG_RPCDATA
+#define __GNET_DBMNFACTIONINFOUPDATEARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "mnfactioninfo"
+
+namespace GNET
+{
+	class DBMNFactionInfoUpdateArg : public GNET::Rpc::Data
+	{
+	public:
+		MNFactionInfoVector factioninfo_list;
+
+	public:
+		DBMNFactionInfoUpdateArg (const MNFactionInfoVector& l_factioninfo_list = MNFactionInfoVector())
+			: factioninfo_list(l_factioninfo_list)
+		{
+		}
+
+		DBMNFactionInfoUpdateArg(const DBMNFactionInfoUpdateArg &rhs)
+			: factioninfo_list(rhs.factioninfo_list) { }
+
+		Rpc::Data *Clone() const { return new DBMNFactionInfoUpdateArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBMNFactionInfoUpdateArg *r = dynamic_cast<const DBMNFactionInfoUpdateArg *>(&rhs);
+			if (r && r != this)
+			{
+				factioninfo_list = r->factioninfo_list;
+			}
+			return *this;
+		}
+
+		DBMNFactionInfoUpdateArg& operator = (const DBMNFactionInfoUpdateArg &rhs)
+		{
+			const DBMNFactionInfoUpdateArg *r = &rhs;
+			if (r && r != this)
+			{
+				factioninfo_list = r->factioninfo_list;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << factioninfo_list;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> factioninfo_list;
+			return os;
+		}
+
+	};
+};
+#endif

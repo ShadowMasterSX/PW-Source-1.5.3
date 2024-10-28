@@ -132,9 +132,9 @@ namespace GNET
       Skill2081Stub ():SkillStub (2081)
         {
             cls = 127;
-            name = L"冰石铠甲";
-            nativename = "冰石铠甲";
-            icon = "宠物强化.dds";
+            name = L"鍐扮煶閾犵敳";
+            nativename = "鍐扮煶閾犵敳";
+            icon = "瀹犵墿寮哄寲.dds";
             max_level = 10;
             type = 10;
             apcost = 0;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "巨灵神力.sgc";
+            effect = "宸ㄧ伒绁炲姏.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

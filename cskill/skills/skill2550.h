@@ -58,9 +58,9 @@ namespace GNET
       Skill2550Stub ():SkillStub (2550)
         {
             cls = 10;
-            name = L"月食";
-            nativename = "月食";
-            icon = "月食.dds";
+            name = L"鏈堥";
+            nativename = "鏈堥";
+            icon = "鏈堥.dds";
             max_level = 10;
             type = 2;
             apcost = 100;
@@ -87,7 +87,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "2寸力.sgc";
+            effect = "2瀵稿姏.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

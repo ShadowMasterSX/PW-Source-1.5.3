@@ -132,8 +132,8 @@ namespace GNET
       Skill2185Stub ():SkillStub (2185)
         {
             cls = 127;
-            name = L"火之觉醒";
-            nativename = "火之觉醒";
+            name = L"鐏箣瑙夐啋";
+            nativename = "鐏箣瑙夐啋";
             icon = "";
             max_level = 10;
             type = 3;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "天地无级.sgc";
+            effect = "澶╁湴鏃犵骇.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

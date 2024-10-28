@@ -132,8 +132,8 @@ namespace GNET
       Skill2643Stub ():SkillStub (2643)
         {
             cls = 127;
-            name = L"武痴神之封印";
-            nativename = "武痴神之封印";
+            name = L"姝︾棿绁炰箣灏佸嵃";
+            nativename = "姝︾棿绁炰箣灏佸嵃";
             icon = "";
             max_level = 10;
             type = 3;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "五气朝元.sgc";
+            effect = "浜旀皵鏈濆厓.sgc";
             range.type = 2;
             doenchant = true;
             dobless = true;

@@ -133,8 +133,8 @@ namespace GNET
       Skill2388Stub ():SkillStub (2388)
         {
             cls = 127;
-            name = L"ä½ĞÜ´ò¹ö";
-            nativename = "ä½ĞÜ´ò¹ö";
+            name = L"æµ£ç†Šæ‰“æ»š";
+            nativename = "æµ£ç†Šæ‰“æ»š";
             icon = "";
             max_level = 10;
             type = 1;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "ä½ĞÜ³¤ÀÏ_·ßÅ­_»÷ÖĞ.sgc";
+            effect = "æµ£ç†Šé•¿è€_æ„¤æ€’_å‡»ä¸­.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

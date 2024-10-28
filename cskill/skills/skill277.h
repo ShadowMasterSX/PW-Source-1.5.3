@@ -134,8 +134,8 @@ namespace GNET
       Skill277Stub ():SkillStub (277)
         {
             cls = 127;
-            name = L"新怪之群体攻击";
-            nativename = "新怪之群体攻击";
+            name = L"鏂版�箣缇や綋鏀诲嚮";
+            nativename = "鏂版�箣缇や綋鏀诲嚮";
             icon = "";
             max_level = 10;
             type = 1;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "旋刃.sgc";
+            effect = "鏃嬪垉.sgc";
             range.type = 2;
             doenchant = false;
             dobless = false;

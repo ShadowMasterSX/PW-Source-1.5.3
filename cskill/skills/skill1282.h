@@ -58,9 +58,9 @@ namespace GNET
       Skill1282Stub ():SkillStub (1282)
         {
             cls = 5;
-            name = L"Õæ¡¤¿ñÀÇÓ¡";
-            nativename = "Õæ¡¤¿ñÀÇÓ¡";
-            icon = "±©ÉËÏÉ¼¼ÄÜ.dds";
+            name = L"çœŸÂ·ç‹‚ç‹¼å°";
+            nativename = "çœŸÂ·ç‹‚ç‹¼å°";
+            icon = "æš´ä¼¤ä»™æŠ€èƒ½.dds";
             max_level = 1;
             type = 2;
             apcost = 0;
@@ -85,7 +85,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (23749);
             }
-            effect = "´Ì¿Í_±©ÉË.sgc";
+            effect = "åˆºå®¢_æš´ä¼¤.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

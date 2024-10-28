@@ -1,0 +1,82 @@
+#ifndef __GNET_PUTROLERES_RPCDATA
+#define __GNET_PUTROLERES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class PutRoleRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		int cash_vip_level;
+		int score_add;
+		int score_cost;
+		int score_consume;
+
+	public:
+		PutRoleRes (int l_retcode = 0,int l_cash_vip_level = 0,int l_score_add = 0
+			,int l_score_cost = 0,int l_score_consume = 0)
+			: retcode(l_retcode),cash_vip_level(l_cash_vip_level),score_add(l_score_add)
+			,score_cost(l_score_cost),score_consume(l_score_consume)
+		{
+		}
+
+		PutRoleRes(const PutRoleRes &rhs)
+			: retcode(rhs.retcode),cash_vip_level(rhs.cash_vip_level),score_add(rhs.score_add),
+			score_cost(rhs.score_cost),score_consume(rhs.score_consume) { }
+
+		Rpc::Data *Clone() const { return new PutRoleRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const PutRoleRes *r = dynamic_cast<const PutRoleRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				cash_vip_level = r->cash_vip_level;
+				score_add = r->score_add;
+				score_cost = r->score_cost;
+				score_consume = r->score_consume;
+			}
+			return *this;
+		}
+
+		PutRoleRes& operator = (const PutRoleRes &rhs)
+		{
+			const PutRoleRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				cash_vip_level = r->cash_vip_level;
+				score_add = r->score_add;
+				score_cost = r->score_cost;
+				score_consume = r->score_consume;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << cash_vip_level;
+			os << score_add;
+			os << score_cost;
+			os << score_consume;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> cash_vip_level;
+			os >> score_add;
+			os >> score_cost;
+			os >> score_consume;
+			return os;
+		}
+
+	};
+};
+#endif

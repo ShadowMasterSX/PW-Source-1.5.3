@@ -138,9 +138,9 @@ namespace GNET
       Skill406Stub ():SkillStub (406)
         {
             cls = 0;
-            name = L"Õæ¡¤Áú·É»÷";
-            nativename = "Õæ¡¤Áú·É»÷";
-            icon = "Áú·É»÷1.DDS";
+            name = L"çœŸÂ·é¾™é£žå‡»";
+            nativename = "çœŸÂ·é¾™é£žå‡»";
+            icon = "é¾™é£žå‡»1.DDS";
             max_level = 1;
             type = 1;
             apcost = 100;
@@ -164,7 +164,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (9);
             }
-            effect = "1°ÔÍõÁú·É.sgc";
+            effect = "1éœ¸çŽ‹é¾™é£ž.sgc";
             range.type = 0;
             doenchant = true;
             dobless = true;
@@ -245,6 +245,12 @@ namespace GNET
             skill->GetVictim ()->SetProbability (1.0 * 100);
             skill->GetVictim ()->SetTime (7000);
             skill->GetVictim ()->SetDizzy (1);
+            
+            skill->GetVictim ()->SetProbability (1.0 * 40);
+            skill->GetVictim ()->SetTime (5500);
+			skill->GetVictim ()->SetValue (2);
+            skill->GetVictim ()->SetPalsy (1);
+            
             return true;
         }
         bool BlessMe (Skill * skill) const

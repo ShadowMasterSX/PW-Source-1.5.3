@@ -19,8 +19,8 @@ namespace GNET
         Skill1146Stub ():SkillStub (1146)
         {
             cls = 2;
-            name = L"复仇惩戒（效果专用）";
-            nativename = "复仇惩戒（效果专用）";
+            name = L"澶嶄粐鎯╂垝锛堟晥鏋滀笓鐢級";
+            nativename = "澶嶄粐鎯╂垝锛堟晥鏋滀笓鐢級";
             icon = "";
             max_level = 1;
             type = 2;
@@ -45,7 +45,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (25333);
             }
-            effect = "巫师_复仇惩戒.sgc";
+            effect = "宸笀_澶嶄粐鎯╂垝.sgc";
             range.type = 5;
             doenchant = false;
             dobless = false;

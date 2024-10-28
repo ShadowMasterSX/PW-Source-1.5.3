@@ -134,9 +134,9 @@ namespace GNET
       Skill1806Stub ():SkillStub (1806)
         {
             cls = 1;
-            name = L"±ù¾§ÊÀ½ç";
-            nativename = "±ù¾§ÊÀ½ç";
-            icon = "±ù¾§ÊÀ½ç.dds";
+            name = L"å†°æ™¶ä¸–ç•Œ";
+            nativename = "å†°æ™¶ä¸–ç•Œ";
+            icon = "å†°æ™¶ä¸–ç•Œ.dds";
             max_level = 1;
             type = 2;
             apcost = 200;

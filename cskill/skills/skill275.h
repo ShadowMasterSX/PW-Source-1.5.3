@@ -134,8 +134,8 @@ namespace GNET
       Skill275Stub ():SkillStub (275)
         {
             cls = 127;
-            name = L"ÐÂ¹ÖÖ®½üÉí¹¥»÷";
-            nativename = "ÐÂ¹ÖÖ®½üÉí¹¥»÷";
+            name = L"æ–°æ€ªä¹‹è¿‘èº«æ”»å‡»";
+            nativename = "æ–°æ€ªä¹‹è¿‘èº«æ”»å‡»";
             icon = "";
             max_level = 10;
             type = 1;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "¾ÞÐÍÉ³³æ¹¥»÷.sgc";
+            effect = "å·¨åž‹æ²™è™«æ”»å‡».sgc";
             range.type = 3;
             doenchant = false;
             dobless = false;

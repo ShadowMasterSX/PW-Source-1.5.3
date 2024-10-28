@@ -142,6 +142,7 @@ public:
 			//这里直接释放
 			delete it->second;
 		}
+		_filter_map.clear();
 		_filter_pool.clear();
 		_filter_pool.insert(_filter_pool.begin(),FILTER_IDX_MAX,list());
 		
@@ -690,6 +691,7 @@ enum
 	FILTER_INDEX_NONPENALTY_PVP	= 40,
 	FILTER_INDEX_GTAWARD		= 41,
 	FILTER_INDEX_MOVING_SKILL	= 42,
+	FILTER_INDEX_CHECK_VISA		= 43,
 
 	FILTER_INDEX_SKILL_BASE = 4096,
 	FILTER_INDEX_SKILL_END  = 8191,

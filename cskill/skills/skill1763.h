@@ -95,8 +95,8 @@ namespace GNET
       Skill1763Stub ():SkillStub (1763)
         {
             cls = 127;
-            name = L"仇恨倍增";
-            nativename = "仇恨倍增";
+            name = L"浠囨仺鍊嶅";
+            nativename = "浠囨仺鍊嶅";
             icon = "";
             max_level = 1;
             type = 3;
@@ -118,7 +118,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 3;
-            effect = "怪物自爆.sgc";
+            effect = "鎬墿鑷垎.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

@@ -41,6 +41,7 @@ namespace GNET
 		bool GetMailList( int roleid,GMailHeaderVector& maillist);
 		bool AddNewMail(int roleid,const GMailHeader& header);
 		bool DeleteMail(int roleid,unsigned char mail_id);
+		bool DeleteMail(int roleid,const IntVector& maillist);
 		bool GetMail( int roleid,unsigned char mail_id, GMailHeader& mail );
 		int  GetMailBoxSize( int roleid );
 		bool IsMailExist(int roleid,unsigned char mail_id);
@@ -48,6 +49,8 @@ namespace GNET
 		bool MarkGetAttachment( int roleid,unsigned char mail_id,unsigned char attach_type);
 		bool PreserveMail(int roleid,unsigned char mail_id,bool blPreserve);
 		bool CheckExpireMail( int roleid,GMailIDVector& maillist );
+		bool FindMail(int roleid, IntVector& maillist ,int type,int special_sender, int except_sender);
+		bool CheckSpecialTitle(int roleid,const IntVector& maillist, int arg);
 	private:
 		//protocol handler
 		MailBox* GetMailBox( int roleid );

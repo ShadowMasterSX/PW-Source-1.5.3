@@ -134,9 +134,9 @@ namespace GNET
       Skill623Stub ():SkillStub (623)
         {
             cls = 6;
-            name = L"¿ñ¡¤Òí¶Ü";
-            nativename = "¿ñ¡¤Òí¶Ü";
-            icon = "Òí¶Ü2.dds";
+            name = L"ç‹‚Â·ç¿¼ç›¾";
+            nativename = "ç‹‚Â·ç¿¼ç›¾";
+            icon = "ç¿¼ç›¾2.dds";
             max_level = 1;
             type = 2;
             apcost = 45;

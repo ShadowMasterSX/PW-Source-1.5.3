@@ -57,8 +57,8 @@ namespace GNET
       Skill1190Stub ():SkillStub (1190)
         {
             cls = 127;
-            name = L"隐身药水专用";
-            nativename = "隐身药水专用";
+            name = L"闅愯韩鑽按涓撶敤";
+            nativename = "闅愯韩鑽按涓撶敤";
             icon = "";
             max_level = 10;
             type = 4;

@@ -21,7 +21,7 @@ namespace GNET
             cls = 2;
             name = L"333";
             nativename = "333";
-            icon = "·¨Çò¾«Í¨.dds";
+            icon = "æ³•çƒç²¾é€š.dds";
             max_level = 10;
             type = 5;
             apcost = 0;

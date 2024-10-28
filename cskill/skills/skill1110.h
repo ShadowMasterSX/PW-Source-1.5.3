@@ -19,9 +19,9 @@ namespace GNET
         Skill1110Stub ():SkillStub (1110)
         {
             cls = 5;
-            name = L"ÎüÑª£¨¹â»·×¨ÓÃ£©";
-            nativename = "ÎüÑª£¨¹â»·×¨ÓÃ£©";
-            icon = "¿ñÁúÕ¶.dds";
+            name = L"å¸è¡€ï¼ˆå…‰ç¯ä¸“ç”¨ï¼‰";
+            nativename = "å¸è¡€ï¼ˆå…‰ç¯ä¸“ç”¨ï¼‰";
+            icon = "ç‹‚é¾™æ–©.dds";
             max_level = MAX_LEVEL;
             type = 1;
             apcost = 0;
@@ -42,7 +42,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "¼²ÔÆ²½.sgc";
+            effect = "ç–¾äº‘æ­¥.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

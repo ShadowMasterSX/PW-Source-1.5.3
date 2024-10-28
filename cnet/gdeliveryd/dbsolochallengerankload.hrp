@@ -1,0 +1,60 @@
+
+#ifndef __GNET_DBSOLOCHALLENGERANKLOAD_HPP
+#define __GNET_DBSOLOCHALLENGERANKLOAD_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbsolochallengerankloadarg"
+#include "dbsolochallengerankloadres"
+
+#include "solochallengerank.h"
+#include "gamedbclient.hpp"
+
+
+namespace GNET
+{
+
+class DBSoloChallengeRankLoad : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbsolochallengerankload"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBSoloChallengeRankLoadArg *arg = (DBSoloChallengeRankLoadArg *)argument;
+		// DBSoloChallengeRankLoadRes *res = (DBSoloChallengeRankLoadRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+        DBSoloChallengeRankLoadArg* arg = (DBSoloChallengeRankLoadArg*)argument;
+        DBSoloChallengeRankLoadRes* res = (DBSoloChallengeRankLoadRes*)result;
+
+        Log::log(LOG_INFO, "DBSoloChallengeRankLoad: RPC return. retcode=%d, update_time=%d, zone_id=%d, data_ext_local_data_size=%d, data_ext_global_data_size=%d.",
+            res->retcode, res->data_ext_local.update_time, res->data_ext_local.zoneid, res->data_ext_local.data.size(), res->data_ext_global.data.size());
+
+        if (res->retcode == ERR_SUCCESS)
+        {
+            SoloChallengeRank::GetInstance().OnDBLoad(res->data_ext_local, res->data_ext_global);
+        }
+        else if (res->retcode == ERR_AGAIN)
+        {
+            GameDBClient::GetInstance()->SendProtocol(Rpc::Call(RPC_DBSOLOCHALLENGERANKLOAD, arg));
+        }
+    }
+
+    void OnTimeout()
+	{
+        Log::log(LOG_WARNING, "DBSoloChallengeRankLoad: RPC timeout. Resend request.");
+
+        DBSoloChallengeRankLoadArg* arg = (DBSoloChallengeRankLoadArg*)argument;
+        GameDBClient::GetInstance()->SendProtocol(Rpc::Call(RPC_DBSOLOCHALLENGERANKLOAD, arg));
+	}
+
+};
+
+};
+#endif

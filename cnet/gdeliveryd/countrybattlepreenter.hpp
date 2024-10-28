@@ -16,7 +16,7 @@ class CountryBattlePreEnter : public GNET::Protocol
 
 	void Process(Manager *manager, Manager::Session::ID sid)
 	{
-		CountryBattleMan::GetInstance()->OnPlayerPreEnter(battle_id, roleid);
+		CountryBattleMan::OnPlayerPreEnter(roleid,battle_id);
 	}
 };
 

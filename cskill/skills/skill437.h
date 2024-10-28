@@ -19,9 +19,9 @@ namespace GNET
         Skill437Stub ():SkillStub (437)
         {
             cls = 0;
-            name = L"Õæ¡¤È­Êõ¾«Í¨";
-            nativename = "Õæ¡¤È­Êõ¾«Í¨";
-            icon = "È­Êõ¾«Í¨1.dds";
+            name = L"çœŸÂ·æ‹³æœ¯ç²¾é€š";
+            nativename = "çœŸÂ·æ‹³æœ¯ç²¾é€š";
+            icon = "æ‹³æœ¯ç²¾é€š1.dds";
             max_level = 1;
             type = 5;
             apcost = 0;

@@ -132,8 +132,8 @@ namespace GNET
       Skill2503Stub ():SkillStub (2503)
         {
             cls = 127;
-            name = L"自身祝福";
-            nativename = "自身祝福";
+            name = L"鑷韩绁濈";
+            nativename = "鑷韩绁濈";
             icon = "";
             max_level = 10;
             type = 2;

@@ -19,9 +19,9 @@ namespace GNET
         Skill1717Stub ():SkillStub (1717)
         {
             cls = 8;
-            name = L"¿ñ¡¤µ¶½£¾«Í¨";
-            nativename = "¿ñ¡¤µ¶½£¾«Í¨";
-            icon = "µ¶½£¾«Í¨2.dds";
+            name = L"ç‹‚Â·åˆ€å‰‘ç²¾é€š";
+            nativename = "ç‹‚Â·åˆ€å‰‘ç²¾é€š";
+            icon = "åˆ€å‰‘ç²¾é€š2.dds";
             max_level = 1;
             type = 5;
             apcost = 0;

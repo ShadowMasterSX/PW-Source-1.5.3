@@ -58,9 +58,9 @@ namespace GNET
       Skill430Stub ():SkillStub (430)
         {
             cls = 0;
-            name = L"Õæ¡¤½ğ¸Õ¾­";
-            nativename = "Õæ¡¤½ğ¸Õ¾­";
-            icon = "½ğ¸Õ¾­1.dds";
+            name = L"çœŸÂ·é‡‘åˆšç»";
+            nativename = "çœŸÂ·é‡‘åˆšç»";
+            icon = "é‡‘åˆšç»1.dds";
             max_level = 1;
             type = 2;
             apcost = 100;
@@ -99,7 +99,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (9);
             }
-            effect = "1½ğ¸Õ¾­.sgc";
+            effect = "1é‡‘åˆšç».sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

@@ -325,6 +325,7 @@ protected:
 	virtual unsigned short GetDataCRC() { return _crc; }
 	virtual bool RegenAddon(int item_id,bool (*regen_addon)(int item_id, addon_data& ent));
 	virtual int RefineAddon(int addon_id, int & level_result, float adjust[4], float adjust2[12]);
+	virtual int RefineAddon(int addon_id, int & level_result, float adjust[4], float adjust2[12], int material_id);
 	virtual int GetAddonExpireDate(){ return _addon_expire_date; }
 	virtual int RemoveExpireAddon(int cur_t);	//返回更新后的addon_expire_date
 	virtual bool Sharpen(addon_data * addon_list, size_t count, int sharpener_gfx);
@@ -501,7 +502,7 @@ public:
 		return type;
 	}
 	virtual ITEM_TYPE GetItemType()  { return ITEM_TYPE_WEAPON;}
-	virtual int MakeSlot(gactive_imp *, int & count);
+	virtual int MakeSlot(gactive_imp*, int& count, unsigned int material_id = 0, int material_count = 0);
 protected:
 	virtual void * GetEssence()  {return &_ess;}
 	virtual size_t GetEssenceSize() {return sizeof(_ess);}
@@ -528,7 +529,7 @@ public:
 	armor_item * Clone() const { return new armor_item(*this);}
 
 	virtual ITEM_TYPE GetItemType()  { return ITEM_TYPE_ARMOR;}
-	virtual int MakeSlot(gactive_imp *, int & count);
+	virtual int MakeSlot(gactive_imp*, int& count, unsigned int material_id = 0, int material_count = 0);
 protected:
 	virtual void * GetEssence()  {return &_ess;}
 	virtual size_t GetEssenceSize() {return sizeof(_ess);}
@@ -595,13 +596,14 @@ protected:
 	virtual void AfterChipChanged() {}
 };
 
-class decoration_equip_item : public equip_item
+class decoration_equip_item : public socket_item
 {
 	decoration_essence _ess;
 public:
 	DECLARE_SUBSTANCE(decoration_equip_item);
 	virtual decoration_equip_item * Clone()  const { return new decoration_equip_item(*this);}
 	virtual ITEM_TYPE GetItemType()  { return ITEM_TYPE_DECORATION;}
+    virtual int MakeSlot(gactive_imp*, int& count, unsigned int material_id = 0, int material_count = 0);
 protected:
 	virtual void * GetEssence()  {return &_ess;}
 	virtual size_t GetEssenceSize() {return sizeof(_ess);}
@@ -611,6 +613,8 @@ protected:
 	virtual void EssenceDeactivate(item::LOCATION l,gactive_imp* obj);
 	virtual void UpdateEssence();
 	virtual void UpdateData();
+    virtual void AfterChipChanged() { /* 无光效效果 */ };
+    virtual void SetSocketAndStone(int count, int* stone_type);
 };
 
 

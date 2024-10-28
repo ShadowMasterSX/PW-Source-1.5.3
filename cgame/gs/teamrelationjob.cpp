@@ -30,6 +30,7 @@ bool TeamRelationJob::OnRun()
 		int foo;
 		gplayer *pPlayer = pManager->FindPlayer(_list[i],foo);
 		if(pPlayer == NULL) return false;       //找不到指定的队友
+		if(plist.end() != std::find(plist.begin(),plist.end(),pPlayer)) return false; // 会重复lock导致死锁
 		plist.push_back(pPlayer);
 		llist.push_back(&pPlayer->spinlock);
 		if(_list[i] == _leader) pLeader = pPlayer;

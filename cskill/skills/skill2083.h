@@ -132,9 +132,9 @@ namespace GNET
       Skill2083Stub ():SkillStub (2083)
         {
             cls = 127;
-            name = L"浴火重生";
-            nativename = "浴火重生";
-            icon = "宠物强化.dds";
+            name = L"娴寸伀閲嶇敓";
+            nativename = "娴寸伀閲嶇敓";
+            icon = "瀹犵墿寮哄寲.dds";
             max_level = 10;
             type = 10;
             apcost = 0;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "巨灵神力.sgc";
+            effect = "宸ㄧ伒绁炲姏.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

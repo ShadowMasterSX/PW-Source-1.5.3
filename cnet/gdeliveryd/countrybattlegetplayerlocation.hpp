@@ -17,7 +17,7 @@ class CountryBattleGetPlayerLocation : public GNET::Protocol
 
 	void Process(Manager *manager, Manager::Session::ID sid)
 	{
-		int domain_id = CountryBattleMan::GetInstance()->GetPlayerDomainId(roleid);
+		int domain_id = CountryBattleMan::OnPlayerGetDomainId(roleid);
 
 		CountryBattleSyncPlayerLocation proto(roleid, domain_id, CountryBattleMan::REASON_SYNC_CLI_REQUEST, localsid);
 		manager->Send(sid, proto);

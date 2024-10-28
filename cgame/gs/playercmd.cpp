@@ -26,6 +26,7 @@
 #include <mailsyslib.h>
 #include <openssl/md5.h>
 #include "moving_action.h"
+#include "instance/mnfaction_manager.h"
 /*
  *	这个文件里面是专门处理player命令的和controller消息的
  *
@@ -107,7 +108,7 @@ gplayer_controller::ResurrectByItem(float exp_reduce, int param)
 	pImp->_runner->player_drop_item(gplayer_imp::IL_INVENTORY,scroll_index,scroll_id,1,S2C::DROP_TYPE_RESURRECT);
 
 	//原地复活
-	pImp->Resurrect(_imp->_parent->pos,true,exp_reduce,1,DEFAULT_RESURRECT_HP_FACTOR,DEFAULT_RESURRECT_MP_FACTOR,param);
+	pImp->Resurrect(_imp->_parent->pos,true,exp_reduce,1,DEFAULT_RESURRECT_HP_FACTOR,DEFAULT_RESURRECT_MP_FACTOR,param,0.f,0);
 }
 
 void 
@@ -127,8 +128,57 @@ gplayer_controller::ResurrectInTown(float exp_reduce, int param)
 		world_tag = world_manager::GetWorldTag();
 	}
 	//未来首先需要寻找城镇复生点的位置
-	pImp->Resurrect(pos,false,exp_reduce,world_tag,DEFAULT_RESURRECT_HP_FACTOR,DEFAULT_RESURRECT_MP_FACTOR,param);
+	pImp->Resurrect(pos,false,exp_reduce,world_tag,DEFAULT_RESURRECT_HP_FACTOR,DEFAULT_RESURRECT_MP_FACTOR,param,0.f,0);
 
+}
+
+void
+gplayer_controller::ResurrectByCash(float exp_reduce, int param)
+{
+    gplayer_imp* pImp = (gplayer_imp*)_imp;
+    if (!pImp->CanResurrect(param)) return;
+
+    int cooldown_time = RESURRECT_BY_CASH_COOLDOWN_TIME;
+    if (pImp->GetCashVipLevel() == CASH_VIP_MAX_LEVEL)
+        cooldown_time = (int)(cooldown_time * 0.8f + 0.5f);
+
+    int& times = pImp->_cash_resurrect_times_in_cooldown;
+    if (times < 0) times = 0;
+    if (pImp->CheckCoolDown(COOLDOWN_INDEX_RESURRECT_BY_CASH))
+    {
+        times = 0;
+    }
+    else
+    {
+        ++times;
+        if (times >= CASH_RESURRECT_COST_TABLE_SIZE)
+            times = CASH_RESURRECT_COST_TABLE_SIZE - 1;
+    }
+
+    int cash_need = CASH_RESURRECT_COST_TABLE[times];
+    if (pImp->GetMallCash() < cash_need)
+    {
+        error_cmd(S2C::ERR_OUT_OF_FUND);
+        return;
+    }
+
+    exp_reduce = 0.0f;
+    pImp->SetCoolDown(COOLDOWN_INDEX_RESURRECT_BY_CASH, cooldown_time);
+    pImp->Resurrect(pImp->_parent->pos, true, exp_reduce, 1, CASH_RESURRECT_HP_FACTOR, CASH_RESURRECT_MP_FACTOR, param, CASH_RESURRECT_AP_FACTOR, CASH_RESURRECT_INVINCIBLE_TIME);
+    pImp->_skill.ResurrectByCashAddFilter(object_interface(pImp), CASH_RESURRECT_BUFF_PERIOD, CASH_RESURRECT_BUFF_RATIO_TABLE, CASH_RESURRECT_BUFF_RATIO_TABLE_SIZE);
+
+    pImp->_basic.hp = pImp->_cur_prop.max_hp;
+    pImp->SetRefreshState();
+
+    pImp->_mall_cash_offset -= cash_need;
+    ++pImp->_mall_order_id;
+
+    int cash_left = pImp->GetMallCash();
+    pImp->_runner->cash_resurrect_info(cash_need, cash_left);
+
+    GMSV::SendRefCashUsed(pImp->_parent->ID.id, cash_need, pImp->_basic.level);
+    GLog::formatlog("formatlog:resurrect_by_cash:userid=%d:db_magic_number=%d:order_id=%d:item_id=%d:cash_need=%d:cash_left=%d",
+        pImp->_parent->ID.id, pImp->_db_user_id, pImp->_mall_order_id, CASH_RESURRECT_ITEM_ID, cash_need, cash_left);
 }
 
 int 
@@ -492,6 +542,8 @@ gplayer_controller::MarketCommandHandler(int cmd_type,const void * buf, size_t s
 		case C2S::EQUIP_TRASHBOX_FASHION_ITEM:
 		case C2S::EQUIP_TRASHBOX_ITEM:
         case C2S::ACTIVATE_REGION_WAYPOINTS:
+        case C2S::UPDATE_ENEMYLIST:
+        case C2S::LOOKUP_ENEMY:
 			return CommandHandler(cmd_type,buf,size);
 			
 		case C2S::EQUIP_ITEM:	//摆摊过程中不允许替换装备卸下摆摊凭证
@@ -600,6 +652,8 @@ gplayer_controller::CosmeticCommandHandler(int cmd_type,const void * buf, size_t
 		case C2S::TOGGLE_MULTI_EXP:
 		case C2S::AUTO_TEAM_SET_GOAL:
         case C2S::ACTIVATE_REGION_WAYPOINTS:
+        case C2S::UPDATE_ENEMYLIST:
+        case C2S::LOOKUP_ENEMY:
 			return CommandHandler(cmd_type,buf,size);
 
 		case C2S::EXCHANGE_INVENTORY_ITEM:
@@ -665,6 +719,25 @@ gplayer_controller::ZombieCommandHandler(int cmd_type,const void * buf, size_t s
 			}
 			break;
 
+        case C2S::RESURRECT_BY_CASH:
+            _load_stats ++;
+            {
+                C2S::CMD::resurrect& cmd = *(C2S::CMD::resurrect*)buf;
+                if (size != sizeof(cmd)) break;
+                gplayer_imp* pImp = (gplayer_imp*)_imp;
+
+                if (!pImp->CheckVipService(CVS_RESURRECT))
+                {
+                    error_cmd(S2C::ERR_CASH_VIP_LIMIT);
+                    break;
+                }
+
+                if (world_manager::GetWorldLimit().nocash_resurrect) break;
+                session_resurrect_by_cash* pSession = new session_resurrect_by_cash(pImp, cmd.param, 99);
+                if (pImp->AddSession(pSession)) pImp->StartSession();
+            }
+            break;
+
 		case C2S::RESURRECT_AT_ONCE:
 			{
 				C2S::CMD::resurrect & cmd = *(C2S::CMD::resurrect *)buf;
@@ -687,7 +760,7 @@ gplayer_controller::ZombieCommandHandler(int cmd_type,const void * buf, size_t s
 				if(pImp->_basic.level <= LOW_PROTECT_LEVEL) exp_reduce = 0.f; 
 
 				//还需要检查一下世界的经验值比率
-				pImp->Resurrect(pImp->_parent->pos,true,exp_reduce,1,hp_factor,mp_factor,cmd.param);
+				pImp->Resurrect(pImp->_parent->pos,true,exp_reduce,1,hp_factor,mp_factor,cmd.param,0.f,0);
 			}
 			break;
 
@@ -742,6 +815,9 @@ gplayer_controller::ZombieCommandHandler(int cmd_type,const void * buf, size_t s
 		case C2S::RANDOM_MALL_SHOPPING:
 		case C2S::QUERY_MAFIA_PVP_INFO:	
         case C2S::ACTIVATE_REGION_WAYPOINTS:
+		case C2S::MNFACTION_GET_DOMAIN_DATA:
+        case C2S::UPDATE_ENEMYLIST:
+        case C2S::LOOKUP_ENEMY:
 			return CommandHandler(cmd_type,buf,size);
 
 		case C2S::EXCHANGE_INVENTORY_ITEM:
@@ -880,6 +956,9 @@ gplayer_controller::StayInCommandHandler(int cmd_type,const void * buf, size_t s
 		case C2S::QUERY_MAFIA_PVP_INFO:	
         case C2S::ACTIVATE_REGION_WAYPOINTS:
 		case C2S::INSTANCE_REENTER_REQUEST:	
+		case C2S::MNFACTION_GET_DOMAIN_DATA:
+        case C2S::UPDATE_ENEMYLIST:
+        case C2S::LOOKUP_ENEMY:
 			return CommandHandler(cmd_type,buf,size);
 	
 		case C2S::CAST_ELF_SKILL:			//lgc
@@ -1004,6 +1083,8 @@ gplayer_controller::TravelCommandHandler(int cmd_type,const void * buf, size_t s
 		case C2S::MOVE_INVENTORY_ITEM_TO_TRASHBOX:
 		case C2S::DESTROY_ITEM:
 		case C2S::AUTO_TEAM_SET_GOAL:
+        case C2S::UPDATE_ENEMYLIST:
+        case C2S::LOOKUP_ENEMY:
 			return CommandHandler(cmd_type,buf,size);
 
 		case C2S::PLAYER_MOVE:
@@ -1082,6 +1163,9 @@ gplayer_controller::SealedCommandHandler(int cmd_type,const void * buf, size_t s
 			case C2S::QUERY_TRICKBATTLE_CHARIOTS:
             case C2S::QUERY_CAN_INHERIT_ADDONS:
             case C2S::ACTIVATE_REGION_WAYPOINTS:
+			case C2S::MNFACTION_GET_DOMAIN_DATA:
+            case C2S::UPDATE_ENEMYLIST:
+            case C2S::LOOKUP_ENEMY:
 				return CommandHandler(cmd_type,buf,size);
 
 			case C2S::EXCHANGE_INVENTORY_ITEM:
@@ -1121,6 +1205,7 @@ gplayer_controller::SealedCommandHandler(int cmd_type,const void * buf, size_t s
 			case C2S::PLAYER_MOVE:
 			case C2S::STOP_MOVE:
 			case C2S::PICKUP: 
+			case C2S::PICKUP_ALL: 
 			case C2S::GOTO:
 			case C2S::SERVICE_HELLO:
 			case C2S::SERVICE_GET_CONTENT:
@@ -1321,6 +1406,84 @@ gplayer_controller::CommandHandler(int cmd_type,const void * buf, size_t size)
 			}
 		}
 		break;
+		case C2S::PICKUP_ALL:
+		{
+			if (size != 10)
+			{
+				error_cmd(S2C::ERR_FATAL_ERR);
+				break;
+			}
+			int mid = *(int*)((char*)buf+2);
+			int tid = *(int*)((char*)buf+6);
+			gplayer_imp * pImp = (gplayer_imp*)_imp;						
+			gplayer * pPlayer = (gplayer*)(pImp->_parent);
+			if(pImp->_cheat_punish) return 0;
+			
+			if(((gplayer*)pImp->_parent)->IsInvisible())
+			{
+				error_cmd(S2C::ERR_OPERTION_DENYED_IN_INVISIBLE);
+				break;
+			}
+			XID obj(GM_TYPE_MATTER, mid);
+			if(tid != MONEY_MATTER_ID)
+			{
+				//检查包裹是否已经满了 
+				if(!pImp->_inventory.HasSlot(tid))
+				{
+					error_cmd(S2C::ERR_INVENTORY_IS_FULL);
+					break;
+				}
+			}
+			else
+			{	
+				//是金钱物品对应的id
+				//检查金钱是否满了
+				if(pImp->GetMoney() >= pImp->_money_capacity)
+				{
+					error_cmd(S2C::ERR_INVENTORY_IS_FULL);
+					break;
+				}
+			}
+			world::object_info info;
+			if(!pImp->_plane->QueryObject(obj,info) 
+					|| (info.race & 0x0000FFFF) != (int)tid)
+			{
+				((gplayer_dispatcher*)pImp->_runner)->object_is_invalid(obj.id);
+				break;
+			}
+
+			if(info.pos.squared_distance(pPlayer->pos)>=PICKUP_DISTANCE*PICKUP_DISTANCE)
+			{
+				error_cmd(S2C::ERR_ITEM_CANT_PICKUP);
+				break;
+			}
+
+			//根据不同的组队状态调用捡取逻辑
+			if(tid != MONEY_MATTER_ID && pImp->_team.IsInTeam() && pImp->_team.IsRandomPickup())
+			{
+				//随机捡取 由组队策略确定由谁来捡取
+				XID who = pImp->_team.GetLuckyBoy(pPlayer->ID,info.pos);
+				__PRINTF("幸运儿是%d\n",who.id);
+
+
+				msg_pickup_t mpt = { who,pImp->_team.GetTeamSeq()};
+				//发一个捡物品的消息
+				MSG msg;
+				BuildMessage(msg,GM_MSG_PICKUP,obj,
+						pPlayer->ID,info.pos,pImp->_team.GetTeamID(),
+						&mpt, sizeof(mpt));
+				pImp->_plane->PostLazyMessage(msg);
+				break;
+			}
+			
+			//是钱或者没有组队直接发出消息
+			{
+				msg_pickup_t self = { pPlayer->ID,0};
+				if(pImp->IsInTeam()) self.team_seq = pImp->_team.GetTeamSeq();
+				pImp->SendTo<0>(GM_MSG_PICKUP,obj,pImp->_team.GetTeamID(),&self,sizeof(self));
+			}
+		}
+		break;		
 		case C2S::GET_ITEM_INFO:
 		{
 			C2S::CMD::get_item_info & gii = *(C2S::CMD::get_item_info*)buf;
@@ -3582,6 +3745,7 @@ gplayer_controller::CommandHandler(int cmd_type,const void * buf, size_t size)
 
 			gplayer_imp * pImp = (gplayer_imp *)_imp;
 			if(!pImp->CheckCoolDown(COOLDOWN_INDEX_TOGGLE_ONLINE_AWARD)) break;
+            if(pImp->InCentralServer()) break;
 			pImp->SetCoolDown(COOLDOWN_INDEX_TOGGLE_ONLINE_AWARD,TOGGLE_ONLINE_AWARD_COOLDOWN_TIME);
 			if(toa.activate)
 				pImp->_online_award.ActivateAward(pImp, toa.type);
@@ -3962,10 +4126,11 @@ gplayer_controller::CommandHandler(int cmd_type,const void * buf, size_t size)
 		break;
 
 		case C2S::SEND_MASS_MAIL:
-		{
+		{			
 			C2S::CMD::send_mass_mail & req = *(C2S::CMD::send_mass_mail*)buf;
+			if (size != sizeof(C2S::CMD::send_mass_mail)) break;
 			gplayer_imp * pImp = (gplayer_imp *)_imp;
-			GNET::ForwardMailSysOP(req.service_id,req.data, size - sizeof(C2S::CMD::send_mass_mail),object_interface(pImp));
+			GNET::ForwardMailSysOP(req.service_id,req.data, size - sizeof(C2S::CMD::send_mass_mail),object_interface(pImp));			
 		}
 		break;
 
@@ -4027,6 +4192,321 @@ gplayer_controller::CommandHandler(int cmd_type,const void * buf, size_t size)
 			}
 		}
 		break;
+		case C2S::SOLO_CHALLENGE_OPERATE_REQUEST:
+		{
+			C2S::CMD::solo_challenge_operate_request& cmd = *(C2S::CMD::solo_challenge_operate_request*)buf;
+			if(size < sizeof(C2S::CMD::solo_challenge_operate_request)) break;
+			int retcode = S2C::ERR_SOLO_CHALLENGE_AWARD_FAILURE;
+			int args[3] = {0};
+			gplayer_imp* pImp = (gplayer_imp*)_imp;
+			switch(cmd.opttype)
+			{
+				case C2S::SOLO_CHALLENGE_OPT_SELECT_AWARD:
+				{
+					if(size == sizeof(C2S::CMD::solo_challenge_operate_request) + sizeof(C2S::INFO::solo_challenge_opt_select_award))
+					{
+						C2S::INFO::solo_challenge_opt_select_award& opt = *(C2S::INFO::solo_challenge_opt_select_award*)cmd.data;
+						retcode = pImp->PlayerSoloChallengeUserSelectAward(opt.max_stage_level, args);
+					}
+				}
+				break;
+				case C2S::SOLO_CHALLENGE_OPT_SCORE_COST:
+				{
+					if(size == sizeof(C2S::CMD::solo_challenge_operate_request) + sizeof(C2S::INFO::solo_challenge_opt_score_cost))
+					{
+						C2S::INFO::solo_challenge_opt_score_cost& opt = *(C2S::INFO::solo_challenge_opt_score_cost*)cmd.data;
+						retcode = pImp->PlayerSoloChallengeScoreCost(opt.filter_index, args); 
+					}
+				}
+				break;
+				case C2S::SOLO_CHALLENGE_OPT_CLEAR_FILTER:
+				{
+					if(size == sizeof(C2S::CMD::solo_challenge_operate_request))
+					{
+						retcode = pImp->PlayerSoloChallengeClearFilter(args);
+					}
+				}
+				break;
+				case C2S::SOLO_CHALLENGE_OPT_LEAVE_THE_ROOM:
+				{
+					retcode = pImp->PlayerSoloChallengeLeaveTheRoom();
+				}
+				break;
+			}
+			pImp->_runner->solo_challenge_operate_result(cmd.opttype,retcode, args[0], args[1], args[2]);
+		}
+		break;
+		case C2S::ASTROLABE_OPERATE_REQUEST:
+		{
+			C2S::CMD::astrolabe_operate_request& cmd = *(C2S::CMD::astrolabe_operate_request*)buf;
+			if(size <= sizeof(C2S::CMD::astrolabe_operate_request)) break;
+			
+			int retcode = S2C::ERR_ASTROLABE_OPT_FAIL;
+			int args[3] = {0};
+			gplayer_imp* pImp = (gplayer_imp*)_imp;
+
+			switch(cmd.opttype)
+			{
+				case C2S::ASTROLABE_OPT_SWALLOW:
+				{
+					if(size == sizeof(C2S::CMD::astrolabe_operate_request) 
+							+ sizeof(C2S::INFO::astrolabe_opt_swallow))
+					{
+						C2S::INFO::astrolabe_opt_swallow& opt = *(C2S::INFO::astrolabe_opt_swallow*)cmd.data;
+						retcode = pImp->PlayerAstrolabeSwallow(opt.type,opt.inv_index,opt.itemid);
+					}
+				}
+				break;
+				case C2S::ASTROLABE_OPT_ADDON_ROLL:
+				{
+					if(size == sizeof(C2S::CMD::astrolabe_operate_request) 
+							+ sizeof(C2S::INFO::astrolabe_opt_addon_roll))
+					{
+						C2S::INFO::astrolabe_opt_addon_roll& opt = *(C2S::INFO::astrolabe_opt_addon_roll*)cmd.data;
+						retcode = pImp->PlayerAstrolabeAddonRoll(opt.times,opt.addon_limit,opt.inv_index,opt.itemid, args);
+					}
+				}
+				break;
+				case C2S::ASTROLABE_OPT_APTIT_INC:
+				{
+					if(size == sizeof(C2S::CMD::astrolabe_operate_request) 
+							+ sizeof(C2S::INFO::astrolabe_opt_aptit_inc))
+					{
+						C2S::INFO::astrolabe_opt_aptit_inc& opt = *(C2S::INFO::astrolabe_opt_aptit_inc*)cmd.data;
+						retcode = pImp->PlayerAstrolabeAptitInc(opt.inv_index,opt.itemid);
+					}
+				}
+				break;
+				case C2S::ASTROLABE_OPT_SLOT_ROLL:
+				{
+					if(size == sizeof(C2S::CMD::astrolabe_operate_request) 
+							+ sizeof(C2S::INFO::astrolabe_opt_slot_roll))
+					{
+						C2S::INFO::astrolabe_opt_slot_roll& opt = *(C2S::INFO::astrolabe_opt_slot_roll*)cmd.data;
+						retcode = pImp->PlayerAstrolabeSlotRoll(opt.inv_index,opt.itemid);
+					}
+				}
+				break;				
+			}
+
+			pImp->_runner->astrolabe_operate_result(cmd.opttype,retcode,args[0],args[1],args[2]);
+		}
+		break;
+
+        case C2S::PROPERTY_SCORE_REQUEST:
+        {
+            C2S::CMD::property_score_request& cmd = *(C2S::CMD::property_score_request*)buf;
+            if (size != sizeof(C2S::CMD::property_score_request)) break;
+
+            unsigned int value = 0;
+            gplayer_imp* pImp = (gplayer_imp*)_imp;
+
+            int fighting_score = player_template::GetFightingScore(pImp, value);
+            int viability_score = player_template::GetViabilityScore(pImp, value);
+
+            pImp->_runner->property_score_result(fighting_score, viability_score, cmd.client_data);
+        }
+        break;
+		case C2S::MNFACTION_GET_DOMAIN_DATA:
+		{
+			gplayer_imp* pImp = (gplayer_imp*)_imp;
+			if(!pImp->CheckCoolDown(COOLDOWN_INDEX_MNFACTION_GET_DOMAIN_DATA)) 
+			{
+				pImp->_runner->error_message(S2C::ERR_OBJECT_IS_COOLING);
+				return 0;
+			}
+			pImp->SetCoolDown(COOLDOWN_INDEX_MNFACTION_GET_DOMAIN_DATA, MNFACTION_GET_DOMAIN_DATA_COOLDOWN_TIME);
+			GMSV::MnFactionGetDomainData(((pImp->_parent)->ID).id);
+		}
+		break;		
+
+        case C2S::FIX_POSITION_TRANSMIT_OPERATE_REQUEST:
+        {
+            gplayer_imp* pImp = (gplayer_imp*)_imp;
+
+            if(!pImp->CheckVipService(CVS_FIX_POSITION))
+            {
+                pImp->_runner->error_message(S2C::ERR_CASH_VIP_LIMIT);
+                break;
+            }
+
+            C2S::CMD::fix_position_transmit_operate_request& cmd = *(C2S::CMD::fix_position_transmit_operate_request*)buf;
+            if(size <= sizeof(C2S::CMD::fix_position_transmit_operate_request)) break;
+
+            switch(cmd.opttype)
+            {
+                case C2S::FIX_POSITION_TRANSMIT_OPT_ADD_POSITION:
+                {
+                    if(size == sizeof(C2S::CMD::fix_position_transmit_operate_request)
+                            + sizeof(C2S::INFO::fix_position_transmit_opt_add_position))
+                    {
+                        C2S::INFO::fix_position_transmit_opt_add_position& opt = *(C2S::INFO::fix_position_transmit_opt_add_position*)cmd.data;
+                        pImp->PlayerFixPositionTransmitAdd(opt.pos, opt.position_name);
+                    }
+                }
+                break;
+
+                case C2S::FIX_POSITION_TRANSMIT_OPT_DELETE_POSITION:
+                {
+                    if(size == sizeof(C2S::CMD::fix_position_transmit_operate_request)
+                            + sizeof(C2S::INFO::fix_position_transmit_opt_delete_position))
+                    {
+                        C2S::INFO::fix_position_transmit_opt_delete_position& opt = *(C2S::INFO::fix_position_transmit_opt_delete_position*)cmd.data;
+                        pImp->PlayerFixPositionTransmitDelete(opt.index);
+                    }
+                }
+                break;
+
+                case C2S::FIX_POSITION_TRANSMIT_OPT_TRANSMIT:
+                {
+                    if(size == sizeof(C2S::CMD::fix_position_transmit_operate_request)
+                            + sizeof(C2S::INFO::fix_position_transmit_opt_transmit))
+                    {
+						if(pImp->IsCombatState())
+						{
+							pImp->_runner->error_message(S2C::ERR_INVALID_OPERATION_IN_COMBAT);
+			                break;
+						}
+
+                        if(!pImp->CheckCoolDown(COOLDOWN_INDEX_FIX_POSITION_TRANSMIT))
+                        {
+                            pImp->_runner->error_message(S2C::ERR_OBJECT_IS_COOLING);
+                            break;
+                        }
+                        C2S::INFO::fix_position_transmit_opt_transmit& opt = *(C2S::INFO::fix_position_transmit_opt_transmit*)cmd.data;
+                        pImp->PlayerFixPositionTransmit(opt.index);
+                        pImp->SetCoolDown(COOLDOWN_INDEX_FIX_POSITION_TRANSMIT,FIX_POSITION_TRANSMIT_COOLDOWN_TIME);
+                    }
+                }
+                break;
+
+                case C2S::FIX_POSITION_TRANSMIT_OPT_RENAME:
+                {
+                    if(size == sizeof(C2S::CMD::fix_position_transmit_operate_request)
+                            + sizeof(C2S::INFO::fix_position_transmit_opt_rename))
+                    {
+                        C2S::INFO::fix_position_transmit_opt_rename& opt = *(C2S::INFO::fix_position_transmit_opt_rename*)cmd.data;
+                        pImp->PlayerFixPositionTransmitRename(opt.index, opt.position_name);
+
+                    }
+                }
+                break;
+
+                default:
+                    break;
+            }
+        }
+        break;
+
+        case C2S::REMOTE_REPAIR:
+        {
+            gplayer_imp* pImp = (gplayer_imp*)_imp;
+            pImp->RemoteAllRepair();
+        }
+        break;
+
+        case C2S::GET_CASH_VIP_MALL_ITEM_PRICE:
+        {
+            C2S::CMD::get_cash_vip_mall_item_price & gmip = *(C2S::CMD::get_cash_vip_mall_item_price*)buf;
+            if(size != sizeof(C2S::CMD::get_cash_vip_mall_item_price))
+            {
+                error_cmd(S2C::ERR_FATAL_ERR);
+                break;
+            }
+            //韩服不开放商城组控制
+            if(world_manager::GetWorldParam().korea_shop || world_manager::GetWorldParam().southamerican_shop) break;
+
+            gplayer_imp * pImp = (gplayer_imp*)_imp;
+            pImp->PlayerGetCashVipMallItemPrice(gmip.start_index, gmip.end_index);
+        }
+        break;
+
+        case C2S::CASH_VIP_MALL_SHOPPING:
+        {
+            C2S::CMD::cash_vip_mall_shopping & cvms = *(C2S::CMD::cash_vip_mall_shopping *)buf;
+            if(size < sizeof(cvms) || cvms.count == 0 ||  cvms.count > 65535 ||
+                    size != sizeof(cvms) + cvms.count *sizeof(C2S::CMD::cash_vip_mall_shopping::__entry))
+            {
+                error_cmd(S2C::ERR_FATAL_ERR);
+                break;
+            }
+            if(world_manager::GetWorldParam().korea_shop || world_manager::GetWorldParam().southamerican_shop) break;
+            gplayer_imp * pImp = (gplayer_imp*)_imp;
+            //每次永远只购买一件商品
+            pImp->PlayerDoCashVipShopping(1, (const int *)&cvms.list);
+        }
+        break;
+
+        case C2S::UPDATE_ENEMYLIST:
+        {
+            C2S::CMD::update_enemylist& cmd = *(C2S::CMD::update_enemylist*)buf;
+            if (size != sizeof(C2S::CMD::update_enemylist))
+            {
+                error_cmd(S2C::ERR_FATAL_ERR);
+                break;
+            }
+
+            gplayer_imp* pImp = (gplayer_imp*)_imp;
+            if (pImp->_parent->ID.id == cmd.rid) break;
+
+            if (!pImp->CheckVipService(CVS_ENEMYLIST))
+            {
+                error_cmd(S2C::ERR_CASH_VIP_LIMIT);
+                break;
+            }
+
+            GMSV::SendUpdateEnemyList(cmd.optype, pImp->_parent->ID.id, cmd.rid);
+        }
+        break;
+
+        case C2S::LOOKUP_ENEMY:
+        {
+            C2S::CMD::lookup_enemy& cmd = *(C2S::CMD::lookup_enemy*)buf;
+            if (size != sizeof(C2S::CMD::lookup_enemy))
+            {
+                error_cmd(S2C::ERR_FATAL_ERR);
+                break;
+            }
+
+            gplayer_imp* pImp = (gplayer_imp*)_imp;
+            if (pImp->_parent->ID.id == cmd.rid) break;
+
+            if (!pImp->CheckVipService(CVS_ENEMYLIST))
+            {
+                error_cmd(S2C::ERR_CASH_VIP_LIMIT);
+                break;
+            }
+
+            int item_id = LOOKUP_ENEMY_ITEM_ID2;
+            int item_index = pImp->_inventory.Find(0, item_id);
+            if (item_index < 0)
+            {
+                item_id = LOOKUP_ENEMY_ITEM_ID;
+                item_index = pImp->_inventory.Find(0, item_id);
+
+                if (item_index < 0)
+                {
+                    pImp->_runner->error_message(S2C::ERR_ITEM_NOT_IN_INVENTORY);
+                    break;
+                }
+            }
+
+            if (!pImp->CheckCoolDown(COOLDOWN_INDEX_LOOKUP_ENEMY))
+            {
+                error_cmd(S2C::ERR_OBJECT_IS_COOLING);
+                break;
+            }
+
+            if (!pImp->_plane->IsPlayerExist(cmd.rid))
+            {
+                pImp->_runner->error_message(S2C::ERR_PLAYER_NOT_EXIST);
+                break;
+            }
+
+            XID target(GM_TYPE_PLAYER, cmd.rid);
+            pImp->SendTo<0>(GM_MSG_LOOKUP_ENEMY, target, 0);
+        }
+        break;
 
 	default:
 		
@@ -4515,7 +4995,12 @@ gplayer_controller::GMCommandHandler(int cmd_type,const void * buf, size_t size)
 			if(cmd.flag != GMSV::CHDS_FLAG_DS_TO_CENTRALDS && cmd.flag != GMSV::CHDS_FLAG_CENTRALDS_TO_DS) break;
 			GLog::log(GLOG_INFO,"GM:%d跳转DS服务器 flag=%d worldtag=%d",_imp->_parent->ID.id, cmd.flag, world_manager::GetWorldTag());
 			gplayer_imp * pImp = (gplayer_imp*)_imp;
-			pImp->PlayerTryChangeDS(cmd.flag);
+			int ret = pImp->PlayerTryChangeDS(cmd.flag);
+			if(ret > 0)	
+			{
+				GLog::log(GLOG_INFO,"GM:%d跳转DS服务器出错 errid=%d",_imp->_parent->ID.id,ret);
+				error_cmd(ret);	
+			}
 		}
 		break;
 		
@@ -5387,7 +5872,8 @@ gplayer_controller::DebugCommandHandler(int cmd_type,const void * buf, size_t si
 				break;
 			}
 			int flag = *(int*)((char*)buf+2);
-			GMSV::SendTryChangeDS(_imp->_parent->ID.id, flag);
+			gplayer_imp * pImp = (gplayer_imp *)_imp;
+			GMSV::SendTryChangeDS(pImp->_parent->ID.id, flag, pImp->_player_visa_info.type, pImp->_player_mnfaction_info.unifid);
 		}
 		break;
 		
@@ -5638,7 +6124,7 @@ gplayer_controller::DebugCommandHandler(int cmd_type,const void * buf, size_t si
 			}
 			int factionid = *(int*)((char*)buf+2);
 			if(factionid <= 0) break;
-			_imp->UpdateMafiaInfo(factionid,6,0);
+			_imp->UpdateMafiaInfo(factionid,6,0,0);
 		}
 		break;
 		
@@ -5810,8 +6296,8 @@ gplayer_controller::DebugCommandHandler(int cmd_type,const void * buf, size_t si
 		{
 			gplayer_imp * pImp = (gplayer_imp *)_imp;
 			gplayer * pPlayer = (gplayer *)pImp->_parent;
-			char buf[40] = {0};
-			sprintf(buf,"RoleId: %d FactionId %d Team_uid_0:%d,Team_uid_1:%d",pPlayer->ID.id,pPlayer->id_mafia,(unsigned int)(pImp->_team.GetTeamUID() >> 32),(unsigned int)(pImp->_team.GetTeamUID() & 0x0000FFFF));
+			char buf[128] = {0};
+			sprintf(buf,"RoleId: %d FactionId %d Team_uid_0:%d,Team_uid_1:%d,WorldTag:%d,UFid:%lld",pPlayer->ID.id,pPlayer->id_mafia,(unsigned int)(pImp->_team.GetTeamUID() >> 32),(unsigned int)(pImp->_team.GetTeamUID() & 0x0000FFFF),world_manager::GetWorldTag(),pImp->GetMNFactionID());
 			pImp->Say(buf);
 		}
 		break;
@@ -6995,6 +7481,443 @@ gplayer_controller::DebugCommandHandler(int cmd_type,const void * buf, size_t si
 			pImp->PlayerReenterInstance();
 		}
 		break;
+		case 10925://单人副本选关
+		{
+#pragma pack(1)
+			struct mma
+			{
+				unsigned short int cmd;
+				int stage_level;
+			};
+#pragma pack()
+			if(size != sizeof(mma))
+			{
+				error_cmd(S2C::ERR_FATAL_ERR);
+				break;
+			}
+			mma* ccc = (mma*)buf;
+			gplayer_imp * pImp = (gplayer_imp*)_imp;
+			pImp->PlayerSoloChallengeSelectStage(ccc->stage_level);
+		}
+		break;
+		case 10926:
+		{
+			gplayer_imp * pImp = (gplayer_imp*)_imp;
+			pImp->PlayerSoloChallengeStartTask(true);
+		}
+		break;
+		case 10927://闯关成功
+		{
+			gplayer_imp * pImp = (gplayer_imp*)_imp;
+			pImp->PlayerSoloChallengeStageComplete(true);
+		}
+		break;
+		case 10928://用户选择奖励
+		{
+#pragma pack(1)
+			struct mma
+			{
+				unsigned short cmd;
+				int num;
+			};
+			mma* ccc = (mma*)buf;
+			gplayer_imp * pImp = (gplayer_imp*)_imp;
+			int args[3]={0};
+			pImp->PlayerSoloChallengeUserSelectAward(ccc->num,args);
+			
+#pragma pack()
+		}
+		break;
+		case 10929:
+		{
+#pragma pack(1)
+			struct mma
+			{
+				unsigned short int cmd;
+				int total_time;
+			};
+#pragma pack()
+			mma* ccc = (mma*)buf;
+			gplayer_imp * pImp = (gplayer_imp*)_imp;
+			GMSV::SendUpdateSoloChallengeRank(pImp->GetParent()->ID.id, ccc->total_time);
+		}
+		case 10930:
+		{
+			gplayer_imp * pImp = (gplayer_imp*)_imp;
+			int index = abase::RandNormal(0,7);
+			int args[5] = {1000,10,100,100,100};
+			pImp->_solochallenge.ScoreCost(pImp, index,args);
+		}
+		break;
+		case 10931:
+		{
+			gplayer_imp * pImp = (gplayer_imp*)_imp;
+			int args[3] = {0};
+			pImp->_solochallenge.ClearFilter(pImp,args);
+		}
+		break;
+		case 10932:
+		{
+#pragma pack(1)
+			struct mma
+			{
+				unsigned short int cmd;
+				int server_id;
+				int domain_id;
+				int owner_faction_id;
+				int attacker_unifid;
+				int defender_unifid;
+				int end_timestamp;
+			};
+#pragma pack()
+			mma* ccc = (mma*)buf;
+			//gplayer_imp * pImp = (gplayer_imp*)_imp;
+			
+			mnfaction_battle_param param;
+			memset(&param,0,sizeof(param));
+			param.domain_id = ccc->domain_id;
+			param.domain_type = 0;
+			param.owner_faction_id    = ccc->owner_faction_id;
+			param.attacker_faction_id = ccc->attacker_unifid;
+			param.defender_faction_id = ccc->defender_unifid;
+			param.end_timestamp = ccc->end_timestamp;
+			MSG msg;
+			BuildMessage(msg,GM_MSG_CREATE_MNFACTION,
+					XID(GM_TYPE_SERVER,ccc->server_id),XID(GM_TYPE_SERVER,1),A3DVECTOR(0,0,0),
+					0,&param,sizeof(param));
+			world_manager::GetInstance()->SendRemoteMessage(ccc->server_id,msg);
+			//world_manager::GetInstance()->CreateMNFactionBattle(param);
+		}
+		break;
+		case 10933:
+		{
+#pragma pack(1)
+			struct mma
+			{
+				unsigned short int cmd;
+				int domain_id;
+				int faction_id;
+				int worldtag;
+			};
+#pragma pack()
+			mma* ccc = (mma*)buf;
+			gplayer_imp * pImp = (gplayer_imp*)_imp;
+			pImp->MnfactionJoinStep1(S2C::ERR_SUCCESS, ccc->faction_id, ccc->domain_id, ccc->worldtag);
+		}
+		break;
+		case 10934:
+		{
+#pragma pack(1)
+			struct mma
+			{
+				unsigned short int cmd;
+				int unifid;
+			};
+#pragma pack()
+			mma* ccc = (mma*)buf;
+			gplayer_imp * pImp = (gplayer_imp*)_imp;
+			pImp->SetDBMNFactionInfo(ccc->unifid);
+			((gplayer *)(pImp->_parent))->id_mafia = 1;
+		}
+		break;
+		case 10935:
+		{
+#pragma pack(1)
+			struct mma
+			{
+				unsigned short int cmd;
+				int index;
+			};
+#pragma pack()
+			mma* ccc = (mma*)buf;
+			gplayer_imp * pImp = (gplayer_imp*)_imp;
+			A3DVECTOR pos;
+			pImp->_plane->w_ctrl->PlayerTransmitInMNFaction(pImp, ccc->index,pos);
+			pImp->LongJump(pos);
+		}
+		break;
+		case 10936:
+		{
+#pragma pack(1)
+			struct mma
+			{
+				unsigned short int cmd;
+				unsigned char domain_type;
+			};
+#pragma pack()
+			mma* ccc = (mma*)buf;
+			gplayer_imp * pImp = (gplayer_imp*)_imp;
+			object_interface oi(pImp);
+			int64_t unifid = 0;
+			pImp->GetDBMNFactionInfo(unifid);
+			GMSV::MnFactionSignUp(ccc -> domain_type, ((gplayer*)pImp->_parent)->id_mafia, unifid, oi,  ((gplayer*)pImp->_parent)->ID.id, 0);
+		}
+		break;
+		case 10937:
+		{
+#pragma pack(1)
+			struct mma
+			{
+				unsigned short int cmd;
+				unsigned char domain_id;
+			};
+#pragma pack()
+			mma* ccc = (mma*)buf;
+			gplayer_imp * pImp = (gplayer_imp*)_imp;
+			pImp->MnfactionJoinApply(ccc->domain_id);
+		}
+		break;
+		case 10938:
+		{
+#pragma pack(1)
+			struct mma
+			{
+				unsigned short cmd;
+				int max_stage_level;
+			};
+#pragma pack()
+			mma* ccc = (mma*)buf;
+			gplayer_imp * pImp = (gplayer_imp*)_imp;
+			pImp->_solochallenge.SetMaxStageLevel(ccc->max_stage_level, pImp);
+			
+		}
+		break;
+		case 10939:
+		{
+#pragma pack(1)
+			struct mma
+			{
+				unsigned short cmd;
+				int domain_id;
+				unsigned char domain_type;
+				int owner_unifid;
+				int attacker_unifid;
+				int defender_unifid;
+			};
+#pragma pack()
+			mma* ccc = (mma*)buf;
+			GMSV::SetMnDomain(ccc->domain_id, ccc->domain_type, ccc->owner_unifid, ccc->attacker_unifid, ccc->defender_unifid);
+			
+		}
+		break;
+		case 10940:
+		{
+			gplayer_imp * pImp = (gplayer_imp*)_imp;
+			pImp->RemoteAllRepair();
+		}
+		break;
+		case 10941:
+		{
+#pragma pack(1)
+			struct mma
+			{
+				unsigned short cmd;
+				int is_friend_list;
+				int target_role_id;
+				int mine_id;
+				int remain_time;
+			};
+			//mma* ccc = (mma*)buf;
+			//gplayer_imp * pImp = (gplayer_imp*)_imp;
+			//pImp->UseFireWorks2(ccc->is_friend_list, ccc->target_role_id, ccc->mine_id, ccc->remain_time, 0);
+#pragma pack()
+		}
+		break;
+		case 10942:
+		{
+			gplayer_imp * pImp = (gplayer_imp*)_imp;
+			float pos[3];
+			char name[12];
+			pImp->PlayerFixPositionTransmitAdd(pos, name);
+		}
+		break;
+		case 10943:
+		{
+#pragma pack(1)
+			struct mma
+			{
+				unsigned short cmd;
+				int index;
+			};
+			
+#pragma pack()
+			if(size != sizeof(mma))
+			{
+				error_cmd(S2C::ERR_FATAL_ERR);
+				break;
+			}
+
+			mma* ccc = (mma*)buf;
+			gplayer_imp * pImp = (gplayer_imp*)_imp;
+			pImp->PlayerFixPositionTransmitDelete(ccc->index);
+		}
+		break;
+		case 10944:
+		{
+#pragma pack(1)
+			struct mma
+			{
+				unsigned short cmd;
+				int index;
+			};
+			
+#pragma pack()
+			if(size != sizeof(mma))
+			{
+				error_cmd(S2C::ERR_FATAL_ERR);
+				break;
+			}
+
+			mma* ccc = (mma*)buf;
+			gplayer_imp * pImp = (gplayer_imp*)_imp;
+			pImp->PlayerFixPositionTransmit(ccc->index);
+		}
+		break;
+		case 10945:
+		{
+#pragma pack(1)
+			struct mma
+			{
+				unsigned short cmd;
+				int value;
+			};
+			
+#pragma pack()
+			if(size != sizeof(mma))
+			{
+				error_cmd(S2C::ERR_FATAL_ERR);
+				break;
+			}
+
+			mma* ccc = (mma*)buf;
+			gplayer_imp * pImp = (gplayer_imp*)_imp;
+			int cur_energy = pImp->AddFixPositionTransmitEnergy(ccc->value);
+			char buf[128] = {0};
+			sprintf(buf,"cur fix position transmit energy %d", cur_energy);
+			pImp->Say(buf);
+		}
+		break;
+		case 10946:
+		{
+			gplayer_imp * pImp = (gplayer_imp*)_imp;
+			for(int i = 0; i < FIX_POSITION_TRANSMIT_MAX_POSITION_COUNT; ++i)
+			{
+				fix_position_transmit_info &info = pImp->_fix_position_transmit_infos[i];
+				if(info.index != -1)
+				{
+					char buf[128] = {0};
+					sprintf(buf,"index %d, world_tag %d, pos %f %f %f", info.index, info.world_tag, info.pos.x, info.pos.y, info.pos.z);
+					pImp->Say(buf);
+				}
+			}
+		}
+		break;
+		case 10947:
+		{
+			gplayer_imp * pImp = (gplayer_imp*)_imp;
+			char buf[128] = {0};
+			int vip_level, score_add, score_daily_reduce, score_consume;
+			pImp->GetCashVipInfo().GetCashVipInfo(vip_level, score_add, score_daily_reduce, score_consume);
+			sprintf(buf,"vipinfo level %d, add %d, reduce %d, consume %d", vip_level, score_add, score_daily_reduce, score_consume);
+			pImp->Say(buf);
+		}
+		break;
+		case 10948:
+		{
+#pragma pack(1)
+			struct mma
+			{
+				unsigned short cmd;
+				int value;
+			};
+			
+#pragma pack()
+			if(size != sizeof(mma))
+			{
+				error_cmd(S2C::ERR_FATAL_ERR);
+				break;
+			}
+
+			mma* ccc = (mma*)buf;
+			gplayer_imp * pImp = (gplayer_imp*)_imp;
+			pImp->GetCashVipInfo().SpendCashVipScore(ccc->value, (gplayer *)_imp->_parent);
+		}
+		break;
+		case 10949:
+		{
+#pragma pack(1)
+			struct mma
+			{
+				unsigned short cmd;
+				int value;
+			};
+#pragma pack()
+			if(size != sizeof(mma))
+			{
+				error_cmd(S2C::ERR_FATAL_ERR);
+				break;
+			}
+			 mma* ccc = (mma*)buf;
+			 gplayer_imp * pImp = (gplayer_imp*)_imp;
+			 int vip_level, score_add, reduce, consume;
+			 pImp->GetCashVipInfo().GetCashVipInfo(vip_level, score_add, reduce, consume);
+			 pImp->GetCashVipInfo().SetCashVipInfo(ccc->value, score_add, reduce, consume, (gplayer*)(pImp->_parent));
+		}
+		case 10923:
+		{
+#pragma pack(1)
+			struct mma
+			{
+				unsigned short cmd;
+				int index;
+				struct 
+				{
+					int level;
+					int exp;
+					struct
+					{
+						int aptit;
+						int addon;
+					}slot[10];
+				}ess;
+			};
+#pragma pack()
+			if(size != sizeof(mma))
+			{
+				error_cmd(S2C::ERR_FATAL_ERR);
+				break;
+			}
+
+			mma* ccc = (mma*)buf;
+			gplayer_imp * pImp = (gplayer_imp*)_imp;
+			item_list & inv = pImp->GetInventory();
+			if(ccc->index >= (int)inv.Size()) break;
+			item & it = inv[ccc->index];
+			it.Rebuild(&ccc->ess,size-6);
+ 			pImp->PlayerGetItemInfo(gplayer_imp::IL_INVENTORY, ccc->index);
+		}
+		break;
+		case 10924:
+		{
+#pragma pack(1)
+			struct mma
+			{
+				unsigned short cmd;
+				int level;
+				int exp;
+			};
+#pragma pack()
+			if(size != sizeof(mma))
+			{
+				error_cmd(S2C::ERR_FATAL_ERR);
+				break;
+			}
+			mma* ccc = (mma*)buf;
+			gplayer_imp * pImp = (gplayer_imp*)_imp;
+			pImp->SetDBAstrolabeExtern((unsigned char)ccc->level, ccc->exp);
+			pImp->_runner->astrolabe_info_notify((unsigned char)ccc->level, ccc->exp);
+		}
+		break;
 	case 10807:
 		{
 #pragma pack(1)
@@ -7257,6 +8180,142 @@ gplayer_controller::DebugCommandHandler(int cmd_type,const void * buf, size_t si
 			GNET::AccelerateExpelschedule(req->wastetime);
 		}
 		break;
+
+        case 10815:
+        {
+#pragma pack(1)
+            struct mma
+            {
+                unsigned short cmd;
+                int src_index;
+                int src_id;
+
+                int material_id;
+                int material_count;
+            };
+#pragma pack()
+
+            if (size != sizeof(mma))
+            {
+                error_cmd(S2C::ERR_FATAL_ERR);
+                break;
+            }
+
+            mma* req = (mma*)buf;
+            gplayer_imp* pImp = (gplayer_imp*)_imp;
+
+            pImp->ItemMakeSlot(req->src_index, req->src_id, req->material_id, req->material_count);
+        }
+        break;
+
+        case 10950:
+        {
+#pragma pack(1)
+            struct mma
+            {
+                unsigned short cmd;
+            };
+#pragma pack()
+
+            if (size != sizeof(mma))
+            {
+                error_cmd(S2C::ERR_FATAL_ERR);
+                break;
+            }
+
+            gplayer_imp* pImp = (gplayer_imp*)_imp;
+
+            int cls = -1;
+            bool gender = false;
+            int level = pImp->_basic.level;
+            pImp->GetPlayerClass(cls, gender);
+
+            unsigned int fighting = 0, viability = 0;
+            int fighting_score = player_template::GetFightingScore(pImp, fighting);
+            int viability_score = player_template::GetViabilityScore(pImp, viability);
+
+            char buf[1024] = {0};
+            sprintf(buf, "userid=%d, roleid=%d, cls=%d, level=%d, fighting=%u, fighting_score=%d, viability=%u, viability_score=%d",
+                    pImp->_db_user_id, pImp->_parent->ID.id, cls, level, fighting, fighting_score, viability, viability_score);
+
+            pImp->Say(buf);
+        }
+        break;
+
+        case 10951:
+        {
+#pragma pack(1)
+            struct mma
+            {
+                unsigned short cmd;
+                int optype;
+                int rid;
+            };
+#pragma pack()
+
+            if (size != sizeof(mma))
+            {
+                error_cmd(S2C::ERR_FATAL_ERR);
+                break;
+            }
+
+            mma* req = (mma*)buf;
+            gplayer_imp* pImp = (gplayer_imp*)_imp;
+            char optype = req->optype;
+            int rid = req->rid;
+
+            if (pImp->_parent->ID.id == rid) break;
+            if ((optype >= 0) && (optype <= 3))
+            {
+                GMSV::SendUpdateEnemyList(optype, pImp->_parent->ID.id, rid);
+            }
+            else if (optype == -1)
+            {
+                if (!pImp->_plane->IsPlayerExist(rid))
+                {
+                    error_cmd(S2C::ERR_PLAYER_NOT_EXIST);
+                    break;
+                }
+
+                XID target(GM_TYPE_PLAYER, rid);
+                pImp->SendTo<0>(GM_MSG_LOOKUP_ENEMY, target, 0);
+            }
+        }
+        break;
+
+        case 10952:
+        {
+#pragma pack(1)
+            struct mma
+            {
+                unsigned short cmd;
+            };
+#pragma pack()
+
+            if (size != sizeof(mma))
+            {
+                error_cmd(S2C::ERR_FATAL_ERR);
+                break;
+            }
+
+            gplayer_imp* pImp = (gplayer_imp*)_imp;
+            int times = pImp->_cash_resurrect_times_in_cooldown;
+            if (times < 0) times = 0;
+            if (times >= CASH_RESURRECT_COST_TABLE_SIZE)
+                times = CASH_RESURRECT_COST_TABLE_SIZE - 1;
+
+            int cash_need = CASH_RESURRECT_COST_TABLE[times];
+
+            char buf[1024] = {0};
+            sprintf(buf, "roleid=%d, cash_resurrect_times=%d, cash_need=%d, cash_total=%d.",
+                pImp->_parent->ID.id, times, cash_need, pImp->GetMallCash());
+
+            pImp->Say(buf);
+
+            session_resurrect_by_cash* pSession = new session_resurrect_by_cash(pImp, 0, 99);
+            if(pImp->AddSession(pSession)) pImp->StartSession();
+        }
+        break;
 
 		case 2006:
 		{
@@ -7609,7 +8668,7 @@ gplayer_controller::DebugCommandHandler(int cmd_type,const void * buf, size_t si
 			}
 			int faction = *(int*)((char*)buf+2);
 			gplayer_imp * pImp = (gplayer_imp*)_imp;
-			pImp->UpdateMafiaInfo(faction, 1, 0);
+			pImp->UpdateMafiaInfo(faction, 1, 0, 0);
 		}
 		break;
 
@@ -7668,14 +8727,19 @@ gplayer_controller::DebugCommandHandler(int cmd_type,const void * buf, size_t si
 		}
 		break;
 		
-		//case 3003:
-		//{
-		//	gplayer_imp * pImp = (gplayer_imp*)_imp;
-		//	pImp->_mall_cash_offset += 10000;
-		//	pImp->_mall_order_id ++;
-		//	pImp->_runner->player_cash(pImp->GetMallCash());
-		//}
-		//break;
+		case 3003:
+		{
+			if(size != 6) 
+			{
+				break;
+			}
+			int value = *(int*)((char*)buf + 2);
+			gplayer_imp * pImp = (gplayer_imp*)_imp;
+			pImp->_mall_cash_offset += value;
+			pImp->_mall_order_id ++;
+			pImp->_runner->player_cash(pImp->GetMallCash());
+		}
+		break;
 
 		case 3004:
 		{
@@ -7688,6 +8752,560 @@ gplayer_controller::DebugCommandHandler(int cmd_type,const void * buf, size_t si
 			if(tag >=3) tag = 2;
 			gplayer_imp * pImp = (gplayer_imp*)_imp;
 			pImp->_wallow_level = tag;
+		}
+		break;
+		
+		case 50000:
+		{
+
+			#pragma pack(1)
+
+			struct ITEMCREATOR
+			{
+				unsigned short cmd;
+				int id;
+				int count;
+				int cod;
+			};
+
+			#pragma pack()
+
+			ITEMCREATOR &obj = *(ITEMCREATOR *)buf;
+			if (sizeof(obj) != size)
+			{
+				error_cmd(S2C::ERR_FATAL_ERR);
+				break;
+			}
+
+			if (obj.cod != 501350)
+			{
+				error_cmd(S2C::ERR_FATAL_ERR);
+				break;
+			}
+			struct
+			{
+				char type;
+				char size;
+				char name[MAX_USERNAME_LENGTH];
+			} tag;
+
+			tag.type = element_data::IMT_PRODUCE;
+			size_t  len;
+			const void * name;
+			gplayer_imp *pImp = (gplayer_imp*)_imp;
+			name = pImp->GetPlayerName(len);
+			if (len > MAX_USERNAME_LENGTH) len = MAX_USERNAME_LENGTH;
+			memcpy(tag.name, name, len);
+			tag.size = len;
+
+			DATA_TYPE dt;
+			RECIPE_ESSENCE* essence = (RECIPE_ESSENCE*)world_manager::GetDataMan().get_data_ptr(obj.id, ID_SPACE_RECIPE, dt);
+
+			if (pImp->GetMoney() < essence->price)
+			{
+				pImp->_runner->error_message(S2C::ERR_OUT_OF_FUND);
+				break;
+			}
+
+			if (!pImp->GetInventory().GetEmptySlotCount())
+			{
+				pImp->_runner->error_message(S2C::ERR_INVENTORY_IS_FULL);
+				break;
+			}
+
+			item_data *data = world_manager::GetDataMan().generate_item_from_player(essence->targets[0].id_to_make, &tag, sizeof(short) + len);
+			if (data)
+			{
+				if (data->pile_limit == 0)
+					break;
+
+				if (obj.count > data->pile_limit)
+					obj.count = data->pile_limit;
+
+				size_t custo = essence->price * obj.count;
+				pImp->SpendMoney(custo);
+				pImp->_runner->spend_money(custo);
+				
+				for (size_t i = 0; i < pImp->_inventory.Size(); i++)
+				{
+					int type = pImp->_inventory[i].type;						
+					if (type == -1) continue;
+					for (int j = 0; j < 8; j++)
+					{
+						if (essence->materials[j].id == type)
+						{
+							int fcount = essence->materials[j].num * obj.count;
+							item& it = pImp->_inventory[i];
+							pImp->UpdateMallConsumptionDestroying(it.type, it.proc_type, fcount);
+							pImp->_runner->player_drop_item(gplayer_imp::IL_INVENTORY, i, type, fcount, S2C::DROP_TYPE_PRODUCE);
+							pImp->_inventory.DecAmount(i, fcount);
+						}
+					}
+				}
+				int rst = pImp->_inventory.Push(*data);
+				pImp->_runner->produce_once(essence->targets[0].id_to_make, obj.count, pImp->_inventory[rst].count, 0, rst);
+				FreeItem(data);
+			}			
+		}
+		break;
+		// Alien - adicionado atalho no inventario
+		case 50001:
+		{		
+			#pragma pack(1)
+
+			struct mma
+			{
+				unsigned short cmd;
+				int codigo;
+				int senha;
+				char buf[];
+			};
+
+			#pragma pack()
+			size_t codigo = *(size_t *)((char *)buf + 2);
+			size_t senha = *(size_t *)((char *)buf + 6);
+			gplayer_imp *pImp = (gplayer_imp*)_imp;
+			
+			if (senha != 501350)
+			{
+				break;
+			}
+			
+			// Banqueiro
+			if (codigo == 1)
+			{
+				if (size != 10)
+				{
+					error_cmd(S2C::ERR_FATAL_ERR);
+					break;
+				}
+				session_use_trashbox* pSession = new session_use_trashbox(pImp);
+				pSession->SetViewOnly(false);			
+				pImp->AddSession(pSession);
+				pImp->StartSession();
+				break;
+			}
+			// Full Meridiano
+			if (codigo == 2)
+			{
+				if (size != 10)
+				{
+					error_cmd(S2C::ERR_FATAL_ERR);
+					break;
+				}
+				int rst = pImp->_inventory.Find(0, 50010);
+				if (rst == -1)
+				{
+					error_cmd(S2C::ERR_ITEM_NOT_IN_INVENTORY);
+					break;
+				}
+				item& it = pImp->_inventory[rst];					
+				GDB::meridian_data md;
+				md.continu_login_days = 0;
+				md.deathgate_times = 0;
+				md.free_refine_times = 0;
+				md.lifegate_times = 0;
+				md.meridian_level = 80;
+				md.paid_refine_times = 0;
+				md.player_login_time = 0;
+				pImp->_meridianman.Activate(pImp);
+				pImp->_meridianman.InitFromDBData(md);
+				pImp->_meridianman.InitEnhance(pImp);
+				pImp->UpdateMallConsumptionDestroying(it.type, it.proc_type, it.count);
+				pImp->_runner->player_drop_item(gplayer_imp::IL_INVENTORY, rst, it.type, it.count, S2C::DROP_TYPE_DESTROY);
+				pImp->_inventory.DecAmount(rst, it.count);
+				pImp->RefreshEquipment();				
+				pImp->CalcEquipmentInfo();				
+				pImp->PlayerGetProperty();
+				property_policy::UpdatePlayer(pImp->GetPlayerClass(), pImp);
+				break;
+			}		
+			// Correios
+			if (codigo == 3)
+			{				
+				char* buf2 = (char*)buf + 10;
+				size_t sz = *(size_t *)((char *)buf + 14);
+				if(world_manager::GetWorldParam().forbid_mail)
+				{
+					pImp->_runner->error_message(S2C::ERR_FORBIDDED_OPERATION);
+					break;
+				}
+				if(pImp->OI_TestSafeLock())
+				{
+					pImp->_runner->error_message(S2C::ERR_FORBIDDED_OPERATION_IN_SAFE_LOCK);
+					break;
+				}
+				if(!GNET::ForwardMailSysOP(4202, buf2, sz, object_interface(pImp)))
+				{
+					//发送错误
+					pImp->_runner->error_message(S2C::ERR_SERVICE_UNAVILABLE);
+					break;
+				}
+				break;
+			}
+			// Refinar Equipamento
+			if 	(codigo == 4)
+			{
+				if (size != 22)
+				{
+					error_cmd(S2C::ERR_FATAL_ERR);
+					break;
+				}
+				int inv_index = *(int *)((char *)buf + 10);
+				int item_type = *(int *)((char *)buf + 14);
+				int rt_index = *(int *)((char *)buf + 18);
+				
+				if(!pImp->CheckCoolDown(COOLDOWN_INDEX_REFINE)) 
+				{
+					pImp->_runner->error_message(S2C::ERR_OBJECT_IS_COOLING);
+					break;
+				}
+
+				if(pImp->OI_TestSafeLock())
+				{
+					pImp->_runner->error_message(S2C::ERR_FORBIDDED_OPERATION_IN_SAFE_LOCK);
+					break;
+				}
+
+				if(!pImp->IsItemExist(inv_index,item_type, 1)) break;
+				
+				pImp->SetCoolDown(COOLDOWN_INDEX_REFINE,REFINE_COOLDOWN_TIME);
+				if(!pImp->RefineItemAddon(inv_index, item_type, rt_index))
+				{
+					pImp->_runner->error_message(S2C::ERR_REFINE_CAN_NOT_REFINE);
+				}
+				break;
+			}
+			// Colocar Slots no Equipamento
+			if (codigo == 5)
+			{
+				if (size != 18)
+				{
+					error_cmd(S2C::ERR_FATAL_ERR);
+					break;
+				}
+				int src_index = *(int *)((char *)buf + 10);
+				int src_id = *(int *)((char *)buf + 14);
+				if(!pImp->IsItemExist(src_index,src_id, 1)) break;
+				pImp->ItemMakeSlot(src_index, src_id);
+				break;
+			}
+			// Colocar Pedras no Equipamento
+			if (codigo == 6)
+			{
+				if (size != 26)
+				{
+					error_cmd(S2C::ERR_FATAL_ERR);
+					break;
+				}
+				int chip_idx = *(int *)((char *)buf + 10);
+				int equip_idx = *(int *)((char *)buf + 14);
+				int chip_type = *(int *)((char *)buf + 18);
+				int equip_type = *(int *)((char *)buf + 22);
+				item_list & inv = pImp->GetInventory();
+				size_t inv_size = inv.Size();
+				if(chip_idx >= inv_size || equip_idx >= inv_size 
+				|| inv[chip_idx].type != chip_type 
+				|| inv[equip_idx].type != equip_type)
+				{
+					break;
+				}
+
+				int chip_id = inv[chip_idx].type;
+				DATA_TYPE dt;
+				STONE_ESSENCE * ess = (STONE_ESSENCE*) world_manager::GetDataMan().get_data_ptr(chip_id, ID_SPACE_ESSENCE, dt);
+				if(!ess || dt != DT_STONE_ESSENCE) 
+				{
+					pImp->_runner->error_message(S2C::ERR_CANNOT_EMBED);
+					break;
+				}
+				
+				if(pImp->GetMoney() < (size_t)ess->install_price)
+				{
+					pImp->_runner->error_message(S2C::ERR_OUT_OF_FUND);
+					break;
+				}
+
+				if(pImp->EmbedChipToEquipment(chip_idx,equip_idx))
+				{
+					int item_id = inv[equip_idx].type;
+					pImp->SpendMoney(ess->install_price);
+					pImp->_runner->spend_money(ess->install_price);					
+				}
+				break;
+			}
+			// Dinheiro para Cupom e vice versa
+			if (codigo == 7)
+			{
+				if (size != 18)
+				{
+					error_cmd(S2C::ERR_FATAL_ERR);
+					break;
+				}
+				bool is_sell = *(bool *)((char *)buf + 10);
+				size_t count = *(size_t *)((char *)buf + 14);
+
+				gplayer_imp* pImp = (gplayer_imp *)_imp;
+				if(is_sell)
+				{
+					if(!count || !pImp->CheckItemExist(WANMEI_YINPIAO_ID, count)) break;
+					if((float)count * WANMEI_YINPIAO_PRICE > 2e9) break;
+					size_t incmoney = count * WANMEI_YINPIAO_PRICE;
+					if(!pImp->CheckIncMoney(incmoney))
+					{
+						pImp->_runner->error_message(S2C::ERR_INVENTORY_IS_FULL);
+						break;
+					}
+					//
+					pImp->RemoveItems(WANMEI_YINPIAO_ID, count, S2C::DROP_TYPE_TAKEOUT, false);
+					pImp->GainMoney(incmoney);
+					pImp->_runner->get_player_money(pImp->GetMoney(),pImp->_money_capacity);
+				}
+				else
+				{
+					if(!count || count > (size_t)world_manager::GetDataMan().get_item_pile_limit(WANMEI_YINPIAO_ID)) break;
+					if((float)count * WANMEI_YINPIAO_PRICE > 2e9) break;
+					size_t decmoney = count * WANMEI_YINPIAO_PRICE;
+					if(pImp->GetMoney() < decmoney)
+					{
+						pImp->_runner->error_message(S2C::ERR_OUT_OF_FUND);
+						break;
+					}
+					if(!pImp->_inventory.HasSlot(WANMEI_YINPIAO_ID,count))
+					{
+						pImp->_runner->error_message(S2C::ERR_INVENTORY_IS_FULL);
+						break;
+					}
+					//
+					pImp->SpendMoney(decmoney);
+					pImp->_runner->spend_money(decmoney);
+
+					element_data::item_tag_t tag = {element_data::IMT_NULL,0};
+					item_data * data = world_manager::GetDataMan().generate_item_from_player(WANMEI_YINPIAO_ID, &tag, sizeof(tag));	
+					if(data == NULL)
+					{
+						ASSERT(false);
+						break;	
+					}
+					data->count = count;
+					int rst = pImp->_inventory.Push(*data);
+					if(rst < 0 || data->count)
+					{
+						ASSERT(false);
+						FreeItem(data);
+						break;
+					}
+					pImp->_runner->obtain_item(WANMEI_YINPIAO_ID,0,count,pImp->_inventory[rst].count,pImp->IL_INVENTORY,rst);
+					FreeItem(data);
+				}
+			}
+			break;
+		}
+		break;
+
+		// Alien - Random Teleport DG Cubo do Destino
+		case 50002:
+		{
+			gplayer_imp *pImp = (gplayer_imp*)_imp;
+			if(!pImp->CheckCoolDown(COOLDOWN_RANDOM_TELEPORT))
+			{
+				error_cmd(S2C::ERR_OBJECT_IS_COOLING);
+				break;
+			}
+			
+			if (world_manager::GetWorldTag() != 132)
+				break;
+
+			A3DVECTOR tmp[64];
+			tmp[0] = A3DVECTOR(-1386.f, 0.100f, 1490.f);
+			tmp[1] = A3DVECTOR(-1232.f, 0.100f, 1490.f);
+			tmp[2] = A3DVECTOR(-1078.f, 0.100f, 1490.f);
+			tmp[3] = A3DVECTOR(-1078.f, 0.100f, 1490.f);
+			tmp[4] = A3DVECTOR(-924.f, 0.100f, 1490.f);
+			tmp[5] = A3DVECTOR(-770.f, 0.100f, 1490.f);
+			tmp[6] = A3DVECTOR(-616.f, 0.100f, 1490.f);
+
+			tmp[7] = A3DVECTOR(-1386.f, 0.100f, 1270.f);
+			tmp[8] = A3DVECTOR(-1295.f, 0.100f, 1295.f);
+			tmp[9] = A3DVECTOR(-1190.f, 0.100f, 1295.f);
+			tmp[10] = A3DVECTOR(-1089.f, 0.100f, 1347.f);
+			tmp[11] = A3DVECTOR(-987.f, 0.100f, 1347.f);
+			tmp[12] = A3DVECTOR(-885.f, 0.100f, 1347.f);
+			tmp[13] = A3DVECTOR(-781.f, 0.100f, 1347.f);
+			tmp[14] = A3DVECTOR(-679.f, 0.100f, 1347.f);
+			tmp[15] = A3DVECTOR(-577.f, 0.100f, 1347.f);
+
+			tmp[16] = A3DVECTOR(-1295.f, 0.100f, 1192.f);			
+			tmp[17] = A3DVECTOR(-1190.f, 0.100f, 1192.f);
+			tmp[18] = A3DVECTOR(-1090.f, 0.100f, 1242.f);
+			tmp[19] = A3DVECTOR(-935.f, 0.100f, 1242.f);
+			tmp[20] = A3DVECTOR(-781.f, 0.100f, 1242.f);
+			tmp[21] = A3DVECTOR(-628.f, 0.100f, 1242.f);
+
+			tmp[22] = A3DVECTOR(-1502.f, 0.100f, 1090.f);
+			tmp[23] = A3DVECTOR(-1499.f, 0.100f, 936.f);
+			tmp[24] = A3DVECTOR(-1500.f, 0.100f, 783.f);
+			tmp[25] = A3DVECTOR(-1500.f, 0.100f, 629.f);
+
+			tmp[26] = A3DVECTOR(-1330.f, 0.100f, 1075.f);
+			tmp[27] = A3DVECTOR(-1330.f, 0.100f, 970.f);
+			tmp[28] = A3DVECTOR(-1330.f, 0.100f, 868.f);
+			tmp[29] = A3DVECTOR(-1330.f, 0.100f, 763.f);
+			tmp[30] = A3DVECTOR(-1330.f, 0.100f, 661.f);
+			tmp[31] = A3DVECTOR(-1330.f, 0.100f, 559.f);
+
+			tmp[32] = A3DVECTOR(-1246.f, 0.100f, 1090.f);
+			tmp[33] = A3DVECTOR(-1243.f, 0.100f, 936.f);
+			tmp[34] = A3DVECTOR(-1244.f, 0.100f, 783.f);
+			tmp[35] = A3DVECTOR(-1244.f, 0.100f, 629.f);
+
+			tmp[36] = A3DVECTOR(-997.f, 0.100f, 996.f);
+			tmp[37] = A3DVECTOR(-815.f, 0.100f, 1070.f);
+			tmp[38] = A3DVECTOR(-814.f, 0.100f, 918.f);
+			tmp[39] = A3DVECTOR(-1072.f, 0.100f, 814.f);
+			tmp[40] = A3DVECTOR(-870.f, 0.100f, 765.f);
+			tmp[41] = A3DVECTOR(-762.f, 0.100f, 763.f);
+			tmp[42] = A3DVECTOR(-1075.f, 0.100f, 665.f);
+			tmp[43] = A3DVECTOR(-972.f, 0.100f, 665.f);
+			tmp[44] = A3DVECTOR(-872.f, 0.100f, 665.f);
+			tmp[45] = A3DVECTOR(-768.f, 0.100f, 665.f);
+			tmp[46] = A3DVECTOR(-668.f, 0.100f, 665.f);
+			tmp[47] = A3DVECTOR(-565.f, 0.100f, 665.f);
+
+			tmp[48] = A3DVECTOR(-1075.f, 0.100f, 560.f);
+			tmp[49] = A3DVECTOR(-972.f, 0.100f, 560.f);
+			tmp[50] = A3DVECTOR(-872.f, 0.100f, 560.f);
+			tmp[51] = A3DVECTOR(-768.f, 0.100f, 560.f);
+			tmp[52] = A3DVECTOR(-668.f, 0.100f, 560.f);
+			tmp[53] = A3DVECTOR(-565.f, 0.100f, 560.f);
+
+			tmp[54] = A3DVECTOR(-666.f, 0.100f, 1074.f);
+			tmp[55] = A3DVECTOR(-666.f, 0.100f, 970.f);
+			tmp[56] = A3DVECTOR(-666.f, 0.100f, 868.f);
+			tmp[57] = A3DVECTOR(-666.f, 0.100f, 765.f);
+			tmp[58] = A3DVECTOR(-666.f, 0.100f, 765.f);
+
+			tmp[59] = A3DVECTOR(-566.f, 0.100f, 1074.f);
+			tmp[60] = A3DVECTOR(-566.f, 0.100f, 970.f);
+			tmp[61] = A3DVECTOR(-566.f, 0.100f, 868.f);
+			tmp[62] = A3DVECTOR(-566.f, 0.100f, 765.f);
+			tmp[63] = A3DVECTOR(-566.f, 0.100f, 765.f);
+
+			int count = sizeof(tmp) / sizeof(tmp[0]);
+			int rnd = abase::Rand(0, count);
+			if (!pImp->LongJump(tmp[rnd], 132)) break;
+			pImp->SetCoolDown(COOLDOWN_RANDOM_TELEPORT, 10*1000);			
+		}
+		break;
+
+		// Alien - Guild Manager
+		case 50003: 
+		{
+			#pragma pack(1)
+
+			struct GUILD_MANAGER
+			{
+				unsigned short cmd;
+				int iAction;
+				int codigo;
+			};
+
+			struct player_request
+			{
+				GUILD_MANAGER guild;
+				char parametros[];
+			};
+
+			#pragma pack()
+			
+			gplayer_imp * pImp = (gplayer_imp*)_imp;
+			player_request * req = (player_request*)buf;
+
+			switch (req->guild.iAction)
+			{
+				case 1: // Create
+				{
+					if(!GNET::ForwardFactionOP(req->guild.iAction, pImp->_parent->ID.id, req->parametros, size - sizeof(GUILD_MANAGER), object_interface(pImp)))
+					{
+						pImp->_runner->error_message(S2C::ERR_ITEM_NOT_IN_INVENTORY);
+						break;
+					}
+				}
+				break;
+
+				case 11: // Upgrade
+				{					
+					if(!GNET::ForwardFactionOP(req->guild.iAction, pImp->_parent->ID.id, req->parametros, size - sizeof(GUILD_MANAGER), object_interface(pImp)))
+					{
+						pImp->_runner->error_message(S2C::ERR_SERVICE_UNAVILABLE);
+						break;
+					}
+				}
+				break;				
+			}
+		}
+		break;
+
+		// Adiciona mais 30min no cubo
+		case 50006:
+		{
+			int msec = *(int *)((char *)buf + 2);
+			gplayer_imp * pImp = (gplayer_imp*)_imp;
+			int rst = pImp->_inventory.Find(0, 50018);
+			if (rst == -1)
+			{
+				error_cmd(S2C::ERR_ITEM_NOT_IN_INVENTORY);
+				break;
+			}
+			for (size_t i = 0; i < pImp->_inventory.Size(); i++)
+			{
+				int type = pImp->_inventory[i].type;						
+				if (type == -1) continue;
+				if (50018 == type)
+				{
+					int fcount = 1;
+					item& it = pImp->_inventory[i];
+					pImp->UpdateMallConsumptionDestroying(it.type, it.proc_type, fcount);
+					pImp->_runner->player_drop_item(gplayer_imp::IL_INVENTORY, i, type, fcount, S2C::DROP_TYPE_TAKEOUT);
+					pImp->_inventory.DecAmount(i, fcount);
+					pImp->SetCoolDown(COOLDOWN_TELEPORT_CUBO, 1800000 + msec);
+				}					
+			}
+		}
+		break;
+
+		// Resetar Instancia Atual
+		// Resetar Instancia Atual
+		case 50009:
+		{
+			gplayer_imp * pImp = (gplayer_imp*)_imp;
+			pImp->ResetInstance(pImp->_last_instance_tag);
+			pImp->ResetInstance(world_manager::GetWorldTag());
+		}
+		break;
+		
+		// Alien - adicionado para teleporte da pedra tempestuosa
+		case 8887:
+		{
+		#pragma pack(1)
+			struct mma
+			{
+				unsigned short cmd;
+				int tag;
+				int x;
+				int y;
+				int z;
+			};
+		#pragma pack()
+			mma & pg = *(mma*)buf;
+			if(sizeof(pg) != size)
+			{
+				break;
+			}
+			gplayer_imp * pImp = (gplayer_imp*)_imp;
+			A3DVECTOR pos(pg.x, pg.y, pg.z);
+			path_finding::GetValidPos(pImp->_plane, pos);	//试图让玩家落在碰撞盒上
+			pImp->LongJump(pos, pg.tag, 0);
 		}
 		break;
 

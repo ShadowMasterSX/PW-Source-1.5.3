@@ -8,7 +8,11 @@
 
 #include "addmemberarg"
 #include "addmemberres"
+
 #include "gfactionextend"
+#include "gfactionextenddata"
+#include "guniqueinfo"
+
 
 namespace GNET
 {
@@ -53,8 +57,17 @@ class AddMember : public Rpc
 				}
 				Log::formatlog("faction","type=join:roleid=%d:factionid=%d", arg->rid, arg->fid);
 				Marshal::OctetsStream(pinfo->find(Marshal::OctetsStream() << arg->fid,txn)) >> info;
-				if((info.level==0&&info.member.size()>=50)||(info.level==1&&info.member.size()>=100)
-						||info.member.size()>=200)
+				if((info.level==0&&info.member.size()>=30)
+				||(info.level==1&&info.member.size()>=35)
+				||(info.level==2&&info.member.size()>=40)
+				||(info.level==3&&info.member.size()>=45)
+				||(info.level==4&&info.member.size()>=50)
+				||(info.level==5&&info.member.size()>=55)
+				||(info.level==6&&info.member.size()>=60)
+				||(info.level==7&&info.member.size()>=65)
+				||(info.level==8&&info.member.size()>=70)
+				||(info.level==9&&info.member.size()>=75)
+				||info.member.size()>=80)
 				{
 					res->retcode = ERR_FC_FULL;
 					return;
@@ -79,6 +92,22 @@ class AddMember : public Rpc
 				user.rid = arg->rid;
 				user.fid = arg->fid;
 				user.role = _R_MEMBER;
+
+                GFactionExtendData ext_data;
+                if (info.extenddata.size() > 0)
+                    Marshal::OctetsStream(info.extenddata) >> ext_data;
+
+                GUniqueInfo uni_info;
+                uni_info.unifid = ext_data.unifid;
+                uni_info.reserved1 = 0;
+                uni_info.reserved2 = 0;
+                uni_info.reserved3 = 0;
+                uni_info.reserved4 = 0;
+
+                ext.uniqueinfo = (Marshal::OctetsStream() << uni_info);
+                ext.reserved1 = 0;
+                ext.reserved2 = 0;
+
 				ext.jointime = Timer::GetTime();
 				ext.logintime = ext.jointime;
 				vext << ext;

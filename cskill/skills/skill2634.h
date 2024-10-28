@@ -133,8 +133,8 @@ namespace GNET
       Skill2634Stub ():SkillStub (2634)
         {
             cls = 127;
-            name = L"改变仇恨值加召唤怪物测试";
-            nativename = "改变仇恨值加召唤怪物测试";
+            name = L"鏀瑰彉浠囨仺鍊煎姞鍙敜鎬墿娴嬭瘯";
+            nativename = "鏀瑰彉浠囨仺鍊煎姞鍙敜鎬墿娴嬭瘯";
             icon = "";
             max_level = 3;
             type = 1;

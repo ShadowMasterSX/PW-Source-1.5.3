@@ -1,0 +1,145 @@
+
+#ifndef __GNET_GETUSER_HPP
+#define __GNET_GETUSER_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "dbbuffer.h"
+#include "userarg"
+#include "userres"
+#include "gsysauctioncash"
+#include "gloginrecord"
+
+namespace GNET
+{
+
+class GetUser : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getuser"
+#undef	RPC_BASECLASS
+
+	static void Balance(unsigned int& data, unsigned int& delta)
+	{
+		if(data>=delta)
+		{
+			data -= delta;
+			delta = 0;
+		}
+		else
+		{
+			delta -= data;
+			data = 0;
+		}
+	}
+	static unsigned int BalanceCash(User& u)
+	{
+		GSysAuctionCash sa_cash;
+		if(u.cash_sysauction.size())
+			Marshal::OctetsStream(u.cash_sysauction)>>sa_cash;
+		unsigned int threshold = MAX_USER_CASH-CASH_BALANCE_THRESHOLD;
+		if((u.cash_add>threshold || u.cash_used>threshold || u.cash_buy>threshold || u.cash_sell>threshold || sa_cash.cash_used_2>threshold)
+				&&(u.cash_used>CASH_BALANCE_THRESHOLD || u.cash_sell>CASH_BALANCE_THRESHOLD || sa_cash.cash_used_2>CASH_BALANCE_THRESHOLD))
+		{
+			unsigned int total = u.cash_used + u.cash_sell + sa_cash.cash_used_2;
+			if(u.cash_used)
+			{
+				Balance(u.cash_buy,u.cash_used); 
+				Balance(u.cash_add,u.cash_used); 
+			}
+			if(u.cash_sell)
+			{
+				Balance(u.cash_buy,u.cash_sell); 
+				Balance(u.cash_add,u.cash_sell); 
+			}
+			if(sa_cash.cash_used_2)
+			{
+				Balance(u.cash_buy,sa_cash.cash_used_2); 
+				Balance(u.cash_add,sa_cash.cash_used_2); 
+			}
+			u.cash_sysauction = Marshal::OctetsStream()<<sa_cash;
+			if(total!=u.cash_used+u.cash_sell+sa_cash.cash_used_2)
+				return total-u.cash_used-u.cash_sell-sa_cash.cash_used_2;
+			else
+				return 0;
+		}
+		return 0;
+	}
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		UserArg *arg = (UserArg *)argument;
+		UserRes *res = (UserRes *)result;
+
+		LOG_TRACE( "GetUser, userid=%d.\n", arg->id );
+
+		try
+		{
+			StorageEnv::Storage * puser = StorageEnv::GetStorage("user");
+			StorageEnv::Storage * precalluser = StorageEnv::GetStorage("recalluser");
+			StorageEnv::CommonTransaction txn;
+			Marshal::OctetsStream key,value;
+
+			try
+			{
+				key << arg->id;
+				
+				bool is_recall_server = GameDBManager::GetInstance()->IsRecallServer();	
+				if(is_recall_server && !precalluser->find(key, value, txn))
+				{
+					Log::log( LOG_ERR, "GetUser, not recall user userid=%d\n", arg->id );
+					res->retcode = ERR_NOT_RECALL_USER;
+					return;
+				}
+
+				
+				if(puser->find(key, value, txn))
+				{
+					value >> res->value;
+					User& u = res->value;
+					unsigned int delta = BalanceCash(u);
+					if(delta)
+					{
+						GSysAuctionCash sa_cash;
+						if(u.cash_sysauction.size())
+							Marshal::OctetsStream(u.cash_sysauction)>>sa_cash;
+						Log::formatlog("balancecash","userid=%d:add=%d:used=%d:buy=%d:sell=%d:used_2=%d:delta=%d",
+								arg->id, u.cash_add, u.cash_used, u.cash_buy, u.cash_sell, sa_cash.cash_used_2, delta);
+					}
+					
+					Octets last_login = u.login_record;
+					u.login_record = Marshal::OctetsStream() << GLoginRecord(arg->login_time, arg->login_ip);
+					puser->insert( key, Marshal::OctetsStream() << u, txn );
+					u.login_record = last_login;
+
+					res->retcode = ERR_SUCCESS;
+				}else
+					res->retcode = ERR_DATANOTFIND;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "GetUser, userid=%d, what=%s\n", arg->id, e.what() );
+			res->retcode = -1;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

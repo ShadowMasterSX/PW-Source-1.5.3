@@ -8,7 +8,7 @@
 #include <string.h>
 
 #define F_POLICY_VERSION	1
-#define F_TRIGGER_VERSION   20
+#define F_TRIGGER_VERSION   22
 #define F_POLICY_EXP_VERSION 1
 
 
@@ -95,6 +95,7 @@ public:
 		t_hate_random_one,		//仇恨列表随机一个目标
 		t_hate_nearest,			//仇恨列表中最近目标
 		t_hate_farthest,		//仇恨列表中最远目标
+		t_hate_first_redirected,//仇恨排名第一位（宠物转为主人）
 		t_num,
 	};
 
@@ -134,6 +135,7 @@ public:
 		o_summon_npc,			//召唤NPC
 		o_deliver_random_task_in_region,	//	区域内随机发放任务
 		o_deliver_task_in_hate_list,		//	仇恨列表内发放任务
+		o_clear_tower_task_in_region,		//	区域内清除所有爬塔任务
 		o_num,
 	};
 

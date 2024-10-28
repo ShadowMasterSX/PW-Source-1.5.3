@@ -8,38 +8,37 @@ INTEPRETED_EXPR = 0
 
 include ../mk/gcc.defs.mk
 
-HEADERS = callup.h  playerwrapper.h  range.h  skill.h  skillexpr.h  skillfilter.h  skilllevel.h  skillwrapper.h  targetwrapper.h
-CPPFILES = main.cpp  playerwrapper.cpp  skill.cpp  skillfilter.cpp  skillwrapper.cpp
-STUBOBJS = $(../skills/skill*.o)
+HEADERS = *.h
+CPPFILES = playerwrapper.cpp  skill.cpp  skillfilter.cpp  skillwrapper.cpp
 OBJS = skill.o skillwrapper.o playerwrapper.o skillfilter.o 
-OUTEROBJS = ../common/conf.o ../common/thread.o ../common/timer.o ../common/itimer.o ../io/pollio.o 
-INCLUDES += -I../expr -I../header -I../header/include
+INCLUDES = -I. -I../header -I../header/include -I../common
+STUBOBJS := $(patsubst %.cpp,%.o,$(wildcard ../skills/stubs*.cpp))
+LIB = libskill.a
+#HEADERS = callup.h  playerwrapper.h  range.h  skill.h  skillexpr.h  skillfilter.h  skilllevel.h  skillwrapper.h  targetwrapper.h
+#CPPFILES = main.cpp  playerwrapper.cpp  skill.cpp  skillfilter.cpp  skillwrapper.cpp
+#STUBOBJS = ../skills/stub*.o
+#OBJS = skill.o skillwrapper.o playerwrapper.o skillfilter.o 
+#OUTEROBJS = ../../share/common/conf.o ../../share/common/thread.o ../../share/common/timer.o ../../share/common/itimer.o ../../share/io/pollio.o 
+#INCLUDES += -I../expr -I../header -I../header/include
 
-DEFINES  +=-D_SKILL_SERVER 
+DEFINES  = -D_SKILL_SERVER -g -ggdb -O0
+CPPFLAGS = -Wall  -Werror
 
-ifeq ($(INTEPRETED_EXPR), 1)
-DEFINES  += -D_INTEPRETED_EXPR
-EXPROBJS = ../expr/stubs.o ../expr/objectgraph.o ../expr/scanner.o ../expr/exprparser.o ../expr/analyzer.o ../expr/executor.o
-else
-EXPROBJS = 
-endif
+CFLAGS += -fPIC -finput-charset="GBK"
 
-CFLAGS += -fPIC
+all : lib
 
-EXES = skill
-
-all : lib dlib
-
-lib : $(OBJS) $(EXPROBJS) $(STUBOBJS)
-	ar crs libskill.a $(OBJS) $(EXPROBJS) $(STUBOBJS)
+lib : $(OBJS) $(STUBOBJS)
+	ar crs $(LIB) $(OBJS) $(STUBOBJS)
 
 dlib : $(OBJS) $(OUTEROBJS) $(EXPROBJS)
 	rm libskill.so -f
-	$(LD) -shared -fPIC $(LDFLAGS) $(OBJS) $(OUTEROBJS) $(EXPROBJS) $(STUBOBJS) -o libskill.so
-
-$(STUBOBJS) : $(HEADERS) ../skills/*.h
+	$(LD) -shared -fPIC $(LDFLAGS) $(OBJS) $(OUTEROBJS) $(STUBOBJS) -o libskill.so
 
 $(OBJS) : $(HEADERS)
+
+$(STUBOBJS) :
+	$(CPP) -c $(DEFINES) $(INCLUDES) $(CPPFLAGS) -w $(patsubst %.o,%.cpp,$@) -o $@
 
 
 include ../mk/gcc.rules.mk

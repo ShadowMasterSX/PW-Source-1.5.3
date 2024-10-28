@@ -57,8 +57,8 @@ namespace GNET
       Skill1191Stub ():SkillStub (1191)
         {
             cls = 127;
-            name = L"反隐药水专用";
-            nativename = "反隐药水专用";
+            name = L"鍙嶉殣鑽按涓撶敤";
+            nativename = "鍙嶉殣鑽按涓撶敤";
             icon = "";
             max_level = 10;
             type = 4;

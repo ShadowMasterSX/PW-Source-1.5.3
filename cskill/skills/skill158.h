@@ -19,9 +19,9 @@ namespace GNET
         Skill158Stub ():SkillStub (158)
         {
             cls = 255;
-            name = L"Ìú½³¾«Í¨";
-            nativename = "Ìú½³¾«Í¨";
-            icon = "Ìú½³¾«Í¨.dds";
+            name = L"é“åŒ ç²¾é€š";
+            nativename = "é“åŒ ç²¾é€š";
+            icon = "é“åŒ ç²¾é€š.dds";
             max_level = 10;
             type = 9;
             apcost = 0;

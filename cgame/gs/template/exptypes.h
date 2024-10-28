@@ -13,18 +13,24 @@
 	typedef int64_t	INT64;
 #endif
 
-#define ELEMENTDATA_VERSION		0x3000007f
+#define ELEMENTDATA_VERSION		0x30000091
 
-#define ELEMENTDATA_NUM_PROFESSION 12	//	职业数目
-#define ELEMENTDATA_NUM_POKER_TYPE	6	//	卡牌种类个数
-#define ELEMENTDATA_NUM_POKER_RANK	5	//	卡牌品阶个数
-#define	ELEMENTDATA_MAX_POKER_LEVEL	100	//	卡牌最高等级
-#define ELEMENTDATA_MAX_UNIVERSAL_TOKEN_USAGE 32	//	通用客户端功能物品可使用方式的种类
-#define ELEMENTDATA_MAX_ENGRAVE_ADDON_COUNT 3		//	镌刻产生最多属性条数
-#define ELEMENTDATA_MAX_INHERIT_ADDON_COUNT 5		//	附加属性继承最多属性条数
 enum
 {
+	ELEMENTDATA_NUM_PROFESSION	=	12,	//	职业数目
+	ELEMENTDATA_NUM_GENDER		=	2,	//	性别数目
+	ELEMENTDATA_NUM_POKER_TYPE	=	6,	//	卡牌种类个数
+	ELEMENTDATA_NUM_POKER_RANK	=	5,	//	卡牌品阶个数
+	ELEMENTDATA_MAX_POKER_LEVEL	=	100,//	卡牌最高等级
+	ELEMENTDATA_MAX_UNIVERSAL_TOKEN_USAGE	=	32,		//	通用客户端功能物品可使用方式的种类
+	ELEMENTDATA_MAX_ENGRAVE_ADDON_COUNT		=	3,		//	镌刻产生最多属性条数
+	ELEMENTDATA_MAX_INHERIT_ADDON_COUNT		=	5,		//	附加属性继承最多属性条数
 	ELEMENTDATA_DOMAIN_COUNT = 52,	//	城战领土数
+	ELEMENTDATA_NUM_ASTROLABE_LEVEL				=	100,	//	星盘自身等级个数
+	ELEMENTDATA_NUM_ASTROLABE_ADDON_RANDOM_LEVEL=	10,		//	玩家星盘属性随机等级个数
+	ELEMENTDATA_MAX_ASTROLABE_ADDON_COUNT		=	10,		//	星盘属性条目最大值
+	ELEMENTDATA_NUM_SOLO_TOWER_CHALLENGE_STAGE	=	108,	//	单人爬塔副本最大关卡数
+	ELEMENTDATA_NUM_SOLO_TOWER_CHALLENGE_BUFF_COUNT = 16,	//	单人爬塔副本可用积分换取的Buff数量
 };
 
 enum SERVICE_TYPE
@@ -1355,6 +1361,140 @@ struct FASHION_SUITE_ESSENCE
 	int				show_order;					//	展示顺序
 };
 
+/////////////////////////////////////////////////////////////////////////////////////////////////
+// 星盘
+/////////////////////////////////////////////////////////////////////////////////////////////////
+struct ASTROLABE_ESSENCE
+{
+	unsigned int	id;							//	ID
+	namechar		name[32];					//	名称
+	
+	char			file_matter[128];			//	掉在地上的模型路径名
+	char			file_icon[128];				//	图标路径名
+
+	unsigned int	character_combo_id;			//	玩家职业限制组合
+	int				require_level;				//	等级限制
+
+	int				min_inner_point_value;		//	内点资质下限
+	int				max_inner_point_value;		//	内点资质上限
+	int				max_init_inner_point_value;	//	内点初始资质上限
+	int				init_all_inner_point_value;	//	内点初始总资质
+	int				max_all_inner_point_value;	//	内点总资质上限
+
+	struct
+	{
+		unsigned int	id_rand;				//	随机属性的类型ID
+		float			probability_rand;		//	随机属性出现的概率
+		int				max_appear_times_rand;	//	随机属性最多出现次数
+	}rands[32];
+	unsigned int	id_rand_when_fail;			//	随机属性补位属性ID
+
+	int				base_swallow_exp;			//	吞噬后经验基础值
+
+	int				price;						//	卖店价
+	int				shop_price;					//	店卖价
+	
+	int				pile_num_max;				//	堆叠上限
+	unsigned int	has_guid;					//	是否为其产生全局唯一ID
+	unsigned int	proc_type;					//	处理方式
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+// 星盘属性随机道具
+/////////////////////////////////////////////////////////////////////////////////////////////////
+struct ASTROLABE_RANDOM_ADDON_ESSENCE
+{
+	unsigned int	id;							//	ID
+	namechar		name[32];					//	名称
+	
+	char			file_matter[128];			//	掉在地上的模型路径名
+	char			file_icon[128];				//	图标路径名
+	
+	int				addon_random_exp_gained;	//	增加经验值
+	
+	int				price;						//	卖店价
+	int				shop_price;					//	店卖价
+	
+	int				pile_num_max;				//	堆叠上限
+	unsigned int	has_guid;					//	是否为其产生全局唯一ID
+	unsigned int	proc_type;					//	处理方式
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+// 星盘涨资质道具
+/////////////////////////////////////////////////////////////////////////////////////////////////
+struct ASTROLABE_INC_INNER_POINT_VALUE_ESSENCE
+{
+	unsigned int	id;							//	ID
+	namechar		name[32];					//	名称
+	
+	char			file_matter[128];			//	掉在地上的模型路径名
+	char			file_icon[128];				//	图标路径名
+	
+	int				increase_base;				//	资质增长基础值
+	float			increase_probability[10];	//	资质增长%倍基础值概率
+
+	int				require_min_all_inner_point_value;	//	内点总资质下限限制
+	int				require_max_all_inner_point_value;	//	内点总资质上限限制
+	
+	int				price;						//	卖店价
+	int				shop_price;					//	店卖价
+	
+	int				pile_num_max;				//	堆叠上限
+	unsigned int	has_guid;					//	是否为其产生全局唯一ID
+	unsigned int	proc_type;					//	处理方式
+};
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+// 星盘涨经验道具
+/////////////////////////////////////////////////////////////////////////////////////////////////
+struct ASTROLABE_INC_EXP_ESSENCE
+{
+	unsigned int	id;							//	ID
+	namechar		name[32];					//	名称
+	
+	char			file_matter[128];			//	掉在地上的模型路径名
+	char			file_icon[128];				//	图标路径名
+	
+	int				swallow_exp;				//	吞噬后提供经验值
+	
+	int				price;						//	卖店价
+	int				shop_price;					//	店卖价
+	
+	int				pile_num_max;				//	堆叠上限
+	unsigned int	has_guid;					//	是否为其产生全局唯一ID
+	unsigned int	proc_type;					//	处理方式
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+// 通用职业物品包
+/////////////////////////////////////////////////////////////////////////////////////////////////
+struct ITEM_PACKAGE_BY_PROFESSION_ESSENCE
+{
+	unsigned int	id;							//	ID
+	namechar		name[32];					//	名称
+	
+	char			file_matter[128];			//	掉在地上的模型路径名
+	char			file_icon[128];				//	图标路径名
+
+	struct
+	{
+		struct 
+		{
+			unsigned int item_id;				//	物品ID
+		}gender_list[ELEMENTDATA_NUM_GENDER];	//	性别%
+	}prof_list[ELEMENTDATA_NUM_PROFESSION];		//	职业%
+	int				item_expire_timelength;		//	物品存在时间（秒）
+
+	int				price;						//	卖店价
+	int				shop_price;					//	店卖价
+	
+	int				pile_num_max;				//	堆叠上限
+	unsigned int	has_guid;					//	是否为其产生全局唯一ID
+	unsigned int	proc_type;					//	处理方式
+};
+
 ///////////////////////////////////////////////////////////////////////////////////////
 //
 // 基地设施模板数据结构定义
@@ -1909,6 +2049,19 @@ struct STONE_ESSENCE
 	unsigned int	proc_type;					// 是以下几种方式的组合: 死亡时是否掉落，是否可以扔在地上，是否可以卖给NPC，是人民币物品，是否可以玩家间交易，是否任务相关物品，装备后绑定，是否可解绑，离开场景消失
 
 	// 宝石没有显式制定其装备规则，因为所有的宝石只能用于镶嵌，Mask必须为0x8000
+		
+	unsigned int	combined_switch;			// 各种组合开关（见STONE_COMBINED_SWITCH）
+
+	unsigned int	id_addon_decoration;		// 饰品属性描述id
+	namechar		decoration_desc[16];		// 镶在饰品上的描述
+};
+
+enum STONE_COMBINED_SWITCH
+{
+	SCS_WEAPON_CANNOT_USE	= 0x00000001,		//	武器不可用
+	SCS_ARMOR_CANNOT_USE	= 0x00000002,		//	防具不可用
+	SCS_NECK_CAN_USE		= 0x00000004,		//	项链可用
+	SCS_WAIST_CAN_USE		= 0x00000008,		//	腰佩可用
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -2152,6 +2305,37 @@ struct FIREWORKS_ESSENCE
 	int				price;						// 卖店价
 	int				shop_price;					// 店卖价
 
+	// 堆叠信息
+	int				pile_num_max;				// 该烟花的堆叠上限
+	// GUID信息
+	unsigned int	has_guid;					// 是否为其产生全局唯一ID，以用于Trace。0-否，1-是
+	// 处理方式
+	unsigned int	proc_type;					// 是以下几种方式的组合: 死亡时是否掉落，是否可以扔在地上，是否可以卖给NPC，是人民币物品，是否可以玩家间交易，是否任务相关物品，装备后绑定，是否可解绑，离开场景消失
+};
+
+// 烟花2本体
+struct FIREWORKS2_ESSENCE
+{
+	unsigned int	id;							// ID
+	namechar		name[32];					// 名称, 最多15个汉字
+	
+	char			file_matter[128];			// 掉在地上的模型路径名
+	char			file_icon[128];				// 图标路径名
+	
+	int				level;						// 等级
+	int				time_to_fire;				// 燃放时间(秒)
+	
+	int				price;						// 卖店价
+	int				shop_price;					// 店卖价
+
+	int				male_mine_id;					// 男性使用烟花后生成的矿id
+	int				female_mine_id;					// 女性使用烟花后生成的矿id
+
+	char			cast_action[32];			// 施放者动作名称
+
+	namechar		caster_word[256];				// 施放者喊话
+	namechar		receiver_word[256];				// 接受者喊话
+	
 	// 堆叠信息
 	int				pile_num_max;				// 该烟花的堆叠上限
 	// GUID信息
@@ -3065,7 +3249,7 @@ struct TARGET_ITEM_ESSENCE
 	unsigned int	use_in_sanctuary_only;		// 仅在安全区使用，0-否，1-是
 
 	unsigned int	combined_switch;			// 各种组合开关（见 TARGET_ITEM_COMBINED_SWITCH ）
-	int				target_id_for_pop[8];		// 选中此目标时才在屏幕上提示使用（为0时不限制）
+	int				target_id_for_pop[32];		// 选中此目标时才在屏幕上提示使用（为0时不限制）
 	unsigned int	target_faction;				// 被使用目标阵营筛选
 	int				require_level;				// 等级限制
 };
@@ -3162,6 +3346,7 @@ struct NPC_SELL_SERVICE
 			unsigned int id;					// 商品id
 			int		   	contrib_cost;				// 消耗贡献度
 			int			force_contribution_cost;	//	消耗势力战功
+			int			solo_tower_challenge_score_cost;	//	消耗单人爬塔积分
 		}goods[32];								// 可出售的商品列表
 
 	} pages[8];									// 按页方式存储的商品列表
@@ -3493,6 +3678,23 @@ struct NPC_FORCE_SERVICE
 	unsigned int	force_id;					//	势力ID
 };
 
+// 跨服服务
+struct NPC_CROSS_SERVER_SERVICE
+{
+	unsigned int	id;							// 服务(类型)ID
+	namechar		name[32];					// 名称, 最多15个汉字
+
+	int				activity_type;				//	活动类型(type=cross_server_activity)
+	int				player_count_limit;			//	人数限制
+	int				time_out;					//	活动时长_秒
+	int				need_item_tid;				//	所需物品id(type=all_type)
+	int				need_item_count;			//	所需物品数量
+	unsigned int	cost_item;					//	是否收消耗物品(type=bool)
+	int				history_max_level_require;	//	历史最高等级限制
+	int				taoist_rank_require;		//	修真等级要求(type=taoist_rank_require)
+	int				realm_level_require;		//	境界等级要求
+};
+
 // NPC类型定义
 struct NPC_TYPE
 {
@@ -3557,6 +3759,7 @@ struct NPC_ESSENCE
 	unsigned int	id_equipdestroy_service;	// 装备销毁服务
 	unsigned int	id_equipundestroy_service;	// 装备解除销毁服务
 	unsigned int	id_goblin_skill_service;	// 小精灵技能学习服务
+	unsigned int	id_cross_server_service;	// 跨服服务
 	unsigned int	combined_services;			// 简单服务组合：其中的每一位代表一个不需要参数的服务，可能的有：
 												//		0：遗忘生产技能；1：打孔服务；2：空；3：驿站发现服务；4：帮派服务；5：整容服务；6：邮寄服务；7：拍卖服务；8：双倍经验打卡服务；
 												//		9：孵化宠物蛋服务；10：还原宠物蛋服务；11：城战管理服务；12：离开战场服务；13：点卡寄售；14：装备升级服务；15：染色服务；16：扭转乾坤服务
@@ -3925,6 +4128,29 @@ struct CUSTOMIZEDATA_ESSENCE
 	unsigned int	gender_id;				// 表明此数据文件适用的性别信息,可能的有:0-男, 1-女
 };
 
+// 记录传送点的物品
+struct FIX_POSITION_TRANSMIT_ESSENCE
+{
+	unsigned int	id;						// 个性化数据ID
+	namechar		name[32];				// 名称，最多15个汉字
+	
+	char			file_matter[128];			// 掉在地上的模型路径名
+	char			file_icon[128];				// 图标路径名
+
+	int				energy;						// 能量值
+
+	int				price;						// 卖店价
+	int				shop_price;					// 店卖价
+	
+	// 堆叠信息
+	int				pile_num_max;				// 该烟花的堆叠上限
+	// GUID信息
+	unsigned int	has_guid;					// 是否为其产生全局唯一ID，以用于Trace。0-否，1-是
+	// 处理方式
+	unsigned int	proc_type;					// 是以下几种方式的组合: 死亡时是否掉落，是否可以扔在地上，是否可以卖给NPC，是人民币物品，是否可以玩家间交易，是否任务相关物品，装备后绑定，是否可解绑，离开场景消失
+};
+
+
 ///////////////////////////////////////////////////////////////////////////////////////
 // 系统配置文件类模板
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -4060,6 +4286,200 @@ struct PLAYER_LEVELEXP_CONFIG
 	namechar		name[32];				// 名称，最多15个汉字
 
 	int				exp[150];				// 150级每级升一级所需要的经验值
+};
+
+///////////////////////////////////////////////////////////////////////////////////////
+// 星盘升级曲线表
+///////////////////////////////////////////////////////////////////////////////////////
+struct ASTROLABE_LEVELEXP_CONFIG
+{
+	unsigned int	id;						// id
+	namechar		name[32];				// 名称，最多15个汉字
+	
+	int				exp[ELEMENTDATA_NUM_ASTROLABE_LEVEL];	// %级升级所需经验
+};
+
+///////////////////////////////////////////////////////////////////////////////////////
+// 星盘属性随机配置表
+///////////////////////////////////////////////////////////////////////////////////////
+struct ASTROLABE_ADDON_RANDOM_CONFIG
+{
+	unsigned int	id;						// id
+	namechar		name[32];				// 名称
+	
+	int				levelup_exp[ELEMENTDATA_NUM_ASTROLABE_ADDON_RANDOM_LEVEL];	// %级升级所需经验
+	float			rand_probability[ELEMENTDATA_NUM_ASTROLABE_ADDON_RANDOM_LEVEL][ELEMENTDATA_MAX_ASTROLABE_ADDON_COUNT];	//	星盘随机等级%级再增加一条属性的概率
+};
+
+///////////////////////////////////////////////////////////////////////////////////////
+// 星盘外观配置表
+///////////////////////////////////////////////////////////////////////////////////////
+struct ASTROLABE_APPEARANCE_CONFIG
+{
+	unsigned int	id;						// id
+	namechar		name[32];				// 名称，最多15个汉字
+	
+	struct  
+	{
+		unsigned long	name_color;			//	名称颜色(type=color)
+		char			file_gfx[128];		//	特效路径(type=path)
+	}list[ELEMENTDATA_MAX_ASTROLABE_ADDON_COUNT];	//	%条属性星盘
+};
+
+///////////////////////////////////////////////////////////////////////////////////////
+// 装备开孔配置表
+///////////////////////////////////////////////////////////////////////////////////////
+struct EQUIP_MAKE_HOLE_CONFIG
+{
+	unsigned int	id;						// id
+	namechar		name[32];				// 名称，最多15个汉字
+	
+	struct
+	{
+		struct
+		{
+			unsigned int	require_item_id;		//	消耗物品ID
+			int				require_item_count;		//	消耗物品数量
+			int				fee;					//	费用
+		}hole_list[4];	//	孔数%
+	}level_list[20];	//	品级%
+};
+
+///////////////////////////////////////////////////////////////////////////////////////
+// 单人爬塔副本选关配置表
+///////////////////////////////////////////////////////////////////////////////////////
+struct SOLO_TOWER_CHALLENGE_LEVEL_CONFIG
+{
+	unsigned int	id;						// id
+	namechar		name[32];				// 名称，最多15个汉字
+	
+	struct{
+		float		trans_pos[3];						//	玩家传送位置%
+		int			controller_id_to_activate[8];		//	开启关卡控制器ID%
+	}room[6];	//	房间%
+
+	int				controller_id_to_deactivate[256];	//	清除关卡时关闭的控制器ID%
+
+	struct{
+		unsigned int	playing_method_controller[32];	//	玩法控制器ID%
+		int		playing_method_boss_controller;	//	BOSS控制器ID
+	}steps[12];	//	阶段%
+};
+
+///////////////////////////////////////////////////////////////////////////////////////
+// 单人爬塔副本单关奖励配置表
+///////////////////////////////////////////////////////////////////////////////////////
+struct SOLO_TOWER_CHALLENGE_AWARD_PAGE_CONFIG
+{
+	unsigned int	id;						// id
+	namechar		name[32];				// 名称，最多15个汉字
+	
+	struct{
+		unsigned int	id;					//	id
+		unsigned int	count;				//	数量
+		float			probability;		//	产生概率
+	}list[20];	//	奖励物品%
+};
+
+///////////////////////////////////////////////////////////////////////////////////////
+// 单人爬塔副本奖励总配置表
+///////////////////////////////////////////////////////////////////////////////////////
+struct SOLO_TOWER_CHALLENGE_AWARD_LIST_CONFIG
+{
+	unsigned int	id;						// id
+	namechar		name[32];				// 名称，最多15个汉字
+	
+	struct{
+		unsigned int	award_page_config_id;	//	单关奖励配置表id
+		unsigned int	draw_award_times;		//	可开奖次数
+		int				award_score;			//	奖励积分
+	}level[ELEMENTDATA_NUM_SOLO_TOWER_CHALLENGE_STAGE];	//	第%关
+};
+
+///////////////////////////////////////////////////////////////////////////////////////
+// 单人爬塔副本积分消耗配置表
+///////////////////////////////////////////////////////////////////////////////////////
+struct SOLO_TOWER_CHALLENGE_SCORE_COST_CONFIG
+{
+	unsigned int	id;						// id
+	namechar		name[32];				// 名称，最多15个汉字
+	
+	struct{
+		unsigned int score_cost;	// 消耗积分
+		unsigned int cooldown_id;	// 冷却ID
+		unsigned int cooldown_time;	// 冷却时间
+		float param[5];				// 状态包参数
+		namechar param_comment[256];		// 参数注释
+	}score_buff_list[ELEMENTDATA_NUM_SOLO_TOWER_CHALLENGE_BUFF_COUNT];
+};
+
+///////////////////////////////////////////////////////////////////////////////////////
+// 跨服帮战配置表
+///////////////////////////////////////////////////////////////////////////////////////
+struct MNFACTION_WAR_CONFIG
+{
+	unsigned int	id;						// id
+	namechar		name[32];				// 名称，最多15个汉字
+
+	unsigned int sign_up_money_cost;		// 报名消耗金钱 
+
+	int resource_point;			//战场总资源点
+	int resource_tower_destroy_reduce_point;	//摧毁资源塔敌方减少的资源点
+	int attacker_boss_tid;			//攻方将军模板ID(type=monster_type)
+	int defender_boss_tid;			//守方将军模板ID(type=monster_type)
+
+	int attacker_small_boss_tid;//攻方小boss模板ID(type==monster_type)
+	int defender_small_boss_tid;//守方小boss模板ID(type==monster_type)
+	int small_boss_death_reduce_point;//小boss死亡减少的资源点
+	int attacker_small_boss_controller_id;//开启攻方小boss的控制器ID
+	int defender_small_boss_controller_id;//开启守方小boss的控制器ID
+
+	int small_boss_appear_time;//距战场结束n秒小boss出现(s)
+	int debuff_appear_time;//距战场结束n秒增加DEBUFF(s)
+	int debuff_init_ratio;//DEBUFF起始易伤效果比例
+	int debuff_enhance_ratio_per_minute;//DEBUFF每分钟增加的比例
+	
+	struct{
+		int controller_id[3];		//控制器%ID
+		int guard_controller_id;		//守卫控制器ID
+		unsigned int matter_id;	//采集矿模板ID(type=mine_type)
+	}attacker_resource_tower[4];		//攻方资源塔%
+	
+	struct{
+		int controller_id[3];		//控制器%ID
+		int guard_controller_id;		//守卫控制器ID
+		unsigned int matter_id;	//采集矿模板ID(type=mine_type)
+	}defender_resource_tower[4];	//守方资源塔%
+	
+	struct{
+		int controller_id[5];		//控制器%ID
+		unsigned int matter_id;	//采集矿模板ID(type=mine_type)
+	}neutral_tower[4];			//中立防御塔%
+	
+	struct{
+		float attacker_incoming_pos[3];				// 攻方基地坐标%
+		float defender_incoming_pos[3];				// 守方基地坐标%
+		float attacker_transmit_pos[3];				// 攻方基地传送点坐标%
+		float defender_transmit_pos[3];				// 守方基地传送点坐标%
+		struct{
+			float resurrect_pos[3];					// 坐标%
+		}resurrect_pos[2];							// 复活点%
+		float resurrect_pos_range;                  // 复活点半径
+		float resource_point_range;					// 可争夺资源点半径
+		struct{
+			float resourse_point_pos[3];		// 中心点坐标%
+		}resourse_point_pos[2];			// 可争夺资源点%	
+		struct{
+			int controller_id[5];		// 控制器%ID
+			int matter_id;				// 采集矿模板(type=mine_type)
+			float transmit_pos[3];			// 坐标%
+		}transmit_pos[5];				// 可争夺传送点%
+		int degree_total;				// 可争夺资源点总刻度
+		int degree_per_person_second;	// 每人每秒对可争夺资源点的影响
+		int gain_resource_point_per_second;		// 占领可争夺资源点每秒增加的资源点数
+		int gain_resource_point_interval;		// 增加资源点的时间间隔
+		int reduce_resource_point_on_death;		// 每个玩家死亡后减少的资源点数
+	}domain;						// 战场
 };
 
 struct PLAYER_SECONDLEVEL_CONFIG
@@ -4371,6 +4791,7 @@ struct UPGRADE_PRODUCTION_CONFIG
 	int				num_stone[20];			// 宝石等级对应继承费用基数
 	int				num_engrave[ELEMENTDATA_MAX_ENGRAVE_ADDON_COUNT];	// 镌刻条数对应继承费用基数
 	int				num_addon[ELEMENTDATA_MAX_INHERIT_ADDON_COUNT];		// 附加属性条数对应继承费用基数
+	int				num_decoration[4][20];	// 饰品品阶和孔数对应继承费用基数
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -5090,6 +5511,26 @@ enum DATA_TYPE
 	DT_FASHION_SUITE_ESSENCE,
 	DT_FASHION_BEST_COLOR_CONFIG,
 	DT_SIGN_AWARD_CONFIG,
+	DT_ASTROLABE_ESSENCE,
+	DT_ASTROLABE_RANDOM_ADDON_ESSENCE,
+
+	DT_ASTROLABE_INC_INNER_POINT_VALUE_ESSENCE,
+	DT_ASTROLABE_INC_EXP_ESSENCE,
+	DT_ITEM_PACKAGE_BY_PROFESSION_ESSENCE,
+	DT_ASTROLABE_LEVELEXP_CONFIG,
+	DT_ASTROLABE_ADDON_RANDOM_CONFIG,
+
+	DT_ASTROLABE_APPEARANCE_CONFIG,
+	DT_EQUIP_MAKE_HOLE_CONFIG,
+	DT_SOLO_TOWER_CHALLENGE_LEVEL_CONFIG,
+	DT_SOLO_TOWER_CHALLENGE_AWARD_PAGE_CONFIG,
+	DT_SOLO_TOWER_CHALLENGE_AWARD_LIST_CONFIG,
+
+	DT_SOLO_TOWER_CHALLENGE_SCORE_COST_CONFIG,
+	DT_MNFACTION_WAR_CONFIG,
+	DT_NPC_CROSS_SERVER_SERVICE,
+	DT_FIREWORKS2_ESSENCE,
+	DT_FIX_POSITION_TRANSMIT_ESSENCE,
 	
 	DT_MAX,
 	

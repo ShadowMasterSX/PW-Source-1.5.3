@@ -132,8 +132,8 @@ namespace GNET
       Skill873Stub ():SkillStub (873)
         {
             cls = 127;
-            name = L"自身圆心群加闪避";
-            nativename = "自身圆心群加闪避";
+            name = L"鑷韩鍦嗗績缇ゅ姞闂伩";
+            nativename = "鑷韩鍦嗗績缇ゅ姞闂伩";
             icon = "";
             max_level = 10;
             type = 3;
@@ -153,7 +153,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "神鹰祝福.sgc";
+            effect = "绁為拱绁濈.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

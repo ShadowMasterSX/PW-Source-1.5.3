@@ -1,0 +1,80 @@
+
+#ifndef __GNET_GETUSERROLES_HPP
+#define __GNET_GETUSERROLES_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "dbbuffer.h"
+#include "getuserrolesarg"
+#include "getuserrolesres"
+
+namespace GNET
+{
+
+class GetUserRoles : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getuserroles"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		GetUserRolesArg *arg = (GetUserRolesArg *)argument;
+		GetUserRolesRes *res = (GetUserRolesRes *)result;
+
+		LOG_TRACE( "GetUserRoles, userid=%d.\n", arg->userid );
+
+		try
+		{
+			StorageEnv::Storage * puser = StorageEnv::GetStorage("user");
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::AtomTransaction txn;
+			try
+			{
+				User user;
+				Marshal::OctetsStream(puser->find( Marshal::OctetsStream()<<arg->userid, txn )) >> user;
+				if( 0 == user.logicuid )	user.logicuid = arg->userid;
+				RoleList	rolelist(user.rolelist);
+				int roleid;
+				while( (roleid = rolelist.GetNextRole()) >= 0 )
+				{
+					GRoleBase base;
+					int r = user.logicuid+roleid;
+					Marshal::OctetsStream(pbase->find( Marshal::OctetsStream() << r, txn )) >> base;
+					res->roles.add( IntOctets(user.logicuid+roleid,base.name) );
+				}
+
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "GetUserRoles, userid=%d, what=%s\n", arg->userid, e.what() );
+			res->retcode = ERR_DATANOTFIND;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// GetUserRolesArg *arg = (GetUserRolesArg *)argument;
+		// GetUserRolesRes *res = (GetUserRolesRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

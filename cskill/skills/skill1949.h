@@ -19,9 +19,9 @@ namespace GNET
         Skill1949Stub ():SkillStub (1949)
         {
             cls = 5;
-            name = L"千金还复";
-            nativename = "千金还复";
-            icon = "飘零.DDS";
+            name = L"鍗冮噾杩樺";
+            nativename = "鍗冮噾杩樺";
+            icon = "椋橀浂.DDS";
             max_level = 1;
             type = 5;
             apcost = 0;

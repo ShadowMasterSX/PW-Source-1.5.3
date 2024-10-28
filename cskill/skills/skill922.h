@@ -134,9 +134,9 @@ namespace GNET
       Skill922Stub ():SkillStub (922)
         {
             cls = 7;
-            name = L"神之封印";
-            nativename = "神之封印";
-            icon = "神之封印.dds";
+            name = L"绁炰箣灏佸嵃";
+            nativename = "绁炰箣灏佸嵃";
+            icon = "绁炰箣灏佸嵃.dds";
             max_level = 1;
             type = 3;
             apcost = 100;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "五气朝元.sgc";
+            effect = "浜旀皵鏈濆厓.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

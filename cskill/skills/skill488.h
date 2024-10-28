@@ -19,9 +19,9 @@ namespace GNET
         Skill488Stub ():SkillStub (488)
         {
             cls = 1;
-            name = L"�桤ˮ��ͨ";
-            nativename = "�桤ˮ��ͨ";
-            icon = "ˮ��ͨ1.dds";
+            name = L"真·水精通";
+            nativename = "真·水精通";
+            icon = "水精通1.dds";
             max_level = 1;
             type = 5;
             apcost = 0;

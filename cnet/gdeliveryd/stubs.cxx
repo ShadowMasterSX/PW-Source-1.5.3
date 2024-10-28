@@ -4,6 +4,7 @@
 #else
 #include "binder.h"
 #endif
+#include "dbplayerrequitefriend.hrp"
 #include "gquerypasswd.hrp"
 #include "userlogin.hrp"
 #include "userlogin2.hrp"
@@ -16,6 +17,7 @@
 #include "queryuserid.hrp"
 #include "forbiduser.hrp"
 #include "playerpositionresetrqst.hrp"
+#include "dbplayerchangegender.hrp"
 #include "dbfactionrename.hrp"
 #include "dbsellpoint.hrp"
 #include "dbbuypoint.hrp"
@@ -25,6 +27,7 @@
 #include "dbgametalkrolestatus.hrp"
 #include "dbgametalkroleinfo.hrp"
 #include "playeridentitymatch.hrp"
+#include "dbmnputbattlebonus.hrp"
 #include "addfriendrqst.hrp"
 #include "tradestartrqst.hrp"
 #include "gmqueryroleinfo.hrp"
@@ -83,6 +86,8 @@
 #include "dbgetconsumeinfos.hrp"
 #include "dbmappasswordload.hrp"
 #include "dbmappasswordsave.hrp"
+#include "dbsolochallengerankload.hrp"
+#include "dbsolochallengeranksave.hrp"
 #include "getuserroles.hrp"
 #include "clearstorehousepasswd.hrp"
 #include "canchangerolename.hrp"
@@ -203,6 +208,16 @@
 #include "dbtankbattlebonus.hrp"
 #include "dbfactionresourcebattlebonus.hrp"
 #include "dbcopyrole.hrp"
+#include "dbmnfactionapplyinfoget.hrp"
+#include "dbmnfactionbattleapply.hrp"
+#include "dbmnfactionapplyresnotify.hrp"
+#include "dbmnsendbattlebonus.hrp"
+#include "dbmnfactioninfoget.hrp"
+#include "dbmnfactionstateupdate.hrp"
+#include "dbmnfactioninfoupdate.hrp"
+#include "dbmndomaininfoupdate.hrp"
+#include "dbmnfactionapplyinfoput.hrp"
+#include "dbmnsendbonusnotify.hrp"
 #include "precreaterole.hrp"
 #include "postcreaterole.hrp"
 #include "postdeleterole.hrp"
@@ -241,6 +256,8 @@
 #include "gethelpstates_re.hpp"
 #include "getplayerbriefinfo_re.hpp"
 #include "gmgetplayerconsumeinfo_re.hpp"
+#include "waitqueuestatenotify.hpp"
+#include "cancelwaitqueue_re.hpp"
 #include "gmcontrolgame.hpp"
 #include "gmcontrolgame_re.hpp"
 #include "facemodify_re.hpp"
@@ -254,6 +271,8 @@
 #include "addfriend_re.hpp"
 #include "addfriendremarks_re.hpp"
 #include "getfriends_re.hpp"
+#include "updateenemylist_re.hpp"
+#include "getenemylist_re.hpp"
 #include "setgroupname_re.hpp"
 #include "setfriendgroup_re.hpp"
 #include "getsavedmsg_re.hpp"
@@ -279,6 +298,7 @@
 #include "playernameupdate.hpp"
 #include "playergivepresent_re.hpp"
 #include "playeraskforpresent_re.hpp"
+#include "getsolochallengerank_re.hpp"
 #include "announcegm.hpp"
 #include "gmonlinenum_re.hpp"
 #include "gmlistonlineuser_re.hpp"
@@ -519,6 +539,21 @@
 #include "factionresourcebattlegetmap_re.hpp"
 #include "factionresourcebattlegetrecord_re.hpp"
 #include "factionresourcebattlenotifyplayerevent.hpp"
+#include "factionuniqueidannounce.hpp"
+#include "dbmnfactioncacheupdate.hpp"
+#include "mndomainbattlestart.hpp"
+#include "mndomainbattleenter_re.hpp"
+#include "mndomaininfogsnotice.hpp"
+#include "mnfactionbattleapply_re.hpp"
+#include "mngetdomaindata_re.hpp"
+#include "mngetplayerlastenterinfo_re.hpp"
+#include "mngetfactionbriefinfo_re.hpp"
+#include "mngetfactioninfo_re.hpp"
+#include "mngettoplist_re.hpp"
+#include "crosschat.hpp"
+#include "crosschat_re.hpp"
+#include "crosssolochallengerank.hpp"
+#include "crosssolochallengerank_re.hpp"
 #include "playerlogin.hpp"
 #include "playerstatussync.hpp"
 #include "enterworld.hpp"
@@ -539,11 +574,13 @@
 #include "getplayerbriefinfo.hpp"
 #include "gmgetplayerconsumeinfo.hpp"
 #include "collectclientmachineinfo.hpp"
+#include "cancelwaitqueue.hpp"
 #include "publicchat.hpp"
 #include "privatechat.hpp"
 #include "addfriend.hpp"
 #include "addfriendremarks.hpp"
 #include "getfriends.hpp"
+#include "getenemylist.hpp"
 #include "setgroupname.hpp"
 #include "setfriendgroup.hpp"
 #include "delfriend.hpp"
@@ -558,6 +595,7 @@
 #include "chatroomspeak.hpp"
 #include "chatroomlist.hpp"
 #include "sendaumail.hpp"
+#include "playerrequitefriend.hpp"
 #include "tradestart.hpp"
 #include "tradeaddgoods.hpp"
 #include "traderemovegoods.hpp"
@@ -639,6 +677,9 @@
 #include "tankbattleplayergetrank.hpp"
 #include "factionresourcebattlegetmap.hpp"
 #include "factionresourcebattlegetrecord.hpp"
+#include "mngetplayerlastenterinfo.hpp"
+#include "mngetfactionbriefinfo.hpp"
+#include "mngetfactioninfo.hpp"
 #include "keyexchange.hpp"
 #include "kickoutuser.hpp"
 #include "accountingresponse.hpp"
@@ -753,6 +794,9 @@
 #include "playerchangeds_re.hpp"
 #include "trychangeds.hpp"
 #include "playerrename.hpp"
+#include "updatesolochallengerank.hpp"
+#include "getsolochallengerank.hpp"
+#include "updateenemylist.hpp"
 #include "kegetstatus.hpp"
 #include "kecandidateapply.hpp"
 #include "kevoting.hpp"
@@ -789,11 +833,22 @@
 #include "factionresourcebattleserverregister.hpp"
 #include "factionresourcebattleeventnotice.hpp"
 #include "factionresourcebattleplayerquery.hpp"
+#include "mnfactionbattleapply.hpp"
+#include "mnbattleserverregister.hpp"
+#include "mndomainbattlestart_re.hpp"
+#include "mndomainbattleenter.hpp"
+#include "mndomainbattleentersuccessnotice.hpp"
+#include "mndomainbattleleavenotice.hpp"
+#include "mndomainbattleend.hpp"
+#include "mngettoplist.hpp"
+#include "mngetdomaindata.hpp"
 #include "delroleannounce.hpp"
 #include "dbfriendextlist_re.hpp"
 #include "transbuypoint.hpp"
 #include "syncsellinfo.hpp"
 #include "debugaddcash.hpp"
+#include "announcezonegroup.hpp"
+#include "mnfactioninfoupdate.hpp"
 #include "delfactionannounce.hpp"
 #include "createfactionfortress.hpp"
 #include "acremotecode.hpp"
@@ -816,14 +871,26 @@
 #include "kickoutremoteuser_re.hpp"
 #include "getremoteroleinfo_re.hpp"
 #include "getremotecnetserverconfig_re.hpp"
+#include "crossguardnotify.hpp"
+#include "mnfactioncacheget_re.hpp"
+#include "mnfetchfiltrateresult_re.hpp"
+#include "mnfactionproclaim_re.hpp"
+#include "mndomainsendbonusdata.hpp"
+#include "mnfetchtoplist_re.hpp"
 #include "remoteloginquery_re.hpp"
 #include "kickoutremoteuser.hpp"
 #include "getremoteroleinfo.hpp"
 #include "getremotecnetserverconfig.hpp"
+#include "mnfactioncacheget.hpp"
+#include "mnfactionproclaim.hpp"
+#include "mnfetchfiltrateresult.hpp"
+#include "mndomainsendbonusdata_re.hpp"
+#include "mnfetchtoplist.hpp"
 
 namespace GNET
 {
 
+static DBPlayerRequiteFriend __stub_DBPlayerRequiteFriend (RPC_DBPLAYERREQUITEFRIEND, new DBPlayerRequiteFriendArg, new DBPlayerRequiteFriendRes);
 static GQueryPasswd __stub_GQueryPasswd (RPC_GQUERYPASSWD, new GQueryPasswdArg, new GQueryPasswdRes);
 static UserLogin __stub_UserLogin (RPC_USERLOGIN, new UserLoginArg, new UserLoginRes);
 static UserLogin2 __stub_UserLogin2 (RPC_USERLOGIN2, new UserLogin2Arg, new UserLogin2Res);
@@ -836,6 +903,7 @@ static PutSpouse __stub_PutSpouse (RPC_PUTSPOUSE, new PutSpouseArg, new RpcRetco
 static QueryUserid __stub_QueryUserid (RPC_QUERYUSERID, new QueryUseridArg, new QueryUseridRes);
 static ForbidUser __stub_ForbidUser (RPC_FORBIDUSER, new ForbidUserArg, new ForbidUserRes);
 static PlayerPositionResetRqst __stub_PlayerPositionResetRqst (RPC_PLAYERPOSITIONRESETRQST, new PlayerPositionResetRqstArg, new PlayerPositionResetRqstRes);
+static DBPlayerChangeGender __stub_DBPlayerChangeGender (RPC_DBPLAYERCHANGEGENDER, new DBPlayerChangeGenderArg, new DBPlayerChangeGenderRes);
 static DBFactionRename __stub_DBFactionRename (RPC_DBFACTIONRENAME, new DBFactionRenameArg, new DBFactionRenameRes);
 static DBSellPoint __stub_DBSellPoint (RPC_DBSELLPOINT, new SellPointArg, new SellPointRes);
 static DBBuyPoint __stub_DBBuyPoint (RPC_DBBUYPOINT, new DBBuyPointArg, new DBBuyPointRes);
@@ -845,6 +913,7 @@ static DBGameTalkFactionInfo __stub_DBGameTalkFactionInfo (RPC_DBGAMETALKFACTION
 static DBGameTalkRoleStatus __stub_DBGameTalkRoleStatus (RPC_DBGAMETALKROLESTATUS, new DBGameTalkRoleStatusArg, new DBGameTalkRoleStatusRes);
 static DBGameTalkRoleInfo __stub_DBGameTalkRoleInfo (RPC_DBGAMETALKROLEINFO, new DBGameTalkRoleInfoArg, new DBGameTalkRoleInfoRes);
 static PlayerIdentityMatch __stub_PlayerIdentityMatch (RPC_PLAYERIDENTITYMATCH, new PlayerIdentityMatchArg, new PlayerIdentityMatchRes);
+static DBMNPutBattleBonus __stub_DBMNPutBattleBonus (RPC_DBMNPUTBATTLEBONUS, new DBMNPutBattleBonusArg, new DBMNPutBattleBonusRes);
 static AddFriendRqst __stub_AddFriendRqst (RPC_ADDFRIENDRQST, new AddFriendRqstArg, new AddFriendRqstRes);
 static TradeStartRqst __stub_TradeStartRqst (RPC_TRADESTARTRQST, new TradeStartRqstArg, new TradeStartRqstRes);
 static GMQueryRoleInfo __stub_GMQueryRoleInfo (RPC_GMQUERYROLEINFO, new RoleId, new GMQueryRoleInfoRes);
@@ -884,7 +953,7 @@ static PutRoleData __stub_PutRoleData (RPC_PUTROLEDATA, new RoleDataPair, new Rp
 static GetRoleData __stub_GetRoleData (RPC_GETROLEDATA, new RoleId, new RoleDataRes);
 static TradeInventory __stub_TradeInventory (RPC_TRADEINVENTORY, new TradeInventoryArg, new TradeInventoryRes);
 static TradeSave __stub_TradeSave (RPC_TRADESAVE, new TradeSaveArg, new TradeSaveRes);
-static PutRole __stub_PutRole (RPC_PUTROLE, new RolePair, new RpcRetcode);
+static PutRole __stub_PutRole (RPC_PUTROLE, new RolePair, new PutRoleRes);
 static GetMoneyInventory __stub_GetMoneyInventory (RPC_GETMONEYINVENTORY, new GetMoneyInventoryArg, new GetMoneyInventoryRes);
 static PutMoneyInventory __stub_PutMoneyInventory (RPC_PUTMONEYINVENTORY, new PutMoneyInventoryArg, new RpcRetcode);
 static GetRoleBaseStatus __stub_GetRoleBaseStatus (RPC_GETROLEBASESTATUS, new RoleId, new GetRoleBaseStatusRes);
@@ -903,6 +972,8 @@ static DBVerifyMaster __stub_DBVerifyMaster (RPC_DBVERIFYMASTER, new DBVerifyMas
 static DBGetConsumeInfos __stub_DBGetConsumeInfos (RPC_DBGETCONSUMEINFOS, new DBGetConsumeInfosArg, new DBGetConsumeInfosRes);
 static DBMapPasswordLoad __stub_DBMapPasswordLoad (RPC_DBMAPPASSWORDLOAD, new DBMapPasswordLoadArg, new DBMapPasswordLoadRes);
 static DBMapPasswordSave __stub_DBMapPasswordSave (RPC_DBMAPPASSWORDSAVE, new DBMapPasswordSaveArg, new DBMapPasswordSaveRes);
+static DBSoloChallengeRankLoad __stub_DBSoloChallengeRankLoad (RPC_DBSOLOCHALLENGERANKLOAD, new DBSoloChallengeRankLoadArg, new DBSoloChallengeRankLoadRes);
+static DBSoloChallengeRankSave __stub_DBSoloChallengeRankSave (RPC_DBSOLOCHALLENGERANKSAVE, new DBSoloChallengeRankSaveArg, new DBSoloChallengeRankSaveRes);
 static GetUserRoles __stub_GetUserRoles (RPC_GETUSERROLES, new GetUserRolesArg, new GetUserRolesRes);
 static ClearStorehousePasswd __stub_ClearStorehousePasswd (RPC_CLEARSTOREHOUSEPASSWD, new ClearStorehousePasswdArg, new RpcRetcode);
 static CanChangeRolename __stub_CanChangeRolename (RPC_CANCHANGEROLENAME, new CanChangeRolenameArg, new CanChangeRolenameRes);
@@ -1023,6 +1094,16 @@ static DBPutPlayerProfileData __stub_DBPutPlayerProfileData (RPC_DBPUTPLAYERPROF
 static DBTankBattleBonus __stub_DBTankBattleBonus (RPC_DBTANKBATTLEBONUS, new DBTankBattleBonusArg, new DBTankBattleBonusRes);
 static DBFactionResourceBattleBonus __stub_DBFactionResourceBattleBonus (RPC_DBFACTIONRESOURCEBATTLEBONUS, new DBFactionResourceBattleBonusArg, new DBFactionResourceBattleBonusRes);
 static DBCopyRole __stub_DBCopyRole (RPC_DBCOPYROLE, new DBCopyRoleArg, new RpcRetcode);
+static DBMNFactionApplyInfoGet __stub_DBMNFactionApplyInfoGet (RPC_DBMNFACTIONAPPLYINFOGET, new DBMNFactionApplyInfoGetArg, new DBMNFactionApplyInfoGetRes);
+static DBMNFactionBattleApply __stub_DBMNFactionBattleApply (RPC_DBMNFACTIONBATTLEAPPLY, new DBMNFactionBattleApplyArg, new DBMNFactionBattleApplyRes);
+static DBMNFactionApplyResNotify __stub_DBMNFactionApplyResNotify (RPC_DBMNFACTIONAPPLYRESNOTIFY, new DBMNFactionApplyResNotifyArg, new DBMNFactionApplyResNotifyRes);
+static DBMNSendBattleBonus __stub_DBMNSendBattleBonus (RPC_DBMNSENDBATTLEBONUS, new DBMNSendBattleBonusArg, new DBMNSendBattleBonusRes);
+static DBMNFactionInfoGet __stub_DBMNFactionInfoGet (RPC_DBMNFACTIONINFOGET, new DBMNFactionInfoGetArg, new DBMNFactionInfoGetRes);
+static DBMNFactionStateUpdate __stub_DBMNFactionStateUpdate (RPC_DBMNFACTIONSTATEUPDATE, new DBMNFactionStateUpdateArg, new DBMNFactionStateUpdateRes);
+static DBMNFactionInfoUpdate __stub_DBMNFactionInfoUpdate (RPC_DBMNFACTIONINFOUPDATE, new DBMNFactionInfoUpdateArg, new DBMNFactionInfoUpdateRes);
+static DBMNDomainInfoUpdate __stub_DBMNDomainInfoUpdate (RPC_DBMNDOMAININFOUPDATE, new DBMNDomainInfoUpdateArg, new DBMNDomainInfoUpdateRes);
+static DBMNFactionApplyInfoPut __stub_DBMNFactionApplyInfoPut (RPC_DBMNFACTIONAPPLYINFOPUT, new DBMNFactionApplyInfoPutArg, new DBMNFactionApplyInfoPutRes);
+static DBMNSendBonusNotify __stub_DBMNSendBonusNotify (RPC_DBMNSENDBONUSNOTIFY, new DBMNSendBonusNotifyArg, new DBMNSendBonusNotifyRes);
 static PreCreateRole __stub_PreCreateRole (RPC_PRECREATEROLE, new PreCreateRoleArg, new PreCreateRoleRes);
 static PostCreateRole __stub_PostCreateRole (RPC_POSTCREATEROLE, new PostCreateRoleArg, new PostCreateRoleRes);
 static PostDeleteRole __stub_PostDeleteRole (RPC_POSTDELETEROLE, new PostDeleteRoleArg, new PostDeleteRoleRes);
@@ -1061,6 +1142,8 @@ static SetHelpStates_Re __stub_SetHelpStates_Re((void*)0);
 static GetHelpStates_Re __stub_GetHelpStates_Re((void*)0);
 static GetPlayerBriefInfo_Re __stub_GetPlayerBriefInfo_Re((void*)0);
 static GMGetPlayerConsumeInfo_Re __stub_GMGetPlayerConsumeInfo_Re((void*)0);
+static WaitQueueStateNotify __stub_WaitQueueStateNotify((void*)0);
+static CancelWaitQueue_Re __stub_CancelWaitQueue_Re((void*)0);
 static GMControlGame __stub_GMControlGame((void*)0);
 static GMControlGame_Re __stub_GMControlGame_Re((void*)0);
 static FaceModify_Re __stub_FaceModify_Re((void*)0);
@@ -1074,6 +1157,8 @@ static RoleStatusAnnounce __stub_RoleStatusAnnounce((void*)0);
 static AddFriend_Re __stub_AddFriend_Re((void*)0);
 static AddFriendRemarks_Re __stub_AddFriendRemarks_Re((void*)0);
 static GetFriends_Re __stub_GetFriends_Re((void*)0);
+static UpdateEnemyList_Re __stub_UpdateEnemyList_Re((void*)0);
+static GetEnemyList_Re __stub_GetEnemyList_Re((void*)0);
 static SetGroupName_Re __stub_SetGroupName_Re((void*)0);
 static SetFriendGroup_Re __stub_SetFriendGroup_Re((void*)0);
 static GetSavedMsg_Re __stub_GetSavedMsg_Re((void*)0);
@@ -1099,6 +1184,7 @@ static PostPlayerRename __stub_PostPlayerRename((void*)0);
 static PlayerNameUpdate __stub_PlayerNameUpdate((void*)0);
 static PlayerGivePresent_Re __stub_PlayerGivePresent_Re((void*)0);
 static PlayerAskForPresent_Re __stub_PlayerAskForPresent_Re((void*)0);
+static GetSoloChallengeRank_Re __stub_GetSoloChallengeRank_Re((void*)0);
 static AnnounceGM __stub_AnnounceGM((void*)0);
 static GMOnlineNum_Re __stub_GMOnlineNum_Re((void*)0);
 static GMListOnlineUser_Re __stub_GMListOnlineUser_Re((void*)0);
@@ -1339,6 +1425,21 @@ static FactionResourceBattleLimitNotice __stub_FactionResourceBattleLimitNotice(
 static FactionResourceBattleGetMap_Re __stub_FactionResourceBattleGetMap_Re((void*)0);
 static FactionResourceBattleGetRecord_Re __stub_FactionResourceBattleGetRecord_Re((void*)0);
 static FactionResourceBattleNotifyPlayerEvent __stub_FactionResourceBattleNotifyPlayerEvent((void*)0);
+static FactionUniqueIdAnnounce __stub_FactionUniqueIdAnnounce((void*)0);
+static DBMNFactionCacheUpdate __stub_DBMNFactionCacheUpdate((void*)0);
+static MNDomainBattleStart __stub_MNDomainBattleStart((void*)0);
+static MNDomainBattleEnter_Re __stub_MNDomainBattleEnter_Re((void*)0);
+static MNDomainInfoGSNotice __stub_MNDomainInfoGSNotice((void*)0);
+static MNFactionBattleApply_Re __stub_MNFactionBattleApply_Re((void*)0);
+static MNGetDomainData_Re __stub_MNGetDomainData_Re((void*)0);
+static MNGetPlayerLastEnterInfo_Re __stub_MNGetPlayerLastEnterInfo_Re((void*)0);
+static MNGetFactionBriefInfo_Re __stub_MNGetFactionBriefInfo_Re((void*)0);
+static MNGetFactionInfo_Re __stub_MNGetFactionInfo_Re((void*)0);
+static MNGetTopList_Re __stub_MNGetTopList_Re((void*)0);
+static CrossChat __stub_CrossChat((void*)0);
+static CrossChat_Re __stub_CrossChat_Re((void*)0);
+static CrossSoloChallengeRank __stub_CrossSoloChallengeRank((void*)0);
+static CrossSoloChallengeRank_Re __stub_CrossSoloChallengeRank_Re((void*)0);
 static PlayerLogin __stub_PlayerLogin((void*)0);
 static PlayerStatusSync __stub_PlayerStatusSync((void*)0);
 static EnterWorld __stub_EnterWorld((void*)0);
@@ -1359,11 +1460,13 @@ static GetHelpStates __stub_GetHelpStates((void*)0);
 static GetPlayerBriefInfo __stub_GetPlayerBriefInfo((void*)0);
 static GMGetPlayerConsumeInfo __stub_GMGetPlayerConsumeInfo((void*)0);
 static CollectClientMachineInfo __stub_CollectClientMachineInfo((void*)0);
+static CancelWaitQueue __stub_CancelWaitQueue((void*)0);
 static PublicChat __stub_PublicChat((void*)0);
 static PrivateChat __stub_PrivateChat((void*)0);
 static AddFriend __stub_AddFriend((void*)0);
 static AddFriendRemarks __stub_AddFriendRemarks((void*)0);
 static GetFriends __stub_GetFriends((void*)0);
+static GetEnemyList __stub_GetEnemyList((void*)0);
 static SetGroupName __stub_SetGroupName((void*)0);
 static SetFriendGroup __stub_SetFriendGroup((void*)0);
 static DelFriend __stub_DelFriend((void*)0);
@@ -1378,6 +1481,7 @@ static ChatRoomExpel __stub_ChatRoomExpel((void*)0);
 static ChatRoomSpeak __stub_ChatRoomSpeak((void*)0);
 static ChatRoomList __stub_ChatRoomList((void*)0);
 static SendAUMail __stub_SendAUMail((void*)0);
+static PlayerRequiteFriend __stub_PlayerRequiteFriend((void*)0);
 static TradeStart __stub_TradeStart((void*)0);
 static TradeAddGoods __stub_TradeAddGoods((void*)0);
 static TradeRemoveGoods __stub_TradeRemoveGoods((void*)0);
@@ -1459,6 +1563,9 @@ static PlayerProfileGetMatchResult __stub_PlayerProfileGetMatchResult((void*)0);
 static TankBattlePlayerGetRank __stub_TankBattlePlayerGetRank((void*)0);
 static FactionResourceBattleGetMap __stub_FactionResourceBattleGetMap((void*)0);
 static FactionResourceBattleGetRecord __stub_FactionResourceBattleGetRecord((void*)0);
+static MNGetPlayerLastEnterInfo __stub_MNGetPlayerLastEnterInfo((void*)0);
+static MNGetFactionBriefInfo __stub_MNGetFactionBriefInfo((void*)0);
+static MNGetFactionInfo __stub_MNGetFactionInfo((void*)0);
 static KeyExchange __stub_KeyExchange((void*)0);
 static KickoutUser __stub_KickoutUser((void*)0);
 static AccountingResponse __stub_AccountingResponse((void*)0);
@@ -1573,6 +1680,9 @@ static CountryBattleEnd __stub_CountryBattleEnd((void*)0);
 static PlayerChangeDS_Re __stub_PlayerChangeDS_Re((void*)0);
 static TryChangeDS __stub_TryChangeDS((void*)0);
 static PlayerRename __stub_PlayerRename((void*)0);
+static UpdateSoloChallengeRank __stub_UpdateSoloChallengeRank((void*)0);
+static GetSoloChallengeRank __stub_GetSoloChallengeRank((void*)0);
+static UpdateEnemyList __stub_UpdateEnemyList((void*)0);
 static KEGetStatus __stub_KEGetStatus((void*)0);
 static KECandidateApply __stub_KECandidateApply((void*)0);
 static KEVoting __stub_KEVoting((void*)0);
@@ -1609,11 +1719,22 @@ static FactionResourceBattleRequestConfig_Re __stub_FactionResourceBattleRequest
 static FactionResourceBattleServerRegister __stub_FactionResourceBattleServerRegister((void*)0);
 static FactionResourceBattleEventNotice __stub_FactionResourceBattleEventNotice((void*)0);
 static FactionResourceBattlePlayerQuery __stub_FactionResourceBattlePlayerQuery((void*)0);
+static MNFactionBattleApply __stub_MNFactionBattleApply((void*)0);
+static MNBattleServerRegister __stub_MNBattleServerRegister((void*)0);
+static MNDomainBattleStart_Re __stub_MNDomainBattleStart_Re((void*)0);
+static MNDomainBattleEnter __stub_MNDomainBattleEnter((void*)0);
+static MNDomainBattleEnterSuccessNotice __stub_MNDomainBattleEnterSuccessNotice((void*)0);
+static MNDomainBattleLeaveNotice __stub_MNDomainBattleLeaveNotice((void*)0);
+static MNDomainBattleEnd __stub_MNDomainBattleEnd((void*)0);
+static MNGetTopList __stub_MNGetTopList((void*)0);
+static MNGetDomainData __stub_MNGetDomainData((void*)0);
 static DelRoleAnnounce __stub_DelRoleAnnounce((void*)0);
 static DBFriendExtList_Re __stub_DBFriendExtList_Re((void*)0);
 static TransBuyPoint __stub_TransBuyPoint((void*)0);
 static SyncSellInfo __stub_SyncSellInfo((void*)0);
 static DebugAddCash __stub_DebugAddCash((void*)0);
+static AnnounceZoneGroup __stub_AnnounceZoneGroup((void*)0);
+static MNFactionInfoUpdate __stub_MNFactionInfoUpdate((void*)0);
 static DelFactionAnnounce __stub_DelFactionAnnounce((void*)0);
 static CreateFactionFortress __stub_CreateFactionFortress((void*)0);
 static ACRemoteCode __stub_ACRemoteCode((void*)0);
@@ -1636,9 +1757,20 @@ static RemoteLogout __stub_RemoteLogout((void*)0);
 static KickoutRemoteUser_Re __stub_KickoutRemoteUser_Re((void*)0);
 static GetRemoteRoleInfo_Re __stub_GetRemoteRoleInfo_Re((void*)0);
 static GetRemoteCNetServerConfig_Re __stub_GetRemoteCNetServerConfig_Re((void*)0);
+static CrossGuardNotify __stub_CrossGuardNotify((void*)0);
+static MNFactionCacheGet_Re __stub_MNFactionCacheGet_Re((void*)0);
+static MNFetchFiltrateResult_Re __stub_MNFetchFiltrateResult_Re((void*)0);
+static MNFactionProclaim_Re __stub_MNFactionProclaim_Re((void*)0);
+static MNDomainSendBonusData __stub_MNDomainSendBonusData((void*)0);
+static MNFetchTopList_Re __stub_MNFetchTopList_Re((void*)0);
 static RemoteLoginQuery_Re __stub_RemoteLoginQuery_Re((void*)0);
 static KickoutRemoteUser __stub_KickoutRemoteUser((void*)0);
 static GetRemoteRoleInfo __stub_GetRemoteRoleInfo((void*)0);
 static GetRemoteCNetServerConfig __stub_GetRemoteCNetServerConfig((void*)0);
+static MNFactionCacheGet __stub_MNFactionCacheGet((void*)0);
+static MNFactionProclaim __stub_MNFactionProclaim((void*)0);
+static MNFetchFiltrateResult __stub_MNFetchFiltrateResult((void*)0);
+static MNDomainSendBonusData_Re __stub_MNDomainSendBonusData_Re((void*)0);
+static MNFetchTopList __stub_MNFetchTopList((void*)0);
 
 };

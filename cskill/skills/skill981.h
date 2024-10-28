@@ -59,9 +59,9 @@ namespace GNET
       Skill981Stub ():SkillStub (981)
         {
             cls = 258;
-            name = L"太极";
-            nativename = "太极";
-            icon = "太极.dds";
+            name = L"澶瀬";
+            nativename = "澶瀬";
+            icon = "澶瀬.dds";
             max_level = 10;
             type = 2;
             apcost = 158008;
@@ -80,7 +80,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 1;
-            effect = "太级.sgc";
+            effect = "澶骇.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

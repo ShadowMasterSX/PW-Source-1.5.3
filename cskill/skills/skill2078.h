@@ -134,9 +134,9 @@ namespace GNET
       Skill2078Stub ():SkillStub (2078)
         {
             cls = 127;
-            name = L"·ïÒíÌìÏè";
-            nativename = "·ïÒíÌìÏè";
-            icon = "³èÎïÇ¿»¯.dds";
+            name = L"å‡¤ç¿¼å¤©ç¿”";
+            nativename = "å‡¤ç¿¼å¤©ç¿”";
+            icon = "å® ç‰©å¼ºåŒ–.dds";
             max_level = 10;
             type = 1;
             apcost = 0;
@@ -157,7 +157,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "³ãÌì·ï»Ë_¼¼ÄÜ»÷ÖĞ.sgc";
+            effect = "ç‚½å¤©å‡¤å‡°_æŠ€èƒ½å‡»ä¸­.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

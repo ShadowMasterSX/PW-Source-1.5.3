@@ -6,7 +6,8 @@
 #include "mapuser.h"
 #include "gfriendextinfo"
 
-#define AUMAIL_LEVEL_LIMIT 70
+#define AUMAIL_LEVEL_LIMIT 90
+#define AUMAIL_REQUITE_ITEM 47220
 namespace GNET
 {
 	class FriendextinfoManager
@@ -56,6 +57,8 @@ namespace GNET
 			void UpdateRoleLoginTime(GFriendExtInfoVector friend_list,PlayerInfo *pinfo); 
 			void SearchAllExt(PlayerInfo *pinfo);
 			void SendAUMail(PlayerInfo *pinfo,int friend_id,int mail_template_id);
+			bool PreSendRequite(PlayerInfo *pinfo,int friend_id);
+			void PostSendRequite(PlayerInfo *pinfo,int friend_id,const IntVector& maillist);
 	};
 };
 

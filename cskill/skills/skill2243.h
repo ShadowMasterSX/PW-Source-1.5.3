@@ -137,9 +137,9 @@ namespace GNET
       Skill2243Stub ():SkillStub (2243)
         {
             cls = 2;
-            name = L"荒·冷凝术";
-            nativename = "荒·冷凝术";
-            icon = "荒·冷凝术.dds";
+            name = L"鑽捖峰喎鍑濇湳";
+            nativename = "鑽捖峰喎鍑濇湳";
+            icon = "鑽捖峰喎鍑濇湳.dds";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -164,7 +164,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (25333);
             }
-            effect = "巫师_冷凝术改.sgc";
+            effect = "宸笀_鍐峰嚌鏈敼.sgc";
             range.type = 3;
             doenchant = true;
             dobless = false;

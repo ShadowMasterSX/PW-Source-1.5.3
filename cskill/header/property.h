@@ -190,7 +190,7 @@ struct scale_enhanced_param
 	int armor;			//闪躲加值(装备)
 };
 
-//class world_manager;
+class world_manager;
 struct team_mutable_prop
 {
 	short level;
@@ -224,7 +224,7 @@ struct team_mutable_prop
 			mp = bp.mp;
 			max_hp = ep.max_hp;
 			max_mp = ep.max_mp;
-			//world_tag = world_manager::GetWorldTag();
+			world_tag = 1;
 		}
 
 	bool operator == (const team_mutable_prop & rhs)

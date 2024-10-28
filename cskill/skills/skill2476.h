@@ -132,9 +132,9 @@ namespace GNET
       Skill2476Stub ():SkillStub (2476)
         {
             cls = 127;
-            name = L"ÎïÆ·Ê¹ÓÃÖĞ";
-            nativename = "ÎïÆ·Ê¹ÓÃÖĞ";
-            icon = "º®±ùÁìÓò.dds";
+            name = L"ç‰©å“ä½¿ç”¨ä¸­";
+            nativename = "ç‰©å“ä½¿ç”¨ä¸­";
+            icon = "å¯’å†°é¢†åŸŸ.dds";
             max_level = 10;
             type = 3;
             apcost = 0;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 3;
-            effect = "ÎüĞÇ´ó·¨À¶É«.sgc";
+            effect = "å¸æ˜Ÿå¤§æ³•è“è‰².sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

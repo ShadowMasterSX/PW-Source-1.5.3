@@ -8,6 +8,8 @@
 enum UNIQUE_DATA_ENUM   // 各系统独占变量
 {
 	UDI_HISTORY_VERSION = 0,
+
+	UDI_CARNIVAL_COUNT_LIMIT = 8500,  // 跨服活动占用8000~9000 见localmacro.h
 };
 
 enum UNIQUE_DATA_TYPE // 同localmacro.h

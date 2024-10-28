@@ -132,8 +132,8 @@ namespace GNET
       Skill1895Stub ():SkillStub (1895)
         {
             cls = 127;
-            name = L"ÎŞÊÓ·ÀÓùAOE";
-            nativename = "ÎŞÊÓ·ÀÓùAOE";
+            name = L"æ— è§†é˜²å¾¡AOE";
+            nativename = "æ— è§†é˜²å¾¡AOE";
             icon = "";
             max_level = 10;
             type = 3;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "¹ÖÎïÅç»ğÊõ.sgc";
+            effect = "æ€ªç‰©å–·ç«æœ¯.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

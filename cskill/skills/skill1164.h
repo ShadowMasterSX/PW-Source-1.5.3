@@ -133,9 +133,9 @@ namespace GNET
       Skill1164Stub ():SkillStub (1164)
         {
             cls = 127;
-            name = L"Ä¾ÊôĞÔ·âÓ¡ÎïÆ·";
-            nativename = "Ä¾ÊôĞÔ·âÓ¡ÎïÆ·";
-            icon = "Ïû»êÖä.dds";
+            name = L"æœ¨å±æ€§å°å°ç‰©å“";
+            nativename = "æœ¨å±æ€§å°å°ç‰©å“";
+            icon = "æ¶ˆé­‚å’’.dds";
             max_level = 10;
             type = 1;
             apcost = 0;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 3;
-            effect = "¹ÖÎïÊ©¶¾Êõ.sgc";
+            effect = "æ€ªç‰©æ–½æ¯’æœ¯.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

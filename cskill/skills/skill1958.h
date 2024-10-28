@@ -132,8 +132,8 @@ namespace GNET
       Skill1958Stub ():SkillStub (1958)
         {
             cls = 127;
-            name = L"³ÇÕ½±¬ÁÑ¼ýËþ";
-            nativename = "³ÇÕ½±¬ÁÑ¼ýËþ";
+            name = L"åŸŽæˆ˜çˆ†è£‚ç®­å¡”";
+            nativename = "åŸŽæˆ˜çˆ†è£‚ç®­å¡”";
             icon = "";
             max_level = 1;
             type = 3;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 1;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "¼ýËþ¹¥»÷.sgc";
+            effect = "ç®­å¡”æ”»å‡».sgc";
             range.type = 3;
             doenchant = true;
             dobless = false;

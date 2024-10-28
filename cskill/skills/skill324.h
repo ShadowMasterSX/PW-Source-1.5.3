@@ -19,9 +19,9 @@ namespace GNET
         Skill324Stub ():SkillStub (324)
         {
             cls = 3;
-            name = L"Èâ²«¾«Í¨";
-            nativename = "Èâ²«¾«Í¨";
-            icon = "È­Êõ¾«Í¨.dds";
+            name = L"è‚‰æç²¾é€š";
+            nativename = "è‚‰æç²¾é€š";
+            icon = "æ‹³æœ¯ç²¾é€š.dds";
             max_level = 10;
             type = 5;
             apcost = 0;

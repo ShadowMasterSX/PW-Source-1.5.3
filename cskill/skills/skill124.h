@@ -133,9 +133,9 @@ namespace GNET
       Skill124Stub ():SkillStub (124)
         {
             cls = 7;
-            name = L"神兵利器";
-            nativename = "神兵利器";
-            icon = "神兵利器.dds";
+            name = L"绁炲叺鍒╁櫒";
+            nativename = "绁炲叺鍒╁櫒";
+            icon = "绁炲叺鍒╁櫒.dds";
             max_level = 1;
             type = 2;
             apcost = 0;
@@ -162,7 +162,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "神兵利器.sgc";
+            effect = "绁炲叺鍒╁櫒.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

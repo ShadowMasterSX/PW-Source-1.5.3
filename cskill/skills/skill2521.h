@@ -132,8 +132,8 @@ namespace GNET
       Skill2521Stub ():SkillStub (2521)
         {
             cls = 127;
-            name = L"°ïÅÉPVPÍ¸Ã÷¹Ö»÷ÍË";
-            nativename = "°ïÅÉPVPÍ¸Ã÷¹Ö»÷ÍË";
+            name = L"å¸®æ´¾PVPé€æ˜æ€ªå‡»é€€";
+            nativename = "å¸®æ´¾PVPé€æ˜æ€ªå‡»é€€";
             icon = "";
             max_level = 10;
             type = 3;

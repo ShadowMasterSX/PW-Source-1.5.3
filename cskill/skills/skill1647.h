@@ -136,8 +136,8 @@ namespace GNET
       Skill1647Stub ():SkillStub (1647)
         {
             cls = 127;
-            name = L"Ä§°æÂúµØÖ¦";
-            nativename = "Ä§°æÂúµØÖ¦";
+            name = L"é­”ç‰ˆæ»¡åœ°æ";
+            nativename = "é­”ç‰ˆæ»¡åœ°æ";
             icon = "";
             max_level = 10;
             type = 1;
@@ -159,7 +159,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "½£Áé_°Ë·½½£Ó°.sgc";
+            effect = "å‰‘çµ_å…«æ–¹å‰‘å½±.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

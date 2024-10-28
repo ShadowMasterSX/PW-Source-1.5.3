@@ -451,6 +451,34 @@ player_template::__LoadDataFromDataMan(itemdataman & dataman)
 				_generalcard_exp_rank_adjust_list.push_back(config.exp_adjust[i]);
 			}
 		}
+		else if(dt == DT_ASTROLABE_LEVELEXP_CONFIG)
+		{
+			const ASTROLABE_LEVELEXP_CONFIG & config = *(const ASTROLABE_LEVELEXP_CONFIG *)dataman.get_data_ptr(id,ID_SPACE_CONFIG,dt);
+			ASSERT(dt == DT_ASTROLABE_LEVELEXP_CONFIG && &config);
+
+			int totalexp = 0;
+			for(size_t i =0; i<sizeof(config.exp)/sizeof(config.exp[0]); i++)
+			{				
+				_astrolabe_total_exp_list.push_back(totalexp);
+				_astrolabe_levelup_exp_list.push_back(config.exp[i]);
+				totalexp += config.exp[i];
+			}
+		}
+		else if(dt == DT_ASTROLABE_ADDON_RANDOM_CONFIG)
+		{
+			const ASTROLABE_ADDON_RANDOM_CONFIG & config = *(const ASTROLABE_ADDON_RANDOM_CONFIG *)dataman.get_data_ptr(id,ID_SPACE_CONFIG,dt);
+			ASSERT(dt == DT_ASTROLABE_ADDON_RANDOM_CONFIG && &config);
+
+			for(size_t i =0; i<sizeof(config.levelup_exp)/sizeof(config.levelup_exp[0]); i++)
+			{
+				_astrolabe_vip_levelup_exp_list.push_back(config.levelup_exp[i]);
+			}
+			
+			for(size_t i =0; i<sizeof(config.rand_probability)/sizeof(config.rand_probability[0]); i++)
+			{
+				_astrolabe_addon_prob_list.push_back(astrolabe_addon_prob(config.rand_probability[i]));	
+			}
+		}
 	}
 
 	if(character_flag != ((1<< USER_CLASS_COUNT) -1))
@@ -798,5 +826,44 @@ player_template::__GetGeneralCardLvlupExp(int rank, int lvl)
 	if((size_t)rank >= _generalcard_exp_rank_adjust_list.size()) return INT_MAX;
 	if((size_t)lvl >= _generalcard_exp_list.size()) return INT_MAX;
 	return (int)(_generalcard_exp_list[lvl] * _generalcard_exp_rank_adjust_list[rank] + 0.5f);
+}
+
+int 
+player_template::__GetAstrolabeAddonCount(int vip)
+{
+	if((size_t) vip >= _astrolabe_addon_prob_list.size() )	return 0;
+	astrolabe_addon_prob& probs = _astrolabe_addon_prob_list[vip];
+//	int index = abase::RandSelect(probs.probability,ASTROLABE_ADDON_MAX);
+	int index = 0;
+	for(; index < ASTROLABE_ADDON_MAX; ++index)
+	{
+		if(probs.probability[index] >= 1.f)
+			continue;
+		else if(probs.probability[index] < abase::RandUniform())
+			break;
+	}
+
+	return index;
+}
+
+int
+player_template::__GetAstrolabeVipGradeExp(int vlevel)
+{
+	if((size_t)vlevel > _astrolabe_vip_levelup_exp_list.size()) return INT_MAX;
+	return _astrolabe_vip_levelup_exp_list[vlevel];
+}
+
+int
+player_template::__GetAstrolabeLvlupExp(int lvl)
+{
+	if((size_t)lvl > _astrolabe_levelup_exp_list.size()) return INT_MAX;
+	return _astrolabe_levelup_exp_list[lvl];
+}
+
+int
+player_template::__GetAstrolabeLvltotalExp(int lvl)
+{
+	if((size_t)lvl > _astrolabe_total_exp_list.size()) return 0;
+	return _astrolabe_total_exp_list[lvl];
 }
 

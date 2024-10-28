@@ -57,9 +57,9 @@ namespace GNET
       Skill2271Stub ():SkillStub (2271)
         {
             cls = 255;
-            name = L"��ҫ֮��";
-            nativename = "��ҫ֮��";
-            icon = "��ҫ֮��.dds";
+            name = L"荣耀之光";
+            nativename = "荣耀之光";
+            icon = "荣耀之光.dds";
             max_level = 1;
             type = 2;
             apcost = 0;
@@ -116,7 +116,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (44878);
             }
-            effect = "����_᪻�����.sgc";
+            effect = "魅灵_岐黄妙手.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

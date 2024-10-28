@@ -95,8 +95,8 @@ namespace GNET
       Skill1965Stub ():SkillStub (1965)
         {
             cls = 127;
-            name = L"☆心血";
-            nativename = "☆心血";
+            name = L"鈽嗗績琛�";
+            nativename = "鈽嗗績琛�";
             icon = "";
             max_level = 1;
             type = 3;
@@ -118,7 +118,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 3;
-            effect = "怪物自爆.sgc";
+            effect = "鎬墿鑷垎.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

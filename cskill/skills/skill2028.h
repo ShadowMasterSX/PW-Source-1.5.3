@@ -133,8 +133,8 @@ namespace GNET
       Skill2028Stub ():SkillStub (2028)
         {
             cls = 127;
-            name = L"巫师大地灵引";
-            nativename = "巫师大地灵引";
+            name = L"宸笀澶у湴鐏靛紩";
+            nativename = "宸笀澶у湴鐏靛紩";
             icon = "";
             max_level = 10;
             type = 1;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "巫师_土灵.sgc";
+            effect = "宸笀_鍦熺伒.sgc";
             range.type = 3;
             doenchant = true;
             dobless = false;

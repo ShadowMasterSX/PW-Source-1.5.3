@@ -132,8 +132,8 @@ namespace GNET
       Skill2650Stub ():SkillStub (2650)
         {
             cls = 127;
-            name = L"免疫物理伤害";
-            nativename = "免疫物理伤害";
+            name = L"鍏嶇柅鐗╃悊浼ゅ";
+            nativename = "鍏嶇柅鐗╃悊浼ゅ";
             icon = "";
             max_level = 10;
             type = 2;

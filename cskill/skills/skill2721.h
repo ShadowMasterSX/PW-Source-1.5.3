@@ -132,8 +132,8 @@ namespace GNET
       Skill2721Stub ():SkillStub (2721)
         {
             cls = 127;
-            name = L"近战普攻减伤";
-            nativename = "近战普攻减伤";
+            name = L"杩戞垬鏅敾鍑忎激";
+            nativename = "杩戞垬鏅敾鍑忎激";
             icon = "";
             max_level = 10;
             type = 2;

@@ -57,8 +57,8 @@ namespace GNET
       Skill2478Stub ():SkillStub (2478)
         {
             cls = 255;
-            name = L"松鼠变身";
-            nativename = "松鼠变身";
+            name = L"鏉鹃紶鍙樿韩";
+            nativename = "鏉鹃紶鍙樿韩";
             icon = "";
             max_level = 10;
             type = 4;

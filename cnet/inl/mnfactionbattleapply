@@ -1,0 +1,50 @@
+	public:
+		unsigned int fid;
+		int64_t unifid;
+		int roleid;
+		unsigned char target;
+		unsigned int cost;
+		GMailSyncData syncdata;
+		enum { PROTOCOL_TYPE = PROTOCOL_MNFACTIONBATTLEAPPLY };
+	public:
+		MNFactionBattleApply() { type = PROTOCOL_MNFACTIONBATTLEAPPLY; }
+		MNFactionBattleApply(void*) : Protocol(PROTOCOL_MNFACTIONBATTLEAPPLY) { }
+		MNFactionBattleApply (unsigned int l_fid,int64_t l_unifid,int l_roleid,
+			unsigned char l_target,unsigned int l_cost,const GMailSyncData& l_syncdata)
+			 : fid(l_fid),unifid(l_unifid),roleid(l_roleid)
+			,target(l_target),cost(l_cost),syncdata(l_syncdata)
+		{
+			type = PROTOCOL_MNFACTIONBATTLEAPPLY;
+		}
+
+		MNFactionBattleApply(const MNFactionBattleApply &rhs)
+			: Protocol(rhs),fid(rhs.fid),unifid(rhs.unifid),roleid(rhs.roleid)
+			,target(rhs.target),cost(rhs.cost),syncdata(rhs.syncdata) { }
+
+		GNET::Protocol *Clone() const { return new MNFactionBattleApply(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << fid;
+			os << unifid;
+			os << roleid;
+			os << target;
+			os << cost;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> fid;
+			os >> unifid;
+			os >> roleid;
+			os >> target;
+			os >> cost;
+			os >> syncdata;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 131072; }

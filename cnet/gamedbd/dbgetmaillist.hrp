@@ -51,7 +51,7 @@ class DBGetMailList : public Rpc
 						bool todelete = false;
 						if((i->header.attribute&MAIL_RESERVED)==0)
 						{
-							if(i->header.attribute&_MA_UNREAD)
+							if(i->header.attribute&(1<<_MA_UNREAD))
 							{
 								if(now - i->header.receiver > 2592000)
 									todelete = true;

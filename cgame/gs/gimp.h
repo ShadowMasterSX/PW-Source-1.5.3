@@ -8,6 +8,7 @@
 #include <common/message.h>
 #include "substance.h"
 #include "attack.h"
+#include "playersolochallenge.h"
 
 namespace GNET
 {
@@ -27,6 +28,8 @@ class gobject_imp;
 class item;
 struct extend_prop;
 struct instance_key;
+struct MNFactionStateInfo;
+struct fix_position_transmit_info;
 
 class controller :public substance
 {
@@ -188,7 +191,7 @@ public:
 	virtual void exchange_equipment_item(size_t index1,size_t index2) {}
 	virtual void equip_item(size_t index_inv,size_t index_equip,int count_inv,int count_eq) {}
 	virtual void move_equipment_item(size_t index_inv,size_t index_equip, size_t count){}
-	virtual void self_get_property(size_t status_point, const extend_prop &, int attack_degree, int defend_degree, int crit_rate, int crit_damage_bonus, int invisible_degree, int anti_invisible_degree, int penetration, int resilience,int vigour) {}
+	virtual void self_get_property(size_t status_point, const extend_prop &, int attack_degree, int defend_degree, int crit_rate, int crit_damage_bonus, int invisible_degree, int anti_invisible_degree, int penetration, int resilience,int vigour,int anti_def_degree, int anti_resist_degree, int kill, int dead) {}
 	virtual void set_status_point(size_t vit, size_t eng, size_t str, size_t agi, size_t remain) {}
 	virtual void get_extprop_base() {}
 	virtual void get_extprop_move() {}
@@ -465,6 +468,7 @@ public:
 	virtual void refresh_signin(char type,int moncal,int cys,int lys, int uptime, int localtime, char awardedtimes, char latesignintimes) {}
 	virtual void player_reincarnation(size_t reincarnation_times){}
 	virtual void activate_reincarnation_tome(char active){}
+	virtual void rank_dispatcher(int points, int kill, int dead){}
 	virtual void realm_exp_receive(int exp,int receive_exp){}
 	virtual void realm_level_up(unsigned char level){}
 	virtual void enter_trickbattle(int role, int battle_id,int end_time){}
@@ -485,6 +489,35 @@ public:
 	virtual void player_combo_skill_prepare(int skillid,int timestamp,int arg1, int arg2, int arg3) {}
 	virtual void player_pray_distance_change(float pd) {}
 	virtual void instance_reenter_notify(int tag, int timeout) {}
+	virtual void astrolabe_info_notify(unsigned char level, int exp) {}
+	virtual void astrolabe_operate_result(int opt, int ret, int a0, int a1, int a2) {}
+    virtual void property_score_result(int fighting_score, int viability_score, int client_data) {}
+    virtual void lookup_enemy_result(int rid, int worldtag, const A3DVECTOR& pos) {}
+	virtual void solo_challenge_award_info_notify(int max_stage_level, int total_time, int total_score, int cur_score, int last_success_stage_level, int last_success_stage_cost_time, int draw_award_times,int have_draw_award_times, abase::vector<struct playersolochallenge::player_solo_challenge_award>& award_info){}
+	virtual void solo_challenge_operate_result(int opttype, int retcode, int arg0, int arg1, int args2){}
+	virtual void solo_challenge_challenging_state_notify(int climbed_layer, unsigned char notify_type){}
+	virtual void solo_challenge_buff_info_notify(int *buff_index, int *buff_num, int count, int cur_score){}
+	virtual void mnfaction_player_faction_info(int player_faction, int domain_id){}
+	virtual void mnfaction_resource_point_info(int attacker_resource_point, int defender_resource_point){}
+	virtual void mnfaction_player_count_info(int attend_attacker_player_count, int attend_defender_player_count) {}
+	virtual void mnfaction_resource_point_state_info(int index, int cur_degree) {}
+	virtual void mnfaction_resource_tower_state_info(int num, MNFactionStateInfo& mnfaction_state_info) {}
+	virtual void mnfaction_switch_tower_state_info(int num, MNFactionStateInfo& mnfaction_state_info) {}
+	virtual void mnfaction_transmit_pos_state_info(int num, MNFactionStateInfo& mnfaction_state_info) {}
+	virtual void mnfaction_result(int result) {}
+	virtual void mnfaction_battle_ground_have_start_time(int battle_ground_have_start_time){}
+	virtual void mnfaction_faction_killed_player_num(int attacker_killed_player_count, int defender_killed_player_count){}
+	virtual void mnfaction_shout_at_the_client(int type, int args){}
+	virtual void fix_position_transmit_add_position(int index, int world_tag, A3DVECTOR &pos, size_t position_length, const char *position_name){}
+	virtual void fix_position_transmit_delete_position(int index){}
+	virtual void fix_position_transmit_rename(int index, size_t position_length, char *position_name){}
+	virtual void fix_position_energy_info(char is_login, int cur_energy){}
+	virtual void fix_position_all_info(fix_position_transmit_info *info){}
+	virtual void cash_vip_mall_item_buy_result(char result, short index, char reason){}
+	virtual void cash_vip_info_notify(int level, int score){}
+	virtual void purchase_limit_all_info_notify(){}
+	virtual void purchase_limit_info_notify(int limit_type, int item_id, int have_purchase_count){}
+    virtual void cash_resurrect_info(int cash_need, int cash_left) {}
 
 public:
 	void MoveBetweenSlice(slice * pPiece,slice * pNewPiece,const A3DVECTOR &pos);
@@ -621,7 +654,7 @@ public:
 		//do nothing
 	}
 
-	virtual void UpdateMafiaInfo(int id, char rank, unsigned char pvp_mask)
+	virtual void UpdateMafiaInfo(int id, char rank, unsigned char pvp_mask, int64_t unifid)
 	{
 		//do nothing
 	}

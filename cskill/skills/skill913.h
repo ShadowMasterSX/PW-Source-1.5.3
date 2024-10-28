@@ -137,9 +137,9 @@ namespace GNET
       Skill913Stub ():SkillStub (913)
         {
             cls = 3;
-            name = L"ÃÄĞÄÖä";
-            nativename = "ÃÄĞÄÖä";
-            icon = "ÃÄĞÄÖä.dds";
+            name = L"åªšå¿ƒå’’";
+            nativename = "åªšå¿ƒå’’";
+            icon = "åªšå¿ƒå’’.dds";
             max_level = 1;
             type = 1;
             apcost = 100;
@@ -166,7 +166,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "¹ÖÎïÈËÃæÌÒ»¨¼¼ÄÜ¹¥»÷.sgc";
+            effect = "æ€ªç‰©äººé¢æ¡ƒèŠ±æŠ€èƒ½æ”»å‡».sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

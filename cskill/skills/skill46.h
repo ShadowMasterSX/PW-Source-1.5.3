@@ -132,8 +132,8 @@ namespace GNET
       Skill46Stub ():SkillStub (46)
         {
             cls = 127;
-            name = L"魔力燃烧";
-            nativename = "魔力燃烧";
+            name = L"榄斿姏鐕冪儳";
+            nativename = "榄斿姏鐕冪儳";
             icon = "";
             max_level = 10;
             type = 3;
@@ -153,7 +153,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "怪物生命吸取.sgc";
+            effect = "鎬墿鐢熷懡鍚稿彇.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

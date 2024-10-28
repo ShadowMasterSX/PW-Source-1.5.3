@@ -132,8 +132,8 @@ namespace GNET
       Skill1921Stub ():SkillStub (1921)
         {
             cls = 127;
-            name = L"½ûÖ¹ÆÕ¹¥»ñµÃÔªÆø";
-            nativename = "½ûÖ¹ÆÕ¹¥»ñµÃÔªÆø";
+            name = L"ç¦æ­¢æ™®æ”»è·å¾—å…ƒæ°”";
+            nativename = "ç¦æ­¢æ™®æ”»è·å¾—å…ƒæ°”";
             icon = "";
             max_level = 10;
             type = 3;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "¹ÖÎïÁ¶Óü¾ıÖ÷¼¼ÄÜ¹¥»÷.sgc";
+            effect = "æ€ªç‰©ç‚¼ç‹±å›ä¸»æŠ€èƒ½æ”»å‡».sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

@@ -132,8 +132,8 @@ namespace GNET
       Skill787Stub ():SkillStub (787)
         {
             cls = 127;
-            name = L"1级城战BOSS单次吸魔";
-            nativename = "1级城战BOSS单次吸魔";
+            name = L"1绾у煄鎴楤OSS鍗曟鍚搁瓟";
+            nativename = "1绾у煄鎴楤OSS鍗曟鍚搁瓟";
             icon = "";
             max_level = 10;
             type = 3;
@@ -153,7 +153,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "怪物生命吸取.sgc";
+            effect = "鎬墿鐢熷懡鍚稿彇.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

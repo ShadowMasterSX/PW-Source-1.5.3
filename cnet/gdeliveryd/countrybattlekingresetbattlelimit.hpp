@@ -17,7 +17,7 @@ class CountryBattleKingResetBattleLimit : public GNET::Protocol
 
 	void Process(Manager *manager, Manager::Session::ID sid)
 	{
-		CountryBattleMan::GetInstance()->KingResetBattleLimit(king_roleid, domain_id, op, limit);
+		CountryBattleMan::OnKingResetBattleLimit(king_roleid, domain_id, op, limit);
 	}
 };
 

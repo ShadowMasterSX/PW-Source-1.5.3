@@ -59,9 +59,9 @@ namespace GNET
       Skill1027Stub ():SkillStub (1027)
         {
             cls = 258;
-            name = L"回光返照";
-            nativename = "回光返照";
-            icon = "回光返照.dds";
+            name = L"鍥炲厜杩旂収";
+            nativename = "鍥炲厜杩旂収";
+            icon = "鍥炲厜杩旂収.dds";
             max_level = 10;
             type = 2;
             apcost = 50030;
@@ -80,7 +80,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 1;
-            effect = "回光返照.sgc";
+            effect = "鍥炲厜杩旂収.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

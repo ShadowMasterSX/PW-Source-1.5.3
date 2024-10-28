@@ -43,6 +43,7 @@
 #include "item/generalcard_set_man.h"
 #include "item/item_generalcard.h"
 #include "template/el_region.h"
+#include "playermnfaction.h"
 
 #include "global_controller.h"
 
@@ -50,6 +51,7 @@
 DEFINE_SUBSTANCE_ABSTRACT(switch_additional_data, substance, CLS_SWITCH_ADDITIONAL_DATA);
 DEFINE_SUBSTANCE(countryterritory_switch_data, switch_additional_data, CLS_COUNTRYTERRITORY_SWITCH_DATA);
 DEFINE_SUBSTANCE(trickbattle_switch_data, switch_additional_data, CLS_TRICKBATTLE_SWITCH_DATA);
+DEFINE_SUBSTANCE(mnfaction_switch_data, switch_additional_data, CLS_MNFACTION_SWITCH_DATA);
 
 DEFINE_SUBSTANCE(gplayer_imp,gobject_imp,CLS_PLAYER_IMP)
 DEFINE_SUBSTANCE(gplayer_dispatcher,dispatcher,CLS_PLAYER_DISPATCHER)
@@ -232,6 +234,13 @@ gplayer_imp::gplayer_imp()
 	_leadership_occupied = 0;
 	_world_contribution = 0;
 	_world_contribution_cost = 0;
+ 	_astrolabe_extern_level = 0;
+ 	_astrolabe_extern_exp = 0;
+	_fix_position_transmit_energy    = 0;
+    _cash_resurrect_times_in_cooldown = 0;
+	_rank_points = 0;
+	_rank_kill = 0;
+	_rank_dead = 0;
 }
 
 gplayer_imp::~gplayer_imp()
@@ -280,6 +289,82 @@ struct cl_task_storage_refresh : public clock_listener
 	void OnPassClock(gplayer_imp* player,int type,int lastupdate,int now) {}
 };
 
+struct cl_solo_tower_challenge : public clock_listener
+{
+ 	void OnClock(gplayer_imp* player,int type)
+ 	{
+		player->_solochallenge.OnClock(player);
+ 	}
+ 	void OnPassClock(gplayer_imp* player,int type,int lastupdate,int now) 
+ 	{
+		player->_solochallenge.OnPassClock(player, lastupdate, now);
+ 	}
+};
+
+struct cl_clear_day_item : public clock_listener
+{
+ 	void OnClock(gplayer_imp* player,int type)
+ 	{
+		int next_update_time = player_clock::GetNextUpdatetime(type, g_timer.get_systime());
+		player->GetPurchaseLimit().SetDayItemClearTimeStamp(next_update_time, g_timer.get_systime());
+		player->_runner->purchase_limit_all_info_notify();
+ 	}
+ 	void OnPassClock(gplayer_imp* player,int type,int lastupdate,int now) 
+ 	{
+		int next_update_time = player_clock::GetNextUpdatetime(type, now);
+		player->GetPurchaseLimit().SetDayItemClearTimeStamp(next_update_time, now);
+		player->_runner->purchase_limit_all_info_notify();
+ 	}
+};
+
+struct cl_clear_week_item : public clock_listener
+{
+ 	void OnClock(gplayer_imp* player,int type)
+ 	{
+		int next_update_time = player_clock::GetNextUpdatetime(type, g_timer.get_systime());
+		player->GetPurchaseLimit().SetWeekItemClearTimeStamp(next_update_time, g_timer.get_systime());
+		player->_runner->purchase_limit_all_info_notify();
+ 	}
+ 	void OnPassClock(gplayer_imp* player,int type,int lastupdate,int now) 
+ 	{
+		int next_update_time = player_clock::GetNextUpdatetime(type, now);
+		player->GetPurchaseLimit().SetWeekItemClearTimeStamp(next_update_time, now);
+		player->_runner->purchase_limit_all_info_notify();
+ 	}
+};
+
+struct cl_clear_month_item : public clock_listener
+{
+ 	void OnClock(gplayer_imp* player,int type)
+ 	{
+		int next_update_time = player_clock::GetNextUpdatetime(type, g_timer.get_systime());
+		player->GetPurchaseLimit().SetMonthItemClearTimeStamp(next_update_time, g_timer.get_systime());
+		player->_runner->purchase_limit_all_info_notify();
+ 	}
+ 	void OnPassClock(gplayer_imp* player,int type,int lastupdate,int now) 
+ 	{
+		int next_update_time = player_clock::GetNextUpdatetime(type, now);
+		player->GetPurchaseLimit().SetMonthItemClearTimeStamp(next_update_time, now);
+		player->_runner->purchase_limit_all_info_notify();
+ 	}
+};
+
+struct cl_clear_year_item : public clock_listener
+{
+ 	void OnClock(gplayer_imp* player,int type)
+ 	{
+		int next_update_time = player->GetPurchaseLimit().GetNextYearStamp();
+		player->GetPurchaseLimit().SetYearItemClearTimeStamp(next_update_time, g_timer.get_systime());
+		player->_runner->purchase_limit_all_info_notify();
+ 	}
+ 	void OnPassClock(gplayer_imp* player,int type,int lastupdate,int now) 
+ 	{
+		int next_update_time = player->GetPurchaseLimit().GetNextYearStamp();
+		player->GetPurchaseLimit().SetYearItemClearTimeStamp(next_update_time, now);
+		player->_runner->purchase_limit_all_info_notify();
+ 	}
+};
+
 void
 gplayer_imp::InitClock()
 {
@@ -287,10 +372,24 @@ gplayer_imp::InitClock()
 	// declare
 	static cl_world_contrib_reset cl_wcr;
 	static cl_task_storage_refresh cl_tsr;
+ 	static cl_solo_tower_challenge cl_stc;
+	static cl_clear_day_item cl_cdi;
+	static cl_clear_week_item cl_cwi;
+	static cl_clear_month_item cl_cmi;
+	static cl_clear_year_item cl_cyi;
 	/////////////////////////////////////////////////////////////////////////
 	// registor
 	_player_clock.AddNotice(&cl_wcr,player_clock::GPC_PER_HOUR_LOCAL,0); // 每天0点 本服
 	_player_clock.AddNotice(&cl_tsr,player_clock::GPC_PER_HOUR_GLOBAL,0); // 每天0点 全服
+	
+ 	_player_clock.AddNotice(&cl_stc,player_clock::GPC_PER_HOUR_LOCAL,7); //每天7点 本服
+
+	//积分商品限购
+	_player_clock.AddNotice(&cl_cdi,player_clock::GPC_PER_DAY_LOCAL,-1);   // 每天0点 本服
+	_player_clock.AddNotice(&cl_cwi,player_clock::GPC_PER_WEEK_LOCAL,-1);    // 每周1 0点 本服
+	_player_clock.AddNotice(&cl_cmi,player_clock::GPC_PER_MONTH_LOCAL,-1); // 每月1日 本服
+	_player_clock.AddNotice(&cl_cyi,player_clock::GPC_PER_MONTH_LOCAL,0); // 每年1月1日 本服
+	
 }
 
 void 
@@ -362,6 +461,25 @@ gplayer_imp::PlayerEnterWorld()
 		_runner->enable_resurrect_state(_resurrect_exp_reduce);
 	}
 	
+    if (_parent->IsZombie() && CheckVipService(CVS_RESURRECT) && !world_manager::GetWorldLimit().nocash_resurrect)
+    {
+        int index = _cash_resurrect_times_in_cooldown;
+        if (index < 0) index = 0;
+        if (CheckCoolDown(COOLDOWN_INDEX_RESURRECT_BY_CASH))
+        {
+            index = 0;
+        }
+        else
+        {
+            ++index;
+            if (index >= CASH_RESURRECT_COST_TABLE_SIZE)
+                index = CASH_RESURRECT_COST_TABLE_SIZE - 1;
+        }
+
+        int cash_need = CASH_RESURRECT_COST_TABLE[index];
+        _runner->cash_resurrect_info(cash_need, GetMallCash());
+    }
+
 	//测试是否在安全区
 	TestSanctuary();
 	
@@ -385,6 +503,11 @@ gplayer_imp::PlayerEnterWorld()
 	_runner->send_world_life_time(_plane->w_life_time);
 
 	if(GetCountryId()) GMSV::CountryBattleOnline(_parent->ID.id, GetCountryId(), world_manager::GetWorldTag(), GetSoulPower(), GetParent()->IsKing());
+
+	if(world_manager::GetIsSoloTowerChallengeInstance())
+	{
+		PlayerEnterSoloChallengeInstance();
+	}
 }
 
 void 
@@ -632,6 +755,8 @@ gplayer_imp::StayInHandler(world * pPlane ,const MSG & msg)
 		case GM_MSG_PLAYER_KILLED_BY_PLAYER:
 		case GM_MSG_PUNISH_ME:
 		case GM_MSG_REDUCE_CD:	
+        case GM_MSG_LOOKUP_ENEMY:
+        case GM_MSG_LOOKUP_ENEMY_REPLY:
 		//坐下的时候可以处理GM消息
 			return MessageHandler(pPlane,msg);
 
@@ -732,6 +857,8 @@ gplayer_imp::TravelMessageHandler(world * pPlane ,const MSG & msg)
 		case GM_MSG_GM_QUERY_SPEC_ITEM:
 		case GM_MSG_GM_REMOVE_SPEC_ITEM:
 		case GM_MSG_ENABLE_PVP_DURATION:
+        case GM_MSG_LOOKUP_ENEMY:
+        case GM_MSG_LOOKUP_ENEMY_REPLY:
 			return MessageHandler(pPlane,msg);
 
 		//忽视所有攻击性消息和技能消息
@@ -834,6 +961,8 @@ gplayer_imp::ZombieMessageHandler(world * pPlane ,const MSG & msg)
 		case GM_MSG_GM_OFFLINE:
 		case GM_MSG_GM_QUERY_SPEC_ITEM:
 		case GM_MSG_GM_REMOVE_SPEC_ITEM:
+        case GM_MSG_LOOKUP_ENEMY:
+        case GM_MSG_LOOKUP_ENEMY_REPLY:
 
 		//这些消息是和活着的时候拥有一样的处理
 		return MessageHandler(pPlane,msg);
@@ -1382,7 +1511,22 @@ gplayer_imp::MessageHandler(world * pPlane ,const MSG & msg)
 						data->expire_date = g_timer.get_systime() + life; 
 					int rst = _inventory.Push(*data);
                     FirstAcquireItem(data);
-					if(rst >=0) _runner->obtain_item(item_id,data->expire_date,count - data->count,_inventory[rst].count, 0,rst);
+
+					
+					//edit by ljj
+					if(rst >=0)
+					{
+						_runner->obtain_item(item_id,data->expire_date,count - data->count,_inventory[rst].count, 0,rst);
+						
+						if(data->proc_type & item::ITEM_PROC_TYPE_AUTO_USE)
+						{
+							UseItem(_inventory, rst, IL_INVENTORY, data->type, 1);
+						}
+						
+					}
+					//
+					
+					
 					if(data->count)
 					{
 						_runner->error_message(S2C::ERR_INVENTORY_IS_FULL);
@@ -1949,9 +2093,10 @@ gplayer_imp::MessageHandler(world * pPlane ,const MSG & msg)
 					item::EQUIP_INDEX_GENERALCARD4,
 					item::EQUIP_INDEX_GENERALCARD5,
 					item::EQUIP_INDEX_GENERALCARD6,
+					item::EQUIP_INDEX_ASTROLABE,
 				};
 
-				raw_wrapper rw(1024);
+				raw_wrapper rw(2048);
 				_equipment.DetailSavePartial(rw,query_list,sizeof(query_list)/sizeof(int));
 				_runner->send_equip_detail(cs_index, cs_sid,msg.source.id,rw.data(),rw.size());
 			}
@@ -2092,6 +2237,8 @@ gplayer_imp::MessageHandler(world * pPlane ,const MSG & msg)
 			data.invisible_degree 	= ((gplayer*)_parent)->invisible_degree;
 			data.anti_invisible_degree = ((gplayer*)_parent)->anti_invisible_degree;
 			data.vigour = GetVigour();
+			data.anti_defense_degree = _anti_defense_degree;
+			data.anti_resistance_degree = _anti_resistance_degree;
 			SendTo<0>(GM_MSG_QUERY_PROPERTY_REPLY,msg.source,msg.param,&data,sizeof(data));	
 		}
 		return 0;
@@ -2414,6 +2561,32 @@ gplayer_imp::MessageHandler(world * pPlane ,const MSG & msg)
 			OnTaskManualTrig(&task_if, pConfig->id_tasks[index], false);
 		}
 		return 0;
+
+        case GM_MSG_CHANGE_GENDER_LOGOUT:
+        {
+            PlayerLogout(PLAYER_OFF_OFFLINE);
+        }
+        return 0;
+
+ 		case GM_MSG_CLEAR_TOWER_TASK:
+ 		{
+ 			PlayerTaskInterface  task_if(this);
+ 			ClearAllTowerTask(&task_if);//清除所有单人副本任务
+ 		}
+		return 0;
+
+        case GM_MSG_LOOKUP_ENEMY:
+        {
+            SendTo<0>(GM_MSG_LOOKUP_ENEMY_REPLY, msg.source, world_manager::GetWorldTag());
+        }
+        return 0;
+
+        case GM_MSG_LOOKUP_ENEMY_REPLY:
+        {
+            OnLookupEnemyReply(msg);
+        }
+        return 0;
+
 	}
 	return gactive_imp::MessageHandler(pPlane,msg);
 }
@@ -2704,6 +2877,9 @@ gplayer_imp::ReceiveExp(int exp,int sp)
 	//转生后经验调整
 	double_exp_sp_factor += _player_reincarnation.GetExpBonus();
 	
+    double_exp_sp_factor += _exp_sp_factor;
+    if (double_exp_sp_factor <= 0.0f) return;
+
 	IncExp(exp,sp,
 			double_exp_sp_factor, 
 			world_manager::GetWorldParam().double_sp);
@@ -3361,7 +3537,7 @@ gplayer_dispatcher::query_info00(const XID & target, int cs_index,int sid)
 	using namespace S2C;
 	gactive_imp * pImp = (gactive_imp *)_imp;
 	//_back_up_hp[1]
-	CMD::Make<CMD::player_info_00>::From(_tbuf,pImp->_parent->ID,pImp->_basic.hp,pImp->_basic,pImp->_cur_prop,pImp->IsCombatState()?1:0, pImp->GetCurTarget().id); // todo ddr
+	CMD::Make<CMD::player_info_00>::From(_tbuf,pImp->_parent->ID,pImp->_basic.hp,pImp->_basic,pImp->_cur_prop,pImp->IsCombatState()?1:0, pImp->GetCurTarget().id);
 	send_ls_msg(cs_index,target.id,sid,_tbuf);
 }
 
@@ -4239,11 +4415,11 @@ gplayer_dispatcher::move_equipment_item(size_t index_inv,size_t index_equip, siz
 }
 
 void 
-gplayer_dispatcher::self_get_property(size_t status_point, const extend_prop & prop , int attack_degree, int defend_degree, int crit_rate, int crit_damage_bonus, int invisible_degree, int anti_invisible_degree, int penetration, int resilience, int vigour)
+gplayer_dispatcher::self_get_property(size_t status_point, const extend_prop & prop , int attack_degree, int defend_degree, int crit_rate, int crit_damage_bonus, int invisible_degree, int anti_invisible_degree, int penetration, int resilience, int vigour, int anti_def_degree, int anti_resist_degree, int kill, int dead)
 {
 	_tbuf.clear();
 	using namespace S2C;
-	CMD::Make<CMD::self_get_property>::From(_tbuf,status_point,prop,attack_degree, defend_degree, crit_rate, crit_damage_bonus, invisible_degree, anti_invisible_degree, penetration, resilience, vigour); 
+	CMD::Make<CMD::self_get_property>::From(_tbuf,status_point,prop,attack_degree, defend_degree, crit_rate, crit_damage_bonus, invisible_degree, anti_invisible_degree, penetration, resilience, vigour, anti_def_degree, anti_resist_degree, kill, dead); 
 	gplayer * pPlayer = (gplayer*)_imp->_parent;
 	send_ls_msg(pPlayer, _tbuf);
 }
@@ -5276,7 +5452,7 @@ gplayer_dispatcher::server_config_data()
 	_tbuf.clear();
 	using namespace S2C;
 	gplayer * pPlayer = (gplayer*)_imp->_parent;
-	CMD::Make<CMD::server_config_data>::From(_tbuf,globaldata_getmalltimestamp(),globaldata_getmall2timestamp());
+	CMD::Make<CMD::server_config_data>::From(_tbuf,globaldata_getmalltimestamp(),globaldata_getmall2timestamp(),globaldata_getmall3timestamp());
 	send_ls_msg(pPlayer,_tbuf);
 }
 
@@ -6766,6 +6942,15 @@ gplayer_dispatcher::trickbattle_chariot_info(int chariot, int energy)
 	send_ls_msg(pPlayer,_tbuf);
 }
 
+void gplayer_dispatcher::rank_dispatcher(int points, int kill, int dead)
+{
+	_tbuf.clear();
+	using namespace S2C;
+	CMD::Make<CMD::rank_info>::From(_tbuf,points,kill,dead);
+	gplayer * pPlayer = (gplayer*)_imp->_parent;
+	send_ls_msg(pPlayer,_tbuf);
+}
+
 void gplayer_dispatcher::realm_exp_receive(int exp,int receive_exp)
 {
 	_tbuf.clear();
@@ -6923,6 +7108,296 @@ void gplayer_dispatcher::equip_can_inherit_addons(int equip_id, unsigned char in
 	send_ls_msg(pPlayer, _tbuf);
 }
 
+void gplayer_dispatcher::astrolabe_info_notify(unsigned char level, int exp)
+{
+    _tbuf.clear();
+    using namespace S2C;
+ 	CMD::Make<CMD::astrolabe_info_notify>::From(_tbuf, level, exp);
+ 	gplayer* pPlayer = (gplayer*)_imp->_parent;
+ 	send_ls_msg(pPlayer, _tbuf);
+}
+
+void gplayer_dispatcher::astrolabe_operate_result(int opt, int ret, int a0, int a1, int a2) 
+{
+    _tbuf.clear();
+    using namespace S2C;
+ 	CMD::Make<CMD::astrolabe_operate_result>::From(_tbuf, opt, ret, a0, a1, a2);
+ 	gplayer* pPlayer = (gplayer*)_imp->_parent;
+ 	send_ls_msg(pPlayer, _tbuf);
+}
+
+void gplayer_dispatcher::property_score_result(int fighting_score, int viability_score, int client_data)
+{
+    _tbuf.clear();
+    using namespace S2C;
+    CMD::Make<CMD::property_score_result>::From(_tbuf, fighting_score, viability_score, client_data);
+    gplayer* pPlayer = (gplayer*)_imp->_parent;
+    send_ls_msg(pPlayer, _tbuf);
+}
+
+void gplayer_dispatcher::lookup_enemy_result(int rid, int worldtag, const A3DVECTOR& pos)
+{
+    _tbuf.clear();
+    using namespace S2C;
+    CMD::Make<CMD::lookup_enemy_result>::From(_tbuf, rid, worldtag, pos);
+    gplayer* pPlayer = (gplayer*)_imp->_parent;
+    send_ls_msg(pPlayer, _tbuf);
+}
+
+void gplayer_dispatcher::solo_challenge_award_info_notify(int max_stage_level, int total_time, int total_score, int cur_score, int last_success_stage_level, int last_success_stage_cost_time, int draw_award_times,int have_draw_award_times, abase::vector<struct playersolochallenge::player_solo_challenge_award>& award_info)
+{
+	_tbuf.clear();
+	using namespace S2C;
+	CMD::Make<CMD::solo_challenge_award_info_notify>::From(_tbuf, max_stage_level, total_time, total_score, cur_score, last_success_stage_level, last_success_stage_cost_time, draw_award_times, award_info.size());
+	for(unsigned int i = 0; i < award_info.size(); i++)
+	{
+		CMD::Make<CMD::solo_challenge_award_info_notify>::Add(_tbuf, award_info[i].item_id, award_info[i].item_count);
+	}
+	gplayer* pPlayer = (gplayer*)_imp->_parent;
+	send_ls_msg(pPlayer,_tbuf);
+}
+
+void gplayer_dispatcher::solo_challenge_operate_result(int opttype, int retcode, int arg0, int arg1, int arg2)
+{	
+    _tbuf.clear();
+    using namespace S2C;
+ 	CMD::Make<CMD::solo_challenge_operate_result>::From(_tbuf, opttype, retcode, arg0, arg1, arg2);
+ 	gplayer* pPlayer = (gplayer*)_imp->_parent;
+ 	send_ls_msg(pPlayer, _tbuf);
+}
+
+void gplayer_dispatcher::solo_challenge_challenging_state_notify(int climbed_layer, unsigned char notify_type)
+{	
+    _tbuf.clear();
+    using namespace S2C;
+ 	CMD::Make<CMD::solo_challenge_challenging_state_notify>::From(_tbuf, climbed_layer, notify_type);
+ 	gplayer* pPlayer = (gplayer*)_imp->_parent;
+ 	send_ls_msg(pPlayer, _tbuf);
+}
+
+void gplayer_dispatcher::solo_challenge_buff_info_notify(int *buff_index, int *buff_num, int count, int cur_score)
+{
+    _tbuf.clear();
+    using namespace S2C;
+ 	CMD::Make<CMD::solo_challenge_buff_info_notify>::From(_tbuf, count, cur_score);
+	for(int i = 0; i < count; i++)
+	{
+		CMD::Make<CMD::solo_challenge_buff_info_notify>::Add(_tbuf, buff_index[i], buff_num[i]);
+	}
+ 	gplayer* pPlayer = (gplayer*)_imp->_parent;
+ 	send_ls_msg(pPlayer, _tbuf);
+}
+
+void gplayer_dispatcher::mnfaction_player_faction_info(int player_faction, int domain_id)
+{
+    _tbuf.clear();
+    using namespace S2C;
+ 	CMD::Make<CMD::mnfaction_player_faction_info>::From(_tbuf, player_faction, domain_id);
+ 	gplayer* pPlayer = (gplayer*)_imp->_parent;
+ 	send_ls_msg(pPlayer, _tbuf);
+}
+
+void gplayer_dispatcher::mnfaction_resource_point_info(int attacker_resource_point, int defender_resource_point)
+{
+    _tbuf.clear();
+    using namespace S2C;
+ 	CMD::Make<CMD::mnfaction_resource_point_info>::From(_tbuf, attacker_resource_point, defender_resource_point);
+ 	gplayer* pPlayer = (gplayer*)_imp->_parent;
+ 	send_ls_msg(pPlayer, _tbuf);
+}
+
+void gplayer_dispatcher::mnfaction_player_count_info(int attend_attacker_player_count, int attend_defender_player_count)
+{
+    _tbuf.clear();
+    using namespace S2C;
+ 	CMD::Make<CMD::mnfaction_player_count_info>::From(_tbuf, attend_attacker_player_count, attend_defender_player_count);
+ 	gplayer* pPlayer = (gplayer*)_imp->_parent;
+ 	send_ls_msg(pPlayer, _tbuf);
+}
+
+void gplayer_dispatcher::mnfaction_resource_point_state_info(int index, int cur_degree)
+{
+    _tbuf.clear();
+    using namespace S2C;
+ 	CMD::Make<CMD::mnfaction_resource_point_state_info>::From(_tbuf, index, cur_degree);
+ 	gplayer* pPlayer = (gplayer*)_imp->_parent;
+ 	send_ls_msg(pPlayer, _tbuf);
+}
+void gplayer_dispatcher::mnfaction_resource_tower_state_info(int num, MNFactionStateInfo &mnfaction_state_info)
+{
+    _tbuf.clear();
+    using namespace S2C;
+ 	CMD::Make<CMD::mnfaction_resource_tower_state_info>::From(_tbuf, num);
+	for(int i = 0; i < num; i++)
+	{
+		CMD::Make<CMD::mnfaction_resource_tower_state_info>::Add(_tbuf, mnfaction_state_info._index, mnfaction_state_info._own_faction, mnfaction_state_info._state, mnfaction_state_info._time_out);
+	}
+ 	gplayer* pPlayer = (gplayer*)_imp->_parent;
+ 	send_ls_msg(pPlayer, _tbuf);
+}
+void gplayer_dispatcher::mnfaction_switch_tower_state_info(int num, MNFactionStateInfo &mnfaction_state_info)
+{  
+    _tbuf.clear();
+    using namespace S2C;
+ 	CMD::Make<CMD::mnfaction_switch_tower_state_info>::From(_tbuf, num);
+	for(int i = 0; i < num; i++)
+	{
+		CMD::Make<CMD::mnfaction_switch_tower_state_info>::Add(_tbuf, mnfaction_state_info._index, mnfaction_state_info._own_faction, mnfaction_state_info._state, mnfaction_state_info._time_out);
+	}
+ 	gplayer* pPlayer = (gplayer*)_imp->_parent;
+ 	send_ls_msg(pPlayer, _tbuf);
+}
+void gplayer_dispatcher::mnfaction_transmit_pos_state_info(int num, MNFactionStateInfo &mnfaction_state_info)
+{
+    _tbuf.clear();
+    using namespace S2C;
+ 	CMD::Make<CMD::mnfaction_transmit_pos_state_info>::From(_tbuf, num);
+	for(int i = 0; i < num; i++)
+	{
+		CMD::Make<CMD::mnfaction_transmit_pos_state_info>::Add(_tbuf, mnfaction_state_info._index, mnfaction_state_info._own_faction, mnfaction_state_info._state, mnfaction_state_info._time_out);
+	}
+ 	gplayer* pPlayer = (gplayer*)_imp->_parent;
+ 	send_ls_msg(pPlayer, _tbuf);
+}
+void gplayer_dispatcher::mnfaction_result(int result)
+{
+    _tbuf.clear();
+    using namespace S2C;
+ 	CMD::Make<CMD::mnfaction_result>::From(_tbuf, result);
+ 	gplayer* pPlayer = (gplayer*)_imp->_parent;
+ 	send_ls_msg(pPlayer, _tbuf);
+}
+
+void gplayer_dispatcher::mnfaction_battle_ground_have_start_time(int battle_ground_have_start_time)
+{
+    _tbuf.clear();
+    using namespace S2C;
+ 	CMD::Make<CMD::mnfaction_battle_ground_have_start_time>::From(_tbuf, battle_ground_have_start_time);
+ 	gplayer* pPlayer = (gplayer*)_imp->_parent;
+ 	send_ls_msg(pPlayer, _tbuf);
+}
+
+void gplayer_dispatcher::mnfaction_faction_killed_player_num(int attacker_killed_player_count, int defender_killed_player_count)
+{
+    _tbuf.clear();
+    using namespace S2C;
+ 	CMD::Make<CMD::mnfaction_faction_killed_player_num>::From(_tbuf, attacker_killed_player_count, defender_killed_player_count);
+ 	gplayer* pPlayer = (gplayer*)_imp->_parent;
+ 	send_ls_msg(pPlayer, _tbuf);
+}
+
+void gplayer_dispatcher::mnfaction_shout_at_the_client(int type, int args)
+{
+    _tbuf.clear();
+    using namespace S2C;
+ 	CMD::Make<CMD::mnfaction_shout_at_the_client>::From(_tbuf, type, args);
+ 	gplayer* pPlayer = (gplayer*)_imp->_parent;
+ 	send_ls_msg(pPlayer, _tbuf);
+}
+
+void gplayer_dispatcher::fix_position_transmit_add_position(int index, int world_tag, A3DVECTOR &pos, size_t position_length, const char *position_name)
+{
+	_tbuf.clear();
+	using namespace S2C;
+	CMD::Make<CMD::fix_position_transmit_add_position>::From(_tbuf, index, world_tag, pos.x, pos.y, pos.z, position_length, position_name);
+ 	gplayer* pPlayer = (gplayer*)_imp->_parent;
+ 	send_ls_msg(pPlayer, _tbuf);
+}
+
+void gplayer_dispatcher::fix_position_transmit_delete_position(int index)
+{
+	_tbuf.clear();
+	using namespace S2C;
+	CMD::Make<CMD::fix_position_transmit_delete_position>::From(_tbuf, index);
+ 	gplayer* pPlayer = (gplayer*)_imp->_parent;
+ 	send_ls_msg(pPlayer, _tbuf);
+}
+
+void gplayer_dispatcher::fix_position_transmit_rename(int index, size_t position_length, char *position_name)
+{
+	_tbuf.clear();
+	using namespace S2C;
+	CMD::Make<CMD::fix_position_transmit_rename>::From(_tbuf, index, position_length, position_name);
+ 	gplayer* pPlayer = (gplayer*)_imp->_parent;
+ 	send_ls_msg(pPlayer, _tbuf);
+}
+
+void gplayer_dispatcher::fix_position_energy_info(char is_login, int cur_energy)
+{
+	_tbuf.clear();
+	using namespace S2C;
+	CMD::Make<CMD::fix_position_energy_info>::From(_tbuf, is_login, cur_energy);
+ 	gplayer* pPlayer = (gplayer*)_imp->_parent;
+ 	send_ls_msg(pPlayer, _tbuf);
+}
+
+void gplayer_dispatcher::fix_position_all_info(fix_position_transmit_info *info)
+{
+    _tbuf.clear();
+    using namespace S2C;
+	gplayer_imp * pImp = (gplayer_imp*)_imp;
+	int count = pImp->GetFixPositionCount();
+ 	CMD::Make<CMD::fix_position_all_info>::From(_tbuf, count);
+	for(int i = 0; i < FIX_POSITION_TRANSMIT_MAX_POSITION_COUNT; i++)
+	{
+		if(info[i].index != -1)
+		{
+			CMD::Make<CMD::fix_position_all_info>::Add(_tbuf, info[i].index, info[i].world_tag, info[i].pos.x, info[i].pos.y, info[i].pos.z, FIX_POSITION_TRANSMIT_NAME_MAX_LENGTH, info[i].position_name);
+		}
+	}
+ 	gplayer* pPlayer = (gplayer*)_imp->_parent;
+ 	send_ls_msg(pPlayer, _tbuf);
+}
+
+void gplayer_dispatcher::cash_vip_mall_item_buy_result(char result, short index, char reason)
+{
+	_tbuf.clear();
+	using namespace S2C;
+	CMD::Make<CMD::cash_vip_mall_item_buy_result>::From(_tbuf, result, index, reason);
+	gplayer * pPlayer = (gplayer*)_imp->_parent;
+	send_ls_msg(pPlayer,_tbuf);
+}
+
+void gplayer_dispatcher::cash_vip_info_notify(int level, int score)
+{
+	_tbuf.clear();
+	using namespace S2C;
+	CMD::Make<CMD::cash_vip_info_notify>::From(_tbuf, level, score);
+	gplayer * pPlayer = (gplayer*)_imp->_parent;
+	send_ls_msg(pPlayer,_tbuf);
+}
+
+void gplayer_dispatcher::purchase_limit_all_info_notify()
+{
+    _tbuf.clear();
+    using namespace S2C;
+	gplayer_imp * pImp = (gplayer_imp*)_imp;
+	int count = pImp->GetPurchaseLimit().GetPurchaseLimitItemCount();
+	CMD::Make<CMD::purchase_limit_info_notify>::From(_tbuf, count);
+	pImp->GetPurchaseLimit().SaveAllMap(_tbuf);
+ 	gplayer* pPlayer = (gplayer*)_imp->_parent;
+ 	send_ls_msg(pPlayer, _tbuf);
+}
+
+void gplayer_dispatcher::purchase_limit_info_notify(int limit_type, int item_id, int have_purchase_count)
+{
+	_tbuf.clear();
+	using namespace S2C;
+	CMD::Make<CMD::purchase_limit_info_notify>::From(_tbuf, 1);
+	CMD::Make<CMD::purchase_limit_info_notify>::Add(_tbuf, limit_type, item_id, have_purchase_count);
+	gplayer* pPlayer = (gplayer*)_imp->_parent;
+	send_ls_msg(pPlayer, _tbuf);
+}
+
+void gplayer_dispatcher::cash_resurrect_info(int cash_need, int cash_left)
+{
+    _tbuf.clear();
+    using namespace S2C;
+    CMD::Make<CMD::cash_resurrect_info>::From(_tbuf, cash_need, cash_left);
+    gplayer* pPlayer = (gplayer*)_imp->_parent;
+    send_ls_msg(pPlayer, _tbuf);
+}
+
 void 
 gplayer_imp::OnDeath(const XID & lastattack,bool is_pariah, char attacker_mode, int taskdead)
 {
@@ -7033,6 +7508,13 @@ gplayer_imp::OnDeath(const XID & lastattack,bool is_pariah, char attacker_mode, 
 		SendTo<0>(GM_MSG_PLAYER_BECOME_PARIAH,lastattack,0);
 	}
 
+    if ((CheckVipService(CVS_ENEMYLIST)) && (lastattack.type == GM_TYPE_PLAYER) &&
+        !_free_pvp_mode && !world_manager::GetWorldFlag().nonpenalty_pvp_flag)
+    {
+        // 0 - updateenemylist.hpp : ENEMYLIST_INSERT
+        GMSV::SendUpdateEnemyList(0, _parent->ID.id, lastattack.id);
+    }
+
 	if(lastattack.type == GM_TYPE_NPC && taskdead == 0)
 	{
 		//被NPC杀死，回馈一个消息
@@ -7064,6 +7546,18 @@ gplayer_imp::OnDeath(const XID & lastattack,bool is_pariah, char attacker_mode, 
 	_resurrect_hp_factor = 0.f;
 	_resurrect_mp_factor = 0.f;
 
+	if(lastattack.IsPlayerClass())
+	{
+		int world_idx;
+		gplayer *pPlayerEnemy = world_manager::GetInstance()->FindPlayer(lastattack.id, world_idx); // Procura o personagem que matou o player atual
+		gplayer_imp * pImpEnemy = (gplayer_imp *)pPlayerEnemy->imp;
+		pImpEnemy->_rank_points +=3;
+		pImpEnemy->_rank_kill +=1;
+		if (_rank_points > 0)
+			_rank_points -= 1;
+		_rank_dead += 1;
+	}
+
 	//发送死亡消息
 	_runner->on_death(lastattack, false);
 	int death_type = lastattack.type&0xFF;
@@ -7071,6 +7565,25 @@ gplayer_imp::OnDeath(const XID & lastattack,bool is_pariah, char attacker_mode, 
 	if(taskdead) death_type |= taskdead<<12;
 	GLog::die(_parent->ID.id,death_type,lastattack.id);
 	GLog::log(GLOG_INFO,"用户%d被%d杀死，类别(%d)",_parent->ID.id,lastattack.id,death_type);
+
+    if ((CheckVipService(CVS_RESURRECT)) && !world_manager::GetWorldLimit().nocash_resurrect)
+    {
+        int index = _cash_resurrect_times_in_cooldown;
+        if (index < 0) index = 0;
+        if (CheckCoolDown(COOLDOWN_INDEX_RESURRECT_BY_CASH))
+        {
+            index = 0;
+        }
+        else
+        {
+            ++index;
+            if (index >= CASH_RESURRECT_COST_TABLE_SIZE)
+                index = CASH_RESURRECT_COST_TABLE_SIZE - 1;
+        }
+
+        int cash_need = CASH_RESURRECT_COST_TABLE[index];
+        _runner->cash_resurrect_info(cash_need, GetMallCash());
+    }
 
 	//进行任务的处理
 	PlayerTaskInterface task_if(this);
@@ -7483,6 +7996,10 @@ gplayer_imp::PlayerInvItemToTrash(int where, size_t idx_inv, size_t idx_tra, siz
 		return ;
 	}
 	item_list & box = GetTrashInventory(where);
+	if(idx_tra >= box.Size())
+	{
+		return ;
+	}
 	//帐号仓库物品超过可操作数后只允许取出物品
 	if(where == gplayer_imp::IL_USER_TRASH_BOX && box.GetItemCount() >= box.Size()/2)
 	{
@@ -8156,6 +8673,7 @@ gplayer_imp::RefreshEquipment()
 		item::EQUIP_INDEX_GENERALCARD4,
 		item::EQUIP_INDEX_GENERALCARD5,
 		item::EQUIP_INDEX_GENERALCARD6,
+		item::EQUIP_INDEX_ASTROLABE,
 	};
 	size_t count = sizeof(TEST_EQUIP_LIST) / sizeof(int);
 	ASSERT(count <= _equipment.Size());
@@ -8380,7 +8898,7 @@ gplayer_imp::PlayerGetProperty()
 								_attack_degree, _defend_degree, 
 								_crit_rate+_base_crit_rate, _crit_damage_bonus, 
 								((gplayer*)_parent)->invisible_degree, ((gplayer*)_parent)->anti_invisible_degree,
-								_penetration, _resilience, GetVigour());
+								_penetration, _resilience, GetVigour(), _anti_defense_degree,_anti_resistance_degree,_rank_kill,_rank_dead);
 }
 
 void
@@ -8414,7 +8932,8 @@ gplayer_imp::LongJump(const A3DVECTOR &pos,int target_tag, int contrl_id)
 	}
 	if(target_tag == world_manager::GetWorldTag()) 
 	{
-		LongJump(pos);
+		if(!LongJump(pos))
+		  return false;
 		return true;
 	}
 	instance_key key;
@@ -8432,9 +8951,15 @@ gplayer_imp::LongJump(const A3DVECTOR &pos,int target_tag, int contrl_id)
 }
 
 
-void 
+bool  
 gplayer_imp::LongJump(const A3DVECTOR &pos)
 {
+	if(GetPlayerLimit(PLAYER_LIMIT_NOLONGJUMP))//禁止跳转
+	{
+		return false;
+	}
+
+
 	if(_plane->PosInWorld(pos))
 	{
 		//目标在世界中，直接进行跳转操作
@@ -8466,13 +8991,14 @@ gplayer_imp::LongJump(const A3DVECTOR &pos)
 		if(dest <0)
 		{
 			_runner->error_message(0);
-			return ;
+			return false;
 		}
 		//进行服务器切换的操作
 		//目前假设这里并没有副本服务器切换发生
 		//这个要求是合理的
 		_commander->SwitchSvr(dest,_parent->pos,pos,0);
 	}
+	return true;
 }
 
 void 
@@ -8501,7 +9027,7 @@ gplayer_imp::CanResurrect(int param)
 }
 
 int 
-gplayer_imp::Resurrect(const A3DVECTOR & pos,bool nomove,float exp_reduce,int world_tag,float hp_factor, float mp_factor, int param)
+gplayer_imp::Resurrect(const A3DVECTOR & pos,bool nomove,float exp_reduce,int world_tag,float hp_factor, float mp_factor, int param, float ap_factor, int extra_invincible_time)
 {
 	exp_reduce = exp_reduce * (100 - _resurrect_exp_lost_reduce) * 0.01f;
 	if(_kill_by_player) exp_reduce = 0.f;
@@ -8511,6 +9037,7 @@ gplayer_imp::Resurrect(const A3DVECTOR & pos,bool nomove,float exp_reduce,int wo
 	//将自己的hp和mp成为原始的一半
 	_basic.hp = (int)(_cur_prop.max_hp * hp_factor + 0.5f);
 	_basic.mp = (int)(_cur_prop.max_mp * mp_factor + 0.5f);
+    _basic.ap = (int)(_cur_prop.max_ap * ap_factor + 0.5f);
 
 	SetRefreshState();
 	_enemy_list.clear();
@@ -8531,7 +9058,7 @@ gplayer_imp::Resurrect(const A3DVECTOR & pos,bool nomove,float exp_reduce,int wo
 		//现在暂时原地复活
 
 		//暂时处于无敌和不可操作状态(加入新的session) 
-		AddSession(new session_resurrect_protect(this));
+		AddSession(new session_resurrect_protect(this, extra_invincible_time));
 		StartSession();
 
 
@@ -8891,7 +9418,7 @@ gplayer_imp::OnHeartbeat(size_t tick)
 	{
 		bool no_amulet = GetPlayerLimit(PLAYER_LIMIT_NOAMULET);
 		//进行回血药和回魔药的检查
-		if(_auto_hp_value  > 0 && !no_amulet)
+		if(_auto_hp_value  > 0 && !no_amulet && !world_manager::GetWorldLimit().noauto_genhp)
 		{
 			if(_auto_hp_percent * _cur_prop.max_hp > _basic.hp)
 			{
@@ -8901,7 +9428,7 @@ gplayer_imp::OnHeartbeat(size_t tick)
 			}
 		}
 
-		if(_auto_mp_value  > 0 && !no_amulet)
+		if(_auto_mp_value  > 0 && !no_amulet && !world_manager::GetWorldLimit().noauto_genmp)
 		{
 			if(_auto_mp_percent * _cur_prop.max_mp > _basic.mp)
 			{
@@ -9184,6 +9711,35 @@ gplayer_imp::OnHeartbeat(size_t tick)
 		PlayerGetProperty();
 		_need_refresh_equipment = false;
 	}
+	
+	// Alien - buff de velocidade inicial	
+	gplayer * pPlayer = (gplayer*)_parent;
+	if (pPlayer->base_info.level <= 100)
+	{	
+		CastRune(18003, 1);
+	}
+	else
+	{
+		_filters.RemoveFilter(FILTER_NEWSPEEDBUFF);
+	}
+
+	// Alien - Checa se esta no mapa 132 (cubo) e se COOLDOWN_TELEPORT_CUBO = 0
+	gplayer_imp* pImp = (gplayer_imp*)_parent->imp;
+	if (world_manager::GetWorldTag() == 132)
+	{
+		if (!pImp->CheckCoolDown(COOLDOWN_TELEPORT_CUBO)) return;
+		
+		A3DVECTOR pos;
+		if (pImp->_plane->PosInWorld(pos))
+			pImp->LongJump(pos);
+		else
+		{
+			A3DVECTOR pos(1444.885f,0,847.929f);
+			pos.y = pImp->_plane->GetHeightAt(pos.x,pos.z);
+			path_finding::GetValidPos(pImp->_plane, pos);	//试图让玩家落在碰撞盒上
+			pImp->LongJump(pos,1,0);
+		}		
+	}
 }
 
 void gplayer_imp::TryClearTBChangeCounter()
@@ -9231,7 +9787,7 @@ gplayer_imp::AutoSaveData()
 			delete this;
 		}
 
-		virtual void OnPutRole(int retcode){
+		virtual void OnPutRole(int retcode, GDB::PutRoleResData *data){
 			//试图寻找一下玩家，将物品箱的写入标志置为false
 			ASSERT(retcode == 0);
 
@@ -9264,11 +9820,19 @@ gplayer_imp::AutoSaveData()
 
 					//将存盘错误清0
 					pImp->_db_save_error = 0;
+
+					HandleResData(data, pImp);
 				}
 				
 			}
 			GLog::log(GLOG_INFO,"用户%d数据自动存盘完成",_userid);
 			delete this;
+		}
+		
+		void HandleResData(GDB::PutRoleResData *data, gplayer_imp * pImp)
+		{
+			gplayer * pPlayer = (gplayer*)(pImp->_parent);
+			pImp->GetCashVipInfo().SyncCashVipInfoFromDB(data->cash_vip_level, data->score_add, data->score_cost, pPlayer);
 		}
 	};
 	_write_counter ++;
@@ -9494,6 +10058,42 @@ gplayer_imp::RepairAllEquipment()
 	}
 }
 
+void
+gplayer_imp::RemoteAllRepair()
+{
+	if(!CheckVipService(CVS_REPAIR))
+	{
+		_runner->error_message(S2C::ERR_CASH_VIP_LIMIT);
+		return;
+	}
+	
+	size_t cost = 0;
+	int count = 0;
+	cost += _equipment.GetRepairCost(count);
+	if(count > 0)
+	{
+		float cost_adjust_ratio = player_template::GetRemoteAllRepairCostRatio(GetCashVipLevel());
+		float cost_adjust = cost * cost_adjust_ratio;
+		if(cost_adjust > 2e9)
+		{
+			GLog::log(GLOG_INFO,"REMOTE_REPAIR_ALL 用户%d,在远程修理时, 花费超过最大值",_parent->ID.id);
+			return;
+		}
+		cost = (int)cost_adjust;
+		if(cost <= _player_money)
+		{
+			_equipment.RepairAll();
+			SpendMoney(cost);
+			_runner->repair_all(cost);
+			RefreshEquipment();
+		}
+		else
+		{
+			_runner->error_message(S2C::ERR_OUT_OF_FUND);
+		}
+	}
+}
+
 int 
 gplayer_imp::Repair(item & it, int where,int index)
 {
@@ -9596,7 +10196,7 @@ gplayer_imp::Logout(int type)
 			OnPutRole(2);
 		}
 		
-		virtual void OnPutRole(int retcode)
+		virtual void OnPutRole(int retcode, GDB::PutRoleResData *data = NULL)
 		{
 			//ASSERT(retcode == 0);
 			//写入磁盘成功
@@ -9912,7 +10512,7 @@ gplayer_imp::Save(archive & ar)
 	gactive_imp::Save(ar);
 	ar << _player_money << _combat_timer << _reputation << _provider.id << _provider.pos << _money_capacity << _inv_level << _stall_trade_id << _stall_info << _last_move_mode << _pvp_cooldown << _security_passwd_checked << _pvp_enable_flag << _force_attack << _refuse_bless << _kill_by_player << _nonpenalty_pvp_state << _resurrect_state << _resurrect_exp_reduce << _resurrect_hp_factor << _resurrect_mp_factor << _resurrect_exp_lost_reduce << _ap_per_hit << _db_save_error << _pvp_combat_timer << _double_exp_timeout << _double_exp_mode << _rest_counter_time << _rest_time_used << _rest_time_capacity << _mafia_rest_time << _mafia_rest_counter_time << _login_timestamp << _played_time << _last_login_timestamp << _create_timestamp << _spec_task_reward << _spec_task_reward2 << _spec_task_reward_param << _spec_task_reward_mask << _db_timestamp << _db_user_id;
 
-	ar << _mall_cash << _mall_cash_used << _mall_cash_offset << _mall_cash_add << _mall_order_id << _mall_order_id_saved << _mall_consumption << _chat_emote <<  _cheat_punish <<_cheat_mode  << _cheat_report << _wallow_level << _auto_hp_value << _auto_hp_percent << _auto_mp_value << _auto_mp_percent << _level_up /*<< _wallow_obj*/ << _profit_time << _profit_level << _profit_timestamp << _active_state_delay << _realm_level << _realm_exp << _leadership << _leadership_occupied << _world_contribution << _world_contribution_cost; 
+	ar << _mall_cash << _mall_cash_used << _mall_cash_offset << _mall_cash_add << _mall_order_id << _mall_order_id_saved << _mall_consumption << _chat_emote <<  _cheat_punish <<_cheat_mode  << _cheat_report << _wallow_level << _auto_hp_value << _auto_hp_percent << _auto_mp_value << _auto_mp_percent << _level_up /*<< _wallow_obj*/ << _profit_time << _profit_level << _profit_timestamp << _active_state_delay << _realm_level << _realm_exp << _leadership << _leadership_occupied << _world_contribution << _world_contribution_cost << _astrolabe_extern_level << _astrolabe_extern_exp << _rank_points << _rank_kill << _rank_dead;
 	//保存名字
 	ar << _username_len;
 	ar.push_back(_username,_username_len);
@@ -10042,6 +10642,24 @@ gplayer_imp::Save(archive & ar)
 	_player_clock.Save(ar);
 	_player_randmall.Save(ar);
 
+	_solochallenge.Save(ar);
+	ar << _player_mnfaction_info.unifid;
+	ar << _player_visa_info.type << _player_visa_info.stay_timestamp << _player_visa_info.cost << _player_visa_info.count;
+
+	ar << _fix_position_transmit_energy;
+	size_t fptm_size = FIX_POSITION_TRANSMIT_MAX_POSITION_COUNT;
+	ar << fptm_size;
+	for(size_t i = 0; i < fptm_size; ++i)
+	{
+		fix_position_transmit_info &info = _fix_position_transmit_infos[i];
+		ar <<  info.index << info.world_tag << info.pos.x << info.pos.y << info.pos.z;
+		ar.push_back(info.position_name, FIX_POSITION_TRANSMIT_NAME_MAX_LENGTH);
+	}
+    _cash_vip_info.Save(ar);
+	_purchase_limit_info.Save(ar);
+
+    ar << _cash_resurrect_times_in_cooldown;
+
 	return true;
 }
 
@@ -10050,7 +10668,7 @@ gplayer_imp::Load(archive & ar)
 {
 	gactive_imp::Load(ar);
 	ar >>  _player_money >> _combat_timer >> _reputation >> _provider.id >> _provider.pos >> _money_capacity >> _inv_level >> _stall_trade_id >> _stall_info >> _last_move_mode >> _pvp_cooldown >> _security_passwd_checked >> _pvp_enable_flag >> _force_attack >> _refuse_bless >> _kill_by_player >> _nonpenalty_pvp_state >> _resurrect_state >> _resurrect_exp_reduce >> _resurrect_hp_factor >> _resurrect_mp_factor >> _resurrect_exp_lost_reduce >> _ap_per_hit >> _db_save_error >> _pvp_combat_timer >> _double_exp_timeout >> _double_exp_mode >> _rest_counter_time >> _rest_time_used >> _rest_time_capacity >> _mafia_rest_time >> _mafia_rest_counter_time >> _login_timestamp >> _played_time >> _last_login_timestamp >> _create_timestamp >> _spec_task_reward >> _spec_task_reward2 >> _spec_task_reward_param >> _spec_task_reward_mask >> _db_timestamp >> _db_user_id;
-	ar >> _mall_cash >> _mall_cash_used>> _mall_cash_offset >> _mall_cash_add >> _mall_order_id >> _mall_order_id_saved >> _mall_consumption >> _chat_emote >> _cheat_punish >> _cheat_mode >> _cheat_report >> _wallow_level >> _auto_hp_value >> _auto_hp_percent >> _auto_mp_value >> _auto_mp_percent >> _level_up /*>> _wallow_obj*/ >> _profit_time >> _profit_level >> _profit_timestamp >> _active_state_delay >> _realm_level >> _realm_exp >> _leadership >> _leadership_occupied >> _world_contribution >> _world_contribution_cost;
+	ar >> _mall_cash >> _mall_cash_used>> _mall_cash_offset >> _mall_cash_add >> _mall_order_id >> _mall_order_id_saved >> _mall_consumption >> _chat_emote >> _cheat_punish >> _cheat_mode >> _cheat_report >> _wallow_level >> _auto_hp_value >> _auto_hp_percent >> _auto_mp_value >> _auto_mp_percent >> _level_up /*>> _wallow_obj*/ >> _profit_time >> _profit_level >> _profit_timestamp >> _active_state_delay >> _realm_level >> _realm_exp >> _leadership >> _leadership_occupied >> _world_contribution >> _world_contribution_cost >> _astrolabe_extern_level >> _astrolabe_extern_exp >> _rank_points >> _rank_kill >> _rank_dead;
 
 	//取出名字
 	ar >> _username_len;
@@ -10251,6 +10869,24 @@ gplayer_imp::Load(archive & ar)
 	
 	if(!_player_clock.Load(ar))  GLog::log(GLOG_ERR,"用户%d 时钟数据跳转时出现错误",_parent->ID.id);
 	_player_randmall.Load(ar);
+
+	_solochallenge.Load(ar);
+	ar >> _player_mnfaction_info.unifid;
+	ar >> _player_visa_info.type >> _player_visa_info.stay_timestamp >> _player_visa_info.cost >> _player_visa_info.count;
+
+	ar >> _fix_position_transmit_energy;
+	size_t fptm_size;
+	ar >> fptm_size;
+	for(size_t i = 0; i < fptm_size; ++i)
+	{
+		fix_position_transmit_info &info = _fix_position_transmit_infos[i];
+		ar >> info.index >> info.world_tag >> info.pos.x >> info.pos.y >> info.pos.z;
+		ar.pop_back(info.position_name, FIX_POSITION_TRANSMIT_NAME_MAX_LENGTH);
+	}
+	_cash_vip_info.Load(ar);
+	_purchase_limit_info.Load(ar);
+
+    ar >> _cash_resurrect_times_in_cooldown;
 
 	return true;
 }
@@ -10583,7 +11219,8 @@ gplayer_imp::ReturnToTown()
 	A3DVECTOR pos;
 	int world_tag;
 	if(!world_manager::GetInstance()->GetTownPosition(this,_parent->pos,pos,world_tag)) return false;
-	LongJump(pos,world_tag);
+	if(!LongJump(pos,world_tag))
+		return false;
 	return true;
 }
 
@@ -10944,7 +11581,7 @@ gplayer_imp::SendDataToSubscibeList()
 	packet_wrapper h1(64);
 	using namespace S2C;
 	//_backup_hp[1]
-	CMD::Make<CMD::player_info_00>::From(h1,_parent->ID,_basic.hp,_basic,_cur_prop,IsCombatState()?1:0, GetCurTarget().id); // todo ddr
+	CMD::Make<CMD::player_info_00>::From(h1,_parent->ID,_basic.hp,_basic,_cur_prop,IsCombatState()?1:0, GetCurTarget().id);
 	if(_subscibe_list.size())
 		send_ls_msg(_subscibe_list.begin(), _subscibe_list.end(), h1.data(),h1.size());
 	if(_second_subscibe_list.size())
@@ -11112,6 +11749,11 @@ gplayer_imp::Swap(gplayer_imp * rhs)
 	Set(_leadership_occupied,rhs);
 	Set(_world_contribution,rhs);
 	Set(_world_contribution_cost,rhs);
+ 	Set(_astrolabe_extern_level,rhs);
+ 	Set(_astrolabe_extern_exp,rhs);
+	Set(_rank_points,rhs);
+	Set(_rank_kill,rhs);
+	Set(_rank_dead,rhs);
 
 	_faction_alliance.clear();
 	for(abase::hash_map<int,int>::iterator it=rhs->_faction_alliance.begin(); it!=rhs->_faction_alliance.end(); ++it)
@@ -11136,6 +11778,16 @@ gplayer_imp::Swap(gplayer_imp * rhs)
 	_generalcard_collection.swap(rhs->_generalcard_collection);
 	_player_clock.Swap(rhs->_player_clock);
 	_player_randmall.Swap(rhs->_player_randmall);
+
+	_solochallenge.Swap(rhs->_solochallenge);
+	Set(_player_mnfaction_info, rhs);
+	Set(_player_visa_info, rhs);
+	Set(_fix_position_transmit_energy, rhs);
+	memcpy(_fix_position_transmit_infos, rhs->_fix_position_transmit_infos, sizeof(_fix_position_transmit_infos));
+
+	_cash_vip_info.Swap(rhs->_cash_vip_info);
+	_purchase_limit_info.Swap(rhs->_purchase_limit_info);
+    Set(_cash_resurrect_times_in_cooldown, rhs);
 #undef Set
 	gactive_imp::Swap(rhs);
 }
@@ -11323,7 +11975,7 @@ gplayer_imp::RefineItemAddon(size_t index, int item_type, int rt_index)
 	
 	
 	int level_result = 0;
-	int rst = it.body->RefineAddon(refine_addon, level_result,adjust,adjust2);
+	int rst = it.body->RefineAddon(refine_addon, level_result,adjust,adjust2, rt_id);
 	if(rst != item::REFINE_CAN_NOT_REFINE)
 	{
 		const char * tbuf[] = {"成功", "无法精炼" , "材料消失", "属性降低一级", "属性爆掉", "装备爆掉","未知1","未知2","未知3"};
@@ -11401,7 +12053,21 @@ gplayer_imp::UpdateMafiaPvP(unsigned char pvp_mask)
 }
 
 void 
-gplayer_imp::UpdateMafiaInfo(int id, char rank, unsigned char pvp_mask)
+gplayer_imp::SetDBMNFactionInfo(int64_t unifid)
+{
+	_player_mnfaction_info.unifid = unifid;
+	
+	gplayer * pPlayer = (gplayer*)_parent;
+	pPlayer->mnfaction_id = unifid;
+
+	if(unifid)
+		pPlayer->object_state2 |= gactive_object::STATE_MNFACTION_MASK;
+	else
+		pPlayer->object_state2 &= ~gactive_object::STATE_MNFACTION_MASK;
+}
+
+void 
+gplayer_imp::UpdateMafiaInfo(int id, char rank, unsigned char pvp_mask, int64_t unifid)
 {
 	gplayer * pPlayer = (gplayer*)_parent;
 	if(pPlayer->id_mafia != id)
@@ -11422,6 +12088,14 @@ gplayer_imp::UpdateMafiaInfo(int id, char rank, unsigned char pvp_mask)
 			GLog::log(GLOG_INFO,"role%d mafiaid%d reset to 0",pPlayer->ID.id,pPlayer->id_mafia);
 		}
 	}
+	_player_mnfaction_info.unifid = unifid;
+	pPlayer->mnfaction_id = unifid;
+
+	if(unifid)
+		pPlayer->object_state2 |= gactive_object::STATE_MNFACTION_MASK;
+	else
+		pPlayer->object_state2 &= ~gactive_object::STATE_MNFACTION_MASK;
+
 	pPlayer->id_mafia = id;
 	pPlayer->rank_mafia = rank;
 	if(id)
@@ -11531,10 +12205,13 @@ gplayer_imp::TestPKProtected()
 }
 
 void 
-gplayer_imp::PlayerEnterServer()
+gplayer_imp::PlayerEnterServer(int source_tag)
 {
 	ReInit();
 	((gplayer_controller*)_commander)->ReInit();
+
+	_skill.EventLeave(this,source_tag);
+	_skill.EventEnter(this,world_manager::GetWorldTag());
 
 	bool inv_changed = _inventory.ClearByProcType(item::ITEM_PROC_TYPE_LEAVE_DROP|item::ITEM_PROC_TYPE_NO_SAVE);
 	bool eqp_changed = _equipment.ClearByProcType(item::ITEM_PROC_TYPE_LEAVE_DROP|item::ITEM_PROC_TYPE_NO_SAVE);
@@ -11627,6 +12304,11 @@ gplayer_imp::PlayerEnterServer()
 	_runner->update_profit_time(S2C::CMD::player_profit_time::PLAYER_SWITCH_SERVER, _profit_time, _profit_level);
 	_runner->send_timestamp(); 
 	_plane->SyncPlayerWorldGen((gplayer*)_parent);
+	
+ 	if(world_manager::GetIsSoloTowerChallengeInstance())
+ 	{
+ 		PlayerEnterSoloChallengeInstance();
+	}
 }
 
 void 
@@ -11637,6 +12319,11 @@ gplayer_imp::PlayerLeaveServer()
 
 	PlayerTaskInterface tif(this);
 	tif.PlayerLeaveScene();
+
+	if(world_manager::GetIsSoloTowerChallengeInstance())
+	{
+		PlayerLeaveSoloChallengeInstance();
+	}
 }
 
 void 
@@ -11672,6 +12359,11 @@ gplayer_imp::PlayerLeaveWorld()
 
 	PlayerTaskInterface tif(this);
 	tif.PlayerLeaveWorld();
+
+	if(world_manager::GetIsSoloTowerChallengeInstance())
+	{
+		PlayerLeaveSoloChallengeInstance();
+	}
 }
 
 void 
@@ -11710,8 +12402,8 @@ gplayer_imp::PlaneEnterNotify(bool is_enter)
 	if(!world_manager::GetWorldLimit().common_data_notify) return;
 	if(is_enter)
 	{
-		_plane->ModifyCommonValue(COMMON_VALUE_ID_PLAYER_COUNT, 1);
 		_plane->AddPlayerNode(GetParent());
+		_plane->ModifyCommonValue(COMMON_VALUE_ID_PLAYER_COUNT, 1);
 	}
 	else
 	{
@@ -11887,6 +12579,49 @@ int gplayer_imp::TransformChatData(const void * data,size_t dsize, void * out_bu
 			return h1.size();
 		}
 		break;
+
+        case CHAT_C2S::CHAT_PROPERTY_SCORE:
+        {
+            CHAT_C2S::chat_property_score& cmd = *(CHAT_C2S::chat_property_score*)data;
+            if (sizeof(cmd) != dsize) return 0;
+
+            CHAT_S2C::chat_property_score chat_data = {0};
+            chat_data.cmd_id = CHAT_S2C::CHAT_PROPERTY_SCORE;
+
+            size_t name_len = _username_len;
+            if (name_len >= sizeof(chat_data.name))
+                name_len = sizeof(chat_data.name) - 1;
+            memcpy(chat_data.name, _username, name_len);
+            chat_data.name[name_len] = 0;
+
+            int cls = -1;
+            bool gender = false;
+            GetPlayerClass(cls, gender);
+            chat_data.cls = cls;
+
+            unsigned int value = 0;
+            chat_data.level = _basic.level;
+            chat_data.fighting_score = player_template::GetFightingScore(this, value);
+            chat_data.viability_score = player_template::GetViabilityScore(this, value);
+
+            chat_data.state_num = _visible_team_state.size();
+            chat_data.state = _visible_team_state.begin();
+
+            size_t state_size = sizeof(chat_data.state[0]) * chat_data.state_num;
+            packet_wrapper h1(sizeof(chat_data) + state_size);
+            h1 << chat_data.cmd_id;
+            h1.push_back(chat_data.name, sizeof(chat_data.name));
+            h1 << chat_data.cls << chat_data.level << chat_data.fighting_score << chat_data.viability_score << chat_data.state_num;
+            h1.push_back(chat_data.state, state_size);
+
+            if (len < h1.size()) return 0;
+            memcpy(out_buffer, h1.data(), h1.size());
+            return h1.size();
+        }
+        break;
+
+        default:
+        break;
 	}
 	return 0;
 }
@@ -12752,6 +13487,11 @@ gplayer_imp::DecInvisiblePassive(int val)
 void 
 gplayer_imp::SetInvisible(int invisible_degree)
 {
+	if(GetPlayerLimit(PLAYER_LIMIT_NOINVISIBLE))//禁止隐身
+	{
+		return;
+	}
+	
 	gplayer * player = (gplayer*)_parent;
 	_invisible_active += invisible_degree;
 	property_policy::UpdatePlayerInvisible(this);
@@ -13268,8 +14008,14 @@ void gplayer_imp::SendAllData(bool detail_inv, bool detail_equip, bool detail_ta
 	size_t gc_size = 0;
 	const void * gc_data = _generalcard_collection.data(gc_size);
 	_runner->generalcard_collection_data(gc_data, gc_size);
+ 	_runner->astrolabe_info_notify(_astrolabe_extern_level,_astrolabe_extern_exp);
 	_player_instance_reenter.NotifyClient(this);
 	_runner->get_task_data(); //这个指令被客户端判定为所有数据发完的指示
+	_solochallenge.NotifySoloChallengeData(this);
+	_runner->fix_position_energy_info(1, _fix_position_transmit_energy);
+	_runner->fix_position_all_info(_fix_position_transmit_infos);
+	_runner->purchase_limit_all_info_notify();
+	_runner->rank_dispatcher(_rank_points, _rank_kill, _rank_dead);
 }
 
 size_t 
@@ -14717,6 +15463,16 @@ gplayer_imp::SetPetLeaderData(pet_leader_prop & data)
 	data.force_id = _player_force.GetForce();
 	data.invader_state = _invader_state;
 	data.free_pvp_mode = _free_pvp_mode;
+	
+	int cls = GetObjectClass();
+	if(cls >= 0 && ((1<<cls) & 0xACE)) // 策划规定远程职业 USER_CLASS_COUNT
+	{
+		data.anti_def_degree = _anti_resistance_degree;
+	}
+	else
+	{
+		data.anti_def_degree = _anti_defense_degree;
+	}
 }
 
 bool gplayer_imp::ResurrectPet(size_t index)
@@ -14859,7 +15615,7 @@ gplayer_imp::FirstAcquireItem(const item_data* itemdata)
     if (itemdata->content_length > 0)
         buf.push_back(itemdata->item_content, itemdata->content_length);
 
-	broadcast_chat_msg(100, buf.data(), buf.size(), GMSV::CHAT_CHANNEL_SYSTEM, 0, 0, 0);//表示是XXX获得了XXX 的格式化文本
+	broadcast_chat_msg(RARE_ITEM_CHAT_MSG_ID, buf.data(), buf.size(), GMSV::CHAT_CHANNEL_SYSTEM, 0, 0, 0);//表示是XXX获得了XXX 的格式化文本
 	__PRINTF("发出制定广播\n");
 }
 
@@ -15172,6 +15928,8 @@ gplayer_imp::PlayerDoShopping(size_t goods_count,const int * order_list, int sho
 	abase::vector<netgame::mall_invoice, abase::fast_alloc<> > invoice_list;
 	invoice_list.reserve(goods_count);
 	
+	std::map<int, int> item_limit_type_map; // item_id -> limit_type
+
 	ASSERT(netgame::mall::MAX_ENTRY == 4);
 	size_t offset = 0;
 	for(size_t i = 0; i < goods_count; i ++, offset += sizeof(C2S::CMD::mall_shopping::__entry) / sizeof(int))
@@ -15208,6 +15966,19 @@ gplayer_imp::PlayerDoShopping(size_t goods_count,const int * order_list, int sho
 			_runner->error_message(S2C::ERR_ITEM_FORBID_SHOP);
 			return true;
 		}
+		
+		if(!_purchase_limit_info.CheckShoppingLimitItem(id, node.buy_times_limit, node.buy_times_limit_mode, node.goods_count))
+		{
+			_runner->cash_vip_mall_item_buy_result(CASH_VIP_BUY_FAILED, index, 1);
+			return true;
+		}
+		
+		if(GetCashVipLevel() < node.entry[slot].min_vip_level)
+		{
+			_runner->error_message(S2C::ERR_CASH_VIP_LIMIT);
+			return true;
+		}
+
 		//lgc	
 		//找到当前生效的group
 		int active_group_id = 0;
@@ -15253,6 +16024,9 @@ gplayer_imp::PlayerDoShopping(size_t goods_count,const int * order_list, int sho
 		if(node.gift_id > 0) gifts_count ++;  //统计赠品数
 
 		order.AddGoods(node.goods_id, node.goods_count,node.entry[slot].cash_need, node.entry[slot].expire_time,node.entry[slot].expire_type,node.gift_id,node.gift_count,node.gift_expire_time,node.gift_log_price);
+
+		if(node.buy_times_limit_mode)
+			item_limit_type_map[node.goods_id] = node.buy_times_limit_mode;
 
 	}
 	if(GetMallCash() < order.GetPointRequire())
@@ -15335,6 +16109,12 @@ gplayer_imp::PlayerDoShopping(size_t goods_count,const int * order_list, int sho
 				int rst =_inventory.Push(*pItem2,count,expire_date);
 				ASSERT(rst >= 0 && count == 0);
 				_runner->obtain_item(id,pItem2->expire_date,ocount,_inventory[rst].count, 0,rst);
+
+				if(item_limit_type_map.find(id) != item_limit_type_map.end())
+				{
+					int have_purchase_count = _purchase_limit_info.AddShoppingLimit(id, item_limit_type_map[id], ocount);
+					_runner->purchase_limit_info_notify(item_limit_type_map[id], id, have_purchase_count);
+				}
 
 				//试着重新初始化一下可能的时装
 				_inventory[rst].InitFromShop();
@@ -15630,6 +16410,61 @@ gplayer_imp::SendTeamChat(char channel, const void * buf, size_t len, const void
 	{
 		_team.TeamChat(channel,_chat_emote,buf,len,use_id > 0?use_id:_parent->ID.id, aux_data , dsize);
 	}
+}
+
+void 
+gplayer_imp::SendGlobalChat(char channel, const void * msg, size_t size, const void* data, size_t dsize)
+{
+	if(_player_state != PLAYER_STATE_NORMAL
+		&& _player_state != PLAYER_STATE_BIND
+		&& _player_state != PLAYER_SIT_DOWN
+		&& _player_state != PLAYER_STATE_MARKET)
+	{
+		return;
+	}
+
+	if(InCentralServer())
+	{
+		_runner->error_message(S2C::ERR_SERVICE_UNAVILABLE);
+		return;
+	}
+
+	if (OI_TestSafeLock())
+	{
+		_runner->error_message(S2C::ERR_FORBIDDED_OPERATION_IN_SAFE_LOCK);
+		return;
+	}
+
+	if(!CheckCoolDown(COOLDOWN_INDEX_GLOBAL_CRY))
+	{
+		_runner->error_message(S2C::ERR_OBJECT_IS_COOLING);
+		return;
+	}
+
+	//冷却
+	SetCoolDown(COOLDOWN_INDEX_GLOBAL_CRY, GLOABL_CRY_COOLDOWN_TIME);
+
+	int	item_need = GLOBAL_SPEAKER_ID;
+	int	item_idx = _inventory.Find(0, item_need);
+	if(item_idx < 0)
+	{       
+		item_need = GLOBAL_SPEAKER_ID2;
+		item_idx = _inventory.Find(0, item_need);
+		if(item_idx < 0)
+		{
+			_runner->error_message(S2C::ERR_ITEM_NOT_IN_INVENTORY);
+			return ;
+		}
+	}
+
+	item& it = _inventory[item_idx];
+	UpdateMallConsumptionDestroying(it.type, it.proc_type, 1);
+
+	_inventory.DecAmount(item_idx,1);
+	_runner->use_item(gplayer_imp::IL_INVENTORY,item_idx, item_need,1);
+
+	broadcast_chat_msg(_parent->ID.id,msg,size,channel,7,data,dsize); 
+
 }
 
 void 
@@ -16354,6 +17189,16 @@ gplayer_imp::ProduceItem3(const recipe_template & rt,int materials[16], int idxs
 				inherit_fee += int(inherit_cfg_ess->num_armor[eq_socket_count-1][((ARMOR_ESSENCE*)target_eq_ess)->level-1] * rt.inherit_fee_factor + 0.5f);
 			}	
 		}
+        else if (eq_dt == DT_DECORATION_ESSENCE)
+        {
+            eq_socket_count = eq_it.body->GetSocketCount();
+            if (eq_socket_count > 0)
+            {
+                int decoration_level = ((DECORATION_ESSENCE*)target_eq_ess)->level;
+                ASSERT((eq_socket_count <= 4) && (decoration_level >= 1) && (decoration_level <= 20));
+                inherit_fee += int(inherit_cfg_ess->num_decoration[eq_socket_count - 1][decoration_level - 1] * rt.inherit_fee_factor + 0.5f);
+            }
+        }
 	}
 	if(inherit_type & PRODUCE_INHERIT_STONE)
 	{
@@ -16741,6 +17586,16 @@ gplayer_imp::ProduceItem4(const recipe_template & rt,int materials[16], int idxs
 				inherit_fee += int(inherit_cfg_ess->num_armor[eq_socket_count-1][((ARMOR_ESSENCE*)target_eq_ess)->level-1] * rt.inherit_fee_factor + 0.5f);
 			}	
 		}
+        else if (eq_dt == DT_DECORATION_ESSENCE)
+        {
+            eq_socket_count = eq_it.body->GetSocketCount();
+            if (eq_socket_count > 0)
+            {
+                int decoration_level = ((DECORATION_ESSENCE*)target_eq_ess)->level;
+                ASSERT((eq_socket_count <= 4) && (decoration_level >= 1) && (decoration_level <= 20));
+                inherit_fee += int(inherit_cfg_ess->num_decoration[eq_socket_count - 1][decoration_level - 1] * rt.inherit_fee_factor + 0.5f);
+            }
+        }
 	}
 	if(inherit_type & PRODUCE_INHERIT_STONE)
 	{
@@ -17089,6 +17944,16 @@ gplayer_imp::ProduceItem5(const recipe_template& rt,int materials[16], int idxs[
 				inherit_fee += int(inherit_cfg_ess->num_armor[eq_socket_count-1][((ARMOR_ESSENCE*)target_eq_ess)->level-1] * rt.inherit_fee_factor + 0.5f);
 			}	
 		}
+        else if (eq_dt == DT_DECORATION_ESSENCE)
+        {
+            eq_socket_count = eq_it.body->GetSocketCount();
+            if (eq_socket_count > 0)
+            {
+                int decoration_level = ((DECORATION_ESSENCE*)target_eq_ess)->level;
+                ASSERT((eq_socket_count <= 4) && (decoration_level >= 1) && (decoration_level <= 20));
+                inherit_fee += int(inherit_cfg_ess->num_decoration[eq_socket_count - 1][decoration_level - 1] * rt.inherit_fee_factor + 0.5f);
+            }
+        }
 	}
 	if(inherit_type & PRODUCE_INHERIT_STONE)
 	{
@@ -18387,7 +19252,8 @@ bool gplayer_imp::PlayerGetMallItemPrice(int start_index, int end_index)	//lgc若
 														node.entry[j].expire_type, 
 														node.entry[j].expire_time, 
 														node.entry[j].cash_need, 
-														node.entry[j].status);
+														node.entry[j].status,
+														node.entry[j].min_vip_level);
 						__h0_count ++;
 					}
 				}
@@ -18421,7 +19287,8 @@ bool gplayer_imp::PlayerGetMallItemPrice(int start_index, int end_index)	//lgc若
 														node.entry[available_saletime].expire_type, 
 														node.entry[available_saletime].expire_time, 
 														node.entry[available_saletime].cash_need, 
-														node.entry[available_saletime].status);
+														node.entry[available_saletime].status,
+														node.entry[available_saletime].min_vip_level);
 				__h0_count ++;
 			}
 			else if(available_permanent >= 0 )	//同组内有永久销售时间满足
@@ -18435,7 +19302,8 @@ bool gplayer_imp::PlayerGetMallItemPrice(int start_index, int end_index)	//lgc若
 																node.entry[available_permanent].expire_type, 
 																node.entry[available_permanent].expire_time, 
 																node.entry[available_permanent].cash_need, 
-																node.entry[available_permanent].status);
+																node.entry[available_permanent].status,
+																node.entry[available_permanent].min_vip_level);
 					__h0_count ++;
 				}
 			}
@@ -18459,6 +19327,7 @@ bool gplayer_imp::PlayerGetMallItemPrice(int start_index, int end_index)	//lgc若
 																0, 
 																0, 
 																0, 
+																0,
 																0);
 						__h0_count ++;
 					}
@@ -18686,6 +19555,8 @@ gplayer_imp::PlayerDoDividendShopping(size_t goods_count,const int * order_list,
 	time_t __time = time(NULL);			//
 	netgame::mall_order  order(-1);
 	
+	std::map<int, int> item_limit_type_map; // item_id -> limit_type
+	
 	ASSERT(netgame::mall::MAX_ENTRY == 4);
 	size_t offset = 0;
 	for(size_t i = 0; i < goods_count; i ++, offset += sizeof(C2S::CMD::dividend_mall_shopping::__entry) / sizeof(int))
@@ -18716,6 +19587,19 @@ gplayer_imp::PlayerDoDividendShopping(size_t goods_count,const int * order_list,
 			_runner->error_message(S2C::ERR_GSHOP_INVALID_REQUEST);
 			return true;
 		}
+
+		if(!_purchase_limit_info.CheckShoppingLimitItem(id, node.buy_times_limit, node.buy_times_limit_mode, node.goods_count))
+		{
+			_runner->cash_vip_mall_item_buy_result(CASH_VIP_BUY_FAILED, index, 1);
+			return true;
+		}
+
+		if(GetCashVipLevel() < node.entry[slot].min_vip_level)
+		{
+			_runner->error_message(S2C::ERR_CASH_VIP_LIMIT);
+			return true;
+		}
+		
 		//lgc	
 		//找到当前生效的group
 		int active_group_id = 0;
@@ -18762,6 +19646,8 @@ gplayer_imp::PlayerDoDividendShopping(size_t goods_count,const int * order_list,
 		
 		order.AddGoods(node.goods_id, node.goods_count,node.entry[slot].cash_need, node.entry[slot].expire_time,node.entry[slot].expire_type,node.gift_id,node.gift_count,node.gift_expire_time,node.gift_log_price);
 
+		if(node.buy_times_limit_mode)
+			item_limit_type_map[node.goods_id] = node.buy_times_limit_mode;
 	}
 	if(_dividend_mall_info.GetDividend() < order.GetPointRequire())
 	{
@@ -18836,6 +19722,12 @@ gplayer_imp::PlayerDoDividendShopping(size_t goods_count,const int * order_list,
 				int rst =_inventory.Push(*pItem2,count,expire_date);
 				ASSERT(rst >= 0 && count == 0);
 				_runner->obtain_item(id,pItem2->expire_date,ocount,_inventory[rst].count, 0,rst);
+
+				if(item_limit_type_map.find(id) != item_limit_type_map.end())
+				{
+					int have_purchase_count = _purchase_limit_info.AddShoppingLimit(id, item_limit_type_map[id], ocount);
+					_runner->purchase_limit_info_notify(item_limit_type_map[id], id, have_purchase_count);
+				}
 
 				//试着重新初始化一下可能的时装
 				_inventory[rst].InitFromShop();
@@ -18939,8 +19831,8 @@ bool gplayer_imp::PlayerGetDividendMallItemPrice(int start_index, int end_index)
 		}
 	}
 	//只在扫描范围大于指定值时才设置冷却
-	if(end_index-start_index > 10 && !CheckCoolDown(COOLDOWM_INDEX_GET_DIVIDEND_MALL_PRICE)) return false;
-	SetCoolDown(COOLDOWM_INDEX_GET_DIVIDEND_MALL_PRICE,GET_DIVIDEND_MALL_PRICE_COOLDOWN_TIME);
+	if(end_index-start_index > 10 && !CheckCoolDown(COOLDOWM_INDEX_GET_CASH_VIP_MALL_PRICE)) return false;
+	SetCoolDown(COOLDOWM_INDEX_GET_CASH_VIP_MALL_PRICE,GET_DIVIDEND_MALL_PRICE_COOLDOWN_TIME);
 	
 	//可能发生变化的商品列表	
 	abase::vector<netgame::mall::index_node_t, abase::fast_alloc<> > & __limit_goods = __mall.GetLimitGoods();
@@ -18988,7 +19880,8 @@ bool gplayer_imp::PlayerGetDividendMallItemPrice(int start_index, int end_index)
 														node.entry[j].expire_type, 
 														node.entry[j].expire_time, 
 														node.entry[j].cash_need, 
-														node.entry[j].status);
+														node.entry[j].status,
+														node.entry[j].min_vip_level);
 						__h0_count ++;
 					}
 				}
@@ -19022,7 +19915,8 @@ bool gplayer_imp::PlayerGetDividendMallItemPrice(int start_index, int end_index)
 														node.entry[available_saletime].expire_type, 
 														node.entry[available_saletime].expire_time, 
 														node.entry[available_saletime].cash_need, 
-														node.entry[available_saletime].status);
+														node.entry[available_saletime].status,
+														node.entry[available_saletime].min_vip_level);
 				__h0_count ++;
 			}
 			else if(available_permanent >= 0 )	//同组内有永久销售时间满足
@@ -19036,7 +19930,8 @@ bool gplayer_imp::PlayerGetDividendMallItemPrice(int start_index, int end_index)
 																node.entry[available_permanent].expire_type, 
 																node.entry[available_permanent].expire_time, 
 																node.entry[available_permanent].cash_need, 
-																node.entry[available_permanent].status);
+																node.entry[available_permanent].status,
+																node.entry[available_permanent].min_vip_level);
 					__h0_count ++;
 				}
 			}
@@ -19060,6 +19955,7 @@ bool gplayer_imp::PlayerGetDividendMallItemPrice(int start_index, int end_index)
 																0, 
 																0, 
 																0, 
+																0,
 																0);
 						__h0_count ++;
 					}
@@ -19242,6 +20138,11 @@ namespace
 void 
 gplayer_imp::RecvCongregateRequest(char type, int sponsor, int world_tag, const A3DVECTOR& pos, int level_req, int sec_level_req, int reincarnation_times_req)
 {
+	if(GetPlayerLimit(PLAYER_LIMIT_NOLONGJUMP))//禁止接受队伍帮派集结令
+	{
+		return;
+	}
+	
 	if(_basic.level < level_req) return;
 	if(!__check_sec_level(sec_level_req, _basic.sec_level)) return;
     if (GetReincarnationTimes() < (size_t)reincarnation_times_req) return;
@@ -19486,6 +20387,22 @@ gplayer_imp::PlayerLeaveCountryBattle()
 }
 
 int 
+gplayer_imp::CheckChangeDs(int type,int climit,int item,int item_count,int level,int sec_lvl,int realm_lvl)
+{
+	if(!CheckCoolDown(COOLDOWN_INDEX_CHANGEDS)) return S2C::ERR_OBJECT_IS_COOLING;
+	if(GetHistoricalMaxLevel() < level) return S2C::ERR_LEVEL_NOT_MATCH;
+	if(_basic.sec_level < sec_lvl) return S2C::ERR_SEC_LEVEL_NOT_MATCH;
+	if(GetRealmLevel() < realm_lvl) return S2C::ERR_REALM_LEVEL_NOT_MATCH;
+	if(item && item_count && !CheckItemExist(item,item_count) ) return S2C::ERR_OUT_OF_FUND;
+	
+	UDOctets val(0);
+	world_manager::GetUniqueDataMan().GetData(type + UDI_CARNIVAL_COUNT_LIMIT,val);
+	if(climit <= (int)val) return S2C::ERR_CARNIVAL_COUNT_LIMIT; 
+
+	return 0;
+}
+
+int 
 gplayer_imp::PlayerTryChangeDS(int flag)
 {
 	if(flag == GMSV::CHDS_FLAG_DS_TO_CENTRALDS)
@@ -19504,9 +20421,19 @@ gplayer_imp::PlayerTryChangeDS(int flag)
 	
 	if(!CheckCoolDown(COOLDOWN_INDEX_CHANGEDS)) return S2C::ERR_OBJECT_IS_COOLING;
 	SetCoolDown(COOLDOWN_INDEX_CHANGEDS,CHANGEDS_COOLDOWN_TIME);
-
-	GMSV::SendTryChangeDS(_parent->ID.id, flag);
+	GMSV::SendTryChangeDS(_parent->ID.id, flag, _player_visa_info.type,_player_mnfaction_info.unifid);
 	return 0;
+}
+
+void 
+gplayer_imp::MakeVisaData(int type,int stay_timestamp,int item,int item_count)
+{
+	_player_visa_info.type = type;
+	_player_visa_info.stay_timestamp = stay_timestamp;
+	_player_visa_info.cost = item;
+	_player_visa_info.count = item_count;
+
+	GLog::log(GLOG_INFO,"用户%d生成VISA信息[%d,%d,%d,%d]",_parent->ID.id, type,stay_timestamp,item,item_count);
 }
 
 void 
@@ -19724,8 +20651,14 @@ gplayer_imp::TaskSendMessage(int task_id, int channel, int param)
 	return ;
 }
 
-void gplayer_imp::ItemMakeSlot(size_t index, int id)
+void gplayer_imp::ItemMakeSlot(size_t index, int id, unsigned int material_id, int material_count)
 {
+    if (_lock_inventory)
+    {
+        _runner->error_message(S2C::ERR_INVENTORY_IS_LOCKED);
+        return;
+    }
+
 	if(id <= 0) return;
 
 	//检查物品是否存在以及是否合法
@@ -19733,8 +20666,8 @@ void gplayer_imp::ItemMakeSlot(size_t index, int id)
 	item & it = _inventory[index];
 	if(it.type <= 0 || it.type != id || it.body == NULL) return;
 
-	int new_slot;
-	if(int err_code = it.body->MakeSlot(this, new_slot))
+	int new_slot = 0;
+	if(int err_code = it.body->MakeSlot(this, new_slot, material_id, material_count))
 	{
 		//无法打孔或者打孔失败
 		_runner->error_message(err_code);
@@ -19827,7 +20760,7 @@ gplayer_imp::GodEvilConvert(unsigned char mode)
 		convert_table.insert(std::make_pair(skill1,skill2));
 		convert_table.insert(std::make_pair(skill2,skill1));
 	}
-	_skill.GodEvilConvert(convert_table, object_interface(this), _cur_item.weapon_class, GetForm());
+	_skill.GodEvilConvert(convert_table, object_interface(this), _cur_item.weapon_class, GetForm(), world_manager::GetWorldTag());
 	_runner->get_skill_data();
 	if(_basic.sec_level == 22) 
 		SetSecLevel(32);
@@ -20442,11 +21375,21 @@ gplayer_imp::CountryJoinStep1(int country_id, int country_expiretime, int major_
 
 	if(world_tag == world_manager::GetWorldTag()) return false;
 	//准备传送至国战首都，传送成功后进行加入国家操作
+	instance_key key;
+	memset(&key,0,sizeof(key));
+	GetInstanceKey(world_tag, key);
+	key.target = key.essence;
+
+	key.target.key_level4 = (country_id >> 16) &0xffff; // group id
+
 	ClearSwitchAdditionalData();
-	if(LongJump(pos, world_tag))
+	if(world_manager::GetInstance()->PlaneSwitch(this ,pos,world_tag,key,0) < 0)
 	{
-		_switch_additional_data = new countryterritory_switch_data(country_id, country_expiretime, major_strength, minor_strength);
+		return false;
 	}
+	
+		_switch_additional_data = new countryterritory_switch_data(country_id, country_expiretime, major_strength, minor_strength);
+
 	GLog::log(GLOG_INFO,"玩家%d加入国家step1(id=%d,expire=%d)准备传送(tag=%d,pos=%f,%f,%f)", _parent->ID.id, country_id, country_expiretime, world_tag, pos.x, pos.y, pos.z);
 	return true;
 }
@@ -20465,6 +21408,71 @@ gplayer_imp::CountryJoinStep2()
 	GLog::log(GLOG_INFO,"玩家%d加入国家step2(id=%d,expire=%d)成功", _parent->ID.id, pData->country_id, pData->country_expiretime);
 
 	ClearSwitchAdditionalData();
+	return true;
+}
+
+bool 
+gplayer_imp::CountryReturn()
+{
+	LeaveAbnormalState();
+
+	A3DVECTOR pos;
+	int tag;	
+	GetLastInstanceSourcePos(tag,pos);
+
+	if(tag != 143)
+	{
+		tag = 143;
+		pos = A3DVECTOR(0,0,0);
+		GLog::log(GLOG_ERR,"返回领土出错 world_tag=%d roleid=%d country=%d", world_manager::GetWorldTag(), _parent->ID.id, GetCountryId());
+	}
+
+	instance_key key;
+	memset(&key,0,sizeof(key));
+	GetInstanceKey(tag, key);
+	key.target = key.essence;
+
+	key.target.key_level4 = GetCountryGroup(); // group id
+	
+	ClearSwitchAdditionalData();
+	if(world_manager::GetInstance()->PlaneSwitch(this ,pos,tag,key,0) < 0)
+	{
+		return false;
+	}
+	return true;
+}
+
+bool 
+gplayer_imp::ReturnRestWorld()
+{
+	LeaveAbnormalState();
+
+	if(InCentralServer())
+	{
+		int groupid = 0;
+		int tag = 142; 
+		A3DVECTOR pos = world_manager::GetCentralServerBrithPos(_src_zoneid,groupid);
+
+		instance_key key;
+		memset(&key,0,sizeof(key));
+		GetInstanceKey(tag, key);
+		key.target = key.essence;
+
+		key.target.key_level4 = groupid; // group id
+		
+		ClearSwitchAdditionalData();
+		if(world_manager::GetInstance()->PlaneSwitch(this ,pos,tag,key,0) < 0)
+		{
+			return false;
+		}
+	}
+	else
+	{
+		A3DVECTOR pos = A3DVECTOR(1485,225,1269);
+		int tag = 1;
+		return LongJump(pos,tag);
+	}
+	
 	return true;
 }
 
@@ -20502,12 +21510,13 @@ gplayer_imp::CountryTerritoryMove(const A3DVECTOR & pos, bool capital)
 }
 
 void 
-gplayer_imp::GetCountryKickoutPos(int & world_tag, A3DVECTOR & pos)
+gplayer_imp::GetCarnivalKickoutPos(int & world_tag, A3DVECTOR & pos)
 {
 	if(InCentralServer())
 	{
+		int group = 0;
 		world_tag = 142;
-		pos = world_manager::GetCentralServerBrithPos(_src_zoneid);
+		pos = world_manager::GetCentralServerBrithPos(_src_zoneid,group);
 	}
 	else
 	{
@@ -22228,6 +23237,17 @@ gplayer_imp::PlayerAskForPresent(int roleid, int goods_id, int goods_index, int 
 		_runner->error_message(S2C::ERR_ITEM_FORBID_SHOP);
 		return;
 	}
+	if(node.buy_times_limit_mode)
+	{
+		_runner->error_message(S2C::ERR_SHOPPING_TIMES_LIMIT_ITEM_CANNOT_ASK_FOR);
+		return;
+	}
+	if(node.entry[goods_slot].min_vip_level)
+	{
+		_runner->error_message(S2C::ERR_SHOPPING_VIP_LIMIT_ITEM_CANNOT_ASK_FOR);
+		return;
+	}
+	
 	//找到当前生效的group
 	int active_group_id = 0;
 	if(node.group_active && __group_id != 0)
@@ -22325,6 +23345,18 @@ gplayer_imp::PlayerGivePresent(int roleid, int mail_id, int goods_id, int goods_
 		_runner->error_message(S2C::ERR_ITEM_FORBID_SHOP);
 		return;
 	}
+	if(node.buy_times_limit_mode)
+	{
+		_runner->error_message(S2C::ERR_SHOPPING_TIMES_LIMIT_ITEM_CANNOT_GIVE);
+		return;
+	}
+
+	if(node.entry[goods_slot].min_vip_level)
+	{
+		_runner->error_message(S2C::ERR_SHOPPING_VIP_LIMIT_ITEM_CANNOT_GIVE);
+		return;
+	}
+	
 	//找到当前生效的group
 	int active_group_id = 0;
 	if(node.group_active && __group_id != 0)
@@ -22639,10 +23671,20 @@ gplayer_imp::ChangeEquipAddon(unsigned char equip_idx,unsigned char equip_socket
 						case DT_WEAPON_ESSENCE:
 						if(st_ess->level > ((WEAPON_ESSENCE*)pess)->level) 
 							ret = S2C::ERR_NO_EQUAL_DEST_FAIL;
+                        if (!IsStoneFit(DT_WEAPON_ESSENCE, st_ess->combined_switch))
+                            ret = S2C::ERR_NO_EQUAL_DEST_FAIL;
 						break;
 						case DT_ARMOR_ESSENCE:
 						if(st_ess->level > ((ARMOR_ESSENCE*)pess)->level) 
 							ret = S2C::ERR_NO_EQUAL_DEST_FAIL;
+                        if (!IsStoneFit(DT_ARMOR_ESSENCE, st_ess->combined_switch))
+                            ret = S2C::ERR_NO_EQUAL_DEST_FAIL;
+						break;
+                        case DT_DECORATION_ESSENCE:
+                        if (st_ess->level > ((DECORATION_ESSENCE*)pess)->level)
+                            ret = S2C::ERR_NO_EQUAL_DEST_FAIL;
+                        if (!IsStoneFit(DT_DECORATION_ESSENCE, st_ess->combined_switch))
+                            ret = S2C::ERR_NO_EQUAL_DEST_FAIL;
 						break;
 						default:	
 							ret = S2C::ERR_NO_EQUAL_DEST_FAIL;
@@ -22742,10 +23784,20 @@ gplayer_imp::ReplaceEquipAddon(unsigned char equip_idx,unsigned char equip_socke
 					case DT_WEAPON_ESSENCE:
 					if(ess_new->level > ((WEAPON_ESSENCE*)pess)->level) 
 						ret = S2C::ERR_NO_EQUAL_DEST_FAIL;
+                    if (!IsStoneFit(DT_WEAPON_ESSENCE, ess_new->combined_switch))
+                        ret = S2C::ERR_NO_EQUAL_DEST_FAIL;
 					break;
 					case DT_ARMOR_ESSENCE:
 					if(ess_new->level > ((ARMOR_ESSENCE*)pess)->level) 
 						ret = S2C::ERR_NO_EQUAL_DEST_FAIL;
+                    if (!IsStoneFit(DT_ARMOR_ESSENCE, ess_new->combined_switch))
+                        ret = S2C::ERR_NO_EQUAL_DEST_FAIL;
+					break;
+                    case DT_DECORATION_ESSENCE:
+                    if (ess_new->level > ((DECORATION_ESSENCE*)pess)->level)
+                        ret = S2C::ERR_NO_EQUAL_DEST_FAIL;
+                    if (!IsStoneFit(DT_DECORATION_ESSENCE, ess_new->combined_switch))
+                        ret = S2C::ERR_NO_EQUAL_DEST_FAIL;
 					break;
 					default:	
 						ret = S2C::ERR_NO_EQUAL_DEST_FAIL;
@@ -23292,7 +24344,7 @@ void gplayer_imp::PlayerJumpToGoal(int goal_id)
 		item& it = _inventory[i];
 		if(it.type == -1) continue;
 		if((it.type == AUTO_TEAM_JUMP_ITEM1) || (it.type == AUTO_TEAM_JUMP_ITEM2) 
-				|| (it.type == AUTO_TEAM_JUMP_ITEM3) || (it.type == AUTO_TEAM_JUMP_ITEM4))
+				|| (it.type == AUTO_TEAM_JUMP_ITEM3) || (it.type == AUTO_TEAM_JUMP_ITEM4) || (it.type == 50018))
 		{
 			if((jump_item_idx == -1) || (it.type < _inventory[jump_item_idx].type))
 			{
@@ -23313,6 +24365,9 @@ void gplayer_imp::PlayerJumpToGoal(int goal_id)
 
 		SetCoolDown(COOLDOWM_INDEX_AUTOTEAM_SET_GOAL, AUTOTEAM_SET_GOAL_COOLDOWN_TIME);
 		LongJump(target_pos, target_tag);
+
+		if (item_id == 50018)
+			SetCoolDown(COOLDOWN_TELEPORT_CUBO, 1800000);
 	}
 }
 
@@ -23378,6 +24433,9 @@ void gplayer_imp::EnterTrickBattleStep2()
 
 void gplayer_imp::ReceiveRealmExp(int exp)
 {
+    exp = (int)(exp * (1.0f + _realm_exp_factor) + 0.1f);
+    if (exp <= 0) return;
+
 	_realm_exp += exp;
 	
 	bool levelup =false;
@@ -23510,7 +24568,7 @@ int gplayer_imp::PlayerGeneralCardRebirth(size_t major_inv_idx, size_t minor_inv
 	_runner->player_drop_item(IL_INVENTORY, minor_inv_idx, it_minor.type, 1, S2C::DROP_TYPE_TAKEOUT);
 	_inventory.DecAmount(minor_inv_idx, 1);
 
-	it_major.DoRebirth();
+	it_major.DoRebirth(0);
 	PlayerGetItemInfo(IL_INVENTORY, major_inv_idx);
 	return 0;
 }
@@ -23890,6 +24948,44 @@ void gplayer_imp::PlayerQueryMafiaPvPInfo()
 	}
 }
 
+void gplayer_imp::OnLookupEnemyReply(const MSG& msg)
+{
+    int item_id = LOOKUP_ENEMY_ITEM_ID2;
+    int item_index = _inventory.Find(0, item_id);
+    if (item_index < 0)
+    {
+        item_id = LOOKUP_ENEMY_ITEM_ID;
+        item_index = _inventory.Find(0, item_id);
+
+        if (item_index < 0)
+        {
+            _runner->error_message(S2C::ERR_ITEM_NOT_IN_INVENTORY);
+            return;
+        }
+    }
+
+    if (!CheckCoolDown(COOLDOWN_INDEX_LOOKUP_ENEMY))
+    {
+        _runner->error_message(S2C::ERR_OBJECT_IS_COOLING);
+        return;
+    }
+
+    if (_lock_inventory)
+    {
+        _runner->error_message(S2C::ERR_INVENTORY_IS_LOCKED);
+        return;
+    }
+
+    _runner->lookup_enemy_result(msg.source.id, msg.param, msg.pos);
+    SetCoolDown(COOLDOWN_INDEX_LOOKUP_ENEMY, LOOKUP_ENEMY_COOLDOWN_TIME);
+
+    item& it = _inventory[item_index];
+    UpdateMallConsumptionDestroying(it.type, it.proc_type, 1);
+
+    _inventory.DecAmount(item_index, 1);
+    _runner->player_drop_item(IL_INVENTORY, item_index, item_id, 1, S2C::DROP_TYPE_USE);
+}
+
 void gplayer_imp::copy_other_role_data(int src_roleid)
 {
     class CopyCallBack : public GDB::CopyRoleResult, public abase::ASmallObject
@@ -24022,5 +25118,1105 @@ void gplayer_imp::ImpairMountSpeedEn(float sp)
 {
 	_mount_speed_en -= sp;
 	_petman.OnMountSpeedEnChanged(this);
+}
+
+bool gplayer_imp::IncAstrolabeExternExp(int exp)
+{
+#define GLORY_VIP_LEVEL 5
+	if(_astrolabe_extern_level >= ASTROLABE_VIP_GRADE_MAX) return false;
+ 	int tmp = _astrolabe_extern_exp + exp;
+ 	if(tmp <= _astrolabe_extern_exp) return false;
+
+ 	_astrolabe_extern_exp = tmp;
+ 	do
+ 	{
+ 		int lvlup_exp = player_template::GetAstrolabeVipGradeExp(_astrolabe_extern_level);
+ 		if(_astrolabe_extern_exp < lvlup_exp) break;
+ 
+ 		_astrolabe_extern_exp -= lvlup_exp;
+ 		++_astrolabe_extern_level;
+
+		if(_astrolabe_extern_level >= GLORY_VIP_LEVEL)
+		{
+			struct
+			{
+				int level;
+				char name[MAX_USERNAME_LENGTH];
+			}data;
+			memset(&data,0,sizeof(data));
+			data.level = _astrolabe_extern_level + 1;
+			size_t  len = _username_len;
+			if(len > MAX_USERNAME_LENGTH) len = MAX_USERNAME_LENGTH;
+			memcpy(data.name, _username,len);
+			
+			packet_wrapper buf(sizeof(data));
+			buf.push_back(&data, sizeof(data));
+			broadcast_chat_msg(AT_VIP_LVL_CHAT_MSG_ID, buf.data(), buf.size(), GMSV::CHAT_CHANNEL_SYSTEM,0, 0, 0);
+
+		}
+
+ 		if(_astrolabe_extern_level >= ASTROLABE_VIP_GRADE_MAX)
+ 		{
+ 			_astrolabe_extern_exp = 0;
+ 			break;
+ 		}
+ 	}while(1);
+ 
+ 	_runner->astrolabe_info_notify(_astrolabe_extern_level,_astrolabe_extern_exp);
+ 	return true;
+ }
+ 
+ #define ASTROLABE_OPT_DEFAULT_CHK(num)  \
+ {\
+ 	if(_lock_inventory || OI_TestSafeLock()) return S2C::ERR_FORBIDDED_OPERATION_IN_SAFE_LOCK;\
+ 	if(_equipment.IsSlotEmpty(item::EQUIP_INDEX_ASTROLABE)) return S2C::ERR_NO_EQUAL_EQUIPMENT_FAIL;\
+ 	if(!IsItemExist(item_inv_idx,item_id,num)) return S2C::ERR_ITEM_NOT_IN_INVENTORY;\
+ }
+ 
+int  gplayer_imp::PlayerAstrolabeSwallow(int type, int item_inv_idx, int item_id)
+{
+ 	ASTROLABE_OPT_DEFAULT_CHK(1)
+ 	DATA_TYPE dt;
+ 	const void * org_ess = world_manager::GetDataMan().get_data_ptr(item_id,ID_SPACE_ESSENCE,dt); 	 if(org_ess == NULL || (dt != DT_ASTROLABE_ESSENCE && dt != DT_ASTROLABE_INC_EXP_ESSENCE)) return S2C::ERR_INVALID_ITEM;
+
+ 	int equip_idx = item::EQUIP_INDEX_ASTROLABE;
+ 	item& it_inv = _inventory[item_inv_idx];
+ 	item& it_eq = _equipment[equip_idx];
+ 	int exp = 0, count = 1;
+ 	bool inherit = false;
+
+	std::string ITEM1,ITEM2,ITEM3;
+	
+	it_eq.DumpDetail(ITEM1);
+	it_inv.DumpDetail(ITEM2);
+
+
+ 	if(dt == DT_ASTROLABE_ESSENCE)
+ 	{
+ 		exp = it_inv.GetSwallowExp();
+ 		if(type) inherit = true;
+ 	}
+ 	else if(dt == DT_ASTROLABE_INC_EXP_ESSENCE)
+ 	{
+ 		const ASTROLABE_INC_EXP_ESSENCE* ess = (const ASTROLABE_INC_EXP_ESSENCE*) org_ess;
+ 		exp = ess->swallow_exp * it_inv.count;
+
+		if(!it_eq.InsertExp(exp,true))
+			return S2C::ERR_ASTROLABE_SWALLOW_LIMIT;
+
+		if(exp <  ess->swallow_exp * (int)it_inv.count)
+			count = (exp / ess->swallow_exp) + (exp%ess->swallow_exp ? 1 : 0);
+		else
+			count = it_inv.count;
+ 	}
+
+	int ret = 0;
+ 	it_eq.Deactivate(item::BODY, equip_idx, this);
+
+ 	if(inherit && !it_eq.Inherit(it_inv))
+		ret = S2C::ERR_ASTROLABE_SWALLOW_LIMIT;
+	else
+ 		it_eq.InsertExp(exp, false);
+
+ 	it_eq.Activate(item::BODY, _equipment, equip_idx, this);
+
+	if(ret != 0) return ret;
+
+	it_eq.DumpDetail(ITEM3);
+
+	GLog::log(GLOG_INFO,"astrolabe_swallow: roleid:%d %s swallow %s trans to %s",
+			GetParent()->ID.id,ITEM1.c_str(),ITEM2.c_str(),ITEM3.c_str());
+
+ 	PlayerGetItemInfo(IL_EQUIPMENT, equip_idx);
+ 	RefreshEquipment();
+ 
+ 	UpdateMallConsumptionDestroying(it_inv.type, it_inv.proc_type, count);
+ 	_runner->player_drop_item(IL_INVENTORY, item_inv_idx, it_inv.type, count, S2C::DROP_TYPE_TAKEOUT);
+ 	_inventory.DecAmount(item_inv_idx, count);
+ 
+ 	return ret;
+ }
+ 
+int  gplayer_imp::PlayerAstrolabeAddonRoll(int times, int limit, int item_inv_idx, int item_id, int (&args)[3] )
+{
+ 	ASTROLABE_OPT_DEFAULT_CHK(times)
+ 	
+ 	DATA_TYPE dt;
+ 	const ASTROLABE_RANDOM_ADDON_ESSENCE * ess = (const ASTROLABE_RANDOM_ADDON_ESSENCE*)world_manager::GetDataMan().get_data_ptr(item_id,ID_SPACE_ESSENCE,dt);
+ 	if(ess == NULL || dt != DT_ASTROLABE_RANDOM_ADDON_ESSENCE) return S2C::ERR_INVALID_ITEM;
+ 
+ 	int count = 0;
+ 	int vipexp = ess->addon_random_exp_gained;
+ 	int equip_idx = item::EQUIP_INDEX_ASTROLABE;
+ 	item& it_inv = _inventory[item_inv_idx];
+ 	item& it_eq = _equipment[equip_idx];
+ 
+	std::string ITEM1,ITEM2;
+	it_eq.DumpDetail(ITEM1);
+
+ 	int id0 = it_eq.type | it_eq.GetIdModify();
+ 	it_eq.Deactivate(item::BODY, equip_idx, this);
+ 
+ 	while (count < times)
+ 	{
+ 		int addon_count = player_template::GetAstrolabeAddonCount(_astrolabe_extern_level);
+ 		it_eq.DoRebirth(addon_count);
+ 		if(vipexp) IncAstrolabeExternExp(vipexp);
+ 		count ++;
+ 		if((it_eq.GetIdModify() >> 16) >= limit ) 
+		{
+			args[2] = 1;
+			break; // idmodify >> 16 即为属性条数
+		}
+ 	}
+ 
+	args[0] = times;
+	args[1] = count;
+
+ 	it_eq.Activate(item::BODY, _equipment, equip_idx, this);
+
+	it_eq.DumpDetail(ITEM2);
+
+	GLog::formatlog("astrolabe_addonroll: roleid:%d %s addonroll [%d:%d]  trans to %s",
+			GetParent()->ID.id, ITEM1.c_str(), item_id, count, ITEM2.c_str());
+
+ 	PlayerGetItemInfo(IL_EQUIPMENT, equip_idx);
+ 	RefreshEquipment();
+ 
+ 	// 属性个数涉及外观改变
+ 	
+ 	int id1 = _equipment[equip_idx].type | _equipment[equip_idx].GetIdModify();
+ 	if(id1 != id0)
+ 	{
+ 		CalcEquipmentInfo();
+ 		_runner->equipment_info_changed(1ULL<<equip_idx , 0, &id1,sizeof(id1));//此函数使用了CalcEquipmentInfo的结果
+ 	}
+ 
+ 	UpdateMallConsumptionDestroying(it_inv.type, it_inv.proc_type, count);
+ 	_runner->player_drop_item(IL_INVENTORY, item_inv_idx, it_inv.type, count, S2C::DROP_TYPE_TAKEOUT);
+ 	_inventory.DecAmount(item_inv_idx, count);
+ 
+ 	return 0;
+ }
+ 
+int  gplayer_imp::PlayerAstrolabeAptitInc(int item_inv_idx, int item_id)
+{
+ 	ASTROLABE_OPT_DEFAULT_CHK(1)
+ 	DATA_TYPE dt;
+ 	const ASTROLABE_INC_INNER_POINT_VALUE_ESSENCE * ess = (const ASTROLABE_INC_INNER_POINT_VALUE_ESSENCE*)world_manager::GetDataMan().get_data_ptr(item_id,ID_SPACE_ESSENCE,dt);
+ 	if(ess == NULL || dt != DT_ASTROLABE_INC_INNER_POINT_VALUE_ESSENCE) return S2C::ERR_INVALID_ITEM;
+ 
+ 	int index = abase::RandSelect(ess->increase_probability,sizeof(ess->increase_probability)/sizeof(ess->increase_probability[0]));
+ 	short inc = (short)( (1+index)* ess->increase_base );
+ 
+ 	int count = 1;
+ 	int equip_idx = item::EQUIP_INDEX_ASTROLABE;
+ 	item& it_inv = _inventory[item_inv_idx];
+ 	item& it_eq = _equipment[equip_idx];
+ 	
+	std::string ITEM1,ITEM2;
+	it_eq.DumpDetail(ITEM1);
+
+	int ret = 0;
+ 	it_eq.Deactivate(item::BODY, equip_idx, this);
+ 	if(!it_eq.AddGeniusPoint(inc,ess->require_min_all_inner_point_value,ess->require_max_all_inner_point_value,0,0,false)) ret = S2C::ERR_ASTROLABE_OPT_FAIL; 
+ 	it_eq.Activate(item::BODY, _equipment, equip_idx, this);
+ 
+	if(ret != 0) return ret;
+
+	it_eq.DumpDetail(ITEM2);
+	GLog::log(GLOG_INFO,"astrolabe_aptitinc: roleid:%d %s aptit inc %d trans to %s",
+			GetParent()->ID.id,ITEM1.c_str(),item_id,ITEM2.c_str());
+
+ 	PlayerGetItemInfo(IL_EQUIPMENT, equip_idx);
+ 	RefreshEquipment();
+ 
+ 	UpdateMallConsumptionDestroying(it_inv.type, it_inv.proc_type, count);
+ 	_runner->player_drop_item(IL_INVENTORY, item_inv_idx, it_inv.type, count, S2C::DROP_TYPE_TAKEOUT);
+	_inventory.DecAmount(item_inv_idx, count);
+ 
+ 	return 0;
+ }
+ 
+int  gplayer_imp::PlayerAstrolabeSlotRoll(int item_inv_idx, int item_id)
+{
+ 	ASTROLABE_OPT_DEFAULT_CHK(1)
+ 	if(item_id != ASTROLABE_SLOT_ROLL_ITEM_1 && item_id != ASTROLABE_SLOT_ROLL_ITEM_2) return S2C::ERR_INVALID_ITEM;
+ 
+ 	int count = 1;
+ 	int equip_idx = item::EQUIP_INDEX_ASTROLABE;
+ 	item& it_inv = _inventory[item_inv_idx];
+ 	item& it_eq = _equipment[equip_idx];
+ 	
+	std::string ITEM1,ITEM2;
+	it_eq.DumpDetail(ITEM1);
+
+ 	it_eq.Deactivate(item::BODY, equip_idx, this);
+ 	it_eq.FlushGeniusPoint();
+ 	it_eq.Activate(item::BODY, _equipment, equip_idx, this);
+ 
+	it_eq.DumpDetail(ITEM2);
+	GLog::log(GLOG_INFO,"astrolabe_slotroll: roleid:%d %s slot roll %d trans to %s",
+			GetParent()->ID.id,ITEM1.c_str(),item_id,ITEM2.c_str());
+
+ 	PlayerGetItemInfo(IL_EQUIPMENT, equip_idx);
+ 	RefreshEquipment();
+ 
+ 	UpdateMallConsumptionDestroying(it_inv.type, it_inv.proc_type, count);
+ 	_runner->player_drop_item(IL_INVENTORY, item_inv_idx, it_inv.type, count, S2C::DROP_TYPE_TAKEOUT);
+ 	_inventory.DecAmount(item_inv_idx, count);
+ 	return 0;
+ }
+
+instance_hash_key gplayer_imp::GetLogoutInstanceKey()
+{
+	return world_manager::GetInstance()->GetLogoutInstanceKey(this);
+}
+
+int gplayer_imp::PlayerSoloChallengeUserSelectAward(int stage_level, int args[])
+{
+	return _solochallenge.UserSelectAward(this, stage_level, args);
+}
+
+int gplayer_imp::PlayerSoloChallengeScoreCost(int filter_index, int args[])
+{
+	return _solochallenge.ScoreCost(this, filter_index, args);
+}
+
+int gplayer_imp::PlayerSoloChallengeClearFilter(int args[])
+{
+	return _solochallenge.ClearFilter(this, args);
+}
+
+void gplayer_imp::PlayerSoloChallengeSelectStage(int stage_level)
+{
+	_solochallenge.SelectStage(this, stage_level);
+}
+
+void gplayer_imp::PlayerSoloChallengeStageComplete(bool isCompleteSuccess)
+{
+	_solochallenge.StageComplete(this, isCompleteSuccess);
+}
+
+void gplayer_imp::PlayerSoloChallengeStartTask(bool isStartSuccess)
+{
+	_solochallenge.StageStart(this, isStartSuccess);
+}
+
+void gplayer_imp::PlayerEnterSoloChallengeInstance()
+{
+	_solochallenge.PlayerEnterSoloChallengeInstance(this);
+}
+
+void gplayer_imp::PlayerLeaveSoloChallengeInstance()
+{
+	_solochallenge.PlayerLeaveSoloChallengeInstance(this);
+}
+
+void gplayer_imp::PlayerDeliverSoloChallengeScore(int score)
+{
+	_solochallenge.PlayerDeliverSoloChallengeScore(this, score);
+}
+
+int gplayer_imp::PlayerSoloChallengeLeaveTheRoom()
+{
+	return _solochallenge.PlayerSoloChallengeLeaveTheRoom(this);
+}
+
+bool gplayer_imp::CheckVisaValid()
+{
+	if(_player_visa_info.stay_timestamp < g_timer.get_systime()) return false;
+	if(_player_visa_info.cost && _player_visa_info.count)
+	{
+		if(!CheckItemExist(_player_visa_info.cost,_player_visa_info.count)) return false;
+
+		if(OI_TestSafeLock()||_lock_inventory) return true; // 待会再扣除
+
+		PlayerTaskInterface TaskIf(this);
+		TaskIf.TakeAwayCommonItem(_player_visa_info.cost,_player_visa_info.count);
+		_player_visa_info.cost = _player_visa_info.count = 0;
+
+	}
+	return true;
+}
+
+void gplayer_imp::Repatriate()
+{
+	PlayerTryChangeDS(GMSV::CHDS_FLAG_CENTRALDS_TO_DS);
+	GLog::log(LOG_INFO,"用户%d被中心服遣返",_parent->ID.id);
+}
+
+int 
+gplayer_imp::MnfactionJoinApply(int domain_id)
+{
+	if(!CheckCoolDown(COOLDOWN_INDEX_MNFACTION_JOIN_APPLY)) return S2C::ERR_OBJECT_IS_COOLING;
+	int64_t unifid = _player_mnfaction_info.unifid;
+	if(!unifid) return S2C::ERR_NOT_IN_FACTION;
+		
+		//单人报名模式
+	SetCoolDown(COOLDOWN_INDEX_MNFACTION_JOIN_APPLY,MNFACTION_JOIN_APPLY_COOLDOWN_TIME);
+		
+	GMSV::MnfactionEnterEntry entry;
+	entry.roleid     = _parent->ID.id;
+	entry.faction_id = unifid;
+	entry.domain_id  = domain_id;
+	GMSV::MnfactionEnter(&entry);
+	return 0;
+}
+
+bool 
+gplayer_imp::MnfactionJoinStep1(int retcode, int64_t faction_id, int domain_id, int world_tag)
+{
+	enum
+	{
+		ERR_MNF_MULTI_DOMAIN = 603,             //一个角色只能进入一个战场
+		ERR_MNF_INVITE_COUNT_PERDOMAIN_MAXMUM = 604,    //进入战场的角色太多
+		ERR_MNF_FORBID_ENTER = 639,           //本帮派不允许进入
+	};
+	if(retcode != S2C::ERR_SUCCESS)
+	{
+		if(retcode == ERR_MNF_MULTI_DOMAIN)
+			_runner->error_message(S2C::ERR_MNFACTION_MULTI_DOMAIN);
+		else if(retcode == ERR_MNF_INVITE_COUNT_PERDOMAIN_MAXMUM)
+			_runner->error_message(S2C::ERR_MNFACTION_INVITE_COUNT_PERDOMAIN_MAXMUM);
+		else
+			_runner->error_message(S2C::ERR_MNFACTION_FORBID_ENTER);
+		return false;
+	}
+	int64_t unifid = _player_mnfaction_info.unifid;
+	if(!unifid || unifid != faction_id)
+		return false;
+	if(_player_state != PLAYER_STATE_NORMAL 
+			&& _player_state != PLAYER_STATE_BIND
+			&& _player_state != PLAYER_SIT_DOWN
+			&& _player_state != PLAYER_STATE_MARKET)
+	{
+		return false;
+	}
+	LeaveAbnormalState();
+
+	if(world_tag == world_manager::GetWorldTag()) return false;
+	
+	instance_key key;
+	memset(&key,0,sizeof(key));
+	GetInstanceKey(world_tag, key);
+	key.target = key.essence;
+
+	key.target.key_level4 = domain_id;
+
+	ClearSwitchAdditionalData();
+	A3DVECTOR pos(0,0,0);
+	if(world_manager::GetInstance()->PlaneSwitch(this ,pos,world_tag,key,0) < 0)
+	{
+		return false;
+	}
+	
+	_switch_additional_data = new mnfaction_switch_data(faction_id, domain_id);
+
+	GLog::log(GLOG_INFO,"玩家%d加入跨服帮派战step1(domain_id=%d)准备传送(tag=%d,pos=%f,%f,%f)", _parent->ID.id, domain_id, world_tag, pos.x, pos.y, pos.z);
+	return true;
+}
+
+bool 
+gplayer_imp::MnfactionJoinStep2()
+{
+	mnfaction_switch_data * pData = substance::DynamicCast<mnfaction_switch_data>(_switch_additional_data);
+	ASSERT(pData);
+	
+	GMSV::MNDomainBattleEnterSuccessNotice(_parent->ID.id, pData->_faction_id, pData->_domain_id);
+	GLog::log(GLOG_INFO,"玩家%d加入跨服帮战step2(domain_id=%d)成功", _parent->ID.id, pData->_domain_id);
+
+	ClearSwitchAdditionalData();
+	return true;
+}
+
+int
+gplayer_imp::MnfactionLeave()
+{
+	if(world_manager::GetInstance()->GetWorldType() != WORLD_TYPE_MNFACTION)
+		return 1;
+	_filters.ModifyFilter(FILTER_CHECK_INSTANCE_KEY,FMID_CLEAR_AEMF,NULL,0);
+	return 0;
+}
+
+int gplayer_imp::UseFireWorks2(char is_friend_list, int target_role_id, int item_type, const char * target_user_name)
+{
+	if(target_role_id)
+	{
+		DATA_TYPE dt;
+		FIREWORKS2_ESSENCE * ess = (FIREWORKS2_ESSENCE*)world_manager::GetDataMan().get_data_ptr((unsigned int)item_type, ID_SPACE_ESSENCE,dt);
+		if( !ess || dt != DT_FIREWORKS2_ESSENCE) return -1;
+	
+		A3DVECTOR to_target_direction = _direction;
+		if(target_role_id != _parent->ID.id)//当烟花施放目标不是自己时,如果两人距离小于10米,则计算一下矿的方向，使矿的心形指向被施放者
+		{
+			int index;
+			gplayer * pPlayer = world_manager::GetInstance()->FindPlayer(target_role_id,index);
+			if(pPlayer) 
+			{
+				if(pPlayer->pos.squared_distance(_parent->pos) < 10.f * 10.f)
+				{
+					to_target_direction = pPlayer->pos;
+					to_target_direction -= _parent->pos;
+				}
+			}
+		}
+	
+		//改变烟花的朝向,使心形方向指向被施放者
+		unsigned char mine_dir;
+		mine_dir = a3dvector_to_dir(to_target_direction);//把指向被施放者的向量转化为和x轴的夹角
+		unsigned char num = 255;//a3dvector_to_dir 将弧度转换成了0-255之间的数
+		mine_dir = num - mine_dir;//取当前角度的补角,这是为了将心形的尖指向被施放者,转化是因为美术资源模型凹凸和想要的方向是反的
+		unsigned int tmp = mine_dir + 192;//引擎生成矿时按与z轴正方向的夹角计算的,偏移-90度, -255/4 +255/4*3 ~~ 192
+		if (tmp > 255) tmp -= 255;//大于255后,即大于360度后，减去360度
+		mine_dir = tmp;
+
+		_direction = to_target_direction;//强行改变自己的朝向,使自己朝向被施放者
+		_parent->dir = a3dvector_to_dir(to_target_direction);
+		_runner->stop_move(_parent->pos,0x1000,_parent->dir,0x01);//广播,改变其他玩家看自己的朝向,自己的朝向客户端修改
+
+		A3DVECTOR offset;	
+		float magnitude = to_target_direction.x * to_target_direction.x + to_target_direction.y * to_target_direction.y + to_target_direction.z * to_target_direction.z;
+		if(magnitude < 0.00001f)
+			offset = A3DVECTOR(0.f, 0.f, 0.f);
+		else
+		{
+			offset = to_target_direction;
+			offset.normalize();
+		}
+
+		A3DVECTOR mine_pos = _parent->pos;
+		mine_pos   += offset;
+		object_interface::mine_param param;
+		if(IsPlayerFemale())
+			param.mine_id     = ess->female_mine_id;
+		else
+			param.mine_id     = ess->male_mine_id; 
+		param.remain_time = ess->time_to_fire; 
+		object_interface oi(this);
+		XID target(GM_TYPE_PLAYER, target_role_id);
+		int ret = oi.CreateMine(mine_pos, param, mine_dir, target);
+		if(ret != 0) 
+			return -1;
+	}
+	
+ 	packet_wrapper buf;
+	char user_name[MAX_USERNAME_LENGTH];
+	memset(user_name, 0, MAX_USERNAME_LENGTH);
+	size_t  len = _username_len;
+	if(len > MAX_USERNAME_LENGTH) len = MAX_USERNAME_LENGTH;
+	memcpy(user_name, _username,len);
+	if(target_role_id)
+	{
+		buf << item_type;
+		buf.push_back(user_name, MAX_USERNAME_LENGTH);
+		buf << _parent->ID.id;
+		buf.push_back(target_user_name, MAX_USERNAME_LENGTH);
+		
+		broadcast_chat_msg(FIREWORK2_PRIVATE_CHAT_MSG_ID, 0, 0, GMSV::CHAT_CHANNEL_SYSTEM,0, buf.data(), buf.size());
+	}
+	else
+	{
+		buf << item_type;
+		buf.push_back(user_name, MAX_USERNAME_LENGTH);
+		buf << _parent->ID.id;
+		buf.push_back(user_name, MAX_USERNAME_LENGTH);
+	}
+	broadcast_chat_msg(FIREWORK2_PUBLIC_CHAT_MSG_ID, 0, 0, GMSV::CHAT_CHANNEL_SYSTEM,0, buf.data(), buf.size());
+	return 1;
+}
+
+void gplayer_imp::PlayerFixPositionTransmitAdd(float *pos, const char* position_name)
+{
+	int world_tag = world_manager::GetWorldTag();
+	if(!world_manager::GetWorldLimit().permit_fix_position_transmit)
+	{
+		_runner->error_message(S2C::ERR_FIX_POSITION_TRANSMIT_CANNOT_ADD_IN_THIS_WORLDTAG);
+		return;
+	}
+	int max_num = player_template::GetCashVipFixPositionNum(GetCashVipLevel());
+	if(GetFixPositionCount() >= max_num)
+	{
+		_runner->error_message(S2C::ERR_FIX_POSITION_TRANSMIT_MAX_NUM);
+		return;
+	}
+	int i = 0;
+	for(; i < FIX_POSITION_TRANSMIT_MAX_POSITION_COUNT; ++i)
+	{
+		if(_fix_position_transmit_infos[i].index == -1)
+		{
+			_fix_position_transmit_infos[i].index = i;
+			_fix_position_transmit_infos[i].world_tag = world_tag;
+			_fix_position_transmit_infos[i].pos = _parent->pos;
+			memcpy(_fix_position_transmit_infos[i].position_name, position_name, FIX_POSITION_TRANSMIT_NAME_MAX_LENGTH);
+			break;
+		}
+	}
+	if(i == FIX_POSITION_TRANSMIT_MAX_POSITION_COUNT)
+	{
+		return;
+	}
+	fix_position_transmit_info &fpti = _fix_position_transmit_infos[i];
+	_runner->fix_position_transmit_add_position(fpti.index, fpti.world_tag, fpti.pos, FIX_POSITION_TRANSMIT_NAME_MAX_LENGTH, position_name);
+}
+void gplayer_imp::PlayerFixPositionTransmitDelete(int index)
+{
+	if(index < 0 || index >= FIX_POSITION_TRANSMIT_MAX_POSITION_COUNT || _fix_position_transmit_infos[index].index == -1)
+	{
+		_runner->error_message(S2C::ERR_FIX_POSITION_TRANSMIT_CANNOT_FIND);
+		return;
+	}
+	_fix_position_transmit_infos[index].Reset();
+	_runner->fix_position_transmit_delete_position(index);
+}
+void gplayer_imp::PlayerFixPositionTransmit(int index)
+{
+	if(GetFixPositionTransmitEnergy() < 1)
+	{
+		_runner->error_message(S2C::ERR_FIX_POSITION_TRANSMIT_ENERGY_NOT_ENOUGH);
+		return;
+	}
+	
+	if(index >= FIX_POSITION_TRANSMIT_MAX_POSITION_COUNT || index < 0 || _fix_position_transmit_infos[index].index == -1)
+	{	
+		_runner->error_message(S2C::ERR_FIX_POSITION_TRANSMIT_CANNOT_FIND);
+		return;
+	}
+
+	ReduceFixPositionTransmitEnergy(1);
+	LongJump(_fix_position_transmit_infos[index].pos, _fix_position_transmit_infos[index].world_tag);
+}
+void gplayer_imp::PlayerFixPositionTransmitRename(int index, char *position_name)
+{
+	if(index >= FIX_POSITION_TRANSMIT_MAX_POSITION_COUNT  || index < 0 || _fix_position_transmit_infos[index].index == -1)
+	{	
+		_runner->error_message(S2C::ERR_FIX_POSITION_TRANSMIT_CANNOT_FIND);
+		return;
+	}
+	fix_position_transmit_info &info = _fix_position_transmit_infos[index];
+
+	memset(info.position_name, 0, FIX_POSITION_TRANSMIT_NAME_MAX_LENGTH);
+	memcpy(info.position_name, position_name, FIX_POSITION_TRANSMIT_NAME_MAX_LENGTH);
+
+	_runner->fix_position_transmit_rename(info.index, FIX_POSITION_TRANSMIT_NAME_MAX_LENGTH, info.position_name);
+}
+
+void gplayer_imp::SetDBFixPositionTransmit(archive & ar)
+{
+	if(0 == ar.size())
+		return;
+	ar >> _fix_position_transmit_energy;
+	size_t size;
+	ar >> size;
+	for(size_t i = 0; i < size; ++i)
+	{
+		int index = 0;
+		ar >> index;
+		fix_position_transmit_info &info = _fix_position_transmit_infos[index];
+		info.index = index;
+		ar >> info.world_tag >> info.pos.x >> info.pos.y >> info.pos.z;
+		ar.pop_back(info.position_name, FIX_POSITION_TRANSMIT_NAME_MAX_LENGTH);
+		
+	}
+}
+
+void gplayer_imp::GetDBFixPositionTransmit(archive & ar)
+{
+	ar << _fix_position_transmit_energy;
+	size_t size = GetFixPositionCount();
+	ar << size;
+	for(size_t i = 0; i < FIX_POSITION_TRANSMIT_MAX_POSITION_COUNT; ++i)
+	{
+		fix_position_transmit_info &info = _fix_position_transmit_infos[i];
+		if(info.index == -1)
+			continue;
+		ar << info.index << info.world_tag << info.pos.x << info.pos.y << info.pos.z;
+		ar.push_back(info.position_name, FIX_POSITION_TRANSMIT_NAME_MAX_LENGTH);
+	}
+}
+
+bool gplayer_imp::PlayerGetCashVipMallItemPrice(int start_index, int end_index)	//lgc若两参数均为0, 则表示扫描整个表,
+{																			//否则[start_index,end_index)内的商品被扫描
+	netgame::mall & __mall = world_manager::GetPlayerMall3();	
+	size_t __mall_goods_count = __mall.GetGoodsCount();
+	int __group_id = __mall.GetGroupId();	//当前服务器设定的group_id
+	
+	if(start_index == 0 && end_index == 0)	//扫描全部
+	{
+		start_index = 0;
+		end_index = __mall_goods_count;
+	}
+	else
+	{
+		if(start_index < 0 || end_index <= 0 || (size_t)start_index >= __mall_goods_count || (size_t)end_index > __mall_goods_count || start_index >= end_index)
+		{
+			_runner->error_message(S2C::ERR_FATAL_ERR);
+			return false;
+		}
+	}
+	//只在扫描范围大于指定值时才设置冷却
+	if(end_index-start_index > 10 && !CheckCoolDown(COOLDOWM_INDEX_GET_DIVIDEND_MALL_PRICE)) return false;
+	SetCoolDown(COOLDOWM_INDEX_GET_DIVIDEND_MALL_PRICE,GET_CASH_VIP_MALL_PRICE_COOLDOWN_TIME);
+	
+	//可能发生变化的商品列表	
+	abase::vector<netgame::mall::index_node_t, abase::fast_alloc<> > & __limit_goods = __mall.GetLimitGoods();
+	size_t __limit_goods_count = __limit_goods.size();
+	
+	time_t __time = time(NULL);
+	packet_wrapper __h0(1024);
+	int	__h0_count = 0; 
+    using namespace S2C;
+	
+	ASSERT(netgame::mall::MAX_ENTRY == 4);
+	for(size_t i=0; i<__limit_goods_count; i++)
+	{
+		int index = __limit_goods[i]._index;
+		if(index < start_index)
+			continue;
+		if(index >= end_index)
+			break;
+		netgame::mall::node_t & node = __limit_goods[i]._node;
+			
+		//找到当前生效的group
+		int active_group_id = 0;		
+		if(node.group_active && __group_id != 0)
+		{
+			if(__group_id == node.entry[0].group_id || __group_id == node.entry[1].group_id || __group_id == node.entry[2].group_id || __group_id == node.entry[3].group_id)
+				active_group_id = __group_id;	
+		}
+	
+		if(!node.sale_time_active)		//只有永久的销售时间
+		{
+			//将生效的非默认group的数据	发给客户端
+			ASSERT(node.group_active);
+			if(active_group_id != 0)
+			{
+				for(int j=0; j<netgame::mall::MAX_ENTRY; j++)
+				{
+					if(node.entry[j].cash_need <= 0)
+						break;
+					if(active_group_id == node.entry[j].group_id)	//这里至少能找到一个
+					{
+						CMD::Make<CMD::cash_vip_mall_item_price>::AddGoods(__h0, 
+														index, 
+														j, 
+														node.goods_id, 
+														node.entry[j].expire_type, 
+														node.entry[j].expire_time, 
+														node.entry[j].cash_need, 
+														node.entry[j].status,
+														node.entry[j].min_vip_level);
+						__h0_count ++;
+					}
+				}
+			}
+		}
+		else							//存在非永久的销售时间
+		{
+			int available_permanent = -1;				//有效的永久销售时间的slot，至多一个
+			int available_saletime = -1;				//有效的非永久销售时间的slot，至多一个
+			for(int j=0; j<netgame::mall::MAX_ENTRY; j++)
+			{
+				if(node.entry[j].cash_need <= 0)
+					break;
+				if(node.entry[j].group_id == active_group_id && node.entry[j]._sale_time.CheckAvailable(__time))
+				{
+					if(node.entry[j]._sale_time.GetType() != netgame::mall::sale_time::TYPE_NOLIMIT)
+					{
+						available_saletime = j;
+						break;		///同组内只能由一个非永久销售时间满足，所以确定了商品当前的价格
+					}
+					else
+						available_permanent = j;	//至多被执行一次	
+				}			
+			}
+			if(available_saletime >= 0)		//同组内只能由一个非永久销售时间满足，所以确定了商品当前的价格
+			{
+				CMD::Make<CMD::cash_vip_mall_item_price>::AddGoods(__h0, 
+														index, 
+														available_saletime, 
+														node.goods_id, 
+														node.entry[available_saletime].expire_type, 
+														node.entry[available_saletime].expire_time, 
+														node.entry[available_saletime].cash_need, 
+														node.entry[available_saletime].status,
+														node.entry[available_saletime].min_vip_level);
+				__h0_count ++;
+			}
+			else if(available_permanent >= 0 )	//同组内有永久销售时间满足
+			{
+				if(active_group_id != 0)	//只要非默认group的数据才会发给客户端	
+				{
+					CMD::Make<CMD::cash_vip_mall_item_price>::AddGoods(__h0, 
+																index, 
+																available_permanent, 
+																node.goods_id, 
+																node.entry[available_permanent].expire_type, 
+																node.entry[available_permanent].expire_time, 
+																node.entry[available_permanent].cash_need, 
+																node.entry[available_permanent].status,
+																node.entry[available_permanent].min_vip_level);
+					__h0_count ++;
+				}
+			}
+			else		//商品下架,只有在客户端的gshop.data中存在永久的购买方式时才需要发送商品下架
+			{
+				if(active_group_id != 0)	//等于0的情况下前面已经判断客户端肯定没有永久的购买方式
+				{
+					int m;
+					for(int m=0; m<netgame::mall::MAX_ENTRY; m++)
+					{
+						if(node.entry[m].cash_need > 0 && node.entry[m].group_id == 0 
+							&& node.entry[m]._sale_time.GetType() == netgame::mall::sale_time::TYPE_NOLIMIT)
+							break;
+					}
+					if(m < netgame::mall::MAX_ENTRY)
+					{
+						CMD::Make<CMD::cash_vip_mall_item_price>::AddGoods(__h0, 
+																index, 
+																0, 
+																node.goods_id, 
+																0, 
+																0, 
+																0, 
+																0,
+																0);
+						__h0_count ++;
+					}
+				}
+			}
+		}//end of if(!sale_time_active)
+	}
+	
+	packet_wrapper __h1(1024);
+	CMD::Make<CMD::cash_vip_mall_item_price>::From(__h1, start_index, end_index, __h0_count);
+	if(__h0_count > 0)
+		__h1.push_back(__h0.data(), __h0.size());
+	gplayer * pPlayer = (gplayer*)_parent;
+	send_ls_msg(pPlayer,__h1);
+	
+	return true;
+}
+
+bool
+gplayer_imp::PlayerDoCashVipShopping(size_t goods_count,const int * order_list, int shop_tid)
+{
+	//这里需要添加更多可以购买的状态
+	if(_player_state != PLAYER_SIT_DOWN && _player_state != PLAYER_STATE_NORMAL && _player_state != PLAYER_STATE_BIND) return false;
+
+	if(!CheckVipService(CVS_SHOPPING))
+		return false;
+
+	if(goods_count == 0)
+	{
+		return false;
+	}
+	if(goods_count > _inventory.Size() || !InventoryHasSlot(goods_count))
+	{
+		_runner->error_message(S2C::ERR_INVENTORY_IS_FULL);
+		return false;
+	}
+	int gifts_count = 0;
+	
+	netgame::mall & shop = world_manager::GetPlayerMall3();
+	int __group_id = shop.GetGroupId();	//当前服务器设定的group_id,lgc
+	time_t __time = time(NULL);			//
+	netgame::mall_order  order(-1);
+
+	std::map<int, int> item_limit_type_map; // item_id -> limit_type
+	
+	ASSERT(netgame::mall::MAX_ENTRY == 4);
+	size_t offset = 0;
+	for(size_t i = 0; i < goods_count; i ++, offset += sizeof(C2S::CMD::cash_vip_mall_shopping::__entry) / sizeof(int))
+	{
+		int id = order_list[offset];
+		size_t index = order_list[offset +1];
+		size_t slot = order_list[offset +2];
+		if(slot >= netgame::mall::MAX_ENTRY)
+		{
+			_runner->error_message(S2C::ERR_GSHOP_INVALID_REQUEST);
+			return true;
+		}
+		netgame::mall::node_t node;
+		if(!shop.QueryGoods(index,node) || node.goods_id != id)
+		{
+			_runner->error_message(S2C::ERR_GSHOP_INVALID_REQUEST);
+			return true;
+		}
+
+		if(!node.check_owner(shop_tid))
+		{
+			_runner->error_message(S2C::ERR_GSHOP_INVALID_REQUEST);
+			return true;
+		}
+
+		if(node.entry[slot].cash_need <= 0)
+		{
+			_runner->error_message(S2C::ERR_GSHOP_INVALID_REQUEST);
+			return true;
+		}
+
+		if(!_purchase_limit_info.CheckShoppingLimitItem(id, node.buy_times_limit, node.buy_times_limit_mode, node.goods_count))
+		{
+			_runner->cash_vip_mall_item_buy_result(CASH_VIP_BUY_FAILED, index, 1);
+			return true;
+		}
+
+		if(GetCashVipLevel() < node.entry[slot].min_vip_level)
+		{
+			_runner->error_message(S2C::ERR_CASH_VIP_LIMIT);
+			return true;
+		}
+		
+		//lgc	
+		//找到当前生效的group
+		int active_group_id = 0;
+		if(node.group_active && __group_id != 0)
+		{
+			if(__group_id == node.entry[0].group_id || __group_id == node.entry[1].group_id || __group_id == node.entry[2].group_id || __group_id == node.entry[3].group_id)
+				active_group_id = __group_id;	
+		}
+
+		if(node.sale_time_active)
+		{	
+			if(node.entry[slot].group_id == active_group_id && node.entry[slot]._sale_time.CheckAvailable(__time))	
+			{
+				//如果player选择的slot是永久的销售方式，则需要扫描当前生效组内，看是否还存在非永久销售方式满足的
+				if(node.entry[slot]._sale_time.GetType() == netgame::mall::sale_time::TYPE_NOLIMIT)
+				{
+					for(int j=0; j<netgame::mall::MAX_ENTRY; j++)
+					{
+						if(node.entry[j].cash_need <= 0)
+							break;
+						if(node.entry[j].group_id == active_group_id 
+									&& node.entry[j]._sale_time.GetType() != netgame::mall::sale_time::TYPE_NOLIMIT
+									&& node.entry[j]._sale_time.CheckAvailable(__time))
+						{
+							_runner->cash_vip_mall_item_buy_result(CASH_VIP_BUY_FAILED, index, 0);
+							return false;
+						}
+					}
+				}				
+			}
+			else
+			{
+				_runner->cash_vip_mall_item_buy_result(CASH_VIP_BUY_FAILED, index, 0);
+				return false;
+			}
+		}
+		else if(node.entry[slot].group_id != active_group_id)
+		{
+			_runner->cash_vip_mall_item_buy_result(CASH_VIP_BUY_FAILED, index, 0);
+			return false;
+		}
+
+		if(node.gift_id > 0) gifts_count ++;  //统计赠品数
+		
+		order.AddGoods(node.goods_id, node.goods_count,node.entry[slot].cash_need, node.entry[slot].expire_time,node.entry[slot].expire_type,node.gift_id,node.gift_count,node.gift_expire_time,node.gift_log_price);
+		
+		if(node.buy_times_limit_mode)
+			item_limit_type_map[node.goods_id] = node.buy_times_limit_mode;
+	}
+	if(GetCashVipScore() < order.GetPointRequire())
+	{
+		//no engouh cash vip score
+		_runner->error_message(S2C::ERR_OUT_OF_FUND);
+		return true;
+	}
+	if(!InventoryHasSlot(goods_count + gifts_count))
+	{
+		_runner->error_message(S2C::ERR_INVENTORY_IS_FULL);
+		return false;
+	}
+
+	int total_cash = GetCashVipScore();
+	int cash_used = 0;
+	//金钱足够， 开始加入物品
+	int cur_t = g_timer.get_systime();
+	int self_id = GetParent()->ID.id;
+	for(size_t i = 0; i < goods_count; i ++)
+	{
+		int id;
+		int count;
+		int point;
+		int expire_time;
+		int expire_type;
+		int gift_id;
+		int gift_count;
+		int gift_expire_time;
+		int gift_log_price;
+		bool bRst = order.GetGoods(i, id, count,point, expire_time,expire_type,gift_id,gift_count,gift_expire_time,gift_log_price);
+		if(bRst)
+		{
+			//计算商品和赠品的log价格
+			int log_price1 = point;
+			int log_price2 = 0;
+			if(gift_id > 0 && gift_log_price > 0)
+			{
+				log_price1 = int((float)point*point/(point+gift_log_price));
+				log_price2 = point - log_price1; 
+			}
+
+			const item_data * pItem = (const item_data*)world_manager::GetDataMan().get_item_for_sell(id);
+			if(pItem)
+			{
+				item_data * pItem2 = DupeItem(*pItem);
+				int expire_date = 0;
+				if(expire_time) 
+				{
+					if(expire_type == netgame::mall::EXPIRE_TYPE_TIME)
+					{
+						//有效期是有一定寿命
+						expire_date = cur_t + expire_time;
+					}
+					else
+					{
+						//有效期是规定日期失效
+						expire_date = expire_time;
+					}
+				}
+				int guid1 = 0;
+				int guid2 = 0;
+				if(pItem2->guid.guid1 != 0)
+				{
+					//void get_item_guid(int id, int & g1, int &g2);
+					//如果需要则生成GUID
+					get_item_guid(pItem2->type, guid1,guid2);
+					pItem2->guid.guid1 = guid1;
+					pItem2->guid.guid2 = guid2;
+				}
+
+				int ocount = count;
+				int rst =_inventory.Push(*pItem2,count,expire_date);
+				ASSERT(rst >= 0 && count == 0);
+				_runner->obtain_item(id,pItem2->expire_date,ocount,_inventory[rst].count, 0,rst);
+
+				if(item_limit_type_map.find(id) != item_limit_type_map.end())
+				{
+					int have_purchase_count = _purchase_limit_info.AddShoppingLimit(id, item_limit_type_map[id], ocount);
+					_runner->purchase_limit_info_notify(item_limit_type_map[id], id, have_purchase_count);
+				}
+				
+				//试着重新初始化一下可能的时装
+				_inventory[rst].InitFromShop();
+
+				total_cash -= log_price1;
+				cash_used += log_price1;
+				//记录日志  
+				GLog::formatlog("formatlog:gcashvipshop_trade:userid=%d:db_magic_number=%d:item_id=%d:expire=%d:item_count=%dcashvipscore_need=%d:cashvipscore_left=%d:guid1=%d:guid2=%d",
+						self_id,_db_user_id,id, expire_date,ocount,log_price1,total_cash,guid1,guid2);
+				
+				world_manager::TestCashItemGenerated(id, ocount);
+				FreeItem(pItem2);
+			}
+			else
+			{
+				//记录错误日志
+				GLog::log(GLOG_ERR,"用户%d在购买CASH_VIP商城物品%d时生成物品失败",self_id, id);
+			}
+
+			//以下为增加赠品
+			if(gift_id > 0)
+			{
+			const item_data * pGift = (const item_data*)world_manager::GetDataMan().get_item_for_sell(gift_id);
+			if(pGift)
+			{
+				item_data * pGift2 = DupeItem(*pGift);
+				int expire_date = 0;
+				if(gift_expire_time) 
+				{
+					//有效期是有一定寿命
+					expire_date = cur_t + gift_expire_time;
+				}
+				int guid1 = 0;
+				int guid2 = 0;
+				if(pGift2->guid.guid1 != 0)
+				{
+					//void get_item_guid(int id, int & g1, int &g2);
+					//如果需要则生成GUID
+					get_item_guid(pGift2->type, guid1,guid2);
+					pGift2->guid.guid1 = guid1;
+					pGift2->guid.guid2 = guid2;
+				}
+
+				int ocount = gift_count;
+				int rst =_inventory.Push(*pGift2,gift_count,expire_date);
+				ASSERT(rst >= 0 && gift_count == 0);
+				_runner->obtain_item(gift_id,expire_date,ocount,_inventory[rst].count, 0,rst);
+
+				//试着重新初始化一下可能的时装
+                _inventory[rst].InitFromShop();
+				
+				total_cash -= log_price2;
+				cash_used += log_price2;
+				//记录日志  
+				GLog::formatlog("formatlog:gcashvipshop_trade:userid=%d:db_magic_number=%d:item_id=%d:expire=%d:item_count=%d:cashvipscore_need=%d:cashvipscore_left=%d:guid1=%d:guid2=%d",
+						self_id,_db_user_id,gift_id, expire_date,ocount,log_price2,total_cash,guid1,guid2);
+				
+				world_manager::TestCashItemGenerated(gift_id, ocount);
+				FreeItem(pGift2);
+			}
+			else
+			{
+				//记录错误日志
+				GLog::log(GLOG_ERR,"用户%d在购买CASH_VIP商城物品%d时生成赠品%d失败",self_id, id, gift_id);
+			}
+			}
+		}
+		else
+		{
+			ASSERT(false);
+		}
+	}
+
+	bool rst = _cash_vip_info.SpendCashVipScore(cash_used, (gplayer *)_parent);
+	ASSERT(rst);
+
+	_runner->cash_vip_mall_item_buy_result(CASH_VIP_BUY_SUCCESS, 0, 0);
+	
+	GLog::log(GLOG_INFO,"用户%d在CASH_VIP商城购买%d样物品，花费%d点剩余%d点",self_id,goods_count,cash_used,GetCashVipScore());
+
+	//考虑加快存盘速度 
+	return true;
+}
+
+int gplayer_imp::AddFixPositionEnergy(int item_type)
+{
+	DATA_TYPE dt;
+	FIX_POSITION_TRANSMIT_ESSENCE * ess = (FIX_POSITION_TRANSMIT_ESSENCE*)world_manager::GetDataMan().get_data_ptr((unsigned int)item_type, ID_SPACE_ESSENCE,dt);
+	if( !ess || dt != DT_FIX_POSITION_TRANSMIT_ESSENCE) return -1;
+	int energy = ess->energy;
+	if(energy < 0)
+		return -1;
+	AddFixPositionTransmitEnergy(energy);
+	return 1;
+}
+
+bool gplayer_imp::CheckVipService(int type)
+{
+	if(world_manager::GetGlobalController().CheckServerForbid(SERVER_FORBID_SERVICE,type))	
+		return false;
+
+	int viplevel = _cash_vip_info.GetVipLevel();
+
+	switch(type)
+	{
+		case CVS_SHOPPING:
+			return true;
+		case CVS_RESURRECT:
+			return viplevel >= CASH_RESURRECT_VIP_LEVEL_LIMIT;
+		case CVS_PICKALL:
+			return viplevel >= 3;
+		case CVS_FIX_POSITION:
+			return viplevel >= MIN_FIX_POSITION_TRANSMIT_VIP_LEVEL;
+		case CVS_ENEMYLIST:
+			return viplevel >= ENEMY_VIP_LEVEL_LIMIT;
+		case CVS_ONLINEAWARD:
+			return viplevel >= 2;
+		case CVS_REPAIR:
+			return viplevel >= MIN_REMOTE_ALL_REPAIR_VIP_LEVEL;
+	}
+
+	return false;
 }
 

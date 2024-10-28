@@ -1,0 +1,59 @@
+#ifndef __GNET_DBSOLOCHALLENGERANKLOADARG_RPCDATA
+#define __GNET_DBSOLOCHALLENGERANKLOADARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBSoloChallengeRankLoadArg : public GNET::Rpc::Data
+	{
+	public:
+		char type;
+
+	public:
+		DBSoloChallengeRankLoadArg (char l_type = 0)
+			: type(l_type)
+		{
+		}
+
+		DBSoloChallengeRankLoadArg(const DBSoloChallengeRankLoadArg &rhs)
+			: type(rhs.type) { }
+
+		Rpc::Data *Clone() const { return new DBSoloChallengeRankLoadArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBSoloChallengeRankLoadArg *r = dynamic_cast<const DBSoloChallengeRankLoadArg *>(&rhs);
+			if (r && r != this)
+			{
+				type = r->type;
+			}
+			return *this;
+		}
+
+		DBSoloChallengeRankLoadArg& operator = (const DBSoloChallengeRankLoadArg &rhs)
+		{
+			const DBSoloChallengeRankLoadArg *r = &rhs;
+			if (r && r != this)
+			{
+				type = r->type;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << type;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> type;
+			return os;
+		}
+
+	};
+};
+#endif

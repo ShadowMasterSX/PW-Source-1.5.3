@@ -132,9 +132,9 @@ namespace GNET
       Skill2086Stub ():SkillStub (2086)
         {
             cls = 127;
-            name = L"夜幕";
-            nativename = "夜幕";
-            icon = "宠物强化.dds";
+            name = L"澶滃箷";
+            nativename = "澶滃箷";
+            icon = "瀹犵墿寮哄寲.dds";
             max_level = 10;
             type = 10;
             apcost = 0;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "巫师_冥王乐土.sgc";
+            effect = "宸笀_鍐ョ帇涔愬湡.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

@@ -132,9 +132,9 @@ namespace GNET
       Skill756Stub ():SkillStub (756)
         {
             cls = 127;
-            name = L"ÕðÉã";
-            nativename = "ÕðÉã";
-            icon = "³èÎïÕðÉã.dds";
+            name = L"éœ‡æ‘„";
+            nativename = "éœ‡æ‘„";
+            icon = "å® ç‰©éœ‡æ‘„.dds";
             max_level = 5;
             type = 3;
             apcost = 0;
@@ -153,7 +153,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "¿ñÁúÕ¶.sgc";
+            effect = "ç‹‚é¾™æ–©.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

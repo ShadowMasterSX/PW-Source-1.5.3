@@ -57,8 +57,8 @@ namespace GNET
       Skill1786Stub ():SkillStub (1786)
         {
             cls = 127;
-            name = L"高级反隐药水";
-            nativename = "高级反隐药水";
+            name = L"楂樼骇鍙嶉殣鑽按";
+            nativename = "楂樼骇鍙嶉殣鑽按";
             icon = "";
             max_level = 10;
             type = 4;
@@ -80,7 +80,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "蓄气.sgc";
+            effect = "钃勬皵.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

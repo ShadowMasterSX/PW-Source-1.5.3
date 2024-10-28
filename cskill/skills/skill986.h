@@ -59,9 +59,9 @@ namespace GNET
       Skill986Stub ():SkillStub (986)
         {
             cls = 258;
-            name = L"×ÏÑª±ùÉ·";
-            nativename = "×ÏÑª±ùÉ·";
-            icon = "Ðþ±ùÖä.dds";
+            name = L"ç´«è¡€å†°ç…ž";
+            nativename = "ç´«è¡€å†°ç…ž";
+            icon = "çŽ„å†°å’’.dds";
             max_level = 10;
             type = 3;
             apcost = 500000;
@@ -81,7 +81,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 1;
-            effect = "Ðþ±ùÖä.sgc";
+            effect = "çŽ„å†°å’’.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

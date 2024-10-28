@@ -19,9 +19,9 @@ namespace GNET
         Skill1262Stub ():SkillStub (1262)
         {
             cls = 5;
-            name = L"�桤ذ�׾�ͨ";
-            nativename = "�桤ذ�׾�ͨ";
-            icon = "ذ�׾�ͨ�ɼ���.dds";
+            name = L"真·匕首精通";
+            nativename = "真·匕首精通";
+            icon = "匕首精通仙技能.dds";
             max_level = 1;
             type = 5;
             apcost = 0;

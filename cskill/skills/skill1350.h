@@ -137,9 +137,9 @@ namespace GNET
       Skill1350Stub ():SkillStub (1350)
         {
             cls = 8;
-            name = L"碎石剑气";
-            nativename = "碎石剑气";
-            icon = "碎石剑气.dds";
+            name = L"纰庣煶鍓戞皵";
+            nativename = "纰庣煶鍓戞皵";
+            icon = "纰庣煶鍓戞皵.dds";
             max_level = 10;
             type = 1;
             apcost = 0;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (1);
             }
-            effect = "剑灵_碎石剑气.sgc";
+            effect = "鍓戠伒_纰庣煶鍓戞皵.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

@@ -1,0 +1,150 @@
+#ifndef __GNET_MNDOMAINDATA_RPCDATA
+#define __GNET_MNDOMAINDATA_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class MNDomainData : public GNET::Rpc::Data
+	{
+	public:
+		int domain_id;
+		unsigned char domain_type;
+		int64_t owner_unifid;
+		Octets faction_name;
+		int owner_rank;
+		Octets master_name;
+		int zoneid;
+		int credit;
+		int64_t attacker_unifid;
+		int attacker_zoneid;
+		Octets attacker_name;
+		int attacker_rank;
+		int64_t defender_unifid;
+		int defender_zoneid;
+		Octets defender_name;
+		int defender_rank;
+
+	public:
+		MNDomainData (int l_domain_id = 0,unsigned char l_domain_type = 0,int64_t l_owner_unifid = 0
+			,const Octets& l_faction_name = Octets(),int l_owner_rank = 0,const Octets& l_master_name = Octets()
+			,int l_zoneid = 0,int l_credit = 0,int64_t l_attacker_unifid = 0
+			,int l_attacker_zoneid = 0,const Octets& l_attacker_name = Octets(),int l_attacker_rank = 0
+			,int64_t l_defender_unifid = 0,int l_defender_zoneid = 0,const Octets& l_defender_name = Octets()
+			,int l_defender_rank = 0)
+			: domain_id(l_domain_id),domain_type(l_domain_type),owner_unifid(l_owner_unifid)
+			,faction_name(l_faction_name),owner_rank(l_owner_rank),master_name(l_master_name)
+			,zoneid(l_zoneid),credit(l_credit),attacker_unifid(l_attacker_unifid)
+			,attacker_zoneid(l_attacker_zoneid),attacker_name(l_attacker_name),attacker_rank(l_attacker_rank)
+			,defender_unifid(l_defender_unifid),defender_zoneid(l_defender_zoneid),defender_name(l_defender_name)
+			,defender_rank(l_defender_rank)
+		{
+		}
+
+		MNDomainData(const MNDomainData &rhs)
+			: domain_id(rhs.domain_id),domain_type(rhs.domain_type),owner_unifid(rhs.owner_unifid),
+			faction_name(rhs.faction_name),owner_rank(rhs.owner_rank),master_name(rhs.master_name),
+			zoneid(rhs.zoneid),credit(rhs.credit),attacker_unifid(rhs.attacker_unifid),
+			attacker_zoneid(rhs.attacker_zoneid),attacker_name(rhs.attacker_name),attacker_rank(rhs.attacker_rank),
+			defender_unifid(rhs.defender_unifid),defender_zoneid(rhs.defender_zoneid),defender_name(rhs.defender_name),
+			defender_rank(rhs.defender_rank) { }
+
+		Rpc::Data *Clone() const { return new MNDomainData(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const MNDomainData *r = dynamic_cast<const MNDomainData *>(&rhs);
+			if (r && r != this)
+			{
+				domain_id = r->domain_id;
+				domain_type = r->domain_type;
+				owner_unifid = r->owner_unifid;
+				faction_name = r->faction_name;
+				owner_rank = r->owner_rank;
+				master_name = r->master_name;
+				zoneid = r->zoneid;
+				credit = r->credit;
+				attacker_unifid = r->attacker_unifid;
+				attacker_zoneid = r->attacker_zoneid;
+				attacker_name = r->attacker_name;
+				attacker_rank = r->attacker_rank;
+				defender_unifid = r->defender_unifid;
+				defender_zoneid = r->defender_zoneid;
+				defender_name = r->defender_name;
+				defender_rank = r->defender_rank;
+			}
+			return *this;
+		}
+
+		MNDomainData& operator = (const MNDomainData &rhs)
+		{
+			const MNDomainData *r = &rhs;
+			if (r && r != this)
+			{
+				domain_id = r->domain_id;
+				domain_type = r->domain_type;
+				owner_unifid = r->owner_unifid;
+				faction_name = r->faction_name;
+				owner_rank = r->owner_rank;
+				master_name = r->master_name;
+				zoneid = r->zoneid;
+				credit = r->credit;
+				attacker_unifid = r->attacker_unifid;
+				attacker_zoneid = r->attacker_zoneid;
+				attacker_name = r->attacker_name;
+				attacker_rank = r->attacker_rank;
+				defender_unifid = r->defender_unifid;
+				defender_zoneid = r->defender_zoneid;
+				defender_name = r->defender_name;
+				defender_rank = r->defender_rank;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << domain_id;
+			os << domain_type;
+			os << owner_unifid;
+			os << faction_name;
+			os << owner_rank;
+			os << master_name;
+			os << zoneid;
+			os << credit;
+			os << attacker_unifid;
+			os << attacker_zoneid;
+			os << attacker_name;
+			os << attacker_rank;
+			os << defender_unifid;
+			os << defender_zoneid;
+			os << defender_name;
+			os << defender_rank;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> domain_id;
+			os >> domain_type;
+			os >> owner_unifid;
+			os >> faction_name;
+			os >> owner_rank;
+			os >> master_name;
+			os >> zoneid;
+			os >> credit;
+			os >> attacker_unifid;
+			os >> attacker_zoneid;
+			os >> attacker_name;
+			os >> attacker_rank;
+			os >> defender_unifid;
+			os >> defender_zoneid;
+			os >> defender_name;
+			os >> defender_rank;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<MNDomainData>	MNDomainDataVector;
+};
+#endif

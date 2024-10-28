@@ -137,9 +137,9 @@ namespace GNET
       Skill1352Stub ():SkillStub (1352)
         {
             cls = 8;
-            name = L"流光剑气";
-            nativename = "流光剑气";
-            icon = "流光剑劲.dds";
+            name = L"娴佸厜鍓戞皵";
+            nativename = "娴佸厜鍓戞皵";
+            icon = "娴佸厜鍓戝姴.dds";
             max_level = 10;
             type = 1;
             apcost = 0;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (1);
             }
-            effect = "剑灵_流光剑劲.sgc";
+            effect = "鍓戠伒_娴佸厜鍓戝姴.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

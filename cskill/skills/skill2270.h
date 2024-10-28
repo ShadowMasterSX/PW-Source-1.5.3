@@ -57,8 +57,8 @@ namespace GNET
       Skill2270Stub ():SkillStub (2270)
         {
             cls = 127;
-            name = L"药品-重生";
-            nativename = "药品-重生";
+            name = L"鑽搧-閲嶇敓";
+            nativename = "鑽搧-閲嶇敓";
             icon = "";
             max_level = 10;
             type = 4;
@@ -79,7 +79,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "润泽.sgc";
+            effect = "娑︽辰.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

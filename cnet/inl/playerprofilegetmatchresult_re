@@ -6,7 +6,7 @@
 	public:
 		PlayerProfileGetMatchResult_Re() { type = PROTOCOL_PLAYERPROFILEGETMATCHRESULT_RE; }
 		PlayerProfileGetMatchResult_Re(void*) : Protocol(PROTOCOL_PLAYERPROFILEGETMATCHRESULT_RE) { }
-		PlayerProfileGetMatchResult_Re (int l_roleid,std::vector<ProfileMatchResult> l_result,unsigned int l_localsid)
+		PlayerProfileGetMatchResult_Re (int l_roleid,const std::vector<ProfileMatchResult>& l_result,unsigned int l_localsid)
 			 : roleid(l_roleid),result(l_result),localsid(l_localsid)
 		{
 			type = PROTOCOL_PLAYERPROFILEGETMATCHRESULT_RE;

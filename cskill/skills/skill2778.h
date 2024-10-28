@@ -138,9 +138,9 @@ namespace GNET
       Skill2778Stub ():SkillStub (2778)
         {
             cls = 11;
-            name = L"狂·望月咏";
-            nativename = "狂·望月咏";
-            icon = "魔望月咏.dds";
+            name = L"鐙偮锋湜鏈堝拸";
+            nativename = "鐙偮锋湜鏈堝拸";
+            icon = "榄旀湜鏈堝拸.dds";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -168,7 +168,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "月仙_望月咏_击中.sgc";
+            effect = "鏈堜粰_鏈涙湀鍜廮鍑讳腑.sgc";
             range.type = 1;
             doenchant = false;
             dobless = true;

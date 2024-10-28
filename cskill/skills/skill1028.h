@@ -59,9 +59,9 @@ namespace GNET
       Skill1028Stub ():SkillStub (1028)
         {
             cls = 258;
-            name = L"神风之触";
-            nativename = "神风之触";
-            icon = "神风之触.dds";
+            name = L"绁為涔嬭Е";
+            nativename = "绁為涔嬭Е";
+            icon = "绁為涔嬭Е.dds";
             max_level = 10;
             type = 2;
             apcost = 500000;
@@ -80,7 +80,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 1;
-            effect = "神风之触.sgc";
+            effect = "绁為涔嬭Е.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

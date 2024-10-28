@@ -137,9 +137,9 @@ namespace GNET
       Skill305Stub ():SkillStub (305)
         {
             cls = 3;
-            name = L"万蛊食天";
-            nativename = "万蛊食天";
-            icon = "万蛊食天.dds";
+            name = L"涓囪泭椋熷ぉ";
+            nativename = "涓囪泭椋熷ぉ";
+            icon = "涓囪泭椋熷ぉ.dds";
             max_level = 10;
             type = 1;
             apcost = 200;
@@ -166,7 +166,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (292);
             }
-            effect = "万蛊食天.sgc";
+            effect = "涓囪泭椋熷ぉ.sgc";
             range.type = 3;
             doenchant = true;
             dobless = false;

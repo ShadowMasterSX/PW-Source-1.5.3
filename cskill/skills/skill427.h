@@ -58,9 +58,9 @@ namespace GNET
       Skill427Stub ():SkillStub (427)
         {
             cls = 0;
-            name = L"���׽";
-            nativename = "���׽";
-            icon = "�׽2.DDS";
+            name = L"狂·易筋经";
+            nativename = "狂·易筋经";
+            icon = "易筋经2.DDS";
             max_level = 1;
             type = 2;
             apcost = 0;
@@ -99,7 +99,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (9);
             }
-            effect = "2�׽.sgc";
+            effect = "2易筋经.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

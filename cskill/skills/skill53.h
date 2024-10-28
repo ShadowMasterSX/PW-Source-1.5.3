@@ -19,9 +19,9 @@ namespace GNET
         Skill53Stub ():SkillStub (53)
         {
             cls = 1;
-            name = L"��ͨ";
-            nativename = "��ͨ";
-            icon = "��ͨ.dds";
+            name = L"火精通";
+            nativename = "火精通";
+            icon = "火精通.dds";
             max_level = 10;
             type = 5;
             apcost = 0;

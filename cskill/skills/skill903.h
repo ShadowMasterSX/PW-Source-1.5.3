@@ -58,9 +58,9 @@ namespace GNET
       Skill903Stub ():SkillStub (903)
         {
             cls = 1;
-            name = L"摄魂之力";
-            nativename = "摄魂之力";
-            icon = "摄魂之力.dds";
+            name = L"鎽勯瓊涔嬪姏";
+            nativename = "鎽勯瓊涔嬪姏";
+            icon = "鎽勯瓊涔嬪姏.dds";
             max_level = 1;
             type = 3;
             apcost = 20;
@@ -86,7 +86,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "疲惫.sgc";
+            effect = "鐤叉儷.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

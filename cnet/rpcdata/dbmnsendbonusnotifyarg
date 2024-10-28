@@ -1,0 +1,58 @@
+#ifndef __GNET_DBMNSENDBONUSNOTIFYARG_RPCDATA
+#define __GNET_DBMNSENDBONUSNOTIFYARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBMNSendBonusNotifyArg : public GNET::Rpc::Data
+	{
+	public:
+		int64_t unifid;
+
+	public:
+		DBMNSendBonusNotifyArg ()
+		{
+		}
+
+		DBMNSendBonusNotifyArg(const DBMNSendBonusNotifyArg &rhs)
+			: unifid(rhs.unifid) { }
+
+		Rpc::Data *Clone() const { return new DBMNSendBonusNotifyArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBMNSendBonusNotifyArg *r = dynamic_cast<const DBMNSendBonusNotifyArg *>(&rhs);
+			if (r && r != this)
+			{
+				unifid = r->unifid;
+			}
+			return *this;
+		}
+
+		DBMNSendBonusNotifyArg& operator = (const DBMNSendBonusNotifyArg &rhs)
+		{
+			const DBMNSendBonusNotifyArg *r = &rhs;
+			if (r && r != this)
+			{
+				unifid = r->unifid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << unifid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> unifid;
+			return os;
+		}
+
+	};
+};
+#endif

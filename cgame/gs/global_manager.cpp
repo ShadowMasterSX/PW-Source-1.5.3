@@ -30,7 +30,8 @@ global_world_manager::InitNetClient(const char * gmconf)
 	int task_version = _task_templ_cur_version;
 	int gshop_version = globaldata_getmalltimestamp();
 	int gdividendshop_version = globaldata_getmall2timestamp();
-	sprintf(version, "%x%x%x%x", ele_version, task_version, gshop_version, gdividendshop_version);
+	int gcashvipshop_version = globaldata_getmall3timestamp();
+	sprintf(version, "%x%x%x%x%x", ele_version, task_version, gshop_version, gdividendshop_version, gcashvipshop_version);
 
 
 	rect rt = _plane.GetLocalWorld();
@@ -512,6 +513,10 @@ global_world_manager::HandleSwitchRequest(int link_id,int user_id, int localsid,
 				SetTimer(g_timer,TICK_PER_SEC*5,1);
 				__PRINTF("timer %p %d\n",this,_timer_index);
 			}
+			~switch_task()
+			{
+				if(_timer_index >=0) RemoveTimer();
+			}
 		public:
 			virtual void OnTimer(int index,int rtimes)
 			{
@@ -728,7 +733,7 @@ void global_world_manager::OnMafiaPvPElementRequest(unsigned int version)
 	BuildMessage(msg,GM_MSG_MAFIA_PVP_ELEMENT,wid,wid,A3DVECTOR(0,0,0),(int)version);
 	PostMessage(&_plane,msg);
 }
-
+/*
 world_message_handler * countryterritory_world_manager::CreateMessageHandler()
 {
 	return new countryterritory_world_message_handler(this, &_plane);
@@ -797,4 +802,4 @@ bool countryterritory_world_manager::GetTownPosition(gplayer_imp *pImp, const A3
 	tag = _world_tag;
 	return true;
 }
-
+*/

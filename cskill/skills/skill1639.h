@@ -134,9 +134,9 @@ namespace GNET
       Skill1639Stub ():SkillStub (1639)
         {
             cls = 9;
-            name = L"¿ñ¡¤ÖØÉúÊõ";
-            nativename = "¿ñ¡¤ÖØÉúÊõ";
-            icon = "¿İÄ¾·ê´ºÄ§¼¼ÄÜ.dds";
+            name = L"ç‹‚Â·é‡ç”Ÿæœ¯";
+            nativename = "ç‹‚Â·é‡ç”Ÿæœ¯";
+            icon = "æ¯æœ¨é€¢æ˜¥é­”æŠ€èƒ½.dds";
             max_level = 1;
             type = 2;
             apcost = 0;
@@ -164,7 +164,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "÷ÈÁé_¿İÄ¾·ê´º.sgc";
+            effect = "é­…çµ_æ¯æœ¨é€¢æ˜¥.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

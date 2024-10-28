@@ -25,6 +25,8 @@ public:
 	void OnGSConnect(Protocol::Manager * manager, int sid);
 public:
 	void ModifyUniqueData(int worldtag,int key, int vtype, Octets& val,Octets& oldval, bool excl, bool broadcast, int sid, int version,bool timeout);
+	void ModifyByDelivery(int key ,int val , bool cl_broadcast = false);
+	int  GetIntByDelivery(int key);
 	void InitGSData(int worldtag,int sid);
 private:
 	void SyncModifyToDB();

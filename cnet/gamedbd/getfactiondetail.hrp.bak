@@ -1,0 +1,252 @@
+
+#ifndef __GNET_GETFACTIONDETAIL_HPP
+#define __GNET_GETFACTIONDETAIL_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "fmemberinfo"
+#include "factionid"
+#include "gfactiondetail"
+#include "factiondetailres"
+#include "gfactionrelation"
+
+namespace GNET
+{
+
+class GetFactionDetail : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getfactiondetail"
+#undef	RPC_BASECLASS
+
+	GMemberVector::iterator FindMrBig(GMemberVector& member)
+	{
+		GMemberVector::iterator itm = member.begin();
+		int minrole = _R_MEMBER;
+		for(GMemberVector::iterator it=member.begin(),ie=member.end();it!=ie;++it)
+		{
+			if(it->role<minrole)
+			{
+				minrole = it->role;
+				itm = it;
+			}
+		}
+		return itm;
+	}
+	
+	void SyncFactionData(unsigned int fid, FMemberInfoVector& list,
+			StorageEnv::Storage * pinfo, StorageEnv::Storage * puser, StorageEnv::CommonTransaction &txn)
+	{
+		GFactionInfo info;
+		Marshal::OctetsStream(pinfo->find(Marshal::OctetsStream() << fid, txn)) >> info;
+		GMemberVector::iterator ie = info.member.end(), itmaster = ie;
+		for(GMemberVector::iterator it=info.member.begin(); it!=ie;++it)
+		{
+			if(it->rid==info.master.rid)
+				itmaster = it;
+			for(FMemberInfoVector::iterator jt=list.begin(),je=list.end();jt!=je;++jt)
+			{
+				if(jt->roleid==it->rid)
+				{
+					it->role = jt->froleid;
+					break;
+				}
+			}
+		}
+		if(itmaster==ie)
+			itmaster = FindMrBig(info.member);
+		if(itmaster==ie)
+			Log::log( LOG_ERR, "SyncFactionData, cannot assign new master fid=%d",fid);
+		else
+		{
+			GUserFaction user;
+			Marshal::OctetsStream(puser->find(Marshal::OctetsStream()<<itmaster->rid, txn))>>user;
+			if(user.role!=_R_MASTER)
+			{
+				Log::log( LOG_ERR, "SyncFactionData, assign new master fid=%d roleid=%d old=%d",
+						fid, itmaster->rid, info.master.rid);
+				user.role = _R_MASTER;
+				itmaster->role = _R_MASTER;
+				puser->insert(Marshal::OctetsStream()<<itmaster->rid, Marshal::OctetsStream()<<user, txn);
+				for(FMemberInfoVector::iterator jt=list.begin(),je=list.end();jt!=je;++jt)
+				{
+					if(jt->roleid==itmaster->rid)
+					{
+						jt->froleid = _R_MASTER;
+						break;
+					}
+				}
+			}
+		}
+		info.master.rid = itmaster->rid;
+		pinfo->insert(Marshal::OctetsStream()<<fid, Marshal::OctetsStream()<<info,txn);
+	}
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		FactionId *arg = (FactionId *)argument;
+		FactionDetailRes *res = (FactionDetailRes *)result;
+		Marshal::OctetsStream key;
+		GFactionInfo info;
+
+		LOG_TRACE( "GetFactionDetail, fid=%d.\n", arg->fid );
+
+		try
+		{
+			StorageEnv::Storage * pinfo = StorageEnv::GetStorage("factioninfo");
+			StorageEnv::Storage * puser = StorageEnv::GetStorage("userfaction");
+			StorageEnv::Storage * pstatus = StorageEnv::GetStorage("status");
+			StorageEnv::Storage * prelation = StorageEnv::GetStorage("factionrelation");
+			StorageEnv::CommonTransaction txn;
+			GUserFaction user;
+			GRoleStatus status;
+			GFactionExtend ext;
+			try{
+				bool needsync = false;
+				int  masterid = 0;
+
+				Marshal::OctetsStream(pinfo->find(Marshal::OctetsStream() << *arg, txn)) >> info;
+				res->value.fid = info.fid;
+				res->value.name.swap(info.name);
+				res->value.level = info.level;
+				res->value.master = info.master.rid;
+				res->value.announce.swap(info.announce);
+				for(GMemberVector::iterator it=info.member.begin(),ie=info.member.end(); it!=ie;++it)
+				{
+					FMemberInfo member;
+					member.roleid = (*it).rid;
+					Marshal::OctetsStream key;
+					key << (*it).rid;
+					try{
+						Marshal::OctetsStream value;
+						if(!puser->find(key,value,txn))
+							continue;
+						value >> user;
+						if(user.fid!=info.fid)
+						{
+							Log::log(LOG_ERR, "GetFactionDetail, invalid member fid=%d rid=%d realfid=%d",
+									arg->fid,it->rid,user.fid);
+							continue;
+						}
+						member.occupation = user.cls;
+						member.froleid = user.role;
+						member.name.swap(user.name);
+						member.nickname.swap(user.nickname);
+						member.delayexpel = 0;
+						member.expeltime = 0;
+
+						if(user.delayexpel.size())
+						{
+						    	try{
+						    		Marshal::OctetsStream od(user.delayexpel);
+						    		od >> member.delayexpel >> member.expeltime;
+							}catch(Marshal::Exception)
+							{ 
+								member.delayexpel = 0;
+						    	member.expeltime = 0;
+							}
+						}
+
+						if(user.extend.size())
+						{
+							try{
+									Marshal::OctetsStream os(user.extend);
+									os >> ext;
+									member.loginday = (unsigned short)(ext.logintime/86400);
+							}catch(Marshal::Exception){ }
+						}
+						res->value.member.add(member);
+
+						if(it->role!=user.role)
+						{
+							needsync = true;
+							Log::log(LOG_ERR, "GetFactionDetail, inconsistent headship fid=%d rid=%d oldrole=%d newrole=%d",
+									arg->fid,it->rid,it->role,user.role);
+							it->role = user.role;
+						}
+						if(info.master.rid==user.rid && user.role==_R_MASTER)
+							masterid = user.rid;
+					} catch ( Marshal::Exception & ) {
+						Log::log( LOG_ERR, "GetFactionDetail, unmarshal userfaction error fid=%d rid=%d",arg->fid,(*it).rid);
+					}
+				}
+
+				if((needsync || masterid==0)&&info.member.size())
+					SyncFactionData(arg->fid, res->value.member, pinfo, puser, txn);
+
+				for(FMemberInfoVector::iterator it=res->value.member.begin(),ie=res->value.member.end();it!=ie;++it)
+				{
+					try{
+						Marshal::OctetsStream key;
+						key << it->roleid;
+						Marshal::OctetsStream value;
+						if(pstatus->find(key, value, txn))
+						{
+							value >> status;
+							
+							it->level = status.level;
+							it->reincarn_times = (unsigned char)GetRoleReincarnationTimes(status.reincarnation_data);
+							it->reputation = status.reputation;
+							//此结构由gs定义
+							struct faction_contrib
+							{
+								int consume_contrib;
+								int exp_contrib;
+								int cumulate_contrib;
+							};
+							if(status.faction_contrib.size() == sizeof(faction_contrib))
+							{
+								faction_contrib * pContrib = (faction_contrib *)status.faction_contrib.begin();
+								it->contrib = pContrib->cumulate_contrib;
+							}
+						}
+						else
+							it->level = 1;
+					} catch ( Marshal::Exception & ) {
+						Log::log( LOG_ERR, "GetFactionDetail, unmarshal status error fid=%d rid=%d",arg->fid,(*it).roleid);
+						continue;
+					}
+				}
+				//读取帮派外交数据
+				Marshal::OctetsStream value_relation;
+				if(prelation->find(Marshal::OctetsStream()<<arg->fid, value_relation, txn))
+				{
+					GFactionRelation relation;
+					value_relation >> relation;
+					res->value.last_op_time = relation.last_op_time;
+					res->value.alliance.swap(relation.alliance);
+					res->value.hostile.swap(relation.hostile);
+					res->value.apply.swap(relation.apply);
+				}
+				
+				res->retcode = ERR_SUCCESS;
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "GetFactionDetail error, fid=%d, what=%s\n", arg->fid, e.what());
+			res->retcode = -1;
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

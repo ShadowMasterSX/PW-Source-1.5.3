@@ -134,9 +134,9 @@ namespace GNET
       Skill103Stub ():SkillStub (103)
         {
             cls = 4;
-            name = L"ˮ�Ծ�ͨ";
-            nativename = "ˮ�Ծ�ͨ";
-            icon = "ˮ�Ծ�ͨ.dds";
+            name = L"水性精通";
+            nativename = "水性精通";
+            icon = "水性精通.dds";
             max_level = 1;
             type = 5;
             apcost = 0;
@@ -160,7 +160,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (9);
             }
-            effect = "��ɱ.sgc";
+            effect = "绞杀.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

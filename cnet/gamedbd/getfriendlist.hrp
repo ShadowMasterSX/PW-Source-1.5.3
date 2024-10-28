@@ -42,6 +42,9 @@ class GetFriendList : public Rpc
 					value1 >> gfriendext;
 					res->sendmail_info = gfriendext.sendaumailinfo;
 					res->extra_info = gfriendext.friendExtInfo;
+
+                    if (gfriendext.enemylistinfo.size() > 0)
+                        Marshal::OctetsStream(gfriendext.enemylistinfo) >> (res->enemylist_info);
 				}
 				res->retcode = ERR_SUCCESS;
 			}

@@ -132,8 +132,8 @@ namespace GNET
       Skill2495Stub ():SkillStub (2495)
         {
             cls = 127;
-            name = L"»³¹â¿ñ±©";
-            nativename = "»³¹â¿ñ±©";
+            name = L"æ€€å…‰ç‹‚æš´";
+            nativename = "æ€€å…‰ç‹‚æš´";
             icon = "";
             max_level = 10;
             type = 2;

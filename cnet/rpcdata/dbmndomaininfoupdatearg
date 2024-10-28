@@ -1,0 +1,60 @@
+#ifndef __GNET_DBMNDOMAININFOUPDATEARG_RPCDATA
+#define __GNET_DBMNDOMAININFOUPDATEARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "mndomaininfo"
+
+namespace GNET
+{
+	class DBMNDomainInfoUpdateArg : public GNET::Rpc::Data
+	{
+	public:
+		MNDomainInfoVector domaininfo_list;
+
+	public:
+		DBMNDomainInfoUpdateArg (const MNDomainInfoVector& l_domaininfo_list = MNDomainInfoVector())
+			: domaininfo_list(l_domaininfo_list)
+		{
+		}
+
+		DBMNDomainInfoUpdateArg(const DBMNDomainInfoUpdateArg &rhs)
+			: domaininfo_list(rhs.domaininfo_list) { }
+
+		Rpc::Data *Clone() const { return new DBMNDomainInfoUpdateArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBMNDomainInfoUpdateArg *r = dynamic_cast<const DBMNDomainInfoUpdateArg *>(&rhs);
+			if (r && r != this)
+			{
+				domaininfo_list = r->domaininfo_list;
+			}
+			return *this;
+		}
+
+		DBMNDomainInfoUpdateArg& operator = (const DBMNDomainInfoUpdateArg &rhs)
+		{
+			const DBMNDomainInfoUpdateArg *r = &rhs;
+			if (r && r != this)
+			{
+				domaininfo_list = r->domaininfo_list;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << domaininfo_list;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> domaininfo_list;
+			return os;
+		}
+
+	};
+};
+#endif

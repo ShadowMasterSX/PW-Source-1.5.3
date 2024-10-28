@@ -57,9 +57,9 @@ namespace GNET
       Skill2073Stub ():SkillStub (2073)
         {
             cls = 255;
-            name = L"福至心灵";
-            nativename = "福至心灵";
-            icon = "蛇年大吉.dds";
+            name = L"绂忚嚦蹇冪伒";
+            nativename = "绂忚嚦蹇冪伒";
+            icon = "铔囧勾澶у悏.dds";
             max_level = 1;
             type = 2;
             apcost = 0;
@@ -116,7 +116,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (44879);
             }
-            effect = "蓄气.sgc";
+            effect = "钃勬皵.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

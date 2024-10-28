@@ -19,9 +19,9 @@ namespace GNET
         Skill630Stub ():SkillStub (630)
         {
             cls = 6;
-            name = L"Õæ¡¤°Ù²½´©Ñî";
-            nativename = "Õæ¡¤°Ù²½´©Ñî";
-            icon = "°Ù²½´©Ñî1.dds";
+            name = L"çœŸÂ·ç™¾æ­¥ç©¿æ¨";
+            nativename = "çœŸÂ·ç™¾æ­¥ç©¿æ¨";
+            icon = "ç™¾æ­¥ç©¿æ¨1.dds";
             max_level = 1;
             type = 5;
             apcost = 0;

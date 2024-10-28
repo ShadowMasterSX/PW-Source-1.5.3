@@ -132,8 +132,8 @@ namespace GNET
       Skill2469Stub ():SkillStub (2469)
         {
             cls = 127;
-            name = L"召小怪回血护盾";
-            nativename = "召小怪回血护盾";
+            name = L"鍙皬鎬洖琛�鎶ょ浘";
+            nativename = "鍙皬鎬洖琛�鎶ょ浘";
             icon = "";
             max_level = 10;
             type = 2;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "法师_烈焰护甲.sgc";
+            effect = "娉曞笀_鐑堢劙鎶ょ敳.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

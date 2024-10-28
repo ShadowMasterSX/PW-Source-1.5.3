@@ -19,9 +19,9 @@ namespace GNET
         Skill486Stub ():SkillStub (486)
         {
             cls = 1;
-            name = L"�桤��ͨ";
-            nativename = "�桤��ͨ";
-            icon = "��ͨ1.DDS";
+            name = L"真·火精通";
+            nativename = "真·火精通";
+            icon = "火精通1.DDS";
             max_level = 1;
             type = 5;
             apcost = 0;

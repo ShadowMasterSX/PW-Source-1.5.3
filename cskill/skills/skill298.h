@@ -134,8 +134,8 @@ namespace GNET
       Skill298Stub ():SkillStub (298)
         {
             cls = 127;
-            name = L"新怪之群体破甲";
-            nativename = "新怪之群体破甲";
+            name = L"鏂版�箣缇や綋鐮寸敳";
+            nativename = "鏂版�箣缇や綋鐮寸敳";
             icon = "";
             max_level = 10;
             type = 1;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "尖牙之矢.sgc";
+            effect = "灏栫墮涔嬬煝.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

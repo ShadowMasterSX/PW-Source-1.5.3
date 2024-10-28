@@ -57,8 +57,8 @@ namespace GNET
       Skill2454Stub ():SkillStub (2454)
         {
             cls = 127;
-            name = L"±‰‰Ω–‹";
-            nativename = "±‰‰Ω–‹";
+            name = L"ÂèòÊµ£ÁÜä";
+            nativename = "ÂèòÊµ£ÁÜä";
             icon = "";
             max_level = 10;
             type = 4;
@@ -80,7 +80,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 3;
-            effect = "œ….sgc";
+            effect = "‰ªô.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

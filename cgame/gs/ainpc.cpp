@@ -189,6 +189,18 @@ ai_npcobject::GetSightRange()
 	return	_ctrl->GetAI()->GetSightRange();
 }
 
+int ai_npcobject::GetPetMaster(const XID& target)
+{
+	world::object_info info;
+	if(_imp->_plane->QueryObject(target,info))
+	{
+		return info.master_id;
+	}
+	
+	return 0;
+
+}
+
 bool 
 gnpc_ai::Init(gnpc_controller * pControl,const aggro_param & aggp, const ai_param & aip)
 {	

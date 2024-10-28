@@ -135,9 +135,9 @@ namespace GNET
       Skill111Stub ():SkillStub (111)
         {
             cls = 4;
-            name = L"化血成魔";
-            nativename = "化血成魔";
-            icon = "化血成魔.dds";
+            name = L"鍖栬鎴愰瓟";
+            nativename = "鍖栬鎴愰瓟";
+            icon = "鍖栬鎴愰瓟.dds";
             max_level = 10;
             type = 2;
             apcost = 0;
@@ -161,7 +161,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (9);
             }
-            effect = "化血成魔.sgc";
+            effect = "鍖栬鎴愰瓟.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

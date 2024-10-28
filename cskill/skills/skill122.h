@@ -133,9 +133,9 @@ namespace GNET
       Skill122Stub ():SkillStub (122)
         {
             cls = 7;
-            name = L"天师借法";
-            nativename = "天师借法";
-            icon = "乾坤借法.dds";
+            name = L"澶╁笀鍊熸硶";
+            nativename = "澶╁笀鍊熸硶";
+            icon = "涔惧潳鍊熸硶.dds";
             max_level = 1;
             type = 2;
             apcost = 0;
@@ -162,7 +162,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "乾坤借法.sgc";
+            effect = "涔惧潳鍊熸硶.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

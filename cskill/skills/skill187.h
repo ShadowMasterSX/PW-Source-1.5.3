@@ -21,7 +21,7 @@ namespace GNET
             cls = 0;
             name = L"2233";
             nativename = "2233";
-            icon = "ÎÞÐ§.ddsdd";
+            icon = "æ— æ•ˆ.ddsdd";
             max_level = 12;
             type = 10;
             apcost = 2233;

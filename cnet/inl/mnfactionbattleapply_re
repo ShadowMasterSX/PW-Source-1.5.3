@@ -1,0 +1,38 @@
+	public:
+		int retcode;
+		unsigned char target;
+		unsigned int localsid;
+		enum { PROTOCOL_TYPE = PROTOCOL_MNFACTIONBATTLEAPPLY_RE };
+	public:
+		MNFactionBattleApply_Re() { type = PROTOCOL_MNFACTIONBATTLEAPPLY_RE; }
+		MNFactionBattleApply_Re(void*) : Protocol(PROTOCOL_MNFACTIONBATTLEAPPLY_RE) { }
+		MNFactionBattleApply_Re (int l_retcode,unsigned char l_target,unsigned int l_localsid)
+			 : retcode(l_retcode),target(l_target),localsid(l_localsid)
+		{
+			type = PROTOCOL_MNFACTIONBATTLEAPPLY_RE;
+		}
+
+		MNFactionBattleApply_Re(const MNFactionBattleApply_Re &rhs)
+			: Protocol(rhs),retcode(rhs.retcode),target(rhs.target),localsid(rhs.localsid) { }
+
+		GNET::Protocol *Clone() const { return new MNFactionBattleApply_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << target;
+			os << localsid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> target;
+			os >> localsid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1024; }

@@ -301,9 +301,9 @@ namespace GNET
       Skill2821Stub ():SkillStub (2821)
         {
             cls = 10;
-            name = L"Ӱ�ɾ�";
-            nativename = "Ӱ�ɾ�";
-            icon = "Ӱ�ɾ�.dds";
+            name = L"影飞绝";
+            nativename = "影飞绝";
+            icon = "影飞绝.dds";
             max_level = 1;
             type = 1;
             apcost = 30;
@@ -327,7 +327,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (44878);
             }
-            effect = "ҹӰ_Ӱ�ɾ�_����01.sgc";
+            effect = "夜影_影飞绝_击中01.sgc";
             range.type = 0;
             doenchant = true;
             dobless = true;

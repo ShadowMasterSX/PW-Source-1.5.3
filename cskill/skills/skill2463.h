@@ -19,8 +19,8 @@ namespace GNET
         Skill2463Stub ():SkillStub (2463)
         {
             cls = 127;
-            name = L"�⻷ˮЧ��";
-            nativename = "�⻷ˮЧ��";
+            name = L"光环水效果";
+            nativename = "光环水效果";
             icon = "";
             max_level = 10;
             type = 3;
@@ -42,7 +42,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "�⻷ˮ.sgc";
+            effect = "光环水.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

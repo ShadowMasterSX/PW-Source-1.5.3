@@ -19,8 +19,8 @@ namespace GNET
         Skill199Stub ():SkillStub (199)
         {
             cls = 255;
-            name = L"³Ù»º";
-            nativename = "³Ù»º";
+            name = L"è¿Ÿç¼“";
+            nativename = "è¿Ÿç¼“";
             icon = "";
             max_level = 1;
             type = 6;
@@ -41,7 +41,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "¹ÖÎïÅùö¨Êõ.sgc";
+            effect = "æ€ªç‰©éœ¹é›³æœ¯.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

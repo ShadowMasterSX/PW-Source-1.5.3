@@ -134,9 +134,9 @@ namespace GNET
       Skill2596Stub ():SkillStub (2596)
         {
             cls = 11;
-            name = L"濾깴��";
-            nativename = "濾깴��";
-            icon = "濾깴��.dds";
+            name = L"婵娟勾弦";
+            nativename = "婵娟勾弦";
+            icon = "婵娟勾弦.dds";
             max_level = 10;
             type = 2;
             apcost = 30;

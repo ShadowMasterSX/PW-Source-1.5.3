@@ -13,6 +13,7 @@
 #include "centraldeliveryclient.hpp"
 #include "senddataandidentity.hpp"
 #include "referencemanager.h"
+#include "waitqueue.h"
 
 namespace GNET
 {
@@ -36,6 +37,7 @@ namespace GNET
 	void PlayerLogin::DoLogin(Manager::Session::ID sid, UserInfo* pinfo, bool is_central)
 	{
 		bool blSuccess=false;
+		int retcode = ERR_LOGINFAIL;
 		int userid = pinfo->userid;
 		usbbind = Passwd::GetInstance().IsUsbUser(userid);
 		
@@ -44,7 +46,41 @@ namespace GNET
 			//跨服服务器上，如果flag是从原服到跨服，此时角色应该处于锁定状态，不在做是否可以登录的检查，强制设为true
 			can_role_login = true;
 		}
-	
+
+		if (can_role_login && !is_central && !flag)
+		{
+			switch(WaitQueueManager::GetInstance()->OnPlayerLogin(userid,roleid,provider_link_id))
+			{
+				case WQ_NOWAIT:
+					break;
+
+				case WQ_BEGWAIT:
+				case WQ_INQUEUE:
+					{
+						can_role_login = false;
+						blSuccess = true;
+						LOG_TRACE("PlayerLogin userid %d roleid %d usbbind %d begin wait", userid, roleid, usbbind);
+					}
+					break;
+
+				case WQ_MAXUSER:
+					{
+						can_role_login = false;
+						retcode = 6;
+						Log::log(LOG_ERR,"PlayerLogin send wrong! userid %d roleid %d usbbind %d maxnum limit!", userid, roleid, usbbind);
+					}
+					break;
+
+				case WQ_FAIL:
+				default:
+					{
+						can_role_login = false;
+						Log::log(LOG_ERR,"PlayerLogin send wrong! userid %d roleid %d usbbind %d waitqueue fail!", userid, roleid, usbbind);
+					}
+					break;
+			}
+		}
+
 		if (can_role_login)
 		{ 	
 			auth = pinfo->privileges;
@@ -85,7 +121,7 @@ namespace GNET
 				Log::log(LOG_ERR,"PlayerLogin wrong! userid %d roleid %d usbbind %d gs_id=%d world_id=%d", userid, roleid, usbbind, gs_id, pinfo->worldtag[roleid % MAX_ROLE_COUNT]);
 		}
 		if (!blSuccess)
-			SendFailResult( GDeliveryServer::GetInstance(),sid,ERR_LOGINFAIL);
+			SendFailResult( GDeliveryServer::GetInstance(),sid,retcode);
 	}
 
 	void PlayerLogin::TryRemoteLogin(Manager::Session::ID sid, UserInfo* pinfo)

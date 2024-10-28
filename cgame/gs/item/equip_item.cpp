@@ -9,6 +9,8 @@
 #include "../player_imp.h"
 #include "../task/taskman.h"
 
+#include <glog.h>
+
 DEFINE_SUBSTANCE_ABSTRACT(equip_item,item_body,CLS_ITEM_EQUIP)
 DEFINE_SUBSTANCE_ABSTRACT(weapon_item,equip_item,CLS_ITEM_WEAPON)
 DEFINE_SUBSTANCE(melee_weapon_item,weapon_item,CLS_ITEM_MELEE_WEAPON)
@@ -231,6 +233,85 @@ static int refine_failed_type[] =
 };
 
 
+static int randomNums4[] = 
+{
+    1,
+    1,
+    1,
+    1,
+	1,
+	1,
+	1,
+	1,
+	1,
+    2,
+	2,
+	2,
+	2,
+	2,
+    2,
+    2,
+	2,
+	2,
+    3,
+	3,
+    3,
+    4,
+};
+
+static int randomNums3[] = 
+{
+    1,
+    1,
+    1,
+    1,
+	1,
+	1,
+	1,
+	1,
+	1,
+    1,
+	1,
+	1,
+	2,
+	2,
+    2,
+    2,
+	2,
+	2,
+    2,
+	3,
+    3,
+    3,
+};
+
+static int randomNums2[] = 
+{
+    1,
+    1,
+    1,
+    1,
+	1,
+	1,
+	1,
+	1,
+	1,
+    1,
+	1,
+	1,
+	1,
+	1,
+    1,
+    2,
+	2,
+	2,
+    2,
+	2,
+    2,
+    2,
+};
+
+
 int
 equip_item::RefineAddon(int addon_id, int  & level_result, float adjust[4], float adjust2[12])
 {
@@ -341,6 +422,140 @@ equip_item::RefineAddon(int addon_id, int  & level_result, float adjust[4], floa
 	return failed_type;
 }
 
+
+int
+equip_item::RefineAddon(int addon_id, int  & level_result, float adjust[4], float adjust2[12], int material_id)
+{
+	//第一步寻找正确的addon内容
+	size_t addon_level = 0;
+	int addon_index = -1;
+	size_t count = _total_addon.size();
+	for(size_t i = 0; i < count; i ++)
+	{
+		addon_data & data = _total_addon[i];
+		int id = addon_manager::GetAddonID(data.id);
+		if(id == addon_id)
+		{
+			//得到已经升级后的数据
+			addon_index = i;
+			addon_level = data.arg[1];
+			break;
+		}
+	}
+
+	//超过或者达到最大的级别则不可升级
+	if(addon_level >= sizeof(refine_table) / sizeof(refine_param_t)) return item::REFINE_CAN_NOT_REFINE;
+
+	//保存原来的技能
+	level_result = addon_level;
+	
+	//考虑概率
+	float prop[4];
+	memcpy(prop, refine_table[addon_level].prop,sizeof(prop));
+	ASSERT(sizeof(prop) == sizeof(refine_table[addon_level].prop));
+	//对prop进行修正  
+	prop[0] += adjust[0]; prop[1] += adjust[1];
+	prop[2] += adjust[2]; prop[3] += adjust[3];
+
+	if(adjust[1] > 0)
+	{
+		//若特殊保留概率大于0 则使用adjust2里面带有的成功概率 并忽视原有的成功概率
+		prop[0] = adjust2[addon_level];
+	}
+	int rst = abase::RandSelect(prop, 4);
+	int failed_type = refine_failed_type[rst];
+
+	if(failed_type != item::REFINE_SUCCESS)
+	{
+		//未成功，考虑如何进行处理
+		switch(failed_type)
+		{
+			case item::REFINE_FAILED_LEVEL_0: //无变化
+			return failed_type;
+
+			case item::REFINE_FAILED_LEVEL_1: //装备降级 1级
+			//第一次就失败，装备无变化
+			if(addon_level == 0 || addon_index == -1) return item::REFINE_FAILED_LEVEL_0; 
+			if(addon_level == 1)
+			{
+				//第二次失败，等同于归0
+				_total_addon.erase(_total_addon.begin() + addon_index);
+				OnRefreshItem();
+				return failed_type;
+			}
+
+			//其他情况 回到后面进行降级处理
+			break;
+
+			case item::REFINE_FAILED_LEVEL_2: //装备归0
+			if(addon_index != -1)
+			{
+				_total_addon.erase(_total_addon.begin() + addon_index);
+				OnRefreshItem();
+			}
+			return failed_type;
+
+			default:
+			ASSERT(false);
+			return failed_type;
+		}
+	}
+	
+	addon_data  newdata;
+	int instantRefino = 1;	
+	//DATA_TYPE dt2;
+	int random4 = rand() %  sizeof(randomNums4) / sizeof(randomNums4[0]);
+	int random3 = rand() %  sizeof(randomNums3) / sizeof(randomNums3[0]);
+	int random2 = rand() %  sizeof(randomNums2) / sizeof(randomNums2[0]);
+	/*const REFINE_TICKET_ESSENCE &ess= *(const REFINE_TICKET_ESSENCE*)world_manager::GetDataMan().get_data_ptr(material_id, ID_SPACE_ESSENCE,dt2);
+	if(dt2 == DT_REFINE_TICKET_ESSENCE || &ess != NULL)
+	{
+		random4 = rand() %  sizeof(randomNums4) / sizeof(randomNums4[0]);
+		random3 = rand() %  sizeof(randomNums3) / sizeof(randomNums3[0]);
+		random2 = rand() %  sizeof(randomNums2) / sizeof(randomNums2[0]);
+	}*/
+	
+	int newvalue = 1;
+	if(!world_manager::GetDataMan().generate_addon(addon_id,newdata)) return item::REFINE_CAN_NOT_REFINE; 
+	if (addon_level <= 8)
+		newvalue = randomNums4[random4];
+	else if (addon_level == 9)
+		newvalue = randomNums3[random3];
+	else if (addon_level == 10)
+		newvalue = randomNums2[random2];
+	else
+		newvalue = 1;
+	if(addon_index == -1)
+	{
+		ASSERT(failed_type == item::REFINE_SUCCESS);		
+		addon_level = (material_id == 50001) ? newvalue : instantRefino;
+		//新生成一个addon
+		newdata.arg[0] = (int)(newdata.arg[0] * refine_factor[addon_level] + 0.1f);
+		newdata.arg[1] = (material_id == 50001) ? newvalue : instantRefino;	//当前级别为level1
+		_total_addon.push_back(newdata);
+	}
+	else
+	{
+		if(failed_type == item::REFINE_FAILED_LEVEL_1)
+			addon_level -= 1;
+		else
+			addon_level += (material_id == 50001) ? newvalue : 1;	
+
+		_total_addon[addon_index].arg[0] = (int)(newdata.arg[0] * refine_factor[addon_level] + 0.1f);
+		_total_addon[addon_index].arg[1] = addon_level;
+
+	/*	if(addon_manager::RefineAddonData(_total_addon[addon_index], newdata, failed_type == item::REFINE_FAILED_LEVEL_1) != 0)
+		{
+			return item::REFINE_CAN_NOT_REFINE;
+		}
+		*/
+	}
+	
+
+	OnRefreshItem();
+	return failed_type;
+}
+
 int 
 equip_item::RemoveExpireAddon(int cur_t)
 {
@@ -437,6 +652,10 @@ equip_item::InheritAddon(addon_data * addon_list, size_t count)
 	for(size_t i = 0; i < count; i++)
 	{
         _total_addon.push_back(addon_list[i]);	
+		if(addon_manager::TestUpdate(addon_list[i]) == addon_manager::ADDON_MASK_ESSENCE)
+		{
+			addon_update_ess_data(addon_list[i],GetEssence(),GetEssenceSize(),&_base_limit);	
+		}
 	}
 	OnRefreshItem();
 	return true;
@@ -492,7 +711,7 @@ equip_item::GetCanInheritAddon(addon_data * addon_list, size_t max_count, int ex
         int addon_id = addon_manager::GetAddonID(data.id);
         if(need_check_template && inherit_addons.find(addon_id) == inherit_addons.end()) continue;
         if(addon_id == ex_addon_id) continue;
-        if(addon_manager::TestUpdate(data) == addon_manager::ADDON_MASK_ESSENCE) continue;
+      //  if(addon_manager::TestUpdate(data) == addon_manager::ADDON_MASK_ESSENCE) continue;
         if(addon_manager::TestUpdate(data) == addon_manager::ADDON_MASK_USE) continue;
         if(addon_manager::IsAddOnEngraved(data)) continue;
         if(addon_manager::IsAddOnEmbedded(data)) continue;
@@ -842,7 +1061,14 @@ socket_item::RemoveAddon(unsigned char s_idx)
 	if(!ess || dt != DT_STONE_ESSENCE) 
 		return false;
 		
-	int addon_id = GetItemType() == ITEM_TYPE_WEAPON ? ess->id_addon_damage : ess->id_addon_defence ;
+    int addon_id = 0;
+    switch (GetItemType())
+    {
+        case ITEM_TYPE_WEAPON: addon_id = ess->id_addon_damage; break;
+        case ITEM_TYPE_ARMOR: addon_id = ess->id_addon_defence; break;
+        case ITEM_TYPE_DECORATION: addon_id = ess->id_addon_decoration; break;
+        default: break;
+    }
 
 	ADDON_LIST::iterator it = _total_addon.begin();
 	for(; it != _total_addon.end(); ++it)
@@ -870,7 +1096,14 @@ bool socket_item::ModifyAddonAtSocket(unsigned char s_idx,int stone_id)
 	if(!ess || dt != DT_STONE_ESSENCE) 
 		return false;
 
-	int addon_id = GetItemType() == ITEM_TYPE_WEAPON ? ess->id_addon_damage : ess->id_addon_defence ;
+    int addon_id = 0;
+	switch (GetItemType())
+    {
+        case ITEM_TYPE_WEAPON: addon_id = ess->id_addon_damage; break;
+        case ITEM_TYPE_ARMOR: addon_id = ess->id_addon_defence; break;
+        case ITEM_TYPE_DECORATION: addon_id = ess->id_addon_decoration; break;
+        default: break;
+    }
 	
 	addon_data  newdata;		
 	if(!world_manager::GetDataMan().generate_addon(addon_id,newdata)) 
@@ -1048,6 +1281,8 @@ weapon_item::SetSocketAndStone(int count, int * stone_type)
 		DATA_TYPE dt;
 		STONE_ESSENCE * ess = (STONE_ESSENCE*) world_manager::GetDataMan().get_data_ptr(stone_type[i], ID_SPACE_ESSENCE, dt);
 		if(!ess || dt != DT_STONE_ESSENCE) continue;
+        if (!IsStoneFit(DT_WEAPON_ESSENCE, ess->combined_switch)) continue;
+
 		addon_data  data;
 		if(!world_manager::GetDataMan().generate_addon(ess->id_addon_damage,data)) continue; 
 		_socket_list[i] = stone_type[i];
@@ -1090,6 +1325,8 @@ armor_item::SetSocketAndStone(int count, int * stone_type)
 		DATA_TYPE dt;
 		STONE_ESSENCE * ess = (STONE_ESSENCE*) world_manager::GetDataMan().get_data_ptr(stone_type[i], ID_SPACE_ESSENCE, dt);
 		if(!ess || dt != DT_STONE_ESSENCE) continue;
+        if (!IsStoneFit(DT_ARMOR_ESSENCE, ess->combined_switch)) continue;
+
 		addon_data  data;
 		if(!world_manager::GetDataMan().generate_addon(ess->id_addon_defence,data)) continue; 
 		_socket_list[i] = stone_type[i];
@@ -1099,6 +1336,45 @@ armor_item::SetSocketAndStone(int count, int * stone_type)
 	AfterChipChanged();
 	OnRefreshItem();
 }
+
+
+void decoration_equip_item::SetSocketAndStone(int count, int* stone_type)
+{
+    // 首先清除宝石
+    OnClearChips();
+
+    // 然后改变孔数
+    int cur_count = GetSocketCount();
+    if (count > cur_count)
+    {
+        _socket_list.insert(_socket_list.end(), count - cur_count, 0);
+    }
+    else if (count < cur_count)
+    {
+        _socket_list.erase(_socket_list.end() + count - cur_count, _socket_list.end());
+    }
+
+    // 最后镶嵌宝石
+    for (int i = 0; i < count; ++i)
+    {
+        if (stone_type[i] <= 0) continue;
+
+        DATA_TYPE dt;
+        STONE_ESSENCE* ess = (STONE_ESSENCE*)world_manager::GetDataMan().get_data_ptr(stone_type[i], ID_SPACE_ESSENCE, dt);
+        if ((ess == NULL) || (dt != DT_STONE_ESSENCE)) continue;
+        if (!IsStoneFit(DT_DECORATION_ESSENCE, ess->combined_switch)) continue;
+
+        addon_data data;
+        if (!world_manager::GetDataMan().generate_addon(ess->id_addon_decoration, data)) continue;
+        _socket_list[i] = stone_type[i];
+        addon_manager::SetAddOnEmbedded(data);
+        _total_addon.push_back(data);
+    }
+
+    AfterChipChanged();
+    OnRefreshItem();
+}
+
 
 bool melee_weapon_item::OnCheckAttack(item_list & list)
 {
@@ -1323,7 +1599,7 @@ decoration_equip_item::UpdateData()
 
 const static int weapon_slot_material_count[2][20] = {	{5, 10,15,20,25,30,35,40,45,50, 500, 1000,4000,6000, 8000, 10000,12000,14000,16000,18000},
 							{10,20,30,40,50,60,70,80,90,100,1000,2000,8000,12000,16000,20000,24000,28000,32000,36000}};
-int weapon_item::MakeSlot(gactive_imp * obj, int & count)
+int weapon_item::MakeSlot(gactive_imp* obj, int& count, unsigned int material_id, int material_count)
 {
 	gplayer_imp * pImp = (gplayer_imp *) obj;
 	
@@ -1347,6 +1623,7 @@ int weapon_item::MakeSlot(gactive_imp * obj, int & count)
 
 	//增加孔
 	_socket_list.push_back(0);
+    count = GetSocketCount();
 	//重新生成装备数据
 	OnRefreshItem();
 	//删除所需材料
@@ -1368,7 +1645,7 @@ static const int  armor_slot_material_count[4][20] ={	{1, 2, 3, 4, 5, 6, 7, 8, 9
 							{3, 6, 9, 12,15,18,21,24,27,30, 300, 600, 2400,3600, 4800, 6000, 7200, 8400, 9600, 10800},
 							{10,20,30,40,50,60,70,80,90,100,1000,2000,8000,12000,16000,20000,24000,28000,32000,36000}
 						    };
-int armor_item::MakeSlot(gactive_imp * obj, int & count)
+int armor_item::MakeSlot(gactive_imp* obj, int& count, unsigned int material_id, int material_count)
 {
 	gplayer_imp * pImp = (gplayer_imp *) obj;
 	
@@ -1392,6 +1669,7 @@ int armor_item::MakeSlot(gactive_imp * obj, int & count)
 
 	//增加孔
 	_socket_list.push_back(0);
+    count = GetSocketCount();
 	//重新生成装备数据
 	OnRefreshItem();
 	//删除所需材料
@@ -1405,6 +1683,94 @@ int armor_item::MakeSlot(gactive_imp * obj, int & count)
 	}
 	//返回成功
 	return 0;
+}
+
+
+int decoration_equip_item::MakeSlot(gactive_imp* obj, int& count, unsigned int material_id, int material_count)
+{
+    gplayer_imp* pImp = (gplayer_imp*)obj;
+
+    // 取出物品模板
+    DATA_TYPE dt;
+    DECORATION_ESSENCE* ess = (DECORATION_ESSENCE*)world_manager::GetDataMan().get_data_ptr(_tid, ID_SPACE_ESSENCE, dt);
+    if ((ess == NULL) || (dt != DT_DECORATION_ESSENCE))
+        return S2C::ERR_MAKE_SLOT_FAILURE;
+
+    // 取出物品小类别
+    DECORATION_SUB_TYPE* type = (DECORATION_SUB_TYPE*)world_manager::GetDataMan().get_data_ptr(ess->id_sub_type, ID_SPACE_ESSENCE, dt);
+    if ((type == NULL) || (dt != DT_DECORATION_SUB_TYPE))
+        return S2C::ERR_MAKE_SLOT_FAILURE;
+
+    // 目前不支持戒指打孔
+    unsigned int decoration_mask = (item::EQUIP_MASK64_NECK | item::EQUIP_MASK64_WAIST);
+    if ((type->equip_mask & decoration_mask) == 0)
+        return S2C::ERR_MAKE_SLOT_FAILURE;
+
+    // 得到品级
+    int level = ess->level;
+    if ((level <= 0) || (level > 20))
+        return S2C::ERR_MAKE_SLOT_FAILURE;
+    --level;
+
+    // 得到当前孔数
+    int slot_num = GetSocketCount();
+    if ((slot_num >= MAX_DECORATION_SOCKET_NUM) || (slot_num >= MAX_EQUIP_SOCKET_NUM))
+        return S2C::ERR_MAKE_SLOT_FAILURE;
+
+    // 计算原料消耗
+    EQUIP_MAKE_HOLE_CONFIG* conf = (EQUIP_MAKE_HOLE_CONFIG*)world_manager::GetDataMan().get_data_ptr(EQUIP_MAKE_HOLE_CONFIG_ID, ID_SPACE_CONFIG, dt);
+    if ((conf == NULL) || (dt != DT_EQUIP_MAKE_HOLE_CONFIG))
+        return S2C::ERR_MAKE_SLOT_FAILURE;
+
+    unsigned int require_item_id = conf->level_list[level].hole_list[slot_num].require_item_id;
+    int require_item_count = conf->level_list[level].hole_list[slot_num].require_item_count;
+    int fee = conf->level_list[level].hole_list[slot_num].fee;
+
+    if ((require_item_id <= 0) || (require_item_count <= 0) || (fee < 0))
+        return S2C::ERR_MAKE_SLOT_FAILURE;
+
+    if (material_id != require_item_id)
+        return S2C::ERR_NOT_ENOUGH_MATERIAL;
+
+    if ((material_count <= 0) || (pImp->GetItemCount(material_id) < material_count))
+        return S2C::ERR_NOT_ENOUGH_MATERIAL;
+
+    if (material_count > require_item_count)
+        material_count = require_item_count;
+
+    float success_rate = (float)material_count / require_item_count;
+    int fee_cost = (int)(fee * success_rate + 0.1f);
+
+    if (pImp->GetMoney() < fee_cost)
+        return S2C::ERR_OUT_OF_FUND;
+
+    int ret = S2C::ERR_MAKE_SLOT_FOR_DECOR_PROB;
+    if (abase::Rand(1, require_item_count) <= material_count)
+    {
+        // 增加孔
+        _socket_list.push_back(0);
+        count = GetSocketCount();
+        // 重新生成装备数据
+        OnRefreshItem();
+        ret = S2C::ERR_SUCCESS;
+    }
+
+    if (ret == S2C::ERR_SUCCESS)
+    {
+        GLog::formatlog("玩家%d对饰品%d进行了打孔操作，打孔成功，操作后有%d个孔，消耗材料%u共%d个，消耗游戏币%d", pImp->_parent->ID.id, ess->id, GetSocketCount(), material_id, material_count, fee_cost);
+    }
+    else
+    {
+        GLog::formatlog("玩家%d对饰品%d进行了打孔操作，打孔失败，操作后有%d个孔，消耗材料%u共%d个，消耗游戏币%d，需要消耗材料%u共%d个才能保证打孔成功", pImp->_parent->ID.id, ess->id, GetSocketCount(), material_id, material_count, fee_cost, require_item_id, require_item_count);
+    }
+
+    // 删除所需材料
+    PlayerTaskInterface TaskIf(pImp);
+    TaskIf.TakeAwayCommonItem(material_id, material_count);
+    pImp->SpendMoney(fee_cost);
+    pImp->_runner->spend_money(fee_cost);
+
+    return ret;
 }
 
 

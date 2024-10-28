@@ -134,9 +134,9 @@ namespace GNET
       Skill1389Stub ():SkillStub (1389)
         {
             cls = 9;
-            name = L"³Í·£´Ì";
-            nativename = "³Í·£´Ì";
-            icon = "Á«×ÓÖ¹»ê.dds";
+            name = L"æƒ©ç½šåˆº";
+            nativename = "æƒ©ç½šåˆº";
+            icon = "è²å­æ­¢é­‚.dds";
             max_level = 10;
             type = 3;
             apcost = 0;

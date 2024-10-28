@@ -134,8 +134,8 @@ namespace GNET
       Skill820Stub ():SkillStub (820)
         {
             cls = 127;
-            name = L"»Æ»èĞÂ¼ÓÎïÀíÈº¹¥»÷";
-            nativename = "»Æ»èĞÂ¼ÓÎïÀíÈº¹¥»÷";
+            name = L"é»„æ˜æ–°åŠ ç‰©ç†ç¾¤æ”»å‡»";
+            nativename = "é»„æ˜æ–°åŠ ç‰©ç†ç¾¤æ”»å‡»";
             icon = "";
             max_level = 10;
             type = 1;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "¾Å×Ó¹íÄ¸¼¼ÄÜ.sgc";
+            effect = "ä¹å­é¬¼æ¯æŠ€èƒ½.sgc";
             range.type = 2;
             doenchant = false;
             dobless = false;

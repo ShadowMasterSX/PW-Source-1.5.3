@@ -164,12 +164,12 @@ gplayer_battle_base::PlayerEnterWorld()
 }
 
 void 
-gplayer_battle_base::PlayerEnterServer()
+gplayer_battle_base::PlayerEnterServer(int source_tag)
 {
 	//提前设置FACTION，因为playerenterserver函数会用到
 	SetBattleFaction();
 
-	gplayer_imp::PlayerEnterServer();
+	gplayer_imp::PlayerEnterServer(source_tag);
 	gplayer * pPlayer = GetParent();
 
 	//考虑完成攻方守方的判断

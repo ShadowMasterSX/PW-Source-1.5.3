@@ -137,9 +137,9 @@ namespace GNET
       Skill933Stub ():SkillStub (933)
         {
             cls = 7;
-            name = L"风灵";
-            nativename = "风灵";
-            icon = "镇魂五音.dds";
+            name = L"椋庣伒";
+            nativename = "椋庣伒";
+            icon = "闀囬瓊浜旈煶.dds";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -166,7 +166,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (292);
             }
-            effect = "海纳百川.sgc";
+            effect = "娴风撼鐧惧窛.sgc";
             range.type = 0;
             doenchant = true;
             dobless = true;

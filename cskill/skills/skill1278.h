@@ -134,9 +134,9 @@ namespace GNET
       Skill1278Stub ():SkillStub (1278)
         {
             cls = 5;
-            name = L"Õæ¡¤ÈçÓ°ËæĞÎ";
-            nativename = "Õæ¡¤ÈçÓ°ËæĞÎ";
-            icon = "Ë²ÒÆÏÉ¼¼ÄÜ.dds";
+            name = L"çœŸÂ·å¦‚å½±éšå½¢";
+            nativename = "çœŸÂ·å¦‚å½±éšå½¢";
+            icon = "ç¬ç§»ä»™æŠ€èƒ½.dds";
             max_level = 1;
             type = 8;
             apcost = 10;

@@ -133,8 +133,8 @@ namespace GNET
       Skill2701Stub ():SkillStub (2701)
         {
             cls = 127;
-            name = L"½µµÍÖÎÁÆĞ§¹û";
-            nativename = "½µµÍÖÎÁÆĞ§¹û";
+            name = L"é™ä½æ²»ç–—æ•ˆæœ";
+            nativename = "é™ä½æ²»ç–—æ•ˆæœ";
             icon = "";
             max_level = 10;
             type = 1;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "¹ÖÎï¶¾ÖäÊõ.sgc";
+            effect = "æ€ªç‰©æ¯’å’’æœ¯.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

@@ -551,6 +551,7 @@ public:
 	virtual void  SetLeaderID(const XID & leader_id);
 	virtual const XID & GetTargetID();
 	virtual void  SetTargetID(const XID & target_id);
+	virtual int GetPetMaster(const XID& target);
 	
 public:
 	//property

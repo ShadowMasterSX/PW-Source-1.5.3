@@ -1,0 +1,60 @@
+#ifndef __GNET_DBMNDOMAINBATTLEMATCHARG_RPCDATA
+#define __GNET_DBMNDOMAINBATTLEMATCHARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "mndomaininfo"
+
+namespace GNET
+{
+	class DBMNDomainBattleMatchArg : public GNET::Rpc::Data
+	{
+	public:
+		MNDomainInfoVector domaininfo_list;
+
+	public:
+		DBMNDomainBattleMatchArg (const MNDomainInfoVector& l_domaininfo_list = MNDomainInfoVector())
+			: domaininfo_list(l_domaininfo_list)
+		{
+		}
+
+		DBMNDomainBattleMatchArg(const DBMNDomainBattleMatchArg &rhs)
+			: domaininfo_list(rhs.domaininfo_list) { }
+
+		Rpc::Data *Clone() const { return new DBMNDomainBattleMatchArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBMNDomainBattleMatchArg *r = dynamic_cast<const DBMNDomainBattleMatchArg *>(&rhs);
+			if (r && r != this)
+			{
+				domaininfo_list = r->domaininfo_list;
+			}
+			return *this;
+		}
+
+		DBMNDomainBattleMatchArg& operator = (const DBMNDomainBattleMatchArg &rhs)
+		{
+			const DBMNDomainBattleMatchArg *r = &rhs;
+			if (r && r != this)
+			{
+				domaininfo_list = r->domaininfo_list;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << domaininfo_list;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> domaininfo_list;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -205,8 +205,9 @@ public:
 	void RemoveTeamVisibleState(unsigned short state);
 	void InsertTeamVisibleState(unsigned short state, int param);
 	void InsertTeamVisibleState(unsigned short state, int param, int param2);
+	void InsertTeamVisibleState(unsigned short state, int param, int param2, int param3);
 	void ModifyTeamVisibleState(unsigned short state, int param);
-	void ModifyTeamVisibleState(unsigned short state, int param, int param2);
+	void ModifyTeamVisibleState(unsigned short state, int param, int param2, int param3);
 
 	//设置变身标志	
 	void ChangeShape(int shape);

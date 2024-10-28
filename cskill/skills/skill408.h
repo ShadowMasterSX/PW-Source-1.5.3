@@ -137,9 +137,9 @@ namespace GNET
       Skill408Stub ():SkillStub (408)
         {
             cls = 0;
-            name = L"Õæ¡¤¶ÏÔÀÉ¨";
-            nativename = "Õæ¡¤¶ÏÔÀÉ¨";
-            icon = "¶ÏÔÀÉ¨1.DDS";
+            name = L"çœŸÂ·æ–­å²³æ‰«";
+            nativename = "çœŸÂ·æ–­å²³æ‰«";
+            icon = "æ–­å²³æ‰«1.DDS";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (9);
             }
-            effect = "1°ÔÍõ¶ÏÔÀ.sgc";
+            effect = "1éœ¸ç‹æ–­å²³.sgc";
             range.type = 2;
             doenchant = false;
             dobless = true;

@@ -134,8 +134,8 @@ namespace GNET
       Skill791Stub ():SkillStub (791)
         {
             cls = 127;
-            name = L"1级城战BOSS减吟唱毒";
-            nativename = "1级城战BOSS减吟唱毒";
+            name = L"1绾у煄鎴楤OSS鍑忓悷鍞辨瘨";
+            nativename = "1绾у煄鎴楤OSS鍑忓悷鍞辨瘨";
             icon = "";
             max_level = 5;
             type = 1;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "炎蛊.sgc";
+            effect = "鐐庤泭.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

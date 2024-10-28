@@ -132,9 +132,9 @@ namespace GNET
       Skill2059Stub ():SkillStub (2059)
         {
             cls = 127;
-            name = L"重击";
-            nativename = "重击";
-            icon = "攻守兼备.dds";
+            name = L"閲嶅嚮";
+            nativename = "閲嶅嚮";
+            icon = "鏀诲畧鍏煎.dds";
             max_level = 10;
             type = 10;
             apcost = 0;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "宠物治疗.sgc";
+            effect = "瀹犵墿娌荤枟.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

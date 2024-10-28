@@ -1,0 +1,78 @@
+#ifndef __GNET_MNFACTIONAPPLYINFO_RPCDATA
+#define __GNET_MNFACTIONAPPLYINFO_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class MNFactionApplyInfo : public GNET::Rpc::Data
+	{
+	public:
+		int64_t unifid;
+		int applicant_id;
+		unsigned char dest;
+		unsigned int cost;
+
+	public:
+		MNFactionApplyInfo (int64_t l_unifid = 0,int l_applicant_id = 0,unsigned char l_dest = 0
+			,unsigned int l_cost = 0)
+			: unifid(l_unifid),applicant_id(l_applicant_id),dest(l_dest)
+			,cost(l_cost)
+		{
+		}
+
+		MNFactionApplyInfo(const MNFactionApplyInfo &rhs)
+			: unifid(rhs.unifid),applicant_id(rhs.applicant_id),dest(rhs.dest),
+			cost(rhs.cost) { }
+
+		Rpc::Data *Clone() const { return new MNFactionApplyInfo(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const MNFactionApplyInfo *r = dynamic_cast<const MNFactionApplyInfo *>(&rhs);
+			if (r && r != this)
+			{
+				unifid = r->unifid;
+				applicant_id = r->applicant_id;
+				dest = r->dest;
+				cost = r->cost;
+			}
+			return *this;
+		}
+
+		MNFactionApplyInfo& operator = (const MNFactionApplyInfo &rhs)
+		{
+			const MNFactionApplyInfo *r = &rhs;
+			if (r && r != this)
+			{
+				unifid = r->unifid;
+				applicant_id = r->applicant_id;
+				dest = r->dest;
+				cost = r->cost;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << unifid;
+			os << applicant_id;
+			os << dest;
+			os << cost;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> unifid;
+			os >> applicant_id;
+			os >> dest;
+			os >> cost;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<MNFactionApplyInfo>	MNFactionApplyInfoVector;
+};
+#endif

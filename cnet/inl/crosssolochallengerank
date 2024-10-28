@@ -1,0 +1,32 @@
+	public:
+		SoloChallengeRankDataExt data_ext;
+		enum { PROTOCOL_TYPE = PROTOCOL_CROSSSOLOCHALLENGERANK };
+	public:
+		CrossSoloChallengeRank() { type = PROTOCOL_CROSSSOLOCHALLENGERANK; }
+		CrossSoloChallengeRank(void*) : Protocol(PROTOCOL_CROSSSOLOCHALLENGERANK) { }
+		CrossSoloChallengeRank (const SoloChallengeRankDataExt& l_data_ext)
+			 : data_ext(l_data_ext)
+		{
+			type = PROTOCOL_CROSSSOLOCHALLENGERANK;
+		}
+
+		CrossSoloChallengeRank(const CrossSoloChallengeRank &rhs)
+			: Protocol(rhs),data_ext(rhs.data_ext) { }
+
+		GNET::Protocol *Clone() const { return new CrossSoloChallengeRank(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << data_ext;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> data_ext;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 131072; }

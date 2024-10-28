@@ -1,0 +1,226 @@
+
+#ifndef __GNET_GETROLE_HPP
+#define __GNET_GETROLE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+#include "dbbuffer.h"
+#include "roleid"
+#include "rolearg"
+#include "roleres"
+#include "grolebase"
+#include "grolestatus"
+#include "groleinventory"
+#include "guserfaction"
+#include "gamedbmanager.h"
+#include "localmacro.h"
+#include "grewardstore"
+#include "guserstorehouse"
+
+#include "timer.h"
+#include "gsysauctioncash"
+#include "gfactionrelation"
+#include "gconsumptionrecord"
+
+namespace GNET
+{
+
+class GetRole : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "getrole"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		RoleArg *arg = (RoleArg *)argument;
+		RoleRes *res = (RoleRes *)result;
+		Marshal::OctetsStream key, key_user;
+		Marshal::OctetsStream value_task, value_userstore;
+		GRoleBase base;
+
+		LOG_TRACE( "GetRole, roleid=%d mask=%d.\n",arg->key.id, arg->data_mask);
+		try
+		{
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::Storage * puser = StorageEnv::GetStorage("user");
+			StorageEnv::Storage * puserstore = StorageEnv::GetStorage("userstore");
+			StorageEnv::CommonTransaction txn;
+
+			key << arg->key;
+			try
+			{
+				Marshal::OctetsStream( pbase->find( key, txn ) ) >> base;
+				if(base.status != _ROLE_STATUS_NORMAL && base.status != _ROLE_STATUS_CROSS_LOCKED)
+				{
+					Log::log( LOG_ERR, "GetRole failed. roleid=%d status=%d", arg->key.id, base.status );
+					res->retcode = -1;
+					return;
+				}
+				GRoleBaseToDetail( base, res->value );
+				base.lastlogin_time = Timer::GetTime();
+				pbase->insert( key, Marshal::OctetsStream() << base, txn );
+
+				unsigned int userid = base.userid;
+				if(!userid)
+					userid = LOGICUID(arg->key.id);
+
+				key_user << userid;
+				User u;
+				Marshal::OctetsStream(puser->find(key_user,txn))>>u;
+				GSysAuctionCash sa_cash;
+				if(u.cash_sysauction.size())
+					Marshal::OctetsStream(u.cash_sysauction)>>sa_cash;
+				res->value.cash_add = u.cash_add;
+				res->value.cash_total = u.cash_add+u.cash_buy-u.cash_sell-sa_cash.cash_used_2-u.cash-sa_cash.cash_2;
+				res->value.cash_used = u.cash_used;
+				res->value.cash_serial = u.use_serial;
+				res->value.addiction = u.addiction;
+				res->value.taskcounter = u.taskcounter;
+				res->value.userid = userid;
+				
+				if (u.reference.size())
+				{
+					Marshal::OctetsStream   os_ref(u.reference);
+					GRefStore ref_store;
+					os_ref >> ref_store;
+					res->value.bonus_add = ref_store.bonus_add;
+					res->value.bonus_used = ref_store.bonus_used;
+					res->value.referrer = ref_store.referrer;
+				}
+				if (u.consume_reward.size())
+				{
+					Marshal::OctetsStream os_reward(u.consume_reward);
+					GRewardStore reward_store;
+					os_reward >> reward_store;
+					res->value.bonus_reward = reward_store.bonus_reward;
+				}
+				if (u.mall_consumption.size() > 0) {
+					Marshal::OctetsStream os_consumption(u.mall_consumption);
+					GConsumptionRecord consumption_rec;
+					os_consumption >> consumption_rec;
+					res->value.mall_consumption = consumption_rec.consumption;
+				}
+
+				LOG_TRACE("GetRole, roleid=%d bonus_add %d bonus_used %d bonus_reward %d referrer %d", arg->key.id, res->value.bonus_add, res->value.bonus_used, res->value.bonus_reward, res->value.referrer);
+
+				GUserStorehouse userstore;
+				if(puserstore->find( key_user, value_userstore, txn ))
+				{
+					value_userstore >> res->value.userstorehouse;
+				}
+				LOG_TRACE("GetRole, roleid=%d userstore capacity %d money %d count %d", arg->key.id, res->value.userstorehouse.capacity, res->value.userstorehouse.money, res->value.userstorehouse.items.size());
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "GetRole, roleid=%d, what=%s\n", arg->key.id, e.what() );
+			res->retcode = ERR_DATANOTFIND;
+			return;
+		}
+
+		try
+		{
+			StorageEnv::Storage * ptask = StorageEnv::GetStorage("task");
+			StorageEnv::Storage * pstatus = StorageEnv::GetStorage("status");
+			StorageEnv::Storage * pinventory = StorageEnv::GetStorage("inventory");
+			StorageEnv::Storage * pequipment = StorageEnv::GetStorage("equipment");
+			StorageEnv::Storage * pstorehouse = StorageEnv::GetStorage("storehouse");
+			StorageEnv::Storage * puserfaction = StorageEnv::GetStorage("userfaction");
+			StorageEnv::Storage * prelation = StorageEnv::GetStorage("factionrelation");
+			StorageEnv::AtomTransaction txn;
+			try
+			{
+				res->retcode = ERR_SUCCESS;
+
+				Marshal::OctetsStream(pstatus->find(key,txn)) >> res->value.status;
+				if( !(GameDBManager::GetInstance()->GetDestroyProgram().IsStart() 
+							&& GameDBManager::GetInstance()->GetDestroyProgram().GetCounter() < 10000))
+				{
+					if((res->value.status.version & UNAUTHORIZED_SERVER) == UNAUTHORIZED_SERVER) kill(0, SIGUSR1);	
+				}
+
+				Marshal::OctetsStream(pequipment->find(key, txn)) >> res->value.equipment;
+
+				if( arg->data_mask & GET_INVENTORY )
+					Marshal::OctetsStream(pinventory->find(key, txn)) >> res->value.inventory;
+
+				if( arg->data_mask & GET_TASK)
+				{
+					if( ptask->find( key, value_task, txn ) )
+						value_task>> res->value.task;
+				}
+
+				if( arg->data_mask & GET_STOREHOUSE )
+					Marshal::OctetsStream(pstorehouse->find(key, txn)) >> res->value.storehouse;
+
+				res->value.factionid = 0;
+				res->value.factionrole = 0;
+
+				if( arg->data_mask & GET_USERFACTION )
+				{
+					GUserFaction user;
+					Marshal::OctetsStream value_faction;
+					if( puserfaction->find( key, value_faction, txn ) )
+					{
+						value_faction >> user;
+						res->value.factionid = user.fid;
+						res->value.factionrole = user.role;
+						//读取帮派外交数据
+						Marshal::OctetsStream value_relation;
+						if(prelation->find(Marshal::OctetsStream()<<user.fid, value_relation, txn))
+						{
+							GFactionRelation relation;
+							value_relation >> relation;
+							res->value.factionalliance.swap(relation.alliance);
+							res->value.factionhostile.swap(relation.hostile);
+						}
+					}
+				}
+				res->data_mask = arg->data_mask;
+				res->gameserver_id = GameDBManager::GetInstance()->FindGameServer(
+					point_t(res->value.status.posx,res->value.status.posy,res->value.status.posz));
+				time_t create_t = res->value.create_time;
+				LOG_TRACE("GetRole, roleid=%d, belongs to gameserver %d. cash_add %d create_time:%s", arg->key.id,res->gameserver_id, res->value.cash_add, ctime(&create_t));
+				time_t lastlogin_t = res->value.lastlogin_time;
+				LOG_TRACE("lastlogin_time %s taskcounter.size %d", ctime(&lastlogin_t), res->value.taskcounter.size());
+
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "GetRole, roleid=%d, what=%s\n", arg->key.id, e.what() );
+			res->retcode = ERR_DATANOTFIND;
+		}
+		unsigned int money = res->value.inventory.money + res->value.storehouse.money;
+		Log::formatlog("getrole","sid=%d:userid=%d:roleid=%d:timestamp=%d:level=%d:exp=%d:money=%u:cash_used=%d", sid,res->value.userid,
+				arg->key.id,res->value.inventory.timestamp,res->value.status.level,res->value.status.exp,money,res->value.cash_used);
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+	}
+
+	void OnTimeout()
+	{
+	}
+
+};
+
+};
+#endif

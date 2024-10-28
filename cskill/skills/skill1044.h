@@ -61,9 +61,9 @@ namespace GNET
       Skill1044Stub ():SkillStub (1044)
         {
             cls = 258;
-            name = L"ˮ���";
-            nativename = "ˮ���";
-            icon = "ˮ���.dds";
+            name = L"水火符";
+            nativename = "水火符";
+            icon = "水火符.dds";
             max_level = 10;
             type = 1;
             apcost = 600099;
@@ -82,7 +82,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 1;
-            effect = "ˮ���.sgc";
+            effect = "水火符.sgc";
             range.type = 0;
             doenchant = false;
             dobless = true;

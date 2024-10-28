@@ -133,9 +133,9 @@ namespace GNET
       Skill330Stub ():SkillStub (330)
         {
             cls = 3;
-            name = L"治疗宠物";
-            nativename = "治疗宠物";
-            icon = "治疗宠物.dds";
+            name = L"娌荤枟瀹犵墿";
+            nativename = "娌荤枟瀹犵墿";
+            icon = "娌荤枟瀹犵墿.dds";
             max_level = 10;
             type = 10;
             apcost = 0;
@@ -162,7 +162,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "宠物治疗.sgc";
+            effect = "瀹犵墿娌荤枟.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

@@ -19,9 +19,9 @@ namespace GNET
         Skill1263Stub ():SkillStub (1263)
         {
             cls = 5;
-            name = L"��ذ�׾�ͨ";
-            nativename = "��ذ�׾�ͨ";
-            icon = "ذ�׾�ͨħ����.dds";
+            name = L"狂·匕首精通";
+            nativename = "狂·匕首精通";
+            icon = "匕首精通魔技能.dds";
             max_level = 1;
             type = 5;
             apcost = 0;

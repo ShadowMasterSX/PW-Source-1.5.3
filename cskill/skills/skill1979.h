@@ -132,8 +132,8 @@ namespace GNET
       Skill1979Stub ():SkillStub (1979)
         {
             cls = 127;
-            name = L"ÆÆÕó";
-            nativename = "ÆÆÕó";
+            name = L"ç ´é˜µ";
+            nativename = "ç ´é˜µ";
             icon = "";
             max_level = 10;
             type = 3;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 15;
-            effect = "ºÚ°µ³âºò_»÷ÖÐ.sgc";
+            effect = "é»‘æš—æ–¥å€™_å‡»ä¸­.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

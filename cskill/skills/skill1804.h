@@ -19,9 +19,9 @@ namespace GNET
         Skill1804Stub ():SkillStub (1804)
         {
             cls = 7;
-            name = L"ÖÚÉñµÄ¾ì¹Ë";
-            nativename = "ÖÚÉñµÄ¾ì¹Ë";
-            icon = "ÖÚÉñµÄ¾ì¹Ë.dds";
+            name = L"ä¼—ç¥žçš„çœ·é¡¾";
+            nativename = "ä¼—ç¥žçš„çœ·é¡¾";
+            icon = "ä¼—ç¥žçš„çœ·é¡¾.dds";
             max_level = 1;
             type = 5;
             apcost = 0;

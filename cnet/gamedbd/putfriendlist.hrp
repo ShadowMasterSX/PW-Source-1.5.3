@@ -34,6 +34,8 @@ class PutFriendList : public Rpc
 				GFriendExtra gfe;
 				gfe.friendExtInfo.swap(arg->extra_info);
 				gfe.sendaumailinfo.swap(arg->sendmail_info);
+                gfe.enemylistinfo = (Marshal::OctetsStream() << (arg->enemylist_info));
+
 				pfriends->insert(Marshal::OctetsStream()<<arg->key, Marshal::OctetsStream()<< arg->value, txn);
 				pfriendext->insert(Marshal::OctetsStream()<<arg->key,Marshal::OctetsStream() << gfe,txn);
 				res->retcode = ERR_SUCCESS;

@@ -58,9 +58,9 @@ namespace GNET
       Skill907Stub ():SkillStub (907)
         {
             cls = 4;
-            name = L"¾ŞÁé¿ñ±©";
-            nativename = "¾ŞÁé¿ñ±©";
-            icon = "¾ŞÁé¿ñ±©.dds";
+            name = L"å·¨çµç‹‚æš´";
+            nativename = "å·¨çµç‹‚æš´";
+            icon = "å·¨çµç‹‚æš´.dds";
             max_level = 1;
             type = 2;
             apcost = 50;
@@ -86,7 +86,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "¾ŞÁé¿ñ±©.sgc";
+            effect = "å·¨çµç‹‚æš´.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

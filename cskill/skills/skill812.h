@@ -19,8 +19,8 @@ namespace GNET
         Skill812Stub ():SkillStub (812)
         {
             cls = 255;
-            name = L"ÄıÉñ";
-            nativename = "ÄıÉñ";
+            name = L"å‡ç¥";
+            nativename = "å‡ç¥";
             icon = "";
             max_level = 1;
             type = 6;
@@ -41,7 +41,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "ĞîÆø.sgc";
+            effect = "è“„æ°”.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

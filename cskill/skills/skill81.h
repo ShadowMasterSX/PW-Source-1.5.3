@@ -137,9 +137,9 @@ namespace GNET
       Skill81Stub ():SkillStub (81)
         {
             cls = 1;
-            name = L"�һ��";
-            nativename = "�һ��";
-            icon = "�һ��.dds";
+            name = L"烈火符";
+            nativename = "烈火符";
+            icon = "烈火符.dds";
             max_level = 10;
             type = 1;
             apcost = 0;
@@ -166,7 +166,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (292);
             }
-            effect = "�һ��.sgc";
+            effect = "烈火符.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

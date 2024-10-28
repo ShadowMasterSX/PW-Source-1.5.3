@@ -53,7 +53,7 @@ void printhelp( const char * cmd )
 			<< "\t| listrole | listrolebrief | listuserbrief | listfaction | listfactionuser | listfactionrelation | listroleinventory" << std::endl
 			<< "\t| listcity | listshoplog | listsyslog" << std::endl
 			<< "\t| updateroles | convertdb | repairdb" << std::endl
-			<< "\t| deletewaitdel" << std::endl
+			<< "\t| deletewaitdel | calcwaitdel" << std::endl
 			<< std::endl
 			<< "\t| tablestat | tablestatraw | findmaxsize dumpfilename" << std::endl
 			<< "\t| read tablename id" << std::endl
@@ -64,7 +64,10 @@ void printhelp( const char * cmd )
 			<< "\t| exportuserstore roleid | exportprofittime | abstractroles dbdatapath zoneid | delzoneplayers zoneid" << std::endl
 			<< "\t| setdbcrosstype type | listrolecrossinfo roleid | resetrolecrossinfo roleid remote_roleid data_timestamp cross_timestamp src_zoneid" << std::endl
 			<< "\t| syncplayername | returncash useridfile | importrecalluser useridfile | querywebtrade sn | queryglobalcontrol" << std::endl
-            << "\t| getsignindata month ]" << std::endl;
+            << "\t| getsignindata month | setclspvpflag flag | getrolelogindata year logicid | getuserlogindata year logicid" << std::endl
+            << "\t| listfintask | listmnfactioninfo | listmnfactionapplyinfo | listmndomaininfo | clearmnfactionid | clearmnfacioncredit" << std::endl
+            << "\t| importmnfactioninfo mnfactioninfofile | importmnfactionapplyinfo mnfactionapplyinfofile | importmndomaininfo mndomaininfofile" << std::endl
+            << "\t| setmnfactionstate state_num | listsolochallengerank | clearsolochallengerank roleid zoneid ]" << std::endl;
 }
 
 int main(int argc, char *argv[])
@@ -479,9 +482,22 @@ int main(int argc, char *argv[])
         StorageEnv::Close();
         return 0;
     }
-	else if( argc == 3 && 0 == strcmp(argv[2],"deletewaitdel"))
+	else if( argc == 4 && 0 == strcmp(argv[2],"deletewaitdel"))
 	{
-		DeleteWaitdel();
+		bool access_continue = true;
+		do
+		{
+			access_continue = DeleteWaitdel(atoi(argv[3]) > 0);
+        	StorageEnv::checkpoint();
+			StorageEnv::Close();
+			StorageEnv::Open();
+		}while(access_continue);
+        StorageEnv::Close();
+		return 0;
+	}
+	else if ((argc == 5) && (0 == strcmp(argv[2],"calcwaitdel")))
+	{
+		CalcWaitdel(atoi(argv[3]),atoi(argv[4]));	
         StorageEnv::checkpoint();
         StorageEnv::Close();
 		return 0;
@@ -489,6 +505,113 @@ int main(int argc, char *argv[])
     else if ((argc == 4) && (0 == strcmp(argv[2], "getsignindata")))
     {
         GetSigninData(atoi(argv[3]));
+        StorageEnv::checkpoint();
+        StorageEnv::Close();
+        return 0;
+    }
+    else if ((argc == 4) && (0 == strcmp(argv[2], "setclspvpflag")))
+    {
+        SetClsPVPFlag(atoi(argv[3]));
+        ExportClsConfig();
+        StorageEnv::checkpoint();
+        StorageEnv::Close();
+        return 0;
+    }
+    else if ((argc == 5) && (0 == strcmp(argv[2], "getrolelogindata")))
+    {
+        GetRoleLoginData(atoi(argv[3]), atoi(argv[4]));
+        StorageEnv::checkpoint();
+        StorageEnv::Close();
+        return 0;
+    }
+    else if ((argc == 5) && (0 == strcmp(argv[2], "getuserlogindata")))
+    {
+        GetUserLoginData(atoi(argv[3]), atoi(argv[4]));
+        StorageEnv::checkpoint();
+        StorageEnv::Close();
+        return 0;
+    }
+	else if ((argc >= 3) && (0 == strcmp(argv[2], "listfintask")))
+	{
+       	int count = (argc == 4) ? atoi(argv[3]) : 2040;
+		ListFinTaskCount(count); 
+		StorageEnv::checkpoint();
+        StorageEnv::Close();
+		return 0;
+	}
+    else if ((argc == 3) && (0 == strcmp(argv[2], "listmnfactioninfo")))
+    {
+        ListMNFactionInfo();
+        StorageEnv::checkpoint();
+        StorageEnv::Close();
+        return 0;
+    }
+    else if ((argc == 3) && (0 == strcmp(argv[2], "listmnfactionapplyinfo")))
+    {
+        ListMNFactionApplyInfo();
+        StorageEnv::checkpoint();
+        StorageEnv::Close();
+        return 0;
+    }
+    else if ((argc == 3) && (0 == strcmp(argv[2], "listmndomaininfo")))
+    {
+        ListMNDomainInfo();
+        StorageEnv::checkpoint();
+        StorageEnv::Close();
+        return 0;
+    }
+    else if ((argc == 3) && (0 == strcmp(argv[2], "clearmnfactionid")))
+    {
+        ClearMNFactionId();
+        StorageEnv::checkpoint();
+        StorageEnv::Close();
+        return 0;
+    }
+    else if ((argc == 4) && (0 == strcmp(argv[2], "importmnfactioninfo")))
+    {
+        ImportMNFactionInfo(argv[3]);
+        StorageEnv::checkpoint();
+        StorageEnv::Close();
+        return 0;
+    }
+    else if ((argc == 4) && (0 == strcmp(argv[2], "importmnfactionapplyinfo")))
+    {
+        ImportMNFactionApplyInfo(argv[3]);
+        StorageEnv::checkpoint();
+        StorageEnv::Close();
+        return 0;
+    }
+    else if ((argc == 4) && (0 == strcmp(argv[2], "importmndomaininfo")))
+    {
+        ImportMNDomainInfo(argv[3]);
+        StorageEnv::checkpoint();
+        StorageEnv::Close();
+        return 0;
+    }
+    else if ((argc == 4) && (0 == strcmp(argv[2], "setmnfactionstate")))
+	{
+		SetMNFactionState(atoi(argv[3]));
+        StorageEnv::checkpoint();
+        StorageEnv::Close();
+        return 0;
+	}
+    else if ((argc == 3) && (0 == strcmp(argv[2], "clearmnfacioncredit")))
+	{
+		ClearMNFactionCredit();
+        StorageEnv::checkpoint();
+        StorageEnv::Close();
+        return 0;
+	}
+    else if ((argc == 3) && (0 == strcmp(argv[2], "listsolochallengerank")))
+    {
+        ListSoloChallengeRank();
+        StorageEnv::checkpoint();
+        StorageEnv::Close();
+        return 0;
+    }
+    else if ((argc == 5) && (0 == strcmp(argv[2], "clearsolochallengerank")))
+    {
+        ClearSoloChallengeRank(atoi(argv[3]), atoi(argv[4]));
         StorageEnv::checkpoint();
         StorageEnv::Close();
         return 0;

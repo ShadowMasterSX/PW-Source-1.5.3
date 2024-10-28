@@ -57,8 +57,8 @@ namespace GNET
       Skill1971Stub ():SkillStub (1971)
         {
             cls = 127;
-            name = L"±äÉí15Ãë";
-            nativename = "±äÉí15Ãë";
+            name = L"å˜èº«15ç§’";
+            nativename = "å˜èº«15ç§’";
             icon = "";
             max_level = 1;
             type = 4;

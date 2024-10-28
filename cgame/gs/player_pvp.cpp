@@ -253,9 +253,9 @@ gplayer_pvp_imp::PlayerEnterWorld()
 }
 
 void 
-gplayer_pvp_imp::PlayerEnterServer()
+gplayer_pvp_imp::PlayerEnterServer(int source_tag)
 {
-	gplayer_imp::PlayerEnterServer();
+	gplayer_imp::PlayerEnterServer(source_tag);
 
 	//通知玩家进入竞技区
 	EnableFreePVP(true);

@@ -44,18 +44,20 @@ class TouchPlayerData : public Rpc
 		re.roleid = arg->roleid;
 		re.localsid = pinfo->localsid;
 		re.flag = flag;
-		
+		unsigned int linksid = pinfo->linksid;
+
 		if(res->retcode == ERR_SUCCESS) {
 			PlayerLogin_Re::RealLogin(arg->roleid, pinfo);
 			pinfo->status = _STATUS_READYGAME;
 			pinfo->role_status[arg->roleid % MAX_ROLE_COUNT] = _ROLE_STATUS_NORMAL;
+			re.src_provider_id = pinfo->gameid;
 		} else {
+			re.src_provider_id = pinfo->gameid;
 			UserContainer::GetInstance().UserLogout(pinfo);
 		}
 		
-		re.src_provider_id = pinfo->gameid;
 		GDeliveryServer* dsm = GDeliveryServer::GetInstance();
-		dsm->Send(pinfo->linksid, re);
+		dsm->Send(linksid, re);
 		dsm->BroadcastStatus();
 		
 		LOG_TRACE("Send PlayerLogin_Re to glink, userid %d roleid %d ret %d",

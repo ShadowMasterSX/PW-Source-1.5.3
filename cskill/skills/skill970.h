@@ -59,9 +59,9 @@ namespace GNET
       Skill970Stub ():SkillStub (970)
         {
             cls = 258;
-            name = L"混元法印";
-            nativename = "混元法印";
-            icon = "混元法印.dds";
+            name = L"娣峰厓娉曞嵃";
+            nativename = "娣峰厓娉曞嵃";
+            icon = "娣峰厓娉曞嵃.dds";
             max_level = 10;
             type = 2;
             apcost = 500000;
@@ -80,7 +80,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "混元法印.sgc";
+            effect = "娣峰厓娉曞嵃.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

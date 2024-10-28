@@ -17,6 +17,7 @@
 #include "petnpc.h"
 #include "player_imp.h"
 #include "item/set_addon.h"
+#include <limits.h>
 
 static unsigned int enemy_factions_table[32];
 static float sctab[256][2];
@@ -1118,6 +1119,27 @@ npc_stubs_manager::LoadTemplate(itemdataman & dataman)
 				}
 				nt.npc_data.service_playerforce_tid = service->force_id;
 			}
+			if(npc.id_cross_server_service)
+			{
+				DATA_TYPE dt;
+				const NPC_CROSS_SERVER_SERVICE * service = (const NPC_CROSS_SERVER_SERVICE*)dataman.get_data_ptr(npc.id_cross_server_service, ID_SPACE_ESSENCE,dt);
+				if(dt != DT_NPC_CROSS_SERVER_SERVICE || service == NULL)
+				{
+					__PRINTINFO("发现了错误的cross service %d 在NPC %d\n",npc.id_cross_server_service, nt.tid);
+					continue;
+				}
+				nt.npc_data.service_cross.activity_type = service->activity_type;
+				nt.npc_data.service_cross.player_count_limit = service->player_count_limit ;
+				nt.npc_data.service_cross.time_out = service->time_out ;
+				nt.npc_data.service_cross.need_item_tid = service->need_item_tid ;
+				nt.npc_data.service_cross.need_item_count = service->need_item_count ;
+				nt.npc_data.service_cross.cost_item = service->cost_item > 0;
+				nt.npc_data.service_cross.history_max_level = service->history_max_level_require ;
+				nt.npc_data.service_cross.second_level = service->taoist_rank_require ;
+				nt.npc_data.service_cross.realm_level = service->realm_level_require ;
+
+				nt.npc_data.service_change_ds_forward = 1;
+			}
 			if(npc.combined_services2 & 0x00000001)
 			{
 				nt.npc_data.service_country_management = 1;
@@ -1130,10 +1152,10 @@ npc_stubs_manager::LoadTemplate(itemdataman & dataman)
 			{
 				nt.npc_data.service_equip_sign = 1;
 			}
-			if(npc.combined_services2 & 0x00000008)
-			{
-				nt.npc_data.service_change_ds_forward = 1;
-			}
+//			if(npc.combined_services2 & 0x00000008)
+//			{
+//				nt.npc_data.service_change_ds_forward = 1;
+//				废弃，从id_cross_server_service 中加载
 			if(npc.combined_services2 & 0x00000010)
 			{
 				nt.npc_data.service_change_ds_backward = 1;
@@ -1192,6 +1214,46 @@ npc_stubs_manager::LoadTemplate(itemdataman & dataman)
 			{
 				nt.npc_data.service_dividend_shop = 1;
 			}
+            if (npc.combined_services2 & 0x00040000)
+            {
+                nt.npc_data.service_player_change_gender = 1;
+            }
+            if (npc.combined_services2 & 0x00080000)
+            {
+                nt.npc_data.service_make_slot_for_decoration = 1;
+            }
+            if (npc.combined_services2 & 0x00100000)
+            {
+                nt.npc_data.service_select_solo_tower_challenge_stage = 1;
+            }
+            if (npc.combined_services2 & 0x00200000)
+            {
+                nt.npc_data.service_solo_challenge_rank = 1;
+            }
+            if (npc.combined_services2 & 0x00400000)
+            {
+                nt.npc_data.service_mnfaction_sign_up = 1;
+            }
+            if (npc.combined_services2 & 0x00800000)
+            {
+                nt.npc_data.service_mnfaction_award = 1;
+            }
+            if (npc.combined_services2 & 0x01000000)
+            {
+                nt.npc_data.service_mnfaction_rank = 1;
+            }
+            if (npc.combined_services2 & 0x02000000)
+            {
+                nt.npc_data.service_mnfaction_battle_transmit = 1;
+            }
+            if (npc.combined_services2 & 0x04000000)
+            {
+                nt.npc_data.service_mnfaction_join_leave = 1;
+            }
+            if (npc.combined_services2 & 0x08000000)
+            {
+                nt.npc_data.service_solo_challenge_rank_global = 1;
+            }
 
 			switch(npc.id_type)
 			{
@@ -1851,10 +1913,12 @@ npc_spawner::AdjustPropByCommonValue(gnpc_imp * pImp, world * pPlane, npc_templa
 	if(pTemplate->hp_adjust_common_value)
 	{
 		int hp_adjust = pPlane->GetCommonValue(pTemplate->hp_adjust_common_value);
-		if(hp_adjust < -50 || hp_adjust > 500) hp_adjust = 0;
+		if(hp_adjust < -90 || hp_adjust > 5000) hp_adjust = 0;
 		if(hp_adjust)
 		{
 			pImp->_cur_prop.max_hp = (int)(pImp->_cur_prop.max_hp * 0.01f * (100 + hp_adjust));
+            if (pImp->_cur_prop.max_hp < 0) pImp->_cur_prop.max_hp = INT_MAX;
+
 			pImp->_base_prop.max_hp = pImp->_cur_prop.max_hp;
 			pImp->_basic.hp = pImp->_cur_prop.max_hp;
 		}
@@ -1862,7 +1926,7 @@ npc_spawner::AdjustPropByCommonValue(gnpc_imp * pImp, world * pPlane, npc_templa
 	if(pTemplate->defence_adjust_common_value)
 	{
 		int defence_adjust = pPlane->GetCommonValue(pTemplate->defence_adjust_common_value);
-		if(defence_adjust < -50 || defence_adjust > 500) defence_adjust = 0;
+		if(defence_adjust < -90 || defence_adjust > 5000) defence_adjust = 0;
 		if(defence_adjust)
 		{
 			pImp->_cur_prop.defense = (int)(pImp->_cur_prop.defense * 0.01f * (100 + defence_adjust));
@@ -1877,7 +1941,7 @@ npc_spawner::AdjustPropByCommonValue(gnpc_imp * pImp, world * pPlane, npc_templa
 	if(pTemplate->attack_adjust_common_value)
 	{
 		int attack_adjust = pPlane->GetCommonValue(pTemplate->attack_adjust_common_value);
-		if(attack_adjust < -50 || attack_adjust > 500) attack_adjust = 0;
+		if(attack_adjust < -90 || attack_adjust > 5000) attack_adjust = 0;
 		if(attack_adjust)
 		{
 			pImp->_cur_prop.damage_low = (int)(pImp->_cur_prop.damage_low * 0.01f * (100 + attack_adjust));
@@ -3020,7 +3084,7 @@ npc_spawner::CreateNPCBase(npc_spawner * __this, world * pPlane, const entry_t &
 	if(pTemplate->npc_data.service_change_ds_forward)
 	{
 		service_provider * provider = service_manager::CreateProviderInstance(78);
-		pImp->AddProvider(provider,NULL,0);
+		pImp->AddProvider(provider,&pTemplate->npc_data.service_cross,sizeof(pTemplate->npc_data.service_cross));
 	}
 	if(pTemplate->npc_data.service_change_ds_backward)
 	{
@@ -3100,6 +3164,51 @@ npc_spawner::CreateNPCBase(npc_spawner * __this, world * pPlane, const entry_t &
 		service_provider * provider = service_manager::CreateProviderInstance(94);
 		pImp->AddProvider(provider,&et.npc_tid,sizeof(int));
 	}
+    if (pTemplate->npc_data.service_player_change_gender)
+    {
+        service_provider* provider = service_manager::CreateProviderInstance(95);
+        pImp->AddProvider(provider, NULL, 0);
+    }
+    if (pTemplate->npc_data.service_make_slot_for_decoration)
+    {
+        service_provider* provider = service_manager::CreateProviderInstance(96);
+        pImp->AddProvider(provider, NULL, 0);
+    }
+	if (pTemplate->npc_data.service_select_solo_tower_challenge_stage)
+	{
+		service_provider* provider = service_manager::CreateProviderInstance(97);
+		pImp->AddProvider(provider, NULL, 0);
+	}
+    if (pTemplate->npc_data.service_solo_challenge_rank)
+    {
+        service_provider* provider = service_manager::CreateProviderInstance(98);
+        pImp->AddProvider(provider, NULL, 0);
+    }
+    if (pTemplate->npc_data.service_mnfaction_sign_up)
+    {
+        service_provider* provider = service_manager::CreateProviderInstance(99);
+        pImp->AddProvider(provider, NULL, 0);
+    }
+    if (pTemplate->npc_data.service_mnfaction_rank)
+    {
+        service_provider* provider = service_manager::CreateProviderInstance(100);
+        pImp->AddProvider(provider, NULL, 0);
+    }
+    if (pTemplate->npc_data.service_mnfaction_battle_transmit)
+    {
+        service_provider* provider = service_manager::CreateProviderInstance(101);
+        pImp->AddProvider(provider, NULL, 0);
+    }
+    if (pTemplate->npc_data.service_mnfaction_join_leave)
+    {
+        service_provider* provider = service_manager::CreateProviderInstance(102);
+        pImp->AddProvider(provider, NULL, 0);
+    }
+    if (pTemplate->npc_data.service_solo_challenge_rank_global)
+    {
+        service_provider* provider = service_manager::CreateProviderInstance(103);
+        pImp->AddProvider(provider, NULL, 0);
+    }
 
 	return pNPC;
 }
@@ -3907,7 +4016,7 @@ npc_generator::AddCtrlData(CNPCGenMan& ctrldata,unsigned int ctrl_id, unsigned c
 }
 
 bool 
-npc_generator::AddSpawnData(world* plane, CNPCGenMan& ctrldata, CNPCGenMan& spawndata, unsigned char block_id, const A3DVECTOR& p_offset)
+npc_generator::AddSpawnData(world* plane, CNPCGenMan& ctrldata, CNPCGenMan& spawndata, unsigned char block_id, const A3DVECTOR& p_offset,bool global_ctrl_gen, bool unique_resource)
 {
 	
 	//读取NPC和怪物数据
@@ -3922,6 +4031,10 @@ npc_generator::AddSpawnData(world* plane, CNPCGenMan& ctrldata, CNPCGenMan& spaw
 					area.vPos[0],area.vPos[1],area.vPos[2],area.iType,area.idCtrl);
 			continue;
 		}	
+		if(global_ctrl_gen == false && !area.idCtrl )
+		{
+			continue;
+		}
 		
 		area.vPos[0] += p_offset.x;
 		area.vPos[1] += p_offset.y;
@@ -4047,7 +4160,13 @@ npc_generator::AddSpawnData(world* plane, CNPCGenMan& ctrldata, CNPCGenMan& spaw
 
 			if(pTemplate->has_collision) has_collision = true; 
 		}
-		if(has_collision) pSp->BuildRegionCollision2(plane);	
+		if(has_collision) 
+		{
+			if(unique_resource)
+				pSp->BuildRegionCollision(plane, i);
+			else
+				pSp->BuildRegionCollision2(plane);	
+		}
 		if(entry_count)
 		{
 			InsertSpawner(area.idCtrl ? GenBlockUniqueID(area.idCtrl,block_id) : 0,pSp);
@@ -4069,6 +4188,11 @@ npc_generator::AddSpawnData(world* plane, CNPCGenMan& ctrldata, CNPCGenMan& spaw
 			continue;
 		}	
 		
+		if(global_ctrl_gen == false && !area.idCtrl )
+		{
+			continue;
+		}
+
 		area.vPos[0] += p_offset.x;
 		area.vPos[1] += p_offset.y;
 		area.vPos[2] += p_offset.z;
@@ -4102,6 +4226,9 @@ npc_generator::AddSpawnData(world* plane, CNPCGenMan& ctrldata, CNPCGenMan& spaw
 			pSp->AddEntry(ent);
 			entry_count ++;
 		}
+		if(unique_resource)
+			pSp->BuildRegionCollision(plane, i|0x40000000);
+		else
 		pSp->BuildRegionCollision2(plane);	
 		if(entry_count)
 		{
@@ -4124,6 +4251,11 @@ npc_generator::AddSpawnData(world* plane, CNPCGenMan& ctrldata, CNPCGenMan& spaw
 			continue;
 		}	
 		
+		if(global_ctrl_gen == false && !obj.idCtrl )
+		{
+			continue;
+		}
+
 		obj.vPos[0] += p_offset.x;		
 		obj.vPos[1] += p_offset.y;
 		obj.vPos[2] += p_offset.z;
@@ -4143,10 +4275,18 @@ npc_generator::AddSpawnData(world* plane, CNPCGenMan& ctrldata, CNPCGenMan& spaw
 		ent.mine_count = 1;
 		ent.reborn_time = 100;
 		pSp->AddEntry(ent); 
+
+		if(unique_resource)
+			pSp->BuildRegionCollision(plane,i|0x80000000);
+		else
 		pSp->BuildRegionCollision2(plane);
 
 		InsertSpawner(obj.idCtrl ? GenBlockUniqueID(obj.idCtrl,block_id) : 0,pSp);
 	}       
+
+	if(unique_resource) 
+		first_load_gen = 1;
+
 	return true;
 }
 
@@ -4928,6 +5068,54 @@ mine_spawner::CreateMine(mine_spawner * __this,const A3DVECTOR & pos, world * pP
 	return pMatter;
 }
 
+gmatter *
+mine_spawner::CreateMine2(mine_spawner * __this,const A3DVECTOR & pos, world * pPlane,int index,const entry_t & et, unsigned char dir, unsigned char dir1, unsigned char rad)
+{
+//	A3DVECTOR pos;
+//	GeneratePos(pos,_offset_terrain);
+
+	npc_template * pTemplate = npc_stubs_manager::Get(et.mid);
+	if(pTemplate == NULL )
+	{
+		GLog::log(GLOG_ERR,"Invalid mine template id %d",et.mid);
+		return NULL;
+	}
+	if(pTemplate->mine_info.std_amount == 0 && pTemplate->mine_info.task_out == 0)
+	{
+		__PRINTINFO("矿物数据有错\n");
+		GLog::log(GLOG_ERR,"Invalid mine template id %d",et.mid);
+		return NULL;
+	}
+
+	//分配NPC设置npc全局数据
+	gmatter * pMatter = pPlane->AllocMatter();
+	if(!pMatter) return NULL;
+	pMatter->ID.type = GM_TYPE_MATTER;
+	pMatter->pos = pos;
+	pMatter->ID.id= MERGE_ID<gmatter>(MKOBJID(world_manager::GetWorldIndex(),pPlane->GetMatterIndex(pMatter)));
+
+	gmatter_mine_imp *imp = new gmatter_mine_imp();
+	imp->Init(pPlane,pMatter);
+	imp->_runner = new gmatter_dispatcher();
+	imp->_runner->init(imp);
+	imp->_commander = new gmatter_controller();
+	imp->_commander->Init(imp);
+	//矿物先不管帮派基地里的reset内容
+	pMatter->imp = imp;
+	pMatter->matter_type = et.mid;
+
+	pMatter->SetDirUp(dir,dir1,rad);
+
+	GenerateMineParam(imp, pTemplate);
+
+	pMatter->spawn_index = index;
+	imp->_spawner = __this;
+
+	pPlane->InsertMatter(pMatter);
+	imp->_runner->enter_world();
+	return pMatter;
+}
+
 bool 
 mine_spawner::CreateMines(world *pPlane) 
 {
@@ -5339,6 +5527,7 @@ spawner_ctrl::Active(world * pPlane)
 	if(IsActived()) return ;
 	_active_flag = true;
 	_cur_active_life = _active_life;
+	_date_counter_down = 0;//让心跳重新计算激活时间
 
 	if(_spawn_after_active <= 0) 
 	{
@@ -5356,6 +5545,8 @@ spawner_ctrl::Stop(world * pPlane)
 {
 	if(!IsActived()) return ;
 	_active_flag = false;
+	_date_counter_down = 0;//让心跳重新计算激活时间
+	
 	if(IsSpawned())
 	{
 		for(size_t i = 0; i < _list.size();i ++)

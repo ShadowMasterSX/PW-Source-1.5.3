@@ -19,9 +19,9 @@ namespace GNET
         Skill161Stub ():SkillStub (161)
         {
             cls = 255;
-            name = L"ҩʦ��ͨ";
-            nativename = "ҩʦ��ͨ";
-            icon = "ҩʦ��ͨ.dds";
+            name = L"药师精通";
+            nativename = "药师精通";
+            icon = "药师精通.dds";
             max_level = 10;
             type = 9;
             apcost = 0;

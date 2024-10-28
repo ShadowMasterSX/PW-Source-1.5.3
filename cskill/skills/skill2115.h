@@ -56,9 +56,9 @@ namespace GNET
       Skill2115Stub ():SkillStub (2115)
         {
             cls = 127;
-            name = L"侵蚀专用";
-            nativename = "侵蚀专用";
-            icon = "宠物鼓舞.dds";
+            name = L"渚佃殌涓撶敤";
+            nativename = "渚佃殌涓撶敤";
+            icon = "瀹犵墿榧撹垶.dds";
             max_level = 10;
             type = 3;
             apcost = 0;
@@ -79,7 +79,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "避水诀.sgc";
+            effect = "閬挎按璇�.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

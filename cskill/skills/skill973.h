@@ -59,9 +59,9 @@ namespace GNET
       Skill973Stub ():SkillStub (973)
         {
             cls = 258;
-            name = L"百毒不侵";
-            nativename = "百毒不侵";
-            icon = "百毒不侵.dds";
+            name = L"鐧炬瘨涓嶄镜";
+            nativename = "鐧炬瘨涓嶄镜";
+            icon = "鐧炬瘨涓嶄镜.dds";
             max_level = 10;
             type = 2;
             apcost = 500000;
@@ -80,7 +80,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 1;
-            effect = "百毒不侵.sgc";
+            effect = "鐧炬瘨涓嶄镜.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

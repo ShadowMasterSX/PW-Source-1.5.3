@@ -19,8 +19,8 @@ namespace GNET
         Skill1092Stub ():SkillStub (1092)
         {
             cls = 255;
-            name = L"Î×Ê¦_¸´³ğ·âÓ¡";
-            nativename = "Î×Ê¦_¸´³ğ·âÓ¡";
+            name = L"å·«å¸ˆ_å¤ä»‡å°å°";
+            nativename = "å·«å¸ˆ_å¤ä»‡å°å°";
             icon = "";
             max_level = 1;
             type = 6;
@@ -42,7 +42,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "Î×Ê¦_¸´³ğ·âÓ¡.sgc";
+            effect = "å·«å¸ˆ_å¤ä»‡å°å°.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

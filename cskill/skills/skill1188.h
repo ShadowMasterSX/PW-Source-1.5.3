@@ -57,9 +57,9 @@ namespace GNET
       Skill1188Stub ():SkillStub (1188)
         {
             cls = 127;
-            name = L"百分百成功抓宠物";
-            nativename = "百分百成功抓宠物";
-            icon = "驯服宠物.dds";
+            name = L"鐧惧垎鐧炬垚鍔熸姄瀹犵墿";
+            nativename = "鐧惧垎鐧炬垚鍔熸姄瀹犵墿";
+            icon = "椹湇瀹犵墿.dds";
             max_level = 10;
             type = 3;
             apcost = 0;
@@ -80,7 +80,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 2;
             allow_forms = 7;
-            effect = "驯服宠物.sgc";
+            effect = "椹湇瀹犵墿.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

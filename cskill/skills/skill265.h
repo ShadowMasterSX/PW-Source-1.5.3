@@ -133,8 +133,8 @@ namespace GNET
       Skill265Stub ():SkillStub (265)
         {
             cls = 127;
-            name = L"ÍÁéä";
-            nativename = "ÍÁéä";
+            name = L"åœŸæ®‡";
+            nativename = "åœŸæ®‡";
             icon = "";
             max_level = 10;
             type = 1;
@@ -154,7 +154,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "ÍÁéä.sgc";
+            effect = "åœŸæ®‡.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

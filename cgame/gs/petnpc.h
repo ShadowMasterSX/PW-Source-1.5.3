@@ -41,6 +41,7 @@ struct pet_leader_prop
 	int  force_id;
 	char invader_state;	//ºì·ÛÃû×´Ì¬
 	char free_pvp_mode;	
+	int  anti_def_degree;
 };
 
 class gpet_imp : public  gnpc_imp

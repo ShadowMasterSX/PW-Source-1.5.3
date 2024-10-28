@@ -137,9 +137,9 @@ namespace GNET
       Skill2569Stub ():SkillStub (2569)
         {
             cls = 10;
-            name = L"大荒";
-            nativename = "大荒";
-            icon = "大荒.dds";
+            name = L"澶ц崚";
+            nativename = "澶ц崚";
+            icon = "澶ц崚.dds";
             max_level = 10;
             type = 1;
             apcost = 0;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (44878);
             }
-            effect = "夜影_大荒_击中.sgc";
+            effect = "澶滃奖_澶ц崚_鍑讳腑.sgc";
             range.type = 2;
             doenchant = true;
             dobless = true;

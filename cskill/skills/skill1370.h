@@ -19,8 +19,8 @@ namespace GNET
         Skill1370Stub ():SkillStub (1370)
         {
             cls = 8;
-            name = L"ÅÍÁú½£ÑÛ¼¤»î";
-            nativename = "ÅÍÁú½£ÑÛ¼¤»î";
+            name = L"ç£é¾™å‰‘çœ¼æ¿€æ´»";
+            nativename = "ç£é¾™å‰‘çœ¼æ¿€æ´»";
             icon = "";
             max_level = MAX_LEVEL;
             type = 3;
@@ -42,7 +42,7 @@ namespace GNET
             long_range = 1;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "ÅÍÁú½£ÑÛ¼¤»î.sgc";
+            effect = "ç£é¾™å‰‘çœ¼æ¿€æ´».sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

@@ -65,6 +65,7 @@ public:
 			target = NULL;
 	}
 
+	int GetWorldTag()   { return object.GetWorldTag(); }
 	int GetId()			{ return object.GetSelfID().id; }
 	int GetMp()         { return object.GetBasicProp().mp; }
 	int GetHp()         { return object.GetBasicProp().hp; }
@@ -373,7 +374,8 @@ public:
 	bool SetFlower2(bool);
 	bool SetFlower3(bool);
 	bool SetFlower4(bool);
-
+		
+	bool SetMnfactionDecresist(bool b);
 	bool SetPowerup(bool b);
 	bool SetApgen(bool b);
 	bool SetIncswim(float r);
@@ -482,6 +484,7 @@ public:
 	bool SetAuracurse(bool);
 	bool SetAurabless2(bool);
 	bool SetAuracurse2(bool);
+	bool SetAurabless3(bool);
 	bool SetInvisible(bool);
 	bool SetIncantiinvisibleactive(bool);
 	bool SetInchpsteal(bool);
@@ -491,6 +494,7 @@ public:
 	bool SetRebirth(bool);
 	bool SetDeepenbless(bool);
 	bool SetWeakenbless(bool);
+	bool SetWeakenbless2(bool);
 	bool SetHurtwhenuseskill(bool);
 	bool SetInterruptwhenuseskill(bool);
 	bool SetSoulretort(bool);
@@ -651,6 +655,9 @@ public:
 	bool SetIncnearskilldmgreduce(float);
 	bool SetIncfarnormaldmgreduce(float);
 	bool SetIncfarskilldmgreduce(float);
+	bool SetAddmaxhp(float inc);
+	bool SetDisturbrecover(int val);
+	bool SetIncswimspeed(float inc);
 
 	// 武器持续激活技能
 	bool SetFrenetic(bool b);
@@ -721,6 +728,22 @@ public:
     bool SetReducegold3(bool);
     bool SetReducewater3(bool);
     bool SetGenhpap(bool);
+	bool SetDetaindart(bool);
+    bool SetExtraexpfactor(bool);
+	bool SetSoloIncAttackAndMagic(bool);
+	bool SetSoloIncDefence(bool);
+	bool SetSoloEnhanceResist(bool);
+	bool SetSoloIncMaxHP(bool);
+	bool SetInvincible8(bool);
+	bool SetSoloHpGen(bool);
+	bool SetSoloDecHurt(bool);
+	bool SetSoloAddAttackRange(bool);
+	bool SetThunder3(bool);
+	bool SetToxic3(bool);
+	bool SetFlood3(bool);
+	bool SetBurning3(bool);
+	bool SetFallen3(bool);
+	bool SetNewSpeedBuff(bool);
 
 	void SetCommonCoolDown(int cd_mask, int ms);	
 };

@@ -14,6 +14,20 @@ inline bool ATaskTempl::IsAutoDeliver() const
 	return m_bDeathTrig || m_bAutoDeliver;
 }
 
+inline bool ATaskTempl::NeedFinishedTaskListSupport()const{	//	是否需要 FinishedTaskList 结构的支持
+	return m_bNeedRecord								//	需要记录完成结果
+		|| !m_bAccountTaskLimit && m_bRoleTaskLimit;	//	角色限次任务需要记录完成次数
+}
+
+inline bool ATaskTempl::NeedFinishTimeListSupport()const{	//	是否需要 TaskFinishTimeList 结构的支持
+	return !m_bAccountTaskLimit && m_bRoleTaskLimit		//	角色限次任务需要记录完成时间
+		|| m_lAvailFrequency != enumTAFNormal && !m_bAccountTaskLimit && !m_bRoleTaskLimit;	//	普通重复任务需要记录完成时间
+}
+
+inline bool ATaskTempl::NeedFinishCountListSupport()const{	//	是否需要 TaskFinishCountList 结构的支持
+	return m_bAccountTaskLimit;							//	账号限次任务需要记录任务完成次数
+}
+
 inline unsigned long ATaskTempl::CheckBudget(ActiveTaskList* pList) const
 {
 	// 任务达到上限
@@ -298,6 +312,9 @@ inline bool ATaskTempl::CanFinishTask(
 		case enumTMReachLevel:
 			ret = CheckReachLevel(pTask);
 			break;
+		case enumTMHasIconStateID:
+			ret = CheckTMIconStateID(pTask);
+			break;
 		default:
 			break;
 		}
@@ -460,7 +477,7 @@ inline unsigned long ATaskTempl::CheckDeliverTime(TaskInterface* pTask, unsigned
 	TaskFinishTimeList* pTimeList = (TaskFinishTimeList*)pTask->GetFinishedTimeList();
 	TaskFinishCountList* pFinishCntList = (TaskFinishCountList*)pTask->GetFinishedCntList();
 
-	if (pTimeList->m_uCount >= TASK_FINISH_TIME_MAX_LEN)
+	if (pTimeList->IsFull())
 		return TASK_PREREQU_FAIL_FULL;
 
 	unsigned long ulTaskTime;
@@ -1244,6 +1261,35 @@ inline bool ATaskTempl::CheckReachLevel(TaskInterface* pTask) const
 	if (m_ulReachRealmLevel) bRealmLevel = pTask->GetRealmLevel() >= m_ulReachRealmLevel;
 	return bLevel && bReincarnationCount && bRealmLevel;
 }
+
+inline unsigned long ATaskTempl::CheckPremIconStateID(TaskInterface *pTask)const
+{
+	if (m_ulPremIconStateID > 0 && !pTask->HasIconStateID(m_ulPremIconStateID)){
+		return TASK_PREREQU_FAIL_HAS_ICONSTATE_ID;
+	}
+	return 0;
+}
+
+inline bool ATaskTempl::CheckTMIconStateID(TaskInterface *pTask)const
+{
+	if (m_ulTMIconStateID > 0 && !pTask->HasIconStateID(m_ulTMIconStateID)){
+		return false;
+	}
+	return true;
+}
+
+inline unsigned long ATaskTempl::CheckVIPLevel(TaskInterface* pTask)const
+{
+	int vipLevel = pTask->GetVIPLevel();
+	if (m_iVIPLevelMin && vipLevel < m_iVIPLevelMin) {
+		return TASK_PREREQU_FAIL_CHECK_VIP_LEVEL;
+	}
+	if (m_iVIPLevelMax && vipLevel > m_iVIPLevelMax) {
+		return TASK_PREREQU_FAIL_CHECK_VIP_LEVEL;
+	}
+	return 0;
+}
+
 inline void ATaskTempl::CalcAwardItemsCount(
 	TaskInterface* pTask,
 	const AWARD_ITEMS_CAND* pAward,
@@ -1504,6 +1550,8 @@ inline bool ATaskTempl::CanShowTask(TaskInterface* pTask) const
 	if (m_bShowByGeneralCard && CheckCardCollection(pTask)) return false;
 	if (m_bShowByGeneralCardRank && CheckCardRankCount(pTask)) return false;
 	if (m_bShowByHistoryStage && CheckHistoryStage(pTask)) return false;
+	if (m_bShowByIconStateID && CheckPremIconStateID(pTask)) return false;
+	if (m_bShowByVIPLevel && CheckVIPLevel(pTask)) return false;
 
 	return true;
 }
@@ -1531,7 +1579,9 @@ inline bool ATaskTempl::CanShowInExclusiveUI(TaskInterface* pTask, unsigned long
 		// 任务前提中有物品要求
 		if (m_ulPremItems > 0) break;
 		// 任务前提中检查转生次数
-		if (CheckReincarnation(pTask)) break;
+		if (m_bPremCheckReincarnation && pTask->GetReincarnationCount() > m_ulPremReincarnationMax){
+			break;
+		}
 		ret = true;
 		break;
 	}

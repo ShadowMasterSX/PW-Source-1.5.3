@@ -57,8 +57,8 @@ namespace GNET
       Skill1978Stub ():SkillStub (1978)
         {
             cls = 127;
-            name = L"北美国战补正60-89";
-            nativename = "北美国战补正60-89";
+            name = L"鍖楃編鍥芥垬琛ユ60-89";
+            nativename = "鍖楃編鍥芥垬琛ユ60-89";
             icon = "";
             max_level = 1;
             type = 4;

@@ -6,7 +6,7 @@
 	public:
 		QPGetActivatedServices_Re() { type = PROTOCOL_QPGETACTIVATEDSERVICES_RE; }
 		QPGetActivatedServices_Re(void*) : Protocol(PROTOCOL_QPGETACTIVATEDSERVICES_RE) { }
-		QPGetActivatedServices_Re (int l_localsid,std::vector<int> l_merchants,int l_retcode = 0)
+		QPGetActivatedServices_Re (int l_localsid,const std::vector<int>& l_merchants,int l_retcode = 0)
 			 : localsid(l_localsid),merchants(l_merchants),retcode(l_retcode)
 		{
 			type = PROTOCOL_QPGETACTIVATEDSERVICES_RE;

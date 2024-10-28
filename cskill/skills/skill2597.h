@@ -133,8 +133,8 @@ namespace GNET
       Skill2597Stub ():SkillStub (2597)
         {
             cls = 127;
-            name = L"Ëæ»ú¸±±¾BOSSÈÎ5¿¼Ñé";
-            nativename = "Ëæ»ú¸±±¾BOSSÈÎ5¿¼Ñé";
+            name = L"éšæœºå‰¯æœ¬BOSSä»»5è€ƒéªŒ";
+            nativename = "éšæœºå‰¯æœ¬BOSSä»»5è€ƒéªŒ";
             icon = "";
             max_level = 10;
             type = 3;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "¹ÖÎï×Ô±¬.sgc";
+            effect = "æ€ªç‰©è‡ªçˆ†.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

@@ -58,9 +58,9 @@ namespace GNET
       Skill2618Stub ():SkillStub (2618)
         {
             cls = 11;
-            name = L"¿ñ¡¤ëÊ";
-            nativename = "¿ñ¡¤ëÊ";
-            icon = "Ä§ëÊÒ¹Ó°.dds";
+            name = L"ç‹‚Â·èƒ§";
+            nativename = "ç‹‚Â·èƒ§";
+            icon = "é­”èƒ§å¤œå½±.dds";
             max_level = 1;
             type = 2;
             apcost = 30;

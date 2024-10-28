@@ -132,8 +132,8 @@ namespace GNET
       Skill1948Stub ():SkillStub (1948)
         {
             cls = 127;
-            name = L"��ͯ�ڻ";
-            nativename = "��ͯ�ڻ";
+            name = L"儿童节活动";
+            nativename = "儿童节活动";
             icon = "";
             max_level = 10;
             type = 3;

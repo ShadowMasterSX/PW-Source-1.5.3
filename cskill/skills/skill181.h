@@ -134,9 +134,9 @@ namespace GNET
       Skill181Stub ():SkillStub (181)
         {
             cls = 1;
-            name = L"磐石护甲";
-            nativename = "磐石护甲";
-            icon = "奇门护甲.dds";
+            name = L"纾愮煶鎶ょ敳";
+            nativename = "纾愮煶鎶ょ敳";
+            icon = "濂囬棬鎶ょ敳.dds";
             max_level = 10;
             type = 2;
             apcost = 30;

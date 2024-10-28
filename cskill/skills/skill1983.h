@@ -58,9 +58,9 @@ namespace GNET
       Skill1983Stub ():SkillStub (1983)
         {
             cls = 4;
-            name = L"¿ñ¡¤ĞÜÃ¨±ä";
-            nativename = "¿ñ¡¤ĞÜÃ¨±ä";
-            icon = "¿ñĞÜÃ¨±ä.dds";
+            name = L"ç‹‚Â·ç†ŠçŒ«å˜";
+            nativename = "ç‹‚Â·ç†ŠçŒ«å˜";
+            icon = "ç‹‚ç†ŠçŒ«å˜.dds";
             max_level = 1;
             type = 2;
             apcost = 0;
@@ -87,7 +87,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "2°×»¢±ä.sgc";
+            effect = "2ç™½è™å˜.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

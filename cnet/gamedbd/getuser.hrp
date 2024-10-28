@@ -10,6 +10,9 @@
 #include "userres"
 #include "gsysauctioncash"
 #include "gloginrecord"
+#include "grewardstore"
+#include "gcashvipinfo"
+#include "utilfunction.h"
 
 namespace GNET
 {
@@ -66,6 +69,77 @@ class GetUser : public Rpc
 		}
 		return 0;
 	}
+
+	int BalanceScore(GCashVipInfo &vipinfo)
+	{
+		unsigned int threshold = MAX_USER_CASH_VIP_SCORE-CASH_VIP_SCORE_BALANCE_THRESHOLD;
+		if(vipinfo.score_add>threshold || vipinfo.score_cost>threshold || vipinfo.score_consume>threshold)
+		{
+			unsigned int total = vipinfo.score_cost + vipinfo.score_consume;
+			if(vipinfo.score_cost)
+			{
+				Balance(vipinfo.score_add, vipinfo.score_cost); 
+			}
+			if(vipinfo.score_consume)
+			{
+				Balance(vipinfo.score_add, vipinfo.score_consume); 
+			}
+
+			if(total != vipinfo.score_cost + vipinfo.score_consume)
+				return total - vipinfo.score_cost - vipinfo.score_consume;
+		}
+		return 0;
+	}
+	
+	void CalCashVipData(User& user, int userid)
+	{
+		GRewardStore reward_store;
+		if(0 == user.consume_reward.size())
+			return;
+		
+		Marshal::OctetsStream os_reward(user.consume_reward);
+		os_reward >> reward_store;
+
+		GCashVipInfo vipinfo;
+		if(0 == reward_store.cash_vip_info.size())
+			return;
+		Marshal::OctetsStream os_vip_info(reward_store.cash_vip_info);
+		try
+		{
+			os_vip_info >> vipinfo;
+		}
+		catch( ... )
+		{
+			return;
+		}
+		if(vipinfo.cash_vip_level != 0)
+		{
+			int stamp = CashVip::GetTodayReduceScoreStamp();
+			int diff_second = stamp - vipinfo.score_cost_stamp;
+			int diff_day = diff_second / (CashVip::EVERY_DAY_SECOND);
+			int cur_score = 0;
+			if(diff_day > 0)
+			{
+				int reduce_score = CashVip::GetCashVipReduceScore(vipinfo.cash_vip_level);
+				reduce_score *= diff_day;
+				cur_score = vipinfo.score_add - vipinfo.score_cost - vipinfo.score_consume;
+				if(reduce_score > cur_score)
+					reduce_score = cur_score;
+				vipinfo.score_cost += reduce_score;
+				vipinfo.score_cost_stamp = stamp;
+				cur_score -= reduce_score;
+				CashVip::CalCashVipLevel(vipinfo.cash_vip_level, cur_score);
+			}
+		}
+		int delta = BalanceScore(vipinfo);
+		if(delta)
+		{
+			Log::formatlog("balancecashvipscore","userid=%d:add=%d:cost=%d:consume=%d:delta=%d",userid, vipinfo.score_add, vipinfo.score_cost, vipinfo.score_consume, delta);
+		}
+		reward_store.cash_vip_info = Marshal::OctetsStream() << vipinfo;	
+		user.consume_reward = Marshal::OctetsStream() << reward_store;
+	}
+	
 	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
 	{
 		UserArg *arg = (UserArg *)argument;
@@ -106,6 +180,8 @@ class GetUser : public Rpc
 						Log::formatlog("balancecash","userid=%d:add=%d:used=%d:buy=%d:sell=%d:used_2=%d:delta=%d",
 								arg->id, u.cash_add, u.cash_used, u.cash_buy, u.cash_sell, sa_cash.cash_used_2, delta);
 					}
+				
+					CalCashVipData(u, arg->id);
 					
 					Octets last_login = u.login_record;
 					u.login_record = Marshal::OctetsStream() << GLoginRecord(arg->login_time, arg->login_ip);

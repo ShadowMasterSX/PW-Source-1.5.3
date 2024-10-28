@@ -41,21 +41,6 @@ class DBWebTradePrePost : public Rpc
 
 	void GetRoleBriefExtendData(GWebTradeRoleBriefExtend& extend_data, const GRoleStatus& status)
 	{
-		enum		//原始定义在../gdbclient/db_if.h 请保持一致
-		{
-			GROLE_STATUS_EXTRAPROP_TOUCH_HALF_TRADE = 0, // Touch
-			GROLE_STATUS_EXTRAPROP_DAILY_SIGN_IN,
-			GROLE_STATUS_EXTRAPROP_GIFTCARD_HALF_REDEEM, // 礼品码兑换
-			GROLE_STATUS_EXTRAPROP_LEADERSHIP,
-			GROLE_STATUS_EXTRAPROP_GENERALCARD_COLLECTION,
-			GROLE_STATUS_EXTRAPROP_FATERING,
-			GROLE_STATUS_EXTRAPROP_CLOCK_DATA,
-			GROLE_STATUS_EXTRAPROP_RAND_MALL_DATA,
-			GROLE_STATUS_EXTRAPROP_WORLD_CONTRIBUTION,
-
-			GROLE_STATUS_EXTRAPROP_COUNT, // 总数，请放最后
-		};
-
 		GRoleStatusExtraProp extraprop;
 		if(status.extraprop.size()) {
 			Marshal::OctetsStream(status.extraprop) >> extraprop;
@@ -65,6 +50,9 @@ class DBWebTradePrePost : public Rpc
 		
 			it = extraprop.data.find(GROLE_STATUS_EXTRAPROP_FATERING);
 			if(it != extraprop.data.end()) extend_data.fate_ring_data = it->second;
+
+			it = extraprop.data.find(GROLE_STATUS_EXTRAPROP_ASTROLABE_EXTERN);
+			if(it != extraprop.data.end()) extend_data.astrolabe_data = it->second;
 		}
 	
 		extend_data.meridian_data = status.meridian_data;

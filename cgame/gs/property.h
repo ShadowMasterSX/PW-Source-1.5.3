@@ -225,7 +225,7 @@ struct team_mutable_prop
 			mp = bp.mp;
 			max_hp = ep.max_hp;
 			max_mp = ep.max_mp;
-			world_tag = GetWorldTag();
+			world_tag = 1;
 			plane_index = pImp->_plane->w_plane_index;
 			wallow_level = pImp->_wallow_level;
 			profit_level = pImp->_profit_level;
@@ -270,4 +270,28 @@ struct  team_member_data
 	{}
 };
 */
+
+struct plus_enhanced_param
+{
+	int damage;
+	int magic_dmg;
+	int defence;
+	int resistance[MAGIC_CLASS];
+	int max_hp;
+};
+
+template <typename WRAPPER>
+WRAPPER & operator >>(WRAPPER & wrapper, plus_enhanced_param &rhs)
+{
+	wrapper.pop_back(&rhs,sizeof(rhs));
+	return wrapper;
+}
+
+
+template <typename WRAPPER>
+WRAPPER & operator <<(WRAPPER & wrapper, plus_enhanced_param &rhs)
+{
+	wrapper.push_back(&rhs,sizeof(rhs));
+	return wrapper;
+}
 #endif

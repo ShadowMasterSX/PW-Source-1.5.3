@@ -19,9 +19,9 @@ namespace GNET
         Skill80Stub ():SkillStub (80)
         {
             cls = 0;
-            name = L"È­Êõ¾«Í¨";
-            nativename = "È­Êõ¾«Í¨";
-            icon = "È­Êõ¾«Í¨.dds";
+            name = L"æ‹³æœ¯ç²¾é€š";
+            nativename = "æ‹³æœ¯ç²¾é€š";
+            icon = "æ‹³æœ¯ç²¾é€š.dds";
             max_level = 10;
             type = 5;
             apcost = 0;

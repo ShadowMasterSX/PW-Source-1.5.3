@@ -77,10 +77,8 @@
  */ 
 namespace GNET
 {
-	//update for faction pvpmask
-	void gfs_update_factionpvpmask( int fid ,unsigned char mask)
+	void gfs_update_factionunifidannounce(int fid,unsigned char mask,int64_t unifid)
 	{
-		
 		GFactionServer* gfs=GFactionServer::GetInstance();
 		Thread::Mutex::Scoped l(gfs->locker_player);
 		{
@@ -102,7 +100,40 @@ namespace GNET
 						}
 						cur_gid=(*itb).second->gsid;
 					}
-					pfi_re.faction_info.add(PFactionInfo((*itb).second->roleid,fid, (*itb).second->froleid,mask ));
+					pfi_re.faction_info.add(PFactionInfo((*itb).second->roleid,fid, (*itb).second->froleid,mask,unifid ));
+				}
+			}
+			if ( pfi_re.faction_info.size() )
+				GProviderServer::GetInstance()->DispatchProtocol(cur_gid,pfi_re);
+		}
+
+	}	
+	
+	//update for faction pvpmask
+	void gfs_update_factionpvpmask( int fid ,unsigned char mask, int64_t unifid)
+	{
+		GFactionServer* gfs=GFactionServer::GetInstance();
+		Thread::Mutex::Scoped l(gfs->locker_player);
+		{
+			int cur_gid=-1;
+			PlayerFactionInfo_Re pfi_re(ERR_SUCCESS,PFactionInfoVector());
+			for ( GFactionServer::FactionMemberMap::iterator 
+					itb=gfs->factionmembermap.lower_bound(fid),
+					ite=gfs->factionmembermap.upper_bound(fid);
+					itb!=ite; ++itb )
+			{
+				if ( (*itb).second )
+				{
+					if ( (*itb).second->gsid != cur_gid )
+					{
+						if ( pfi_re.faction_info.size()>0 )
+						{
+							GProviderServer::GetInstance()->DispatchProtocol(cur_gid,pfi_re);
+							pfi_re.faction_info.GetVector().clear();
+						}
+						cur_gid=(*itb).second->gsid;
+					}
+					pfi_re.faction_info.add(PFactionInfo((*itb).second->roleid,fid, (*itb).second->froleid,mask,unifid ));
 				}
 			}
 			if ( pfi_re.faction_info.size() )

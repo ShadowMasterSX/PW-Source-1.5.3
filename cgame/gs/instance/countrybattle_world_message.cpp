@@ -114,7 +114,7 @@ countrybattle_world_message_handler::PlayerPreEnterServer(gplayer * pPlayer, gpl
 	//增加人数的操作在 玩家的EnterServer操作中完成
 	countrybattle_ctrl * pCtrl = (countrybattle_ctrl*)(pPlane->w_ctrl);
 
-	int id = pPlayer->country_id;
+	int id = pPlayer->GetCountryId();
 	if(id)
 	{
 		if(id == pCtrl->_data.country_attacker)

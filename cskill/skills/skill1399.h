@@ -134,9 +134,9 @@ namespace GNET
       Skill1399Stub ():SkillStub (1399)
         {
             cls = 9;
-            name = L"偷天换日";
-            nativename = "偷天换日";
-            icon = "同气连枝.dds";
+            name = L"鍋峰ぉ鎹㈡棩";
+            nativename = "鍋峰ぉ鎹㈡棩";
+            icon = "鍚屾皵杩炴灊.dds";
             max_level = 10;
             type = 2;
             apcost = 100;

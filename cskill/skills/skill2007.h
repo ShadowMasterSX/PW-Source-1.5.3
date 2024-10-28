@@ -132,8 +132,8 @@ namespace GNET
       Skill2007Stub ():SkillStub (2007)
         {
             cls = 127;
-            name = L"无盾不摧之矛";
-            nativename = "无盾不摧之矛";
+            name = L"鏃犵浘涓嶆懅涔嬬煕";
+            nativename = "鏃犵浘涓嶆懅涔嬬煕";
             icon = "";
             max_level = 10;
             type = 3;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 15;
-            effect = "无盾不催之矛_击中.sgc";
+            effect = "鏃犵浘涓嶅偓涔嬬煕_鍑讳腑.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

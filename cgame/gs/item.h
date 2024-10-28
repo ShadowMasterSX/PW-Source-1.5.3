@@ -1,6 +1,7 @@
 #ifndef __ONLINEGAME_GS_ITEM_H__
 #define __ONLINEGAME_GS_ITEM_H__
 
+#include <sstream>
 #include <algorithm>
 #include <vector.h>
 #include "substance.h"
@@ -180,6 +181,8 @@ struct item
 		EQUIP_MASK64_GENERALCARD5	= 0x0000001000000000LL,
 		EQUIP_MASK64_GENERALCARD6	= 0x0000002000000000LL,
 
+		EQUIP_MASK64_ASTROLABE		= 0x0000004000000000LL,
+
 		EQUIP_MASK64_CAN_BIND		= 0x220DF7FF,
 		EQUIP_MASK64_SECURITY_PASSWD_PROTECTED = 0x2205F7FF,//受安全密码保护的装备位置
 		EQUIP_MASK64_DYNSKILL_ALL	= 0x18000000,
@@ -228,10 +231,11 @@ struct item
 		EQUIP_INDEX_GENERALCARD4	= 35,
 		EQUIP_INDEX_GENERALCARD5	= 36,
 		EQUIP_INDEX_GENERALCARD6	= 37,
+		EQUIP_INDEX_ASTROLABE		= 38,
 		EQUIP_INVENTORY_COUNT,		
 
 		EQUIP_VISUAL_START	= EQUIP_INDEX_WEAPON,
-		EQUIP_VISUAL_END	= EQUIP_INDEX_FASHION_WEAPON + 1,
+		EQUIP_VISUAL_END	= EQUIP_INDEX_ASTROLABE + 1,
 		EQUIP_ARMOR_START	= EQUIP_INDEX_HEAD,
 		EQUIP_ARMOR_END		= EQUIP_INDEX_PROJECTILE,
 	};
@@ -459,12 +463,16 @@ public:
 	inline int GetRank();
 	inline int GetRebirthTimes();
 	inline bool CheckRebirthCondition(int material_rebirth_times);
-	inline void DoRebirth();
-	inline bool InsertExp(int exp, bool ischeck);
+	inline bool DoRebirth(int arg);
+	inline bool InsertExp(int& exp, bool ischeck);
 	inline int GetSwallowExp();
 	inline bool IsGeneralCardMatchPos(size_t pos);
 	inline int GetImproveLevel();									//获取飞剑改良等级
 	inline bool FlyswordImprove(float speed_inc, float speed_inc2);	//飞剑改良
+	inline bool Inherit(item& other);
+	inline void AfterUnpackage(gactive_imp* imp);
+	inline void DumpDetail(std::string& str);
+	inline void Rebuild(void* data, size_t len);  
 
 	inline int GetProctypeState()
 	{
@@ -565,7 +573,9 @@ public:
 		ITEM_TYPE_GENERALCARD,
 		ITEM_TYPE_GENERALCARD_DICE,
 		ITEM_TYPE_SOUL,
-		ITEM_TYPE_MINECAR_PROTECT,
+		ITEM_TYPE_ASTROLABE,
+		ITEM_TYPE_OCCUP_PACKAGE,
+		ITEM_TYPE_FIXPOSITIONTRANSMIT,
 	};
 public:
 	item_body():_tid(0),_is_active(false),_is_sec_active(false),_sec_active_param(0) {}
@@ -716,7 +726,7 @@ public:
 		return false;
 	}
 
-	virtual int RefineAddon(int refine_addon, int & level_result, float adjust[4], float adjust2[12])
+	virtual int RefineAddon(int refine_addon, int & level_result, float adjust[4], float adjust2[12], int material_id = 0)
 	{
 		level_result = 0;
 		return item::REFINE_CAN_NOT_REFINE;
@@ -739,15 +749,15 @@ public:
 	{
 		return 0;
 	}
-	virtual int MakeSlot(gactive_imp *, int & count) { return -1;}
+    virtual int MakeSlot(gactive_imp*, int& count, unsigned int material_id = 0, int material_count = 0) { return -1; }
 	virtual bool Sign(unsigned short color, const char * signature, unsigned int signature_len) { return false; }
 	virtual bool HasAddonAtSocket(unsigned char s_idx,int s_type) { return false;}
 	virtual bool ModifyAddonAtSocket(unsigned char s_idx,int s_type) { return false;}
 	virtual int GetRank(){ return -1; }
 	virtual int GetRebirthTimes(){ return -1; }
 	virtual bool CheckRebirthCondition(int material_rebirth_times){ return false; }
-	virtual void DoRebirth(){}
-	virtual bool InsertExp(int exp, bool ischeck){ return false; }
+	virtual bool DoRebirth(int arg){ return false; }
+	virtual bool InsertExp(int& exp, bool ischeck){ return false; }
 	virtual int GetSwallowExp(){ return 0;}
 	virtual bool IsGeneralCardMatchPos(size_t pos) { return false; }
 	virtual int GetImproveLevel() { return 0; }
@@ -758,6 +768,7 @@ protected:
 	{
 		return OnInsertToOther(self_type,body);
 	}
+	virtual bool OnInherit(item_body* other) { return false;}
 	virtual bool OnHasSocket() { return false;}
 	virtual bool OnInsertChip(int type,addon_data * data, size_t count) {return false;}
 	virtual bool OnClearChips() { return false;}
@@ -765,6 +776,14 @@ protected:
 	virtual void OnRefreshItem() {}
 	virtual void OnPutIn(item::LOCATION ,item_list & list, size_t pos, size_t count, gactive_imp*){}
 	virtual void OnTakeOut(item::LOCATION ,size_t pos, size_t count, gactive_imp*){}
+	virtual void OnUnpackage(gactive_imp*) {}
+	virtual void OnDump(std::string& str)
+	{
+		std::ostringstream ostr;
+		ostr << "[" << _tid << "]";
+		str = ostr.str();
+	}
+	virtual void OnRebuild(void* data,size_t len) {}
 	virtual bool VerifyRequirement(item_list & list,gactive_imp*) {return false;}
 private:
 	virtual int OnGetUseDuration() { return -1;} //负数代表立刻使用，不进行排队
@@ -1369,11 +1388,27 @@ inline bool item::CheckRebirthCondition(int target_merge_times)
 	if(body) return body->CheckRebirthCondition(target_merge_times);
 	return false;
 }
-inline void item::DoRebirth()
+inline bool item::DoRebirth(int arg)
 {
-	if(body) body->DoRebirth();
+	if(body) return body->DoRebirth(arg);
+	return false;
 }
-inline bool item::InsertExp(int exp, bool ischeck)
+inline void item::AfterUnpackage(gactive_imp* imp)
+{
+	if(body) body->OnUnpackage(imp);
+}
+
+inline void item::DumpDetail(std::string& str)
+{
+	if(body) body->OnDump(str);
+}
+
+inline void item::Rebuild(void* data, size_t len)
+{
+	if(body) body->OnRebuild(data,len);
+}
+
+inline bool item::InsertExp(int& exp, bool ischeck)
 {
 	if(body) return body->InsertExp(exp, ischeck);
 	return false;
@@ -1396,6 +1431,11 @@ inline int item::GetImproveLevel()
 inline bool item::FlyswordImprove(float speed_inc, float speed_inc2)
 {
 	if(body) return body->FlyswordImprove(speed_inc,speed_inc2);
+	return false;
+}
+inline bool item::Inherit(item& other)
+{
+	if(body && other.body) return body->OnInherit(other.body);
 	return false;
 }
 /*
@@ -1446,5 +1486,8 @@ void DropItemData(world * pPlane,const A3DVECTOR &pos, item_data * data,const XI
 int GetItemRealTimePrice(const item & it);
 bool IsItemForbidShop(int type);	//物品是否禁止从商城购买
 bool IsItemForbidSell(int type);	//物品是否禁止卖店
+
+bool IsStoneFit(DATA_TYPE equip_type, unsigned int stone_mask);     // 判断宝石和装备是否匹配
+
 #endif
 

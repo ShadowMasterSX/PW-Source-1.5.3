@@ -1,0 +1,44 @@
+	public:
+		int zoneid;
+		MNFactionApplyInfoVector applyinfo_list;
+		MNFactionInfoVector factioninfo_list;
+		std::vector<int64_t> lvl3_list;
+		enum { PROTOCOL_TYPE = PROTOCOL_MNFACTIONPROCLAIM };
+	public:
+		MNFactionProclaim() { type = PROTOCOL_MNFACTIONPROCLAIM; }
+		MNFactionProclaim(void*) : Protocol(PROTOCOL_MNFACTIONPROCLAIM) { }
+		MNFactionProclaim (int l_zoneid,const MNFactionApplyInfoVector& l_applyinfo_list,const MNFactionInfoVector& l_factioninfo_list,
+			const std::vector<int64_t>& l_lvl3_list = std::vector<int64_t>())
+			 : zoneid(l_zoneid),applyinfo_list(l_applyinfo_list),factioninfo_list(l_factioninfo_list)
+			,lvl3_list(l_lvl3_list)
+		{
+			type = PROTOCOL_MNFACTIONPROCLAIM;
+		}
+
+		MNFactionProclaim(const MNFactionProclaim &rhs)
+			: Protocol(rhs),zoneid(rhs.zoneid),applyinfo_list(rhs.applyinfo_list),factioninfo_list(rhs.factioninfo_list)
+			,lvl3_list(rhs.lvl3_list) { }
+
+		GNET::Protocol *Clone() const { return new MNFactionProclaim(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << zoneid;
+			os << applyinfo_list;
+			os << factioninfo_list;
+			os << lvl3_list;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> zoneid;
+			os >> applyinfo_list;
+			os >> factioninfo_list;
+			os >> lvl3_list;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1048576; }

@@ -132,8 +132,8 @@ namespace GNET
       Skill2479Stub ():SkillStub (2479)
         {
             cls = 127;
-            name = L"随机副本-神隐";
-            nativename = "随机副本-神隐";
+            name = L"闅忔満鍓湰-绁為殣";
+            nativename = "闅忔満鍓湰-绁為殣";
             icon = "";
             max_level = 10;
             type = 2;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "巫师_冥王乐土.sgc";
+            effect = "宸笀_鍐ョ帇涔愬湡.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

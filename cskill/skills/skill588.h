@@ -19,9 +19,9 @@ namespace GNET
         Skill588Stub ():SkillStub (588)
         {
             cls = 7;
-            name = L"�桤��ͨ";
-            nativename = "�桤��ͨ";
-            icon = "��ͨ1.dds";
+            name = L"真·金精通";
+            nativename = "真·金精通";
+            icon = "金精通1.dds";
             max_level = 1;
             type = 5;
             apcost = 0;

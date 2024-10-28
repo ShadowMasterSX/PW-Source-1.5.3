@@ -133,8 +133,8 @@ namespace GNET
       Skill2516Stub ():SkillStub (2516)
         {
             cls = 127;
-            name = L"引爆";
-            nativename = "引爆";
+            name = L"寮曠垎";
+            nativename = "寮曠垎";
             icon = "";
             max_level = 10;
             type = 1;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "妖精_灵火.sgc";
+            effect = "濡栫簿_鐏电伀.sgc";
             range.type = 2;
             doenchant = false;
             dobless = false;

@@ -134,8 +134,8 @@ namespace GNET
       Skill847Stub ():SkillStub (847)
         {
             cls = 127;
-            name = L"物理群体物伤";
-            nativename = "物理群体物伤";
+            name = L"鐗╃悊缇や綋鐗╀激";
+            nativename = "鐗╃悊缇や綋鐗╀激";
             icon = "";
             max_level = 10;
             type = 3;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "万剑诀.sgc";
+            effect = "涓囧墤璇�.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

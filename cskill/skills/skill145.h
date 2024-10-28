@@ -34,7 +34,7 @@ bool Cancel(Skill * skill) const{return 0;}
 bool Skip(Skill * skill) const{return 0;}
 };
 Skill145Stub():SkillStub(Skill145::SKILL_ID){cls = 255;
-name = L"Ä§·¨·âÓ¡";
+name = L"é­”æ³•å°å°";
 icon = "";
 max_level = 10;
 type = 1;

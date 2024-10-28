@@ -1,0 +1,38 @@
+	public:
+		int retcode;
+		MNFactionBriefInfoVector toplist;
+		unsigned int localsid;
+		enum { PROTOCOL_TYPE = PROTOCOL_MNGETTOPLIST_RE };
+	public:
+		MNGetTopList_Re() { type = PROTOCOL_MNGETTOPLIST_RE; }
+		MNGetTopList_Re(void*) : Protocol(PROTOCOL_MNGETTOPLIST_RE) { }
+		MNGetTopList_Re (int l_retcode,MNFactionBriefInfoVector l_toplist,unsigned int l_localsid)
+			 : retcode(l_retcode),toplist(l_toplist),localsid(l_localsid)
+		{
+			type = PROTOCOL_MNGETTOPLIST_RE;
+		}
+
+		MNGetTopList_Re(const MNGetTopList_Re &rhs)
+			: Protocol(rhs),retcode(rhs.retcode),toplist(rhs.toplist),localsid(rhs.localsid) { }
+
+		GNET::Protocol *Clone() const { return new MNGetTopList_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << toplist;
+			os << localsid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> toplist;
+			os >> localsid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1048576; }

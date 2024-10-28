@@ -133,8 +133,8 @@ namespace GNET
       Skill2513Stub ():SkillStub (2513)
         {
             cls = 127;
-            name = L"�ε�ն";
-            nativename = "�ε�ն";
+            name = L"拔刀斩";
+            nativename = "拔刀斩";
             icon = "";
             max_level = 10;
             type = 1;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 1;
-            effect = "2014�ε�ն.sgc";
+            effect = "2014拔刀斩.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

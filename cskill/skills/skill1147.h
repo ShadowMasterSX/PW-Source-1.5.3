@@ -19,8 +19,8 @@ namespace GNET
         Skill1147Stub ():SkillStub (1147)
         {
             cls = 2;
-            name = L"复仇反噬(效果专用)";
-            nativename = "复仇反噬(效果专用)";
+            name = L"澶嶄粐鍙嶅櫖(鏁堟灉涓撶敤)";
+            nativename = "澶嶄粐鍙嶅櫖(鏁堟灉涓撶敤)";
             icon = "";
             max_level = 1;
             type = 2;
@@ -45,7 +45,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (25333);
             }
-            effect = "巫师_复仇反噬.sgc";
+            effect = "宸笀_澶嶄粐鍙嶅櫖.sgc";
             range.type = 5;
             doenchant = false;
             dobless = false;

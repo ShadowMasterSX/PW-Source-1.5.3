@@ -3,8 +3,6 @@
 
 #include <sys/stat.h>
 #include <unistd.h>
-#include <string.h>
-#include <strings.h>
 #include <stdlib.h>
 #include <wchar.h>
 
@@ -12,7 +10,7 @@
 #include <vector>
 #include <map>
 #include <set>
-#include "/usr/include/assert.h"
+#include <ASSERT.h>
 #include "range.h"
 #include "common/types.h"
 #include "attack.h"
@@ -74,6 +72,7 @@ enum EVENT{
 	EVENT_RESET  = 0x01,
 	EVENT_WIELD  = 0x02,
 	EVENT_CHANGE = 0x04,
+	EVENT_ENTER  = 0x08,
 };
 
 enum FORM
@@ -344,7 +343,7 @@ public:
 
 	size_t GetStateSize( ) const { return statestub.size(); }
 	const State * GetState( int index ) const { 
-		assert((unsigned int)index<statestub.size());
+		ASSERT((unsigned int)index<statestub.size());
 		return statestub[index]; 
 	}
 
@@ -661,7 +660,7 @@ public:
 	{ 
 		if(attackmsg)
 			return attackmsg->ainfo;
-		assert(enchantmsg);
+		ASSERT(enchantmsg);
 		return enchantmsg->ainfo;
 	}
 	char GetAttackerMode() const

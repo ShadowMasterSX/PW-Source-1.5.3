@@ -13,22 +13,22 @@ namespace GNET
 		int consume_points;
 		int bonus_reward;
 		GRewardItemVector rewardlist;
-		int reserved1;
+		Octets cash_vip_info;
 		int reserved2;
 		int reserved3;
 		int reserved4;
 
 	public:
-		GRewardStore (int l_consume_points = 0,int l_bonus_reward = 0,int l_reserved1 = 0
+		GRewardStore (int l_consume_points = 0,int l_bonus_reward = 0,const Octets& l_cash_vip_info = Octets(0)
 			,int l_reserved2 = 0,int l_reserved3 = 0,int l_reserved4 = 0)
-			: consume_points(l_consume_points),bonus_reward(l_bonus_reward),reserved1(l_reserved1)
+			: consume_points(l_consume_points),bonus_reward(l_bonus_reward),cash_vip_info(l_cash_vip_info)
 			,reserved2(l_reserved2),reserved3(l_reserved3),reserved4(l_reserved4)
 		{
 		}
 
 		GRewardStore(const GRewardStore &rhs)
 			: consume_points(rhs.consume_points),bonus_reward(rhs.bonus_reward),rewardlist(rhs.rewardlist),
-			reserved1(rhs.reserved1),reserved2(rhs.reserved2),reserved3(rhs.reserved3),
+			cash_vip_info(rhs.cash_vip_info),reserved2(rhs.reserved2),reserved3(rhs.reserved3),
 			reserved4(rhs.reserved4) { }
 
 		Rpc::Data *Clone() const { return new GRewardStore(*this); }
@@ -41,7 +41,7 @@ namespace GNET
 				consume_points = r->consume_points;
 				bonus_reward = r->bonus_reward;
 				rewardlist = r->rewardlist;
-				reserved1 = r->reserved1;
+				cash_vip_info = r->cash_vip_info;
 				reserved2 = r->reserved2;
 				reserved3 = r->reserved3;
 				reserved4 = r->reserved4;
@@ -57,7 +57,7 @@ namespace GNET
 				consume_points = r->consume_points;
 				bonus_reward = r->bonus_reward;
 				rewardlist = r->rewardlist;
-				reserved1 = r->reserved1;
+				cash_vip_info = r->cash_vip_info;
 				reserved2 = r->reserved2;
 				reserved3 = r->reserved3;
 				reserved4 = r->reserved4;
@@ -70,7 +70,7 @@ namespace GNET
 			os << consume_points;
 			os << bonus_reward;
 			os << rewardlist;
-			os << reserved1;
+			os << cash_vip_info;
 			os << reserved2;
 			os << reserved3;
 			os << reserved4;
@@ -82,7 +82,7 @@ namespace GNET
 			os >> consume_points;
 			os >> bonus_reward;
 			os >> rewardlist;
-			os >> reserved1;
+			os >> cash_vip_info;
 			os >> reserved2;
 			os >> reserved3;
 			os >> reserved4;

@@ -1,0 +1,32 @@
+	public:
+		std::vector<int64_t> chosen_list;
+		enum { PROTOCOL_TYPE = PROTOCOL_MNFETCHFILTRATERESULT_RE };
+	public:
+		MNFetchFiltrateResult_Re() { type = PROTOCOL_MNFETCHFILTRATERESULT_RE; }
+		MNFetchFiltrateResult_Re(void*) : Protocol(PROTOCOL_MNFETCHFILTRATERESULT_RE) { }
+		MNFetchFiltrateResult_Re (const std::vector<int64_t>& l_chosen_list)
+			 : chosen_list(l_chosen_list)
+		{
+			type = PROTOCOL_MNFETCHFILTRATERESULT_RE;
+		}
+
+		MNFetchFiltrateResult_Re(const MNFetchFiltrateResult_Re &rhs)
+			: Protocol(rhs),chosen_list(rhs.chosen_list) { }
+
+		GNET::Protocol *Clone() const { return new MNFetchFiltrateResult_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << chosen_list;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> chosen_list;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 4096; }

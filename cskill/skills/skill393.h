@@ -137,9 +137,9 @@ namespace GNET
       Skill393Stub ():SkillStub (393)
         {
             cls = 0;
-            name = L"¿ñ¡¤ÎÞÓ°½Å";
-            nativename = "¿ñ¡¤ÎÞÓ°½Å";
-            icon = "ÎÞÓ°½Å2.dds";
+            name = L"ç‹‚Â·æ— å½±è„š";
+            nativename = "ç‹‚Â·æ— å½±è„š";
+            icon = "æ— å½±è„š2.dds";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -166,7 +166,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "2ÎÞÓ°½Å.sgc";
+            effect = "2æ— å½±è„š.sgc";
             range.type = 3;
             doenchant = true;
             dobless = false;

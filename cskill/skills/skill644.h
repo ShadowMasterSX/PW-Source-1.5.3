@@ -137,9 +137,9 @@ namespace GNET
       Skill644Stub ():SkillStub (644)
         {
             cls = 3;
-            name = L"Õæ¡¤¾ÞÊ¯¹Æ";
-            nativename = "Õæ¡¤¾ÞÊ¯¹Æ";
-            icon = "¾ÞÊ¯¹Æ1.dds";
+            name = L"çœŸÂ·å·¨çŸ³è›Š";
+            nativename = "çœŸÂ·å·¨çŸ³è›Š";
+            icon = "å·¨çŸ³è›Š1.dds";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -167,7 +167,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (292);
             }
-            effect = "1¾ÞÊ¯¹Æ.sgc";
+            effect = "1å·¨çŸ³è›Š.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

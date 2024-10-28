@@ -11,6 +11,9 @@
 #include "grefstore"
 #include "guserstorehouse"
 #include "gamedbmanager.h"
+#include "utilfunction.h"
+#include "putroleres"
+#include "gcashvipinfo"
 
 namespace GNET
 {
@@ -21,7 +24,7 @@ class PutRole : public Rpc
 	#include "putrole"
 #undef	RPC_BASECLASS
 
-	bool SaveData(RolePair *arg, RpcRetcode *res)
+	bool SaveData(RolePair *arg, PutRoleRes *res)
 	{
 		try
 		{
@@ -136,6 +139,32 @@ class PutRole : public Rpc
 					
 					user.taskcounter = arg->value.taskcounter;
 					LOG_TRACE("PutRole, roleid=%d taskcounter.size %d", arg->key.id, arg->value.taskcounter.size());
+
+					//CASH_VIP
+					GRewardStore reward_store;
+					if(0 != user.consume_reward.size())
+					{
+						Marshal::OctetsStream os_reward(user.consume_reward);
+						os_reward >> reward_store;
+					}
+					GCashVipInfo vipinfo;
+					if(0 != reward_store.cash_vip_info.size())
+					{
+						Marshal::OctetsStream os_vip_info(reward_store.cash_vip_info);
+						try
+						{
+							os_vip_info >> vipinfo;
+						}
+						catch( ... )
+						{
+							vipinfo.purchase_limit_items_info = Octets(0);
+						}
+					}
+					HandleCashVipInfo(vipinfo, arg, res);
+					
+					reward_store.cash_vip_info = Marshal::OctetsStream() << vipinfo;	
+					user.consume_reward = Marshal::OctetsStream() << reward_store;
+		
 					puser->insert( key_user, Marshal::OctetsStream()<<user, txn );
 
 					if( arg->data_mask & CDB_PUT_USERSTORE )
@@ -187,7 +216,7 @@ class PutRole : public Rpc
 	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
 	{
 		RolePair *arg = (RolePair *)argument;
-		RpcRetcode *res = (RpcRetcode *)result;
+		PutRoleRes *res = (PutRoleRes *)result;
 
 		LOG_TRACE( "PutRole, roleid=%d mask=%d timestamp=%d priority=%d.\n", arg->key.id, arg->data_mask, 
 				arg->value.inventory.timestamp, arg->priority);
@@ -215,6 +244,48 @@ class PutRole : public Rpc
 		}
 	}
 
+	void HandleCashVipInfo(GCashVipInfo& vipinfo, RolePair *arg, PutRoleRes *res)
+	{
+		vipinfo.score_consume = arg->value.score_consume;
+		vipinfo.day_clear_stamp = arg->value.day_clear_stamp;
+		vipinfo.week_clear_stamp = arg->value.week_clear_stamp;
+		vipinfo.month_clear_stamp = arg->value.month_clear_stamp;
+		vipinfo.year_clear_stamp = arg->value.year_clear_stamp;
+
+		vipinfo.purchase_limit_items_info = Marshal::OctetsStream() << arg->value.purchase_limit_data;
+
+		int stamp = CashVip::GetTodayReduceScoreStamp();
+		if(vipinfo.cash_vip_level == 0)
+		{
+			int cur_score = vipinfo.score_add - vipinfo.score_cost - vipinfo.score_consume;
+			CashVip::CalCashVipLevel(vipinfo.cash_vip_level, cur_score);
+			vipinfo.score_cost_stamp = stamp;
+		}
+		else
+		{
+			int diff_second = stamp - vipinfo.score_cost_stamp;
+			int diff_day = diff_second / (CashVip::EVERY_DAY_SECOND);
+			int cur_score = 0;
+			if(diff_day > 0)
+			{
+				int reduce_score = CashVip::GetCashVipReduceScore(vipinfo.cash_vip_level);
+				reduce_score *= diff_day;
+				cur_score = vipinfo.score_add - vipinfo.score_cost - vipinfo.score_consume;
+				if(reduce_score > cur_score)
+					reduce_score = cur_score;
+				vipinfo.score_cost += reduce_score;
+				vipinfo.score_cost_stamp = stamp;
+				cur_score -= reduce_score;
+				CashVip::CalCashVipLevel(vipinfo.cash_vip_level, cur_score);
+				LOG_TRACE( "CASH_VIP DAILY_REDUCE, userid=%d roleid=%d, cur_timestamp=%d, diff_day=%d, vip_level=%d, score_reduce=%d .\n",arg->value.userid, arg->key.id, stamp, diff_day, vipinfo.cash_vip_level, reduce_score);
+			}
+		}
+		res->cash_vip_level = vipinfo.cash_vip_level;
+		res->score_add      = vipinfo.score_add;
+		res->score_cost     = vipinfo.score_cost;
+		res->score_consume  = vipinfo.score_consume;
+	}
+	
 	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
 	{
 		// RolePair *arg = (RolePair *)argument;

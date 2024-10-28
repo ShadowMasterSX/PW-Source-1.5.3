@@ -134,9 +134,9 @@ namespace GNET
       Skill83Stub ():SkillStub (83)
         {
             cls = 4;
-            name = L"巨灵神力";
-            nativename = "巨灵神力";
-            icon = "巨灵神力.dds";
+            name = L"宸ㄧ伒绁炲姏";
+            nativename = "宸ㄧ伒绁炲姏";
+            icon = "宸ㄧ伒绁炲姏.dds";
             max_level = 10;
             type = 2;
             apcost = 0;
@@ -160,7 +160,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (9);
             }
-            effect = "巨灵神力.sgc";
+            effect = "宸ㄧ伒绁炲姏.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

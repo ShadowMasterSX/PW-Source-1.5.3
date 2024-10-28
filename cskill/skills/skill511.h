@@ -19,9 +19,9 @@ namespace GNET
         Skill511Stub ():SkillStub (511)
         {
             cls = 4;
-            name = L"��Ұ�Իظ�";
-            nativename = "��Ұ�Իظ�";
-            icon = "Ұ�Իظ�2.dds";
+            name = L"狂·野性回复";
+            nativename = "狂·野性回复";
+            icon = "野性回复2.dds";
             max_level = 1;
             type = 5;
             apcost = 0;

@@ -134,9 +134,9 @@ namespace GNET
       Skill2810Stub ():SkillStub (2810)
         {
             cls = 11;
-            name = L"¿ñ¡¤ÔÂÉñÖ®Ìå";
-            nativename = "¿ñ¡¤ÔÂÉñÖ®Ìå";
-            icon = "Ä§ÔÂÉñÖ®Ìå.dds";
+            name = L"ç‹‚Â·æœˆç¥ä¹‹ä½“";
+            nativename = "ç‹‚Â·æœˆç¥ä¹‹ä½“";
+            icon = "é­”æœˆç¥ä¹‹ä½“.dds";
             max_level = 1;
             type = 2;
             apcost = 0;

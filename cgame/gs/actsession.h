@@ -856,6 +856,15 @@ public:
 	virtual bool EndSession();
 };
 
+class session_resurrect_by_cash : public session_resurrect
+{
+    session_resurrect_by_cash() {}
+public:
+    DECLARE_SUBSTANCE(session_resurrect_by_cash);
+    explicit session_resurrect_by_cash(gplayer_imp* imp, int param, int time) : session_resurrect(imp, param, time) {}
+    virtual bool EndSession();
+};
+
 class session_complete_travel : public act_session
 {
 	session_complete_travel(){}
@@ -1058,10 +1067,11 @@ public:
 class session_resurrect_protect : public act_timer_session
 {
 protected:
+    int _more_time;
 	session_resurrect_protect(){}
 public:
 	DECLARE_SUBSTANCE(session_resurrect_protect);
-	explicit session_resurrect_protect(gplayer_imp * imp):act_timer_session((gactive_imp*)imp){}
+	explicit session_resurrect_protect(gplayer_imp * imp, int more_time = 0):act_timer_session((gactive_imp*)imp), _more_time(more_time) {}
 
 	virtual bool StartSession(bool hasmorecmd=false);
 	virtual bool EndSession(); 

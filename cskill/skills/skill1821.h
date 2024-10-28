@@ -134,9 +134,9 @@ namespace GNET
       Skill1821Stub ():SkillStub (1821)
         {
             cls = 2;
-            name = L"Áé»êÔªÌ¥";
-            nativename = "Áé»êÔªÌ¥";
-            icon = "Á÷õü.dds";
+            name = L"çµé­‚å…ƒèƒ";
+            nativename = "çµé­‚å…ƒèƒ";
+            icon = "æµè§.dds";
             max_level = 1;
             type = 2;
             apcost = 200;

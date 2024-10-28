@@ -1,0 +1,83 @@
+
+#ifndef __GNET_DBMNFACTIONAPPLYINFOPUT_HPP
+#define __GNET_DBMNFACTIONAPPLYINFOPUT_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "gamedbmanager.h"
+
+#include "dbmnfactionapplyinfoputarg"
+#include "dbmnfactionapplyinfoputres"
+
+
+namespace GNET
+{
+
+class DBMNFactionApplyInfoPut : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbmnfactionapplyinfoput"
+#undef	RPC_BASECLASS
+
+    void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+    {
+        DBMNFactionApplyInfoPutArg *arg = (DBMNFactionApplyInfoPutArg *)argument;
+        DBMNFactionApplyInfoPutRes *res = (DBMNFactionApplyInfoPutRes *)result;
+
+        // only on central db
+        if (!GameDBManager::GetInstance()->IsCentralDB()) return;
+
+        try
+        {
+            StorageEnv::Storage* pappinfo = StorageEnv::GetStorage("mnfactionapplyinfo");
+            StorageEnv::AtomTransaction txn;
+
+            try
+            {
+                MNFactionApplyInfoVector::const_iterator iter = arg->applyinfo_list.begin(), iter_end = arg->applyinfo_list.end();
+                for (; iter != iter_end; ++iter)
+                {
+                    pappinfo->insert((Marshal::OctetsStream() << (iter->unifid)),
+                                     (Marshal::OctetsStream() << (*iter)),
+                                     txn);
+                }
+
+                res->retcode = ERR_SUCCESS;
+            }
+            catch (DbException e) {throw;}
+            catch (...)
+            {
+                DbException e(DB_OLD_VERSION);
+                txn.abort(e);
+                throw e;
+            }
+        }
+        catch (DbException e)
+        {
+            if (e.get_errno() == DB_LOCK_DEADLOCK)
+                res->retcode = ERR_AGAIN;
+            else
+                res->retcode = ERR_EXCEPTION;
+
+            Log::log(LOG_ERR, "DBMNFactionApplyInfoPut, what=%s.\n", e.what());
+        }
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBMNFactionApplyInfoPutArg *arg = (DBMNFactionApplyInfoPutArg *)argument;
+		// DBMNFactionApplyInfoPutRes *res = (DBMNFactionApplyInfoPutRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

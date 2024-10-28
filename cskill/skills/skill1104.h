@@ -134,9 +134,9 @@ namespace GNET
       Skill1104Stub ():SkillStub (1104)
         {
             cls = 2;
-            name = L"生命绽放";
-            nativename = "生命绽放";
-            icon = "祝福加深.dds";
+            name = L"鐢熷懡缁芥斁";
+            nativename = "鐢熷懡缁芥斁";
+            icon = "绁濈鍔犳繁.dds";
             max_level = 10;
             type = 2;
             apcost = 0;
@@ -160,7 +160,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (25333);
             }
-            effect = "巫师_荆棘光环.sgc";
+            effect = "宸笀_鑽嗘鍏夌幆.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

@@ -4,7 +4,7 @@
 		int vtype;
 		Octets value;
 		Octets oldvalue;
-		bool exclusive;
+		char exclusive;
 		int retcode;
 		int version;
 		enum { PROTOCOL_TYPE = PROTOCOL_UNIQUEDATAMODIFYNOTICE };
@@ -12,7 +12,7 @@
 		UniqueDataModifyNotice() { type = PROTOCOL_UNIQUEDATAMODIFYNOTICE; }
 		UniqueDataModifyNotice(void*) : Protocol(PROTOCOL_UNIQUEDATAMODIFYNOTICE) { }
 		UniqueDataModifyNotice (int l_worldtag,int l_key,int l_vtype,
-			const Octets& l_value,const Octets& l_oldvalue,bool l_exclusive,
+			const Octets& l_value,const Octets& l_oldvalue,char l_exclusive,
 			int l_retcode,int l_version)
 			 : worldtag(l_worldtag),key(l_key),vtype(l_vtype)
 			,value(l_value),oldvalue(l_oldvalue),exclusive(l_exclusive)

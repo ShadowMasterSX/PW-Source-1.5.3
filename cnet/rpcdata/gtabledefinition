@@ -34,6 +34,11 @@
 #include "playerprofiledata"
 #include "guniquedataelem"
 #include "mappassworddata"
+#include "solochallengerankdataext"
+#include "mnfactioninfo"
+#include "mnfactionapplyinfo"
+#include "mndomaininfo"
+#include "mndomainbonus"
 
 namespace GNET
 {
@@ -82,6 +87,11 @@ namespace GNET
 		GUniqueDataElem uniquedata;
 		char recalluser;
 		MapPasswordData mappassword;
+		SoloChallengeRankDataExt solochallengerank;
+		MNFactionInfo mnfactioninfo;
+		MNFactionApplyInfo mnfactionapplyinfo;
+		MNDomainInfo mndomaininfo;
+		MNDomainBonus mndomainbonus;
 
 	public:
 		GTableDefinition ()
@@ -102,7 +112,9 @@ namespace GNET
 			factionrelation(rhs.factionrelation),force(rhs.force),friendext(rhs.friendext),
 			globalcontrol(rhs.globalcontrol),rolenamehis(rhs.rolenamehis),kingelection(rhs.kingelection),
 			playershop(rhs.playershop),weborderitem(rhs.weborderitem),playerprofile(rhs.playerprofile),
-			uniquedata(rhs.uniquedata),recalluser(rhs.recalluser),mappassword(rhs.mappassword) { }
+			uniquedata(rhs.uniquedata),recalluser(rhs.recalluser),mappassword(rhs.mappassword),
+			solochallengerank(rhs.solochallengerank),mnfactioninfo(rhs.mnfactioninfo),mnfactionapplyinfo(rhs.mnfactionapplyinfo),
+			mndomaininfo(rhs.mndomaininfo),mndomainbonus(rhs.mndomainbonus) { }
 
 		Rpc::Data *Clone() const { return new GTableDefinition(*this); }
 
@@ -153,6 +165,11 @@ namespace GNET
 				uniquedata = r->uniquedata;
 				recalluser = r->recalluser;
 				mappassword = r->mappassword;
+				solochallengerank = r->solochallengerank;
+				mnfactioninfo = r->mnfactioninfo;
+				mnfactionapplyinfo = r->mnfactionapplyinfo;
+				mndomaininfo = r->mndomaininfo;
+				mndomainbonus = r->mndomainbonus;
 			}
 			return *this;
 		}
@@ -204,6 +221,11 @@ namespace GNET
 				uniquedata = r->uniquedata;
 				recalluser = r->recalluser;
 				mappassword = r->mappassword;
+				solochallengerank = r->solochallengerank;
+				mnfactioninfo = r->mnfactioninfo;
+				mnfactionapplyinfo = r->mnfactionapplyinfo;
+				mndomaininfo = r->mndomaininfo;
+				mndomainbonus = r->mndomainbonus;
 			}
 			return *this;
 		}
@@ -252,6 +274,11 @@ namespace GNET
 			os << uniquedata;
 			os << recalluser;
 			os << mappassword;
+			os << solochallengerank;
+			os << mnfactioninfo;
+			os << mnfactionapplyinfo;
+			os << mndomaininfo;
+			os << mndomainbonus;
 			return os;
 		}
 
@@ -299,6 +326,11 @@ namespace GNET
 			os >> uniquedata;
 			os >> recalluser;
 			os >> mappassword;
+			os >> solochallengerank;
+			os >> mnfactioninfo;
+			os >> mnfactionapplyinfo;
+			os >> mndomaininfo;
+			os >> mndomainbonus;
 			return os;
 		}
 

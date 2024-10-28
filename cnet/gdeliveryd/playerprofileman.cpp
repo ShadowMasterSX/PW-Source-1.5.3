@@ -329,4 +329,18 @@ void PlayerProfileMan::GetMatchResult(int roleid, int match_mode, int linksid, i
 	GDeliveryServer::GetInstance()->Send(linksid, re);
 }
 
+bool PlayerProfileMan::HasMatchOptionMask(int roleid)
+{
+    bool has_mask = false;
+    if(_state != ST_OPEN) return has_mask;
+
+    PROFILE_ENTRY_MAP::const_iterator iter = _profiles.find(roleid);
+    if (iter != _profiles.end())
+    {
+        has_mask = (iter->second._data.match_option_mask != MATCH_MASK_NULL);
+    }
+
+    return has_mask;
+}
+
 }

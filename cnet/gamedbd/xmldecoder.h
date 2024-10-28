@@ -297,8 +297,8 @@ public:
                     x.reincarnation_data = XMLGetOctets(content, strlen(content));
                 else if (strcmp(name, "realm_data") == 0)
                     x.realm_data = XMLGetOctets(content, strlen(content));
-                else if (strcmp(name, "reserved2") == 0)
-                    x.reserved2 = (char)strtol(content, 0, 10);
+                else if (strcmp(name, "rank") == 0)
+                    x.rank = XMLGetOctets(content, strlen(content));
                 else if (strcmp(name, "reserved3") == 0)
                     x.reserved3 = (char)strtol(content, 0, 10);
                 else

@@ -133,9 +133,9 @@ namespace GNET
       Skill575Stub ():SkillStub (575)
         {
             cls = 7;
-            name = L"¿ñ¡¤Óð¶Ü";
-            nativename = "¿ñ¡¤Óð¶Ü";
-            icon = "Óð¶Ü2.dds";
+            name = L"ç‹‚Â·ç¾½ç›¾";
+            nativename = "ç‹‚Â·ç¾½ç›¾";
+            icon = "ç¾½ç›¾2.dds";
             max_level = 1;
             type = 2;
             apcost = 15;

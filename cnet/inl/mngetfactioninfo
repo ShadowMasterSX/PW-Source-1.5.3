@@ -1,0 +1,35 @@
+	public:
+		int roleid;
+		int64_t unifid;
+		enum { PROTOCOL_TYPE = PROTOCOL_MNGETFACTIONINFO };
+	public:
+		MNGetFactionInfo() { type = PROTOCOL_MNGETFACTIONINFO; }
+		MNGetFactionInfo(void*) : Protocol(PROTOCOL_MNGETFACTIONINFO) { }
+		MNGetFactionInfo (int l_roleid,int64_t l_unifid)
+			 : roleid(l_roleid),unifid(l_unifid)
+		{
+			type = PROTOCOL_MNGETFACTIONINFO;
+		}
+
+		MNGetFactionInfo(const MNGetFactionInfo &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),unifid(rhs.unifid) { }
+
+		GNET::Protocol *Clone() const { return new MNGetFactionInfo(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << unifid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> unifid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

@@ -132,8 +132,8 @@ namespace GNET
       Skill886Stub ():SkillStub (886)
         {
             cls = 127;
-            name = L"自身圆心群加法防";
-            nativename = "自身圆心群加法防";
+            name = L"鑷韩鍦嗗績缇ゅ姞娉曢槻";
+            nativename = "鑷韩鍦嗗績缇ゅ姞娉曢槻";
             icon = "";
             max_level = 10;
             type = 3;
@@ -153,7 +153,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "真灵护体.sgc";
+            effect = "鐪熺伒鎶や綋.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

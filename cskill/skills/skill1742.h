@@ -19,8 +19,8 @@ namespace GNET
         Skill1742Stub ():SkillStub (1742)
         {
             cls = 255;
-            name = L"·´ÊÉ";
-            nativename = "·´ÊÉ";
+            name = L"åå™¬";
+            nativename = "åå™¬";
             icon = "";
             max_level = 1;
             type = 6;

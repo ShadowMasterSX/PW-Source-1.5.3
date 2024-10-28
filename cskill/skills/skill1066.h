@@ -133,9 +133,9 @@ namespace GNET
       Skill1066Stub ():SkillStub (1066)
         {
             cls = 127;
-            name = L"Ïû»êÖä";
-            nativename = "Ïû»êÖä";
-            icon = "Ïû»êÖä.dds";
+            name = L"æ¶ˆé­‚å’’";
+            nativename = "æ¶ˆé­‚å’’";
+            icon = "æ¶ˆé­‚å’’.dds";
             max_level = 10;
             type = 1;
             apcost = 0;
@@ -154,7 +154,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 1;
-            effect = "Ïû»êÖä.sgc";
+            effect = "æ¶ˆé­‚å’’.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

@@ -48,6 +48,7 @@ namespace S2C
 			int max_hp;
 			int mp;
 			int max_mp;
+			int target_id;  //todo ddr 1023
 		};
 		struct self_info_00
 		{
@@ -79,6 +80,7 @@ namespace S2C
 		{
 			int hp;
 			int max_hp;
+			int target_id;  //todo ddr 1023
 		};
 
 		struct matter_info_1
@@ -627,6 +629,46 @@ namespace S2C
 		COMBO_SKILL_PREPARE,
 
 		INSTANCE_REENTER_NOTIFY,		//395
+		PRAY_DISTANCE_CHANGE,
+		ASTROLABE_INFO_NOTIFY,
+		ASTROLABE_OPERATE_RESULT,
+		SOLO_CHALLENGE_AWARD_INFO_NOTIFY,
+		
+		SOLO_CHALLENGE_OPERATE_RESULT,  //400
+		SOLO_CHALLENGE_CHALLENGING_STATE_NOTIFY,
+		SOLO_CHALLENGE_BUFF_INFO_NOTIFY,
+        PROPERTY_SCORE_RESULT,
+		MNFACTION_RESOURCE_POINT_INFO,
+		
+		MNFACTION_PLAYER_COUNT_INFO,  //405
+		MNFACTION_RESULT,               
+		MNFACTION_RESOURCE_TOWER_STATE_INFO,
+		MNFACTION_SWITCH_TOWER_STATE_INFO,
+		MNFACTION_TRANSMIT_POS_STATE_INFO,
+		
+		MNFACTION_RESOURCE_POINT_STATE_INFO, //410
+		MNFACTION_PLAYER_FACTION_INFO,
+		MNFACTION_BATTLE_GROUND_HAVE_START_TIME,
+		MNFACTION_FACTION_KILLED_PLAYER_NUM,
+		MNFACTION_SHOUT_AT_THE_CLIENT,
+
+		MNFACTION_PLAYER_POS_INFO,          //415
+		FIX_POSITION_TRANSMIT_ADD_POSITION,
+		FIX_POSITION_TRANSMIT_DELETE_POSITION,
+		FIX_POSITION_TRANSMIT_RENAME,
+		FIX_POSITION_ENERGY_INFO,
+
+		FIX_POSITION_ALL_INFO,              // 420
+		CASH_VIP_MALL_ITEM_PRICE,
+		CASH_VIP_MALL_ITEM_BUY_RESULT,
+		CASH_VIP_INFO_NOTIFY,
+		PURCHASE_LIMIT_INFO_NOTIFY,
+
+        LOOKUP_ENEMY_RESULT,                // 425
+        CASH_RESURRECT_INFO,
+
+		RANK_INFO,
+
 	};
 
 	enum 
@@ -825,6 +867,49 @@ namespace S2C
 		ERR_ACTION_DENYED_IN_NON_MOVE_SESSION,
 		ERR_ATTACK_SESSION_DENYED_IN_ACTION,
 		ERR_INSTANCE_REENTER_FAIL,
+        ERR_CHANGE_GENDER_STATE,        // 194 状态不是normal
+        ERR_CHANGE_GENDER_GENDER,       // 195 变成相同性别
+        ERR_CHANGE_GENDER_CLS,          // 196 职业限制
+        ERR_CHANGE_GENDER_MARRIED,      // 197 角色已婚
+        ERR_CHANGE_GENDER_FASHION,      // 198 佩戴时装或者时装武器
+        ERR_CHANGE_GENDER_PROFILE,      // 199 登记过情缘系统
+		ERR_CHANGE_GENDER_TASK,         // 200 存在性别相关任务
+        ERR_MAKE_SLOT_FOR_DECOR_PROB,   // 201 概率打孔失败 即未命中
+		ERR_ASTROLABE_OPT_FAIL,
+		ERR_ASTROLABE_SWALLOW_LIMIT,	// 203
+		ERR_SOLO_CHALLENGE_TOP_STAGE,    // 204 已到达单人副本最高等级
+		ERR_SOLO_CHALLENGE_FAILURE,      // 205 进入单人副本失败
+		ERR_SOLO_CHALLENGE_AWARD_FAILURE,// 206 单人副本发奖失败
+		ERR_SOLO_CHALLENGE_SCORE_COST,   // 207
+		ERR_SOLO_CHALLENGE_SCORE_TOO_FEW,   // 208 积分不足
+		ERR_SOLO_CHALLENGE_SCORE_COST_COOLDOWN, //209 COOLDOWN
+		ERR_SOLO_CHALLENGE_SELECT_STAGE_COOLDOWN,//210
+		ERR_MNFACTION_NOT_IN_BATTLE,     //211 不在跨服帮战战场中
+		ERR_NOT_IN_FACTION,             //212  没有跨服帮派信息
+		ERR_MNFACTION_TRANSMIT_POS_FACTION, //213 当前传送点不归属于本帮
+		ERR_MNFACTION_SIGN_UP_C_NOT_ENOUGH_CITY,//214 报名C级城不够5块
+		ERR_MNFACTION_SIGN_UP_LOWER_TYPE,//215 报名A级或B级，无低级领地
+		ERR_MNFACTION_GATHER_FAILED,     //216 采矿失败
+		ERR_MNFACTION_FACTION_GATHERING, //217 本帮成员正在采集
+		ERR_MNFACTION_BELONG_TO_OWN_FACTION,    //218 资源已归属本帮
+		ERR_MNFACTION_HAVE_DESTROYED,           //219 资源塔已损毁
+		ERR_REALM_LEVEL_NOT_MATCH,//220 境界等级不够
+		ERR_CARNIVAL_COUNT_LIMIT, //221 跨服活动人数限制
+		ERR_SOLO_CHALLENGE_FILTER_STACK_MAX,//222 单人副本状态包叠加达到上限
+		ERR_MNFACTION_MULTI_DOMAIN,             //223 一个角色只能进入一个战场
+		ERR_MNFACTION_INVITE_COUNT_PERDOMAIN_MAXMUM,    //224 进入战场的角色太多
+		ERR_MNFACTION_FORBID_ENTER,                           //225 本帮派不允许进入
+		ERR_CASH_VIP_LIMIT,		// 226 消费vip等级不够
+		ERR_FIX_POSITION_TRANSMIT_CANNOT_ADD_IN_THIS_WORLDTAG, //227 此地图不支持定位传送
+		ERR_FIX_POSITION_TRANSMIT_CANNOT_FIND, //228 无此传送点
+		ERR_FIX_POSITION_TRANSMIT_ENERGY_NOT_ENOUGH,//229 定点传送能量不足
+		ERR_SHOPPING_TIMES_LIMIT, //230 达到限购次数
+		ERR_FIX_POSITION_TRANSMIT_MAX_NUM, //231 定位传送点达到最高数量
+		ERR_FIX_POSITION_TRANSMIT_ENERGY_MAX, //232 定位传送能量达到最大值
+		ERR_SHOPPING_TIMES_LIMIT_ITEM_CANNOT_GIVE,//233 限购商品不允许赠送
+		ERR_SHOPPING_TIMES_LIMIT_ITEM_CANNOT_ASK_FOR,//234 限购商品不允许索取
+		ERR_SHOPPING_VIP_LIMIT_ITEM_CANNOT_GIVE,//235 VIP等级限制物品不允许赠送
+		ERR_SHOPPING_VIP_LIMIT_ITEM_CANNOT_ASK_FOR,//236 VIP等级限制物品不允许索取
 	};
 
 	enum
@@ -1317,6 +1402,10 @@ namespace S2C
 			int penetration;
 			int resilience;
 			int vigour;
+			int anti_defense_degree;
+			int anti_resistance_degree;
+			int kill;
+			int dead;
 		//	extend_prop prop;		//不想引用头文件，所以注释掉了
 		};
 
@@ -2057,6 +2146,7 @@ namespace S2C
 			int pid;
 			int mafia_id;
 			char mafia_rank;
+			int64_t mnfaction_id;
 		};
 
 		struct mafia_trade_start
@@ -2439,6 +2529,7 @@ namespace S2C
 			int precinct_time;
 			int mall_timestamp;
 			int mall2_timestamp;
+			int mall3_timestamp;
 		};
 
 		struct player_rush_mode
@@ -2932,6 +3023,7 @@ namespace S2C
 				int expire_time;
 				int good_price;
 				char good_status;
+				int min_vip_level;
 			}list[];
 		};
 
@@ -2974,6 +3066,10 @@ namespace S2C
 				int invisible_degree;	//隐身等级
 				int anti_invisible_degree;//反隐等级
 				int vigour;				//气魄值
+				int anti_defense_degree;	// 破物理防
+				int anti_resistance_degree;	// 破属性防
+				int kill;
+				int death;
 			}data;
 			struct _self_data
 			{
@@ -3049,6 +3145,7 @@ namespace S2C
 				int expire_time;
 				int good_price;
 				char good_status;
+				int min_vip_level;
 			}list[];
 		};
 
@@ -3846,6 +3943,14 @@ namespace S2C
 			unsigned char level;
 		};
 
+		struct rank_info
+		{
+			single_data_header header;
+			int points;
+			int kill;
+			int dead;
+		};
+
 		struct enter_trickbattle
 		{
 			single_data_header header;
@@ -4038,6 +4143,292 @@ namespace S2C
 			int instance_tag;    // 重入的副本id
 			int time_out;		 // 重入倒计时截止(服务器)时间
 		};
+
+		struct pray_distance_change
+		{
+			single_data_header header;
+			float pray_distance_plus;
+		};
+
+
+		struct astrolabe_info_notify
+		{
+			single_data_header header;
+			unsigned char level;
+			int exp;
+		};
+
+		struct astrolabe_operate_result
+		{
+			single_data_header header;
+			int opttype;
+			int retcode;
+			int args[3];
+		};
+
+        struct property_score_result
+        {
+            single_data_header header;
+            int fighting_score;
+            int viability_score;
+            int client_data;
+        };
+
+        struct lookup_enemy_result
+        {
+            single_data_header header;
+            int rid;
+            int worldtag;
+            A3DVECTOR pos;
+        };
+
+		struct solo_challenge_award_info_notify
+		{
+			single_data_header header;
+			int max_layer_climbed;
+			int total_first_climbing_time;
+			int total_score_earned;
+			int cur_score;
+
+			struct{
+				int climbed_layer;
+				int climbing_time;
+				int total_draw_item_times;
+				int drawn_item_times;
+				struct 
+				{
+					int item_id;
+					int item_count;
+				}drawn_items[];
+			}layer_climbed_award;
+		};
+
+		struct solo_challenge_challenging_state_notify
+		{
+			single_data_header header;
+			int climbed_layer;
+			unsigned char notify_type;
+		};
+
+		struct solo_challenge_operate_result
+		{
+			single_data_header header;
+			int opttype;
+			int retcode;
+			int args[3];
+		};
+
+		struct solo_challenge_buff_info_notify
+		{
+			single_data_header header;
+			int buff_num;
+			int cur_score;
+			struct
+			{
+				int filter_index;
+				int filter_layer;
+			}buff_info[];
+		};
+	
+		struct mnfaction_player_faction_info
+		{
+			single_data_header header;
+			int player_faction;
+			int domain_id;
+		};
+		
+		struct mnfaction_resource_point_info
+		{
+			single_data_header header;
+			int attacker_resource_point;
+			int defender_resource_point;
+		};
+
+		struct mnfaction_player_count_info
+		{
+			single_data_header header;
+			int attend_attacker_player_count;
+			int attend_defender_player_count;
+		};
+
+		struct mnfaction_result
+		{
+			single_data_header header;
+			int result;
+		};
+
+		struct mnfaction_resource_tower_state_info
+		{
+			single_data_header header;
+			int num;
+			struct
+			{
+				int index;
+				int own_faction;
+				int state;
+				int time_out;
+			}state_info[];
+		};
+
+		struct mnfaction_switch_tower_state_info
+		{
+			single_data_header header;
+			int num;
+			struct
+			{
+				int index;
+				int own_faction;
+				int state;
+				int time_out;
+			}state_info[];
+		};
+
+		struct mnfaction_transmit_pos_state_info
+		{
+			single_data_header header;
+			int num;
+			struct
+			{
+				int index;
+				int own_faction;
+				int state;
+				int time_out;
+			}state_info[];
+		};
+
+		struct mnfaction_resource_point_state_info
+		{
+			single_data_header header; 
+			int index;
+			int cur_degree;
+		};
+
+		struct mnfaction_battle_ground_have_start_time
+		{
+			single_data_header header;
+			int battle_ground_have_start_time;
+		};
+
+		struct mnfaction_faction_killed_player_num
+		{
+			single_data_header header;
+			int attacker_killed_player_count;
+			int defender_killed_player_count;
+		};
+
+		struct mnfaction_shout_at_the_client
+		{
+			single_data_header header;
+			int type;
+			int args;
+		};
+
+		struct mnfaction_player_pos_info
+		{
+			single_data_header header;
+			int num;
+			struct
+			{
+				int roleid;
+				float player_pos[3];
+			}player_pos_info[];
+		};
+		
+		struct fix_position_transmit_add_position
+		{
+			single_data_header header;
+			int     index;
+			int     world_tag;
+			float   pos[3];
+			char    position_name[32];
+		};
+
+		struct fix_position_transmit_delete_position
+		{
+			single_data_header header;
+			int index;
+		};
+
+		struct fix_position_transmit_rename
+		{
+			single_data_header header;
+			int		index;
+			char    position_name[32];
+		};
+
+		struct fix_position_energy_info
+		{
+			single_data_header header;
+			char is_login;
+			int cur_energy;
+		};
+
+		struct fix_position_all_info
+		{
+			single_data_header header;
+			int count;
+			struct
+			{
+				int     index;
+				int     world_tag;
+				float   pos[3];
+				char    position_name[32];
+			}position_info[];
+		};
+		
+		struct cash_vip_mall_item_price
+		{
+			single_data_header header;
+			short start_index;
+			short end_index;
+			short count;
+			struct 
+			{
+				short good_index;
+				char good_slot;
+				int good_id;
+				char expire_type;
+				int expire_time;
+				int good_price;
+				char good_status;
+				int min_vip_level;
+			}list[];
+		};
+
+		struct cash_vip_mall_item_buy_result
+		{
+			single_data_header header;
+			char result;
+			short index;
+			char reason;
+		};
+
+		struct cash_vip_info_notify
+		{
+			single_data_header header;
+			int level;
+			int score;
+		};
+
+		struct purchase_limit_info_notify
+		{
+			single_data_header header;
+			int count;
+			struct
+			{
+				int limit_type;
+				int item_id;
+				int have_purchase_count;
+			}item_info[];
+		};
+
+        struct cash_resurrect_info
+        {
+            single_data_header header;
+            int cash_need;
+            int cash_left;
+        };
+
 	}
 }
 
@@ -4079,6 +4470,32 @@ namespace C2S
 		REFUSE_BLESS_MASK_ALL = 0x03,
 	};
 	
+	enum ASTROLABE_OPT_TYPE
+	{
+		ASTROLABE_OPT_SWALLOW,
+		ASTROLABE_OPT_ADDON_ROLL,
+		ASTROLABE_OPT_APTIT_INC,
+		ASTROLABE_OPT_SLOT_ROLL,
+	};
+
+	enum SOLO_CHALLENGE_OPT_TYPE
+	{
+		SOLO_CHALLENGE_OPT_SELECT_STAGE,
+		SOLO_CHALLENGE_OPT_SELECT_AWARD,
+		SOLO_CHALLENGE_OPT_SCORE_COST,
+		SOLO_CHALLENGE_OPT_CLEAR_FILTER,
+		SOLO_CHALLENGE_OPT_DELIVERSCORE,
+		SOLO_CHALLENGE_OPT_LEAVE_THE_ROOM,
+	};
+
+	enum FIX_POSITION_TRANSMIT_OPT_TYPE
+	{
+		FIX_POSITION_TRANSMIT_OPT_ADD_POSITION,
+		FIX_POSITION_TRANSMIT_OPT_DELETE_POSITION,
+		FIX_POSITION_TRANSMIT_OPT_TRANSMIT,
+		FIX_POSITION_TRANSMIT_OPT_RENAME,
+	};
+
 	namespace INFO
 	{
 		struct move_info
@@ -4091,6 +4508,65 @@ namespace C2S
 							//用户的移动都会在固定的0.5秒钟以后进行
 			unsigned short speed;
 			unsigned char  move_mode;		//walk run swim fly .... walk_back run_back
+		};
+
+		struct astrolabe_opt_swallow
+		{
+			int type;
+			int inv_index;
+			int itemid;
+		};
+		
+		struct astrolabe_opt_addon_roll
+		{
+			int times;
+			int addon_limit;
+			int inv_index;
+			int itemid;
+		};
+
+		struct astrolabe_opt_aptit_inc
+		{
+			int inv_index;
+			int itemid;
+		};
+
+		struct astrolabe_opt_slot_roll
+		{
+			int inv_index;
+			int itemid;
+		};
+		
+		struct solo_challenge_opt_select_award
+		{
+			int max_stage_level;
+		};
+
+		struct solo_challenge_opt_score_cost
+		{
+			int filter_index;
+		};
+
+		struct fix_position_transmit_opt_add_position
+		{
+			float pos[3];
+			char   position_name[32];
+		};
+		
+		struct fix_position_transmit_opt_delete_position
+		{
+			int index;
+		};
+
+		struct fix_position_transmit_opt_transmit
+		{
+			int index;
+		};
+
+		struct fix_position_transmit_opt_rename
+		{
+			int    index;
+			char   position_name[32];
 		};
 	}
 
@@ -4336,6 +4812,23 @@ namespace C2S
         QUERY_CAN_INHERIT_ADDONS,
         ACTIVATE_REGION_WAYPOINTS,
 		INSTANCE_REENTER_REQUEST,
+//180
+		ASTROLABE_OPERATE_REQUEST,
+        SOLO_CHALLENGE_OPERATE_REQUEST,
+        PROPERTY_SCORE_REQUEST,
+		MNFACTION_GET_DOMAIN_DATA,
+//185
+		FIX_POSITION_TRANSMIT_OPERATE_REQUEST,
+		REMOTE_REPAIR,
+		GET_CASH_VIP_MALL_ITEM_PRICE,
+		CASH_VIP_MALL_SHOPPING,
+        UPDATE_ENEMYLIST,
+//190
+        LOOKUP_ENEMY,
+        RESURRECT_BY_CASH,
+		
+		PICKUP_ALL,
+
 //200		
 		GM_COMMAND_START = 200,
 		GMCMD_MOVE_TO_PLAYER,		//201
@@ -4397,6 +4890,18 @@ namespace C2S
 			int type;
 		};
 		
+		struct pickup_matter_all
+		{
+			cmd_header header;
+
+			int count;
+			struct entry_t
+			{
+				int mid;
+				int type;
+			} matter[];
+		};
+
 		struct resurrect
 		{
 			cmd_header header;
@@ -5536,6 +6041,68 @@ namespace C2S
 			cmd_header header;
 			bool agree_reenter;
 		};
+
+		struct solo_challenge_operate_request
+		{
+			cmd_header header;
+			int opttype;
+			char data[];
+		};
+
+		struct astrolabe_operate_request
+		{
+			cmd_header header;
+			int  opttype;
+			char data[];
+		};
+
+        struct property_score_request
+        {
+            cmd_header header;
+            int client_data;
+        };
+		
+		struct fix_position_transmit_operate_request
+		{
+			cmd_header header;
+			int opttype;
+			char data[];
+		};
+		
+		struct get_cash_vip_mall_item_price
+		{
+			cmd_header header;
+			short start_index;  //若两参数均为0, 则表示扫描整个表
+			short end_index;	//否则[start_index,end_index)内的商品被扫描
+		};
+		
+		struct cash_vip_mall_shopping
+		{       
+			cmd_header header;
+			unsigned int count;
+			struct __entry
+			{
+				int goods_id;
+				int goods_index;
+				int goods_slot;
+			}list[];
+			//.....
+		};
+
+        struct update_enemylist
+        {
+            cmd_header header;
+            char optype;
+            int rid;
+        };
+
+        struct lookup_enemy
+        {
+            cmd_header header;
+            int rid;
+        };
+
+
 /*------------------------------内部GM 命令------------------------------------*/		
 		struct  gmcmd_move_to_player
 		{

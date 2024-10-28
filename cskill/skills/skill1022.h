@@ -59,9 +59,9 @@ namespace GNET
       Skill1022Stub ():SkillStub (1022)
         {
             cls = 258;
-            name = L"神行真言";
-            nativename = "神行真言";
-            icon = "神行真言.dds";
+            name = L"绁炶鐪熻█";
+            nativename = "绁炶鐪熻█";
+            icon = "绁炶鐪熻█.dds";
             max_level = 10;
             type = 2;
             apcost = 400000;
@@ -80,7 +80,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 1;
-            effect = "神行真言.sgc";
+            effect = "绁炶鐪熻█.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

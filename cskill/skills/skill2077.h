@@ -132,9 +132,9 @@ namespace GNET
       Skill2077Stub ():SkillStub (2077)
         {
             cls = 127;
-            name = L"斗战圣体";
-            nativename = "斗战圣体";
-            icon = "宠物强化.dds";
+            name = L"鏂楁垬鍦ｄ綋";
+            nativename = "鏂楁垬鍦ｄ綋";
+            icon = "瀹犵墿寮哄寲.dds";
             max_level = 10;
             type = 10;
             apcost = 0;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "巨灵神力.sgc";
+            effect = "宸ㄧ伒绁炲姏.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

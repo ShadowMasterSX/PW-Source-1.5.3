@@ -1,0 +1,32 @@
+	public:
+		int zoneid;
+		enum { PROTOCOL_TYPE = PROTOCOL_MNFETCHFILTRATERESULT };
+	public:
+		MNFetchFiltrateResult() { type = PROTOCOL_MNFETCHFILTRATERESULT; }
+		MNFetchFiltrateResult(void*) : Protocol(PROTOCOL_MNFETCHFILTRATERESULT) { }
+		MNFetchFiltrateResult (int l_zoneid)
+			 : zoneid(l_zoneid)
+		{
+			type = PROTOCOL_MNFETCHFILTRATERESULT;
+		}
+
+		MNFetchFiltrateResult(const MNFetchFiltrateResult &rhs)
+			: Protocol(rhs),zoneid(rhs.zoneid) { }
+
+		GNET::Protocol *Clone() const { return new MNFetchFiltrateResult(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << zoneid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> zoneid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 32; }

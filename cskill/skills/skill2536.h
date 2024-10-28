@@ -132,8 +132,8 @@ namespace GNET
       Skill2536Stub ():SkillStub (2536)
         {
             cls = 127;
-            name = L"ĞşÎä";
-            nativename = "ĞşÎä";
+            name = L"ç„æ­¦";
+            nativename = "ç„æ­¦";
             icon = "";
             max_level = 10;
             type = 2;

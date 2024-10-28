@@ -211,6 +211,10 @@ unsigned long ATaskTempl::CheckPrerequisite(
 		ulRet = TASK_PREREQU_FAIL_TASK_FORBID;
 		goto ret_here;
 	}
+
+	if (ulRet = CheckRecordListSpace(pTask)){
+		goto ret_here;
+	}
 	
 	// 若为PQ任务，判断身上是否已经有PQ任务
 	if (m_bPQTask)
@@ -420,6 +424,14 @@ unsigned long ATaskTempl::CheckPrerequisite(
 	
 	// 变身后，不能接取强制移动任务
 	ulRet = CheckInTransformShape(pTask);
+	if (ulRet) goto ret_here;
+
+	//	验证状态图标ID
+	ulRet = CheckPremIconStateID(pTask);
+	if (ulRet) goto ret_here;
+
+	//	验证VIP等级
+	ulRet = CheckVIPLevel(pTask);
 	if (ulRet) goto ret_here;
 
 ret_here:
@@ -801,6 +813,16 @@ unsigned long ATaskTempl::CheckAwardWhenAtCrossServer(TaskInterface* pTask, cons
 	return ret;
 }
 
+unsigned long ATaskTempl::CheckRecordListSpace(TaskInterface *pTask)const{
+	if (NeedFinishedTaskListSupport() && ((FinishedTaskList*)(pTask->GetFinishedTaskList()))->IsFull())
+		return TASK_PREREQU_FAIL_FULL;
+	if (NeedFinishTimeListSupport() && ((TaskFinishTimeList*)(pTask->GetFinishedTimeList()))->IsFull())
+		return TASK_PREREQU_FAIL_FULL;
+	if (NeedFinishCountListSupport() && ((TaskFinishCountList*)(pTask->GetFinishedCntList()))->IsFull())
+		return TASK_PREREQU_FAIL_FULL;
+	return 0;
+}
+
 unsigned long ATaskTempl::RecursiveCheckAward(
 	TaskInterface* pTask,
 	ActiveTaskList* pList,
@@ -821,7 +843,12 @@ unsigned long ATaskTempl::RecursiveCheckAward(
 	if (m_bAccountTaskLimit && pTask->IsAtCrossServer())
 		return TASK_AWARD_FAIL_CROSSSERVER_NO_ACOUNT_LIMIT;
 
-	unsigned long ulRet = RecursiveCalcAward(pTask, pList, pEntry, ulCurTime, nChoice, ulCmnCount, ulTskCount, ulTopCount, uBudget, lReputation);
+	// 任务记录列表已满不能完成
+	unsigned long ulRet = 0;
+	if (ulRet = CheckRecordListSpace(pTask))
+		return ulRet;
+
+	ulRet = RecursiveCalcAward(pTask, pList, pEntry, ulCurTime, nChoice, ulCmnCount, ulTskCount, ulTopCount, uBudget, lReputation);
 	if (ulRet) return ulRet;
 
 	unsigned long ulTopShowCount = (ulTopCount & 0xffff0000) >> 16;
@@ -910,6 +937,13 @@ void ATaskTempl::RecursiveAward(
 	// 清空子任务
 	pList->ClearChildrenOf(pTask, pEntry, !bFailedTaskDoNotTakeItem);
 	if (!pEntry->m_ulTemplAddr) return; // must check it
+
+	// 如果不是子任务且是爬塔任务
+	if (!m_pParent && m_bTowerTask)
+	{
+		// 通知服务器爬塔任务结束
+		pTask->OnTowerTaskComplete(pEntry->IsSuccess());
+	}
 
 	if (!m_pParent && m_bNeedRecord)
 	{
@@ -1098,7 +1132,6 @@ void ActiveTaskList::UpdateUsedCount()
 unsigned long ATaskTempl::CheckMutexTask(TaskInterface* pTask, unsigned long ulCurTime) const
 {
 	ActiveTaskList* pLst = static_cast<ActiveTaskList*>(pTask->GetActiveTaskList());
-	FinishedTaskList* pFinished = static_cast<FinishedTaskList*>(pTask->GetFinishedTaskList());
 	unsigned long i;
 
 	for (i = 0; i < m_ulMutexTaskCount; i++)
@@ -1286,6 +1319,9 @@ unsigned long ATaskTempl::DeliverByAwardData(
 	// version 77
 	if(pAward->m_bAwardSkill && (pAward->m_iAwardSkillID >0) && (pAward->m_iAwardSkillLevel >0))
 		pTask->CastSkill(pAward->m_iAwardSkillID,pAward->m_iAwardSkillLevel);
+
+	// version 124
+	if (pAward->m_iSoloTowerChallengeScore) pTask->DeliverSoloTowerChallengeScore(pAward->m_iSoloTowerChallengeScore);
 
 	char log[1024];
 	sprintf(log,
@@ -1692,6 +1728,8 @@ bool ATaskTempl::CheckGlobalRequired(
 	return true;
 }
 
+#define CHECK_TOWER_TASK_DELIVER_FAILED if (m_bTowerTask) { pTask->OnTowerTaskDeliver(false); }
+
 unsigned long ATaskTempl::CheckDeliverTask(
 	TaskInterface* pTask,
 	unsigned long ulSubTaskId,
@@ -1705,7 +1743,11 @@ unsigned long ATaskTempl::CheckDeliverTask(
 	if (m_bChooseOne)
 	{
 		pSubTempl = GetConstSubById(ulSubTaskId);
-		if (!pSubTempl) return TASK_PREREQU_FAIL_WRONG_SUB;
+		if (!pSubTempl) 
+		{
+			CHECK_TOWER_TASK_DELIVER_FAILED
+			return TASK_PREREQU_FAIL_WRONG_SUB;
+		}
 	}
 
 	ActiveTaskList* pList = static_cast<ActiveTaskList*>(pTask->GetActiveTaskList());
@@ -1722,7 +1764,7 @@ unsigned long ATaskTempl::CheckDeliverTask(
 			0,
 			ulRet
 		);
-
+		CHECK_TOWER_TASK_DELIVER_FAILED
 		return ulRet;
 	}
 
@@ -1734,7 +1776,10 @@ unsigned long ATaskTempl::CheckDeliverTask(
 	{
 		unsigned char receiveCount = pStorageLst->m_StoragesReceivePerDay[idStorage - 1];
 		if (pTaskMan->IsReceiveMaxStorageTasksPerDay(idStorage,receiveCount))
+		{
+			CHECK_TOWER_TASK_DELIVER_FAILED
 			return TASK_PREREQU_FAIL_OVER_RECEIVE_PER_DAY;
+		}
 		else
 			(pStorageLst->m_StoragesReceivePerDay[idStorage - 1])++;
 	}
@@ -1747,7 +1792,10 @@ unsigned long ATaskTempl::CheckDeliverTask(
 		pSubTempl = GetConstSubById(ulChildTaskId);
 
 		if (!pSubTempl) 
+		{
+			CHECK_TOWER_TASK_DELIVER_FAILED
 			return TASK_PREREQU_FAIL_WRONG_SUB;
+		}
 	}
 
 	if(!m_bItemNotTakeOff)
@@ -1820,6 +1868,11 @@ unsigned long ATaskTempl::CheckDeliverTask(
 			pTask->PutGlobalValue(lKey, lValue);
 	}
 
+	if (m_bTowerTask)
+	{
+		pTask->OnTowerTaskDeliver(true);
+	}
+
 	TaskInterface::WriteKeyLog(pTask->GetPlayerId(), m_ID, 1, "CheckDeliverTask");
 	return 0;
 }
@@ -1856,6 +1909,12 @@ bool ATaskTempl::DeliverAward(
 
 	if (pEntry->IsGiveUp() && m_bClearAsGiveUp)
 	{
+		// 通知服务器爬塔失败
+		if (pEntry->GetTempl()->m_bTowerTask)
+		{
+			pTask->OnTowerTaskComplete(false);
+		}
+
 		pList->ClearTask(pTask, pEntry, true);
 		pList->UpdateTaskMask(*pTask->GetTaskMask());
 		NotifyClient(pTask, NULL, TASK_SVR_NOTIFY_GIVE_UP, 0);
@@ -1865,7 +1924,6 @@ bool ATaskTempl::DeliverAward(
 		{
 			pTask->LockInventory(false);
 		}
-
 		return true;
 	}
 
@@ -2352,6 +2410,90 @@ bool TaskInterface::CanDoMining(unsigned long ulTaskId)
 	return true;
 }
 
+static bool HasTopTaskRelating(ActiveTaskList *pLst, ATaskTempl::TaskRecursiveChecker *pChecker, abase::vector<unsigned long> *pTopTaskIDs)
+{
+	bool result(false);
+	if (pTopTaskIDs){
+		pTopTaskIDs->clear();
+	}
+	for (int i = 0; i < pLst->m_uTaskCount; i++){
+		ActiveTaskEntry& CurEntry = pLst->m_TaskEntries[i];
+		const ATaskTempl *pTempl = CurEntry.GetTempl();
+		if (!pTempl){
+			continue;
+		}
+		if (CurEntry.m_ParentIndex != 0xff){
+			continue;
+		}
+		if (pTempl->RecursiveCheck(pChecker)){
+			result = true;
+			if (pTopTaskIDs){
+				pTopTaskIDs->push_back(pTempl->GetID());
+			}else{
+				break;
+			}
+		}
+	}
+	return result;
+}
+
+bool TaskInterface::HasTopTaskRelatingMarriage(abase::vector<unsigned long> *pTopTaskIDs)
+{
+	class TaskMarriageChecker : public ATaskTempl::TaskRecursiveChecker{
+	public:
+		virtual bool Downward()const{ return true; }
+		virtual bool IsMatch(const ATaskTempl *pTask)const{
+			return pTask != NULL && pTask->m_bMarriage;
+		}
+	};
+	ActiveTaskList* pLst = static_cast<ActiveTaskList*>(GetActiveTaskList());
+	TaskMarriageChecker checker;
+	return HasTopTaskRelating(pLst, &checker, pTopTaskIDs);
+}
+
+bool TaskInterface::HasTopTaskRelatingWedding(abase::vector<unsigned long> *pTopTaskIDs)
+{
+	class TaskWeddingChecker : public ATaskTempl::TaskRecursiveChecker{
+	public:
+		virtual bool Downward()const{ return true; }
+		virtual bool IsMatch(const ATaskTempl *pTask)const{
+			return pTask != NULL && pTask->m_bPremiseWeddingOwner;
+		}
+	};
+	ActiveTaskList* pLst = static_cast<ActiveTaskList*>(GetActiveTaskList());
+	TaskWeddingChecker checker;
+	return HasTopTaskRelating(pLst, &checker, pTopTaskIDs);
+}
+
+bool TaskInterface::HasTopTaskRelatingSpouse(abase::vector<unsigned long> *pTopTaskIDs)
+{
+	class TaskSpouseChecker : public ATaskTempl::TaskRecursiveChecker{
+	public:
+		virtual bool Downward()const{ return true; }
+		virtual bool IsMatch(const ATaskTempl *pTask)const{
+			return pTask != NULL && pTask->m_bPremise_Spouse;
+		}
+	};
+	ActiveTaskList* pLst = static_cast<ActiveTaskList*>(GetActiveTaskList());
+	TaskSpouseChecker checker;
+	return HasTopTaskRelating(pLst, &checker, pTopTaskIDs);
+}
+
+bool TaskInterface::HasTopTaskRelatingGender(abase::vector<unsigned long> *pTopTaskIDs)
+{
+	class TaskGenderChecker : public ATaskTempl::TaskRecursiveChecker{
+	public:
+		virtual bool Downward()const{ return true; }
+		virtual bool IsMatch(const ATaskTempl *pTask)const{
+			return pTask != NULL && pTask->m_ulGender != 0;
+		}
+	};
+	ActiveTaskList* pLst = static_cast<ActiveTaskList*>(GetActiveTaskList());
+	TaskGenderChecker checker;
+	return HasTopTaskRelating(pLst, &checker, pTopTaskIDs);
+}
+
+//	class ATaskTempl
 bool ATaskTempl::CanDeliverWorldContribution(TaskInterface* pTask) const
 {
 	// 只有顶层任务才能奖励贡献度
@@ -2432,6 +2574,33 @@ bool ATaskTempl::CanDeliverWorldContribution(TaskInterface* pTask) const
 	return ret;
 }
 
+bool ATaskTempl::RecursiveCheck(ATaskTempl::TaskRecursiveChecker *pChecker)const
+{
+	if (pChecker->IsMatch(this)){
+		return true;
+	}
+	if (pChecker->Downward()){
+		if (m_pFirstChild){
+			ATaskTempl* pChild = m_pFirstChild;
+			while (pChild){
+				if (pChild->RecursiveCheck(pChecker)){
+					return true;
+				}
+				pChild = pChild->m_pNextSibling;
+			}
+			return false;
+		}else{
+			return false;
+		}
+	}else{
+		if (m_pParent){
+			return m_pParent->RecursiveCheck(pChecker);
+		}else{
+			return false;
+		}
+	}
+}
+
 #ifdef _TASK_CLIENT
 
 time_t TaskInterface::m_tmFinishDlgShown = 0;
@@ -2453,7 +2622,7 @@ void RecursiveCheckPunchMonster(const ATaskTempl* pTempl)
 		ACString strNpcName;
 		if( dt == DT_MONSTER_ESSENCE )
 		{
-			if( pMonster && pMonster->combined_switch == MCS_SUMMONER_ATTACK_ONLY)
+			if( pMonster && (pMonster->combined_switch & MCS_SUMMONER_ATTACK_ONLY) && (pMonster->combined_switch & MCS_RECORD_DPS_RANK))
 			{
 				TaskInterface::ShowPunchBagMessage(false,false,(pTempl->m_MonsterWanted[i]).m_ulMonsterTemplId,0,0);
 				return;
@@ -2638,7 +2807,7 @@ void ATaskTempl::OnServerNotify(
 //		DisplayTaskCharInfo(pTask, pEntry);
 		break;
 	default:
-		ASSERT(false);
+		assert(false);
 	}
 	TaskInterface::UpdateTaskUI(pNotify->task, pNotify->reason);
 }
@@ -2790,7 +2959,7 @@ void TaskInterface::GiveUpTask(unsigned long ulTaskId)
 
 const unsigned short* TaskInterface::GetStorageTasks(unsigned int uStorageId)
 {
-	ASSERT(uStorageId != 0 && uStorageId <= TASK_STORAGE_COUNT);
+	assert(uStorageId != 0 && uStorageId <= TASK_STORAGE_COUNT);
 	StorageTaskList* pLst = static_cast<StorageTaskList*>(GetStorageTaskList());
 	return pLst->m_Storages[uStorageId-1];
 }
@@ -2941,6 +3110,10 @@ void TaskInterface::GetTaskStateInfo(unsigned long ulTaskId, Task_State_info* pI
 		pInfo->m_ulReachLevel = pTempl->m_ulReachLevel;
 		pInfo->m_ulReachReincarnation = pTempl->m_ulReachReincarnationCount;
 		pInfo->m_ulReachRealm = pTempl->m_ulReachRealmLevel;
+	}
+	else if (pTempl->m_enumMethod == enumTMHasIconStateID)
+	{
+		pInfo->m_ulTMIconStateID = pTempl->m_ulTMIconStateID;
 	}
 
 	return;

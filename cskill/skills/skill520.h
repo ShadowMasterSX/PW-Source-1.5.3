@@ -137,9 +137,9 @@ namespace GNET
       Skill520Stub ():SkillStub (520)
         {
             cls = 4;
-            name = L"�桤˺ҧ";
-            nativename = "�桤˺ҧ";
-            icon = "˺ҧ1.dds";
+            name = L"真·撕咬";
+            nativename = "真·撕咬";
+            icon = "撕咬1.dds";
             max_level = 1;
             type = 1;
             apcost = 15;
@@ -167,7 +167,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "1˺ҧ.sgc";
+            effect = "1撕咬.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

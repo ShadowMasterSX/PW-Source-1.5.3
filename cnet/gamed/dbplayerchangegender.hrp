@@ -1,0 +1,55 @@
+
+#ifndef __GNET_DBPLAYERCHANGEGENDER_HPP
+#define __GNET_DBPLAYERCHANGEGENDER_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbplayerchangegenderarg"
+#include "dbplayerchangegenderres"
+
+#include "gsp_if.h"
+#include "../include/localmacro.h"
+
+
+namespace GNET
+{
+
+class DBPlayerChangeGender : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbplayerchangegender"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBPlayerChangeGenderArg *arg = (DBPlayerChangeGenderArg *)argument;
+		// DBPlayerChangeGenderRes *res = (DBPlayerChangeGenderRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+        DBPlayerChangeGenderArg *arg = (DBPlayerChangeGenderArg *)argument;
+        DBPlayerChangeGenderRes *res = (DBPlayerChangeGenderRes *)result;
+
+        if (res->retcode == ERR_SUCCESS)
+        {
+            player_change_gender_logout(arg->roleid);
+        }
+        else if (res->retcode == ERR_PR_PROFILE)
+        {
+            // ErrorCode: 1 - S2C::ERR_CHANGE_GENDER_PROFILE
+            player_change_gender_ret(arg->roleid, 1);
+        }
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

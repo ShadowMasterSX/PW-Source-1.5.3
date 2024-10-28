@@ -1,0 +1,47 @@
+	public:
+		int retcode;
+		int roleid;
+		GEnemyListVector enemylist;
+		CharVector status;
+		unsigned int localsid;
+		enum { PROTOCOL_TYPE = PROTOCOL_GETENEMYLIST_RE };
+	public:
+		GetEnemyList_Re() { type = PROTOCOL_GETENEMYLIST_RE; }
+		GetEnemyList_Re(void*) : Protocol(PROTOCOL_GETENEMYLIST_RE) { }
+		GetEnemyList_Re (int l_retcode,int l_roleid,GEnemyListVector l_enemylist,
+			CharVector l_status,unsigned int l_localsid)
+			 : retcode(l_retcode),roleid(l_roleid),enemylist(l_enemylist)
+			,status(l_status),localsid(l_localsid)
+		{
+			type = PROTOCOL_GETENEMYLIST_RE;
+		}
+
+		GetEnemyList_Re(const GetEnemyList_Re &rhs)
+			: Protocol(rhs),retcode(rhs.retcode),roleid(rhs.roleid),enemylist(rhs.enemylist)
+			,status(rhs.status),localsid(rhs.localsid) { }
+
+		GNET::Protocol *Clone() const { return new GetEnemyList_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << roleid;
+			os << enemylist;
+			os << status;
+			os << localsid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> roleid;
+			os >> enemylist;
+			os >> status;
+			os >> localsid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 16384; }

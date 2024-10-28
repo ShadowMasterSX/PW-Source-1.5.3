@@ -107,6 +107,7 @@ public:
 	void SetPlayerProfileData(int roleid, const PlayerProfileData& data);
 	bool UpdatePlayerProfile(int roleid, char state, unsigned char gender, const PlayerProfileData& data);
 	void GetMatchResult(int roleid, int match_mode, int linksid, int localsid);
+    bool HasMatchOptionMask(int roleid);
 };
 
 }

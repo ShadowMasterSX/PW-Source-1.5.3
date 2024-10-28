@@ -5,7 +5,7 @@
 #include <map>
 #include <queue>
 
-#include <assert.h>
+#include <ASSERT.h>
 #include "playerwrapper.h"
 #include "targetwrapper.h"
 #include "skill.h"
@@ -482,6 +482,35 @@ bool SkillWrapper::Attack(object_interface victim,const XID& attacker,const A3DV
 	}
 	return ret;
 }
+bool SkillWrapper::Infect(object_interface victim,const XID& attacker,const A3DVECTOR& src,const attack_msg& msg,bool invader)
+{
+	if(immune_buff_debuff > 0)		//lgc
+	{
+		return false;
+	}
+	
+	int id = msg.infected_skill.skill;
+	SkillKeeper skill = Skill::Create(id);
+	if( !skill )
+		return false;
+	PlayerWrapper		w_victim(victim,this,skill);
+	w_victim.SetInvader(invader);
+
+	skill->SetVictim(&w_victim);
+	TargetWrapper		w_target(&victim,&attacker,1);
+	skill->SetTarget(&w_target);
+	skill->SetLevel( msg.infected_skill.level );
+	skill->SetPerformerid( attacker );
+	skill->SetMessage(&msg);
+	skill->SetPerformerpos( src );
+
+	bool ret = skill->StateAttack();
+	int aggro = skill->GetEnmity();
+	if(aggro>0)
+		w_victim.SetEnmity(aggro);
+	return ret;
+}
+
 
 bool SkillWrapper::Attack(object_interface victim,const XID& attacker,const A3DVECTOR& src,const enchant_msg& msg,bool invader)
 {
@@ -524,6 +553,35 @@ bool SkillWrapper::Attack(object_interface victim,const XID& attacker,const A3DV
 		victim.SendClientEnchantResult(attacker,msg.skill, 
 				msg.skill_level,invader,immune,msg.section);
 	}
+	return ret;
+}
+bool SkillWrapper::Infect(object_interface victim,const XID& attacker,const A3DVECTOR& src,const enchant_msg& msg,bool invader)
+{
+	if(immune_buff_debuff > 0)		//lgc
+	{
+		return false;
+	}
+
+	int id = msg.infected_skill.skill;
+	SkillKeeper skill = Skill::Create(id);
+	if( !skill )
+		return false;
+
+	PlayerWrapper		w_victim(victim,this,skill);
+	w_victim.SetInvader(invader);
+
+	skill->SetVictim(&w_victim);
+	TargetWrapper		w_target(&victim,&attacker,1);
+	skill->SetTarget(&w_target);
+	skill->SetLevel( msg.infected_skill.level );
+	skill->SetPerformerid( attacker );
+	skill->SetMessage(&msg);
+	skill->SetPerformerpos( src );
+
+	bool ret = skill->StateAttack();
+	int aggro = skill->GetEnmity();
+	if(aggro>0)
+		w_victim.SetEnmity(aggro);
 	return ret;
 }
 
@@ -625,6 +683,46 @@ bool SkillWrapper::EventUnwield(object_interface player, int weapon_class )
 				skill->SetLevel( (*it).second.level );
 				skill->SetPlayer( &w_player);
 				skill->UndoEffect(&w_player, weapon_class);
+			}
+		}
+	}
+	return true;
+}
+bool SkillWrapper::EventEnter(object_interface player, int worldtag )
+{
+	PlayerWrapper w_player(player,this,NULL);
+	for( StorageMap::iterator it = map.begin(); it != map.end(); ++ it )
+	{
+		const SkillStub * stub = SkillStub::GetStub((*it).first);
+		if( stub && stub->IsPassive() && stub->GetEventFlag()==EVENT_ENTER)
+		{
+			SkillKeeper skill = Skill::Create((*it).first);
+			if( skill )
+			{
+				w_player.SetSkill(skill);
+				skill->SetLevel( (*it).second.level );
+				skill->SetPlayer( &w_player);
+				skill->TakeEffect(&w_player, worldtag);
+			}
+		}
+	}
+	return true;
+}
+bool SkillWrapper::EventLeave(object_interface player, int worldtag )
+{
+	PlayerWrapper w_player(player,this,NULL);
+	for( StorageMap::iterator it = map.begin(); it != map.end(); ++ it )
+	{
+		const SkillStub * stub = SkillStub::GetStub((*it).first);
+		if( stub && stub->IsPassive() && stub->GetEventFlag()==EVENT_ENTER)
+		{
+			SkillKeeper skill = Skill::Create((*it).first);
+			if( skill )
+			{
+				w_player.SetSkill(skill);
+				skill->SetLevel( (*it).second.level );
+				skill->SetPlayer( &w_player);
+				skill->UndoEffect(&w_player, worldtag);
 			}
 		}
 	}
@@ -1083,13 +1181,14 @@ int SkillWrapper::Remove(ID id)
 	return 1;
 }
 
-void SkillWrapper::GodEvilConvert(std::map<int,int>& convert_table, object_interface player, int weapon_class, int form)
+void SkillWrapper::GodEvilConvert(std::map<int,int>& convert_table, object_interface player, int weapon_class, int form, int worldtag)
 {
 	//清除被动技能产生的效果
 	EventUnreset(player);
+	EventLeave(player,worldtag);
 	if(weapon_class > 0) EventUnwield(player, weapon_class);
-	if(form == FORM_CLASS) EventChange(player, form, 0); 
-	
+	if(form == FORM_CLASS) EventChange(player, form, 0); 	
+
 	StorageMap tmp_map;
 	StorageMap::iterator it = map.begin(), ite = map.end();
 	for(; it!=ite; )
@@ -1137,6 +1236,7 @@ void SkillWrapper::GodEvilConvert(std::map<int,int>& convert_table, object_inter
 	
 	//重新激活被动技能产生的效果
 	EventReset(player);
+	EventEnter(player,worldtag);
 	if(weapon_class > 0) EventWield(player, weapon_class);
 	if(form == FORM_CLASS) EventChange(player, 0, form); 
 }
@@ -1164,12 +1264,12 @@ void SkillWrapper::DeactivateDynSkill(ID id, int counter)
 	StorageMap::iterator it = dyn_map.find(id);
 	if(it == dyn_map.end())
 	{
-		assert(false);
+		ASSERT(false);
 		return;
 	}
 	
 	it->second.ability -= counter;
-	assert(it->second.ability >= 0);
+	ASSERT(it->second.ability >= 0);
 	if(it->second.ability == 0)
 	{
 		//不通知了
@@ -1785,7 +1885,7 @@ void SkillWrapper::OnComboPreSkillEnd(Skill* skill, object_interface player)
 
 void SkillWrapper::OnSkillPerform(ID id, ID perid, object_interface player)
 {
-	if(perid || CheckComboBreak(player.GetSystime(),false))
+	if(GetComboState() && (perid || CheckComboBreak(player.GetSystime(),false)))
 	{
 		ClearComboState();
 		SyncComboState(player);
@@ -1812,6 +1912,117 @@ bool SkillWrapper::FlipBlackWhiteBalls(int& new_vstate, int& old_vstate, int& hs
 	new_vstate = black_white_ball.UpdateVstate(old_vstate);
 	hstate = black_white_ball.balls;
 	return true;
+}
+
+void SkillWrapper::SoloChallengeAddFilter(object_interface player, int filter_id, float *param)
+{
+	PlayerWrapper w_player(player);
+	switch(filter_id)
+	{
+		case FILTER_SOLO_INCATTACKANDMAGIC:
+		{
+			w_player.SetTime(param[0]);
+			w_player.SetAmount(param[1]);
+			w_player.SetProbability(param[2]);
+			w_player.SetValue(param[3]);
+			
+			w_player.SetSoloIncAttackAndMagic(true);
+		}
+		break;
+		case FILTER_SOLO_INCDEFENCE:
+		{
+			w_player.SetTime(param[0]);
+			w_player.SetAmount(param[1]);
+			w_player.SetProbability(param[2]);
+			
+			w_player.SetSoloIncDefence(true);
+		}
+		break;
+		case FILTER_SOLO_ENHANCERESIST:
+		{	
+			w_player.SetTime(param[0]);
+			w_player.SetAmount(param[1]);
+			w_player.SetProbability(param[2]);
+			
+			w_player.SetSoloEnhanceResist(true);
+		}
+		break;
+		case FILTER_SOLO_INCMAXHP:
+		{
+			w_player.SetTime(param[0]);
+			w_player.SetAmount(param[1]);
+			w_player.SetProbability(param[2]);
+			
+			w_player.SetSoloIncMaxHP(true);
+		}
+		break;
+		case FILTER_SOLO_INVINCIBLE:
+		{
+			w_player.SetTime(param[0]);
+			w_player.SetProbability(param[2]);
+			
+			w_player.SetInvincible8(true);
+		}
+		break;
+		case FILTER_SOLO_HPGEN:
+		{
+			w_player.SetTime(param[0]);
+			w_player.SetAmount(param[1]);
+			w_player.SetProbability(param[2]);
+			
+			w_player.SetSoloHpGen(true);
+		}
+		break;
+		case FILTER_SOLO_DECHURT:
+		{
+			w_player.SetTime(param[0]);
+			w_player.SetRatio(param[1]);
+			w_player.SetProbability(param[2]);
+			
+			w_player.SetSoloDecHurt(true);
+		}
+		break;
+		case FILTER_SOLO_ADDATTACKRANGE:
+		{
+			w_player.SetTime(param[0]);
+			w_player.SetAmount(param[1]);
+			w_player.SetProbability(param[2]);
+			
+			w_player.SetSoloAddAttackRange(true);
+		}
+		break;
+	}
+}
+
+void SkillWrapper::ResurrectByCashAddFilter(object_interface player, int buff_period, const float* buff_ratio, int buff_size)
+{
+	if ( buff_period > 0 && buff_ratio && buff_size == 6 )
+	{
+		PlayerWrapper		w_player(player, 0, 0, 0, 0);
+
+		w_player.SetTime(1000.0f * buff_period);
+		w_player.SetProbability(100.0);
+		w_player.SetRatio(*buff_ratio);
+		w_player.SetGiant(1);
+		w_player.SetRatio(buff_ratio[1]);
+		w_player.SetBlessmagic(1);
+		w_player.SetRatio(buff_ratio[2]);
+		w_player.SetStoneskin(1);
+		w_player.SetRatio(buff_ratio[3]);
+		w_player.SetIncresist(1);
+		w_player.SetRatio(buff_ratio[4]);
+		w_player.SetInchp(1);
+		w_player.SetRatio(buff_ratio[5]);
+		w_player.SetIronshield(1);	
+	}
+}
+
+
+void SkillWrapper::MnFactionAddFilter(object_interface player, float ratio)
+{
+	PlayerWrapper		w_player(player, 0, 0, 0, 0);
+	w_player.SetRatio(ratio);
+	w_player.SetMnfactionDecresist(1);
 }
 
 }

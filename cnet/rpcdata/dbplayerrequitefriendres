@@ -1,0 +1,65 @@
+#ifndef __GNET_DBPLAYERREQUITEFRIENDRES_RPCDATA
+#define __GNET_DBPLAYERREQUITEFRIENDRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailheader"
+
+namespace GNET
+{
+	class DBPlayerRequiteFriendRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		GMailHeader sysheader;
+
+	public:
+		DBPlayerRequiteFriendRes (int l_retcode = -1,const GMailHeader& l_sysheader = GMailHeader())
+			: retcode(l_retcode),sysheader(l_sysheader)
+		{
+		}
+
+		DBPlayerRequiteFriendRes(const DBPlayerRequiteFriendRes &rhs)
+			: retcode(rhs.retcode),sysheader(rhs.sysheader) { }
+
+		Rpc::Data *Clone() const { return new DBPlayerRequiteFriendRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPlayerRequiteFriendRes *r = dynamic_cast<const DBPlayerRequiteFriendRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				sysheader = r->sysheader;
+			}
+			return *this;
+		}
+
+		DBPlayerRequiteFriendRes& operator = (const DBPlayerRequiteFriendRes &rhs)
+		{
+			const DBPlayerRequiteFriendRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				sysheader = r->sysheader;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << sysheader;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> sysheader;
+			return os;
+		}
+
+	};
+};
+#endif

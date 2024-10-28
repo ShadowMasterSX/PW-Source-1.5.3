@@ -57,8 +57,8 @@ namespace GNET
       Skill1143Stub ():SkillStub (1143)
         {
             cls = 127;
-            name = L"³¤Õ÷³öÆ·BUFFÒ©·¨Êõ";
-            nativename = "³¤Õ÷³öÆ·BUFFÒ©·¨Êõ";
+            name = L"é•¿å¾å‡ºå“BUFFè¯æ³•æœ¯";
+            nativename = "é•¿å¾å‡ºå“BUFFè¯æ³•æœ¯";
             icon = "";
             max_level = 5;
             type = 4;
@@ -79,7 +79,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "¹ÖÎïÖÎÁÆÊõ.sgc";
+            effect = "æ€ªç‰©æ²»ç–—æœ¯.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

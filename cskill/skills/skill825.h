@@ -135,8 +135,8 @@ namespace GNET
       Skill825Stub ():SkillStub (825)
         {
             cls = 255;
-            name = L"£ª";
-            nativename = "£ª";
+            name = L"ï¼Š";
+            nativename = "ï¼Š";
             icon = "";
             max_level = 5;
             type = 1;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "ºÚ°µÔ¹ÁéÊŞ¼¼ÄÜ.sgc";
+            effect = "é»‘æš—æ€¨çµå…½æŠ€èƒ½.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

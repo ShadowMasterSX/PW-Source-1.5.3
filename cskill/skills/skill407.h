@@ -138,9 +138,9 @@ namespace GNET
       Skill407Stub ():SkillStub (407)
         {
             cls = 0;
-            name = L"¿ñ¡¤Áú·É»÷";
-            nativename = "¿ñ¡¤Áú·É»÷";
-            icon = "Áú·É»÷2.DDS";
+            name = L"ç‹‚Â·é¾™é£žå‡»";
+            nativename = "ç‹‚Â·é¾™é£žå‡»";
+            icon = "é¾™é£žå‡»2.DDS";
             max_level = 1;
             type = 1;
             apcost = 100;
@@ -164,7 +164,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (9);
             }
-            effect = "2°ÔÍõÁú·É.sgc";
+            effect = "2éœ¸çŽ‹é¾™é£ž.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;
@@ -245,6 +245,12 @@ namespace GNET
             skill->GetVictim ()->SetProbability (1.0 * 100);
             skill->GetVictim ()->SetTime (8500);
             skill->GetVictim ()->SetDizzy (1);
+            
+            skill->GetVictim ()->SetProbability (1.0 * 40);
+            skill->GetVictim ()->SetTime (6500);
+			skill->GetVictim ()->SetValue (2);
+            skill->GetVictim ()->SetPalsy (1);
+            
             return true;
         }
         bool TakeEffect (Skill * skill) const

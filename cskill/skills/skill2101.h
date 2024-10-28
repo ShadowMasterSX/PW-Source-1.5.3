@@ -56,9 +56,9 @@ namespace GNET
       Skill2101Stub ():SkillStub (2101)
         {
             cls = 127;
-            name = L"破刃专用";
-            nativename = "破刃专用";
-            icon = "宠物鼓舞.dds";
+            name = L"鐮村垉涓撶敤";
+            nativename = "鐮村垉涓撶敤";
+            icon = "瀹犵墿榧撹垶.dds";
             max_level = 10;
             type = 3;
             apcost = 0;
@@ -79,7 +79,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "神兵利器.sgc";
+            effect = "绁炲叺鍒╁櫒.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

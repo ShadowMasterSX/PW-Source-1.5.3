@@ -34,6 +34,7 @@ struct gplayer;
 struct battle_ground_param;
 struct country_battle_param;
 struct trick_battle_param;
+struct mnfaction_battle_param;
 
 class gplayer_imp;
 #include "objmanager.h"
@@ -83,6 +84,11 @@ struct world_limit
 	bool nothrow_anyway;	//禁止任何方式的物品掉落(玩家主动丢弃、红名死亡掉落、受技能攻击掉落、死亡必定掉落物品等),谨慎使用
 	bool can_reenter;
 	bool noauto_resurrect;
+	bool need_visa;
+    bool noauto_genhp;
+    bool noauto_genmp;
+	bool permit_fix_position_transmit;//允许定位传送
+    bool nocash_resurrect;
 };
 
 
@@ -131,6 +137,13 @@ struct rest_time_ctrl
 	int max_rest_time;		//sec
 };
 
+struct group_pos
+{
+	int group;
+	A3DVECTOR pos;
+	group_pos(int g = 0,A3DVECTOR p = A3DVECTOR(0,0,0)) : group(g),pos(p) {}
+};
+
 enum
 {
 	WORLD_TYPE_BIG_WORLD,
@@ -142,6 +155,7 @@ enum
 	WORLD_TYPE_MOBILESERVER,
 	WORLD_TYPE_PARALLEL_WORLD,
 	WORLD_TYPE_TRICKBATTLE,
+	WORLD_TYPE_MNFACTION,
 };
 
 struct MSG;
@@ -183,6 +197,7 @@ protected:
 	static int _npc_idle_heartbeat;
 	static netgame::mall _player_mall;
 	static netgame::mall _player_mall2;
+	static netgame::mall _player_mall3;
 	static netgame::touchshop _touch_shop;
 	static int _lua_data_version;
 	static abase::hash_map<int, int> _expire_items;
@@ -201,12 +216,13 @@ protected:
 	static unsigned int _world_team_uid;
 	static int _world_team_uid_lock;
 	static GlobalController _global_controller;
-	static abase::hash_map<int, A3DVECTOR> _central_server_birth_pos_map;	//中央服务器上玩家的出生坐标(tag = 142)
+	static abase::hash_map<int, group_pos> _central_server_birth_pos_map;	//中央服务器上玩家的出生坐标(tag = 142)
 	static autoteam_man _autoteam_man;
 	static fatering_manager _fatering_man;
 	static world_config _world_config;
 	static world_flags _world_flags;
     static abase::hash_map< int, abase::vector<int> > _region_waypoint_map; //区域内的传送点
+	static bool is_solo_tower_challenge_instance;                           //是否为单人爬塔副本
 
 protected:
 //公开的管理器
@@ -304,6 +320,7 @@ public:
 	static bool IsRareItem(int item_id);
 	static netgame::mall & GetPlayerMall() { return _player_mall;}
 	static netgame::mall & GetPlayerMall2() { return _player_mall2;}
+	static netgame::mall & GetPlayerMall3() { return _player_mall3;}
 	static netgame::touchshop &GetTouchShop() { return _touch_shop;}
 	static void SetCashItem(size_t id);
 	static void TestCashItemGenerated(size_t id,int count);
@@ -331,17 +348,22 @@ public:
 	static bool GetMallConsumptionValueBinding(int id, int& value);
 	static bool GetMallConsumptionValueDestroying(int id, int& value);
 	static GlobalController & GetGlobalController(){ return _global_controller; }
-	static A3DVECTOR GetCentralServerBrithPos(int zoneid)
+	static A3DVECTOR GetCentralServerBrithPos(int zoneid, int& groupid)
 	{
-		abase::hash_map<int, A3DVECTOR>::iterator it = _central_server_birth_pos_map.find(zoneid);
+		abase::hash_map<int, group_pos>::iterator it = _central_server_birth_pos_map.find(zoneid);
 		if(it != _central_server_birth_pos_map.end())
-			return it->second;
+		{
+			groupid = it->second.group;
+			return it->second.pos;
+		}
+		groupid = 0;
 		return A3DVECTOR(0,0,0);
 	}
 	static autoteam_man& GetAutoTeamMan() { return _autoteam_man; }
 	static fatering_manager& GetFateRingMan() { return _fatering_man;}
 	static world_config & GetWorldConfig(){ return _world_config; }
 	static world_flags & GetWorldFlag() { return _world_flags; } 	
+	static bool GetIsSoloTowerChallengeInstance() {return is_solo_tower_challenge_instance;}
     
     /**
      * 初始化每个区域内的传送点
@@ -431,7 +453,11 @@ public:
 
 	virtual ~world_manager() 
 	{
-		if(_message_handler) delete _message_handler;
+		if(_message_handler)
+		{
+			delete _message_handler;
+			_message_handler = NULL;
+		}
 		if(_load_task)
 		{
 			_load_task->RemoveTimer();
@@ -455,6 +481,11 @@ public:
 	inline static bool ProfitTimeLimit2()
 	{
 		return _world_limit.profit_time2;
+	}
+
+	inline static bool NeedVisa()
+	{
+		return _world_limit.need_visa;
 	}
 
 	inline static bool AntiWallow()
@@ -588,8 +619,10 @@ public:
 	virtual int GenerateFlag(){ return 0; }
 	virtual bool IsReachFlagGoal(bool offense, const A3DVECTOR& pos){ return false; }
 	virtual bool CanBeGathered(int player_faction, int mine_tid){ return true; }
+	virtual int CanBeGathered(int player_faction, int mine_tid, world *pPlane,const XID &player_xid){ return 0; }
 	virtual bool IsMobileWorld(){ return false; }
 	virtual bool CreateTrickBattle(const trick_battle_param &) { return false;}
+	virtual instance_hash_key  GetLogoutInstanceKey(gplayer_imp *pImp) const;
 public:
 	//帮派pvp相关
 	virtual void OnMafiaPvPStatusNotice(int status,std::vector<int> &ctrl_list) {};		
@@ -607,6 +640,10 @@ public:
 	virtual void NotifyCountryBattleConfig(GMSV::CBConfig * config){}
 	virtual bool CreateCountryBattle(const country_battle_param &) { return false;}
 	virtual void DestroyCountryBattle(int battleid) { }
+
+public:
+	//跨服帮战相关
+	virtual int CreateMNFactionBattle(const mnfaction_battle_param &) {return 0;}
 	
 public:
 	//serverdata相关

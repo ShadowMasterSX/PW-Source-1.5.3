@@ -18,7 +18,7 @@ class SetMaxOnlineNum : public GNET::Protocol
 	{
 		// TODO
 		DEBUG_PRINT("gdelivery:setmaxonlinenum: real num %d,fake num %d\n",maxnum,fake_maxnum);
-		UserContainer::GetInstance().SetPlayerLimit( maxnum,fake_maxnum );
+		UserContainer::GetInstance().SetPlayerLimit( maxnum+UserContainer::GetInstance().GetWaitLimit(),fake_maxnum, maxnum );
 		GDeliveryServer::GetInstance()->Send( sid, SetMaxOnlineNum_Re((int)ERR_SUCCESS) );
 	}
 };

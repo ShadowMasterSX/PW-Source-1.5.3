@@ -38,13 +38,29 @@ int MapResManager::Init(std::string servername, std::string base_path, const rec
 		_mapres_type = MAPRES_TYPE_RANDOM;
 	else if(str == "maze")
 		_mapres_type = MAPRES_TYPE_MAZE;
+	else if(str == "solo_challenge")	
+		_mapres_type = MAPRES_TYPE_SOLO_CHALLENGE;
 	else
 		_mapres_type = MAPRES_TYPE_ORIGIN;
 
 	__PRINTINFO("加载地图资源, servername:%s base_path:%s mapres_type:%d\n", servername.c_str(), base_path.c_str(), _mapres_type);
 
-	if(_mapres_type == MAPRES_TYPE_ORIGIN)
+	if(_mapres_type == MAPRES_TYPE_ORIGIN || _mapres_type == MAPRES_TYPE_SOLO_CHALLENGE)
 	{
+		if(_mapres_type == MAPRES_TYPE_SOLO_CHALLENGE)
+	{
+			size_t roomnum = atoi(conf->find(section,"nRoomNum").c_str());
+			A3DVECTOR pos;
+			for(size_t i = 0; i < roomnum; i++)
+			{
+				char format[20] = {0};
+				snprintf(format, sizeof(format), "RoomOffset%d", i);
+				string roomindex = format;
+				const char *roomoffset = conf->find(section, roomindex).c_str();
+				sscanf(roomoffset,"{%f,%f,%f}",&pos.x,&pos.y,&pos.z);
+				_mapres_info._offset_info.push_back(pos);
+			}
+		}
 		//加载地形
 		TERRAINCONFIG config;
 		config.nAreaWidth = atoi(conf->find(section,"nAreaWidth").c_str());
@@ -260,6 +276,23 @@ bool MapResManager::BuildNpcGenerator(world* pWorld)
 	if(_mapres_type == MAPRES_TYPE_ORIGIN)
 	{
 		return pWorld->InitNPCGenerator(*_npcgen_info.main_data);
+	}
+	else if(_mapres_type == MAPRES_TYPE_SOLO_CHALLENGE)
+	{
+		npcgen_data_list spawn_list;
+		spawn_list.reserve(_mapres_info._offset_info.size());
+		
+		npcgen_data_node_t spawn_data;
+		
+		for(unsigned int i = 0 ; i < _mapres_info._offset_info.size(); i++)
+		{
+			spawn_data.npcgen = _npcgen_info.main_data;
+			spawn_data.blockid = (unsigned char)i;
+			spawn_data.offset = _mapres_info._offset_info[i];
+			
+			spawn_list.push_back(spawn_data);
+		}	
+		return pWorld->InitNPCGeneratorByClone(*_npcgen_info.main_data, spawn_list);
 	}
 	else
 	{
@@ -510,3 +543,8 @@ bool maze_map_generator::GetTownPosition(gplayer_imp *pImp, const A3DVECTOR &opo
 	return true; 
 }
 
+int solo_challenge_map_generator::GetBlockID(float x, float z, world * plane) const
+{
+	int cur_stage = plane-> GetCommonValue(COMMON_VALUE_ID_SOLO_CHALLENGE_CUR_STAGE_LEVEL);
+	return (cur_stage - 1) / SOLO_TOWER_CHALLENGE_STAGE_EVERYROOM;
+}

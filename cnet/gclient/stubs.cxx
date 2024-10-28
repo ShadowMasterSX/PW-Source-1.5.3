@@ -27,10 +27,13 @@
 #include "getplayerbriefinfo.hpp"
 #include "gmgetplayerconsumeinfo.hpp"
 #include "collectclientmachineinfo.hpp"
+#include "cancelwaitqueue.hpp"
 #include "publicchat.hpp"
 #include "getfriends.hpp"
 #include "sendaumail.hpp"
 #include "addfriendremarks.hpp"
+#include "playerrequitefriend.hpp"
+#include "getenemylist.hpp"
 #include "factionoprequest.hpp"
 #include "factioncreate.hpp"
 #include "factionacceptjoin.hpp"
@@ -162,6 +165,9 @@
 #include "tankbattleplayergetrank.hpp"
 #include "factionresourcebattlegetmap.hpp"
 #include "factionresourcebattlegetrecord.hpp"
+#include "mngetplayerlastenterinfo.hpp"
+#include "mngetfactionbriefinfo.hpp"
+#include "mngetfactioninfo.hpp"
 #include "errorinfo.hpp"
 #include "challenge.hpp"
 #include "keyexchange.hpp"
@@ -182,6 +188,8 @@
 #include "webtradeprecancelpost_re.hpp"
 #include "webtradegetdetail_re.hpp"
 #include "getplayeridbyname_re.hpp"
+#include "waitqueuestatenotify.hpp"
+#include "cancelwaitqueue_re.hpp"
 #include "playerchangeds_re.hpp"
 #include "ssogetticket_re.hpp"
 #include "gamedatasend.hpp"
@@ -236,6 +244,8 @@
 #include "addfriend_re.hpp"
 #include "addfriendremarks_re.hpp"
 #include "getfriends_re.hpp"
+#include "updateenemylist_re.hpp"
+#include "getenemylist_re.hpp"
 #include "setgroupname.hpp"
 #include "setgroupname_re.hpp"
 #include "setfriendgroup.hpp"
@@ -349,6 +359,7 @@
 #include "changeds_re.hpp"
 #include "playerrename_re.hpp"
 #include "playernameupdate.hpp"
+#include "getsolochallengerank_re.hpp"
 #include "kegetstatus_re.hpp"
 #include "kecandidateapply_re.hpp"
 #include "kevoting_re.hpp"
@@ -381,6 +392,12 @@
 #include "factionresourcebattlegetrecord_re.hpp"
 #include "factionresourcebattlenotifyplayerevent.hpp"
 #include "factionrenameannounce.hpp"
+#include "mnfactionbattleapply_re.hpp"
+#include "mngetdomaindata_re.hpp"
+#include "mngetplayerlastenterinfo_re.hpp"
+#include "mngetfactionbriefinfo_re.hpp"
+#include "mngetfactioninfo_re.hpp"
+#include "mngettoplist_re.hpp"
 
 namespace GNET
 {
@@ -414,10 +431,13 @@ static GetHelpStates __stub_GetHelpStates((void*)0);
 static GetPlayerBriefInfo __stub_GetPlayerBriefInfo((void*)0);
 static GMGetPlayerConsumeInfo __stub_GMGetPlayerConsumeInfo((void*)0);
 static CollectClientMachineInfo __stub_CollectClientMachineInfo((void*)0);
+static CancelWaitQueue __stub_CancelWaitQueue((void*)0);
 static PublicChat __stub_PublicChat((void*)0);
 static GetFriends __stub_GetFriends((void*)0);
 static SendAUMail __stub_SendAUMail((void*)0);
 static AddFriendRemarks __stub_AddFriendRemarks((void*)0);
+static PlayerRequiteFriend __stub_PlayerRequiteFriend((void*)0);
+static GetEnemyList __stub_GetEnemyList((void*)0);
 static FactionOPRequest __stub_FactionOPRequest((void*)0);
 static FactionCreate __stub_FactionCreate((void*)0);
 static FactionAcceptJoin __stub_FactionAcceptJoin((void*)0);
@@ -549,6 +569,9 @@ static PlayerProfileGetMatchResult __stub_PlayerProfileGetMatchResult((void*)0);
 static TankBattlePlayerGetRank __stub_TankBattlePlayerGetRank((void*)0);
 static FactionResourceBattleGetMap __stub_FactionResourceBattleGetMap((void*)0);
 static FactionResourceBattleGetRecord __stub_FactionResourceBattleGetRecord((void*)0);
+static MNGetPlayerLastEnterInfo __stub_MNGetPlayerLastEnterInfo((void*)0);
+static MNGetFactionBriefInfo __stub_MNGetFactionBriefInfo((void*)0);
+static MNGetFactionInfo __stub_MNGetFactionInfo((void*)0);
 static ErrorInfo __stub_ErrorInfo((void*)0);
 static Challenge __stub_Challenge((void*)0);
 static KeyExchange __stub_KeyExchange((void*)0);
@@ -569,6 +592,8 @@ static WebTradePrePost_Re __stub_WebTradePrePost_Re((void*)0);
 static WebTradePreCancelPost_Re __stub_WebTradePreCancelPost_Re((void*)0);
 static WebTradeGetDetail_Re __stub_WebTradeGetDetail_Re((void*)0);
 static GetPlayerIDByName_Re __stub_GetPlayerIDByName_Re((void*)0);
+static WaitQueueStateNotify __stub_WaitQueueStateNotify((void*)0);
+static CancelWaitQueue_Re __stub_CancelWaitQueue_Re((void*)0);
 static PlayerChangeDS_Re __stub_PlayerChangeDS_Re((void*)0);
 static SSOGetTicket_Re __stub_SSOGetTicket_Re((void*)0);
 static GamedataSend __stub_GamedataSend((void*)0);
@@ -623,6 +648,8 @@ static AddFriend __stub_AddFriend((void*)0);
 static AddFriend_Re __stub_AddFriend_Re((void*)0);
 static AddFriendRemarks_Re __stub_AddFriendRemarks_Re((void*)0);
 static GetFriends_Re __stub_GetFriends_Re((void*)0);
+static UpdateEnemyList_Re __stub_UpdateEnemyList_Re((void*)0);
+static GetEnemyList_Re __stub_GetEnemyList_Re((void*)0);
 static SetGroupName __stub_SetGroupName((void*)0);
 static SetGroupName_Re __stub_SetGroupName_Re((void*)0);
 static SetFriendGroup __stub_SetFriendGroup((void*)0);
@@ -736,6 +763,7 @@ static QPAddCash_Re __stub_QPAddCash_Re((void*)0);
 static ChangeDS_Re __stub_ChangeDS_Re((void*)0);
 static PlayerRename_Re __stub_PlayerRename_Re((void*)0);
 static PlayerNameUpdate __stub_PlayerNameUpdate((void*)0);
+static GetSoloChallengeRank_Re __stub_GetSoloChallengeRank_Re((void*)0);
 static KEGetStatus_Re __stub_KEGetStatus_Re((void*)0);
 static KECandidateApply_Re __stub_KECandidateApply_Re((void*)0);
 static KEVoting_Re __stub_KEVoting_Re((void*)0);
@@ -768,5 +796,11 @@ static FactionResourceBattleGetMap_Re __stub_FactionResourceBattleGetMap_Re((voi
 static FactionResourceBattleGetRecord_Re __stub_FactionResourceBattleGetRecord_Re((void*)0);
 static FactionResourceBattleNotifyPlayerEvent __stub_FactionResourceBattleNotifyPlayerEvent((void*)0);
 static FactionRenameAnnounce __stub_FactionRenameAnnounce((void*)0);
+static MNFactionBattleApply_Re __stub_MNFactionBattleApply_Re((void*)0);
+static MNGetDomainData_Re __stub_MNGetDomainData_Re((void*)0);
+static MNGetPlayerLastEnterInfo_Re __stub_MNGetPlayerLastEnterInfo_Re((void*)0);
+static MNGetFactionBriefInfo_Re __stub_MNGetFactionBriefInfo_Re((void*)0);
+static MNGetFactionInfo_Re __stub_MNGetFactionInfo_Re((void*)0);
+static MNGetTopList_Re __stub_MNGetTopList_Re((void*)0);
 
 };

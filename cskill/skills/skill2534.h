@@ -132,8 +132,8 @@ namespace GNET
       Skill2534Stub ():SkillStub (2534)
         {
             cls = 127;
-            name = L"¾£¼¬Êõ";
-            nativename = "¾£¼¬Êõ";
+            name = L"è†æ£˜æœ¯";
+            nativename = "è†æ£˜æœ¯";
             icon = "";
             max_level = 10;
             type = 2;

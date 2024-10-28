@@ -137,9 +137,9 @@ namespace GNET
       Skill1299Stub ():SkillStub (1299)
         {
             cls = 5;
-            name = L"��նɱ";
-            nativename = "��նɱ";
-            icon = "��նħ����.dds";
+            name = L"狂·斩杀";
+            nativename = "狂·斩杀";
+            icon = "速斩魔技能.dds";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -164,7 +164,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (23749);
             }
-            effect = "�̿�_նɱ.sgc";
+            effect = "刺客_斩杀.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

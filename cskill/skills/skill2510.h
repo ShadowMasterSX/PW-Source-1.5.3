@@ -133,8 +133,8 @@ namespace GNET
       Skill2510Stub ():SkillStub (2510)
         {
             cls = 127;
-            name = L"µ¶Õó";
-            nativename = "µ¶Õó";
+            name = L"åˆ€é˜µ";
+            nativename = "åˆ€é˜µ";
             icon = "";
             max_level = 10;
             type = 1;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "1ÍÌÊÉ.sgc";
+            effect = "1åå™¬.sgc";
             range.type = 2;
             doenchant = false;
             dobless = false;

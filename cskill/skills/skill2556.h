@@ -134,9 +134,9 @@ namespace GNET
       Skill2556Stub ():SkillStub (2556)
         {
             cls = 10;
-            name = L"ÁÔÃü";
-            nativename = "ÁÔÃü";
-            icon = "ÁÔÃü.dds";
+            name = L"çŒå‘½";
+            nativename = "çŒå‘½";
+            icon = "çŒå‘½.dds";
             max_level = 10;
             type = 3;
             apcost = 50;
@@ -160,7 +160,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (44878);
             }
-            effect = "Ò¹Ó°_ÁÔÃü_»÷ÖĞ.sgc";
+            effect = "å¤œå½±_çŒå‘½_å‡»ä¸­.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

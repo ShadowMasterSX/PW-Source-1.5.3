@@ -137,9 +137,9 @@ namespace GNET
       Skill104Stub ():SkillStub (104)
         {
             cls = 4;
-            name = L"ǧ�ﴸ";
-            nativename = "ǧ�ﴸ";
-            icon = "ǧ�ﴸ.dds";
+            name = L"千斤锤";
+            nativename = "千斤锤";
+            icon = "千斤锤.dds";
             max_level = 10;
             type = 1;
             apcost = 0;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (9);
             }
-            effect = "ǧ�ﴸ.sgc";
+            effect = "千斤锤.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

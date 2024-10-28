@@ -95,8 +95,8 @@ namespace GNET
       Skill1935Stub ():SkillStub (1935)
         {
             cls = 127;
-            name = L"±ù¿é¼¼ÄÜ";
-            nativename = "±ù¿é¼¼ÄÜ";
+            name = L"å†°å—æŠ€èƒ½";
+            nativename = "å†°å—æŠ€èƒ½";
             icon = "";
             max_level = 10;
             type = 3;

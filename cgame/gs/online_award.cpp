@@ -4,25 +4,27 @@
 #include "online_award_filter.h"
 #include "online_award.h"
 
-void online_award::Update(gactive_imp* imp, int cur_time)
+void online_award::Update(gplayer_imp* imp, int cur_time)
 {
+	const static int vip_award[7] = {0,0,7200,14400,21600,32400,43200};
 	if(cur_time - _refresh_timestamp >= 86400)
 	{
+		int vip = imp->GetCashVipLevel(); 
 		//每日中午12点刷新
 		struct tm * tm1 = localtime((const time_t *)&cur_time);
 		_refresh_timestamp = cur_time - (tm1->tm_hour>=12 ? tm1->tm_hour-12 : tm1->tm_hour+12)*3600 - tm1->tm_min*60 - tm1->tm_sec;
 		DATA_TYPE dt;
 		ONLINE_AWARDS_CONFIG * ess = (ONLINE_AWARDS_CONFIG *)world_manager::GetDataMan().get_data_ptr(ONLINE_AWARD_CONFIG_ID, ID_SPACE_CONFIG, dt);
 		if(ess && dt == DT_ONLINE_AWARDS_CONFIG)
-			_total_award_time = ess->max_time;
+			_total_award_time = ess->max_time + ((vip >= 0 && vip <= 6) ? vip_award[vip] : 0);
 		NotifyClientData(imp, -1);
 	}
 }
 
-bool online_award::ActivateAward(gactive_imp* imp, int type)
+bool online_award::ActivateAward(gplayer_imp* imp, int type)
 {
 	if(type < 0 || type >= MAX_AWARD_TYPE) return false;
-	if(!world_manager::GetWorldLimit().online_award)
+	if(imp->InCentralServer() || (!world_manager::GetWorldLimit().online_award && !imp->CheckVipService(CVS_ONLINEAWARD)))
 	{
 		imp->_runner->error_message(S2C::ERR_OPERTION_DENYED_IN_CUR_SCENE);
 		return false;
@@ -64,7 +66,7 @@ bool online_award::ActivateAward(gactive_imp* imp, int type)
 	return true;
 }
 
-bool online_award::DeactivateAward(gactive_imp* imp, int type)
+bool online_award::DeactivateAward(gplayer_imp* imp, int type)
 {
 	if(type < 0 || type >= MAX_AWARD_TYPE) return false;
 
@@ -82,7 +84,7 @@ bool online_award::DeactivateAward(gactive_imp* imp, int type)
 	return true;
 }
 
-bool online_award::IncAwardTime(gactive_imp* imp, int type, int time)
+bool online_award::IncAwardTime(gplayer_imp* imp, int type, int time)
 {
 	if(type < 0 || type >= MAX_AWARD_TYPE) return false;
 
@@ -96,9 +98,11 @@ bool online_award::IncAwardTime(gactive_imp* imp, int type, int time)
 	return true;
 }
 
-int online_award::SpendAwardTime(gactive_imp* imp, int type, int time)
+int online_award::SpendAwardTime(gplayer_imp* imp, int type, int time)
 {
 	if(type < 0 || type >= MAX_AWARD_TYPE) return -1;
+	if(imp->InCentralServer() || (!world_manager::GetWorldLimit().online_award && !imp->CheckVipService(CVS_ONLINEAWARD))) return -2;
+
 	if(_total_award_time <= time)
 		_total_award_time = 0;
 	else
@@ -112,12 +116,12 @@ int online_award::SpendAwardTime(gactive_imp* imp, int type, int time)
 	return _total_award_time < data.time ? _total_award_time : data.time;
 }
 
-void online_award::NotifyClientAllData(gactive_imp* imp)
+void online_award::NotifyClientAllData(gplayer_imp* imp)
 {
 	imp->_runner->online_award_data(_total_award_time, _award_list.size(), _award_list.begin(), _award_list.size()*sizeof(award_data));
 }
 
-void online_award::NotifyClientData(gactive_imp* imp, int type)
+void online_award::NotifyClientData(gplayer_imp* imp, int type)
 {
 	if(type >= 0 && type < MAX_AWARD_TYPE)
 		imp->_runner->online_award_data(_total_award_time, 1, &_award_list[type], sizeof(award_data));

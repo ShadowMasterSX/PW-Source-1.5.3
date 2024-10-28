@@ -1,0 +1,85 @@
+#ifndef __GNET_MNDOMAINBONUS_RPCDATA
+#define __GNET_MNDOMAINBONUS_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "mndomainbonusrewarditem"
+#include "mndomainbonusrewarditem"
+
+namespace GNET
+{
+	class MNDomainBonus : public GNET::Rpc::Data
+	{
+	public:
+		int64_t unifid;
+		unsigned int bonus_sn;
+		MNDomainBonusRewardItemVector reward_list;
+		MNDomainBonusRewardItem master_reward;
+		std::vector<int> rolelist;
+
+	public:
+		MNDomainBonus (int64_t l_unifid = 0,unsigned int l_bonus_sn = 0,const MNDomainBonusRewardItemVector& l_reward_list = MNDomainBonusRewardItemVector()
+			,const MNDomainBonusRewardItem& l_master_reward = MNDomainBonusRewardItem(),const std::vector<int>& l_rolelist = std::vector<int>())
+			: unifid(l_unifid),bonus_sn(l_bonus_sn),reward_list(l_reward_list)
+			,master_reward(l_master_reward),rolelist(l_rolelist)
+		{
+		}
+
+		MNDomainBonus(const MNDomainBonus &rhs)
+			: unifid(rhs.unifid),bonus_sn(rhs.bonus_sn),reward_list(rhs.reward_list),
+			master_reward(rhs.master_reward),rolelist(rhs.rolelist) { }
+
+		Rpc::Data *Clone() const { return new MNDomainBonus(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const MNDomainBonus *r = dynamic_cast<const MNDomainBonus *>(&rhs);
+			if (r && r != this)
+			{
+				unifid = r->unifid;
+				bonus_sn = r->bonus_sn;
+				reward_list = r->reward_list;
+				master_reward = r->master_reward;
+				rolelist = r->rolelist;
+			}
+			return *this;
+		}
+
+		MNDomainBonus& operator = (const MNDomainBonus &rhs)
+		{
+			const MNDomainBonus *r = &rhs;
+			if (r && r != this)
+			{
+				unifid = r->unifid;
+				bonus_sn = r->bonus_sn;
+				reward_list = r->reward_list;
+				master_reward = r->master_reward;
+				rolelist = r->rolelist;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << unifid;
+			os << bonus_sn;
+			os << reward_list;
+			os << master_reward;
+			os << rolelist;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> unifid;
+			os >> bonus_sn;
+			os >> reward_list;
+			os >> master_reward;
+			os >> rolelist;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<MNDomainBonus>	MNDomainBonusVector;
+};
+#endif

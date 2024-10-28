@@ -1,0 +1,38 @@
+	public:
+		int roleid;
+		unsigned int fid;
+		int zoneid;
+		enum { PROTOCOL_TYPE = PROTOCOL_MNGETFACTIONBRIEFINFO };
+	public:
+		MNGetFactionBriefInfo() { type = PROTOCOL_MNGETFACTIONBRIEFINFO; }
+		MNGetFactionBriefInfo(void*) : Protocol(PROTOCOL_MNGETFACTIONBRIEFINFO) { }
+		MNGetFactionBriefInfo (int l_roleid,unsigned int l_fid,int l_zoneid)
+			 : roleid(l_roleid),fid(l_fid),zoneid(l_zoneid)
+		{
+			type = PROTOCOL_MNGETFACTIONBRIEFINFO;
+		}
+
+		MNGetFactionBriefInfo(const MNGetFactionBriefInfo &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),fid(rhs.fid),zoneid(rhs.zoneid) { }
+
+		GNET::Protocol *Clone() const { return new MNGetFactionBriefInfo(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << fid;
+			os << zoneid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> fid;
+			os >> zoneid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 32; }

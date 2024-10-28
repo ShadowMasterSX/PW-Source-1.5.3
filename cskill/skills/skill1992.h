@@ -132,8 +132,8 @@ namespace GNET
       Skill1992Stub ():SkillStub (1992)
         {
             cls = 127;
-            name = L"Æó¶ìÉ±ÊÖ";
-            nativename = "Æó¶ìÉ±ÊÖ";
+            name = L"ä¼é¹…æ€æ‰‹";
+            nativename = "ä¼é¹…æ€æ‰‹";
             icon = "";
             max_level = 10;
             type = 3;

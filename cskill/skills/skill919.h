@@ -58,9 +58,9 @@ namespace GNET
       Skill919Stub ():SkillStub (919)
         {
             cls = 7;
-            name = L"护体神光";
-            nativename = "护体神光";
-            icon = "护体神光.dds";
+            name = L"鎶や綋绁炲厜";
+            nativename = "鎶や綋绁炲厜";
+            icon = "鎶や綋绁炲厜.dds";
             max_level = 1;
             type = 2;
             apcost = 100;
@@ -87,7 +87,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "圣洁.sgc";
+            effect = "鍦ｆ磥.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

@@ -133,8 +133,8 @@ namespace GNET
       Skill895Stub ():SkillStub (895)
         {
             cls = 127;
-            name = L"Ä§ÉËÎÞÊÓ·ÀÓùÉËº¦×Ô±¬ÏÝÚå";
-            nativename = "Ä§ÉËÎÞÊÓ·ÀÓùÉËº¦×Ô±¬ÏÝÚå";
+            name = L"é­”ä¼¤æ— è§†é˜²å¾¡ä¼¤å®³è‡ªçˆ†é™·é˜±";
+            nativename = "é­”ä¼¤æ— è§†é˜²å¾¡ä¼¤å®³è‡ªçˆ†é™·é˜±";
             icon = "";
             max_level = 10;
             type = 3;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "¹ÖÎï×Ô±¬.sgc";
+            effect = "æ€ªç‰©è‡ªçˆ†.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

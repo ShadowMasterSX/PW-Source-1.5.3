@@ -134,8 +134,8 @@ namespace GNET
       Skill2504Stub ():SkillStub (2504)
         {
             cls = 127;
-            name = L"ÉÈÐÎÈº";
-            nativename = "ÉÈÐÎÈº";
+            name = L"æ‰‡å½¢ç¾¤";
+            nativename = "æ‰‡å½¢ç¾¤";
             icon = "";
             max_level = 10;
             type = 1;
@@ -157,7 +157,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "Â¥³ã_»÷ÖÐ.sgc";
+            effect = "æ¥¼ç‚½_å‡»ä¸­.sgc";
             range.type = 4;
             doenchant = true;
             dobless = false;

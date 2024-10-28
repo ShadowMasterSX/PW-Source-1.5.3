@@ -57,8 +57,8 @@ namespace GNET
       Skill2473Stub ():SkillStub (2473)
         {
             cls = 127;
-            name = L"变雪人_玩具";
-            nativename = "变雪人_玩具";
+            name = L"鍙橀洩浜篲鐜╁叿";
+            nativename = "鍙橀洩浜篲鐜╁叿";
             icon = "";
             max_level = 1;
             type = 4;

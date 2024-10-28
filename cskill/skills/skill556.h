@@ -134,9 +134,9 @@ namespace GNET
       Skill556Stub ():SkillStub (556)
         {
             cls = 7;
-            name = L"�桤���з�";
-            nativename = "�桤���з�";
-            icon = "���з�1.dds";
+            name = L"真·五行符";
+            nativename = "真·五行符";
+            icon = "五行符1.dds";
             max_level = 1;
             type = 3;
             apcost = 0;
@@ -164,7 +164,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "1���з�.sgc";
+            effect = "1五行符.sgc";
             range.type = 0;
             doenchant = true;
             dobless = true;

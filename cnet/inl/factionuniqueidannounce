@@ -1,0 +1,35 @@
+	public:
+		int factionid;
+		int64_t unifid;
+		enum { PROTOCOL_TYPE = PROTOCOL_FACTIONUNIQUEIDANNOUNCE };
+	public:
+		FactionUniqueIdAnnounce() { type = PROTOCOL_FACTIONUNIQUEIDANNOUNCE; }
+		FactionUniqueIdAnnounce(void*) : Protocol(PROTOCOL_FACTIONUNIQUEIDANNOUNCE) { }
+		FactionUniqueIdAnnounce (int l_factionid,int64_t l_unifid)
+			 : factionid(l_factionid),unifid(l_unifid)
+		{
+			type = PROTOCOL_FACTIONUNIQUEIDANNOUNCE;
+		}
+
+		FactionUniqueIdAnnounce(const FactionUniqueIdAnnounce &rhs)
+			: Protocol(rhs),factionid(rhs.factionid),unifid(rhs.unifid) { }
+
+		GNET::Protocol *Clone() const { return new FactionUniqueIdAnnounce(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << factionid;
+			os << unifid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> factionid;
+			os >> unifid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1024; }

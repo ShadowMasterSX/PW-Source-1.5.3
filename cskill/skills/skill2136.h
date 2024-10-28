@@ -132,9 +132,9 @@ namespace GNET
       Skill2136Stub ():SkillStub (2136)
         {
             cls = 127;
-            name = L"ÁÔÄ§";
-            nativename = "ÁÔÄ§";
-            icon = "ÊÉÑª.dds";
+            name = L"çŒé­”";
+            nativename = "çŒé­”";
+            icon = "å™¬è¡€.dds";
             max_level = 10;
             type = 10;
             apcost = 0;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "Î×Ê¦_Ú¤ÍõÀÖÍÁ.sgc";
+            effect = "å·«å¸ˆ_å†¥ç‹ä¹åœŸ.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

@@ -305,9 +305,9 @@ namespace GNET
       Skill2811Stub ():SkillStub (2811)
         {
             cls = 11;
-            name = L"Õæ¡¤ÔÂ»ªÂÒÎè";
-            nativename = "Õæ¡¤ÔÂ»ªÂÒÎè";
-            icon = "ÏÉÔÂ»ªÂÒÎè.dds";
+            name = L"çœŸÂ·æœˆåä¹±èˆ";
+            nativename = "çœŸÂ·æœˆåä¹±èˆ";
+            icon = "ä»™æœˆåä¹±èˆ.dds";
             max_level = 1;
             type = 1;
             apcost = 50;
@@ -329,7 +329,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 3;
-            effect = "ÔÂÏÉ_ÔÂ»ªÂÒÎè_»÷ÖĞ.sgc";
+            effect = "æœˆä»™_æœˆåä¹±èˆ_å‡»ä¸­.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

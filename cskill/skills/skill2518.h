@@ -133,8 +133,8 @@ namespace GNET
       Skill2518Stub ():SkillStub (2518)
         {
             cls = 127;
-            name = L"±¬Õ¨´ó";
-            nativename = "±¬Õ¨´ó";
+            name = L"çˆ†ç‚¸å¤§";
+            nativename = "çˆ†ç‚¸å¤§";
             icon = "";
             max_level = 10;
             type = 1;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "1ÍÌÊÉ.sgc";
+            effect = "1åå™¬.sgc";
             range.type = 2;
             doenchant = false;
             dobless = false;

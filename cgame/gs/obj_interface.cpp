@@ -197,18 +197,24 @@ object_interface::ImpairMaxMP(int mp)
 }
 
 void 
-object_interface::EnhanceScaleMaxHP(int hp)
+object_interface::EnhanceScaleMaxHP(int hp,bool update)
 {
 	_imp->_en_percent.max_hp += hp;
+	if(update)
+	{
 	property_policy::UpdateLife(_imp);
 	_imp->SetRefreshState();
+	}
 }
 void 
-object_interface::ImpairScaleMaxHP(int hp)
+object_interface::ImpairScaleMaxHP(int hp,bool update)
 {
 	_imp->_en_percent.max_hp -= hp;
+	if(update)
+	{
 	property_policy::UpdateLife(_imp);
 	_imp->SetRefreshState();
+	}
 }
 void 
 object_interface::EnhanceScaleMaxMP(int mp)
@@ -224,6 +230,20 @@ object_interface::ImpairScaleMaxMP(int mp)
 	_imp->_en_percent.max_mp -= mp;
 	property_policy::UpdateMana(_imp);
 	_imp->SetRefreshState();
+}
+
+void 
+object_interface::EnhanceScaleExp(float exp_sp_factor, float realm_exp_factor)
+{
+    _imp->_exp_sp_factor += exp_sp_factor;
+    _imp->_realm_exp_factor += realm_exp_factor;
+}
+
+void
+object_interface::ImpairScaleExp(float exp_sp_factor, float realm_exp_factor)
+{
+    _imp->_exp_sp_factor -= exp_sp_factor;
+    _imp->_realm_exp_factor -= realm_exp_factor;
 }
 
 void 
@@ -326,6 +346,34 @@ object_interface::EnhanceScaleResistance(size_t cls, int res)
 {
 	ASSERT(cls < MAGIC_CLASS);
 	_imp->_en_percent.resistance[cls] += res;
+}
+
+void 
+object_interface::IncAntiDefenseDegree(int val)
+{
+    _imp->_anti_defense_degree += val;
+    _imp->SetRefreshState();
+}
+
+void
+object_interface::DecAntiDefenseDegree(int val)
+{
+    _imp->_anti_defense_degree -= val;
+    _imp->SetRefreshState();
+}
+
+void
+object_interface::IncAntiResistanceDegree(int val)
+{
+    _imp->_anti_resistance_degree += val;
+    _imp->SetRefreshState();
+}
+
+void
+object_interface::DecAntiResistanceDegree(int val)
+{
+    _imp->_anti_resistance_degree -= val;
+    _imp->SetRefreshState();
 }
 
 void 
@@ -1324,6 +1372,25 @@ void object_interface::SetNoFly(bool b)
 	_imp->SetPlayerLimit(PLAYER_LIMIT_NOFLY, b);
 }
 
+void object_interface::SetNoLongJump(bool b)//禁止跳转
+{
+	_imp->SetPlayerLimit(PLAYER_LIMIT_NOLONGJUMP, b);
+}
+
+void object_interface::SetNoSpeedUp(bool b)//禁止各种百分比加速效果
+{
+	_imp->SetPlayerLimit(PLAYER_LIMIT_NOSPEEDUP, b);
+}
+
+void object_interface::SetNoInvisible(bool b)//禁止隐身
+{
+	if(b && _imp->_filters.IsFilterExist(FILTER_INDEX_INVISIBLE))
+	{
+		_imp->_filters.RemoveFilter(FILTER_INDEX_INVISIBLE);
+	}
+	_imp->SetPlayerLimit(PLAYER_LIMIT_NOINVISIBLE, b);
+}
+
 void object_interface::SetNoChangeSelect(bool b)
 {
 	_imp->SetPlayerLimit(PLAYER_LIMIT_NOCHANGESELECT, b);
@@ -1347,6 +1414,11 @@ void object_interface::SetNoBind(bool b)
 {
 	if(b) _imp->OI_TryCancelPlayerBind();
 	_imp->SetPlayerLimit(PLAYER_LIMIT_NOBIND, b);
+}
+
+bool object_interface::GetNoInvisible()
+{
+    return _imp->GetPlayerLimit(PLAYER_LIMIT_NOINVISIBLE);
 }
 
 void object_interface::DenyAttackCmd()
@@ -1449,13 +1521,20 @@ void object_interface::RemoveTeamVisibleState(unsigned short state)
 
 void object_interface::InsertTeamVisibleState(unsigned short state, int param)
 {
-	_imp->InsertTeamVisibleState(state, &param, 1);
+	int p = g_timer.get_systime() + param;
+	_imp->InsertTeamVisibleState(state, &p, 1);
 }
 
 void object_interface::InsertTeamVisibleState(unsigned short state, int param, int param2)
 {
 	int p[2] = {param, param2};
 	_imp->InsertTeamVisibleState(state, p, 2);
+}
+
+void object_interface::InsertTeamVisibleState(unsigned short state, int param, int param2, int param3)
+{
+	int p[3] = {param, param2, param3};
+	_imp->InsertTeamVisibleState(state, p, 3);
 }
 
 void object_interface::ModifyTeamVisibleState(unsigned short state, int param)
@@ -1467,6 +1546,12 @@ void object_interface::ModifyTeamVisibleState(unsigned short state, int param, i
 {
 	int p[2] = {param, param2};
 	_imp->ModifyTeamVisibleState(state, p, 2);
+}
+
+void object_interface::ModifyTeamVisibleState(unsigned short state, int param, int param2, int param3)
+{
+	int p[3] = {param, param2, param3};
+	_imp->ModifyTeamVisibleState(state, p, 3);
 }
 
 void object_interface::ChangeShape(int shape)
@@ -2047,6 +2132,41 @@ object_interface::CreateMine(const A3DVECTOR & pos , const mine_param & param, c
 }
 
 int 
+object_interface::CreateMine(const A3DVECTOR & pos , const mine_param & param, const int dir, const XID& target)
+{
+	npc_template * pTemplate = npc_stubs_manager::Get(param.mine_id);
+	if(!pTemplate) return -1;
+	if(!pTemplate->mine_info.is_mine) return -1;
+	
+	mine_spawner::entry_t ent;
+	memset(&ent,0,sizeof(ent));
+	ent.mid = param.mine_id;
+	ent.mine_count = 1;
+	ent.reborn_time = 10000;
+
+	gmatter * pMatter = mine_spawner::CreateMine2(NULL,pos, _imp->_plane,0,ent,0,0,dir);
+	if(pMatter == NULL) return -1;
+	
+	gmatter_mine_imp * pImp = (gmatter_mine_imp*)pMatter->imp;
+	if (pImp == NULL) return -1;
+
+	if(pTemplate->mine_info.set_owner)
+	{
+		//指定所有者
+		if(target.IsPlayerClass())
+			pImp->SetOwner(target);
+		else if(_imp->_parent->ID.IsPlayerClass())
+			pImp->SetOwner(_imp->_parent->ID);
+	}
+
+	//设定召唤出来的矿物的寿命
+	pImp->SetLife(param.remain_time);
+
+	pMatter->Unlock();
+	return 0;
+}
+
+int 
 object_interface::CreateMine(const mine_param & param, const XID & target, float radius)
 {
 	if(!target.IsActive()) return -1;
@@ -2066,7 +2186,7 @@ object_interface::CreateMine(const mine_param & param, const XID & target, float
 		pos.y = _imp->_plane->GetHeightAt(pos.x,pos.z);
 		if(!path_finding::GetValidPos(_imp->_plane, pos)) continue;
 		
-		return  CreateMine(pos,param, param.band_target ? target:XID(-1,-1));	
+		return  CreateMine(pos,param, param.bind_target ? target:XID(-1,-1));	
 	}
 	return -1;
 }
@@ -2608,6 +2728,10 @@ object_interface::ForbidBeSelected(bool b)
 void 
 object_interface::CallUpTeamMember(const XID& member)
 {
+	if(_imp->GetPlayerLimit(PLAYER_LIMIT_NOLONGJUMP))//禁止使用巫师召唤
+	{
+		return;
+	}
 	return _imp->CallUpTeamMember(member);
 }
 
@@ -2664,6 +2788,25 @@ bool
 object_interface::ModifyFilter(int filterid, int ctrlname, void * ctrlval, size_t ctrllen)
 {
 	return _imp->_filters.ModifyFilter(filterid, ctrlname, ctrlval, ctrllen);
+}
+
+void 
+object_interface::SetInfectSkill(int skill,int level)
+{
+	_imp->SetInfectSkill(skill,level);
+}
+
+void
+object_interface::ClrInfectSkill(int skill)
+{
+	if(_imp->GetInfectLevel(skill) != -1)
+		_imp->SetInfectSkill(0,0);
+}
+
+void 
+object_interface::SetSoloChallengeFilterData(int filter_id, int num)
+{
+	((gplayer_imp *)_imp) ->_solochallenge.SetFilterData(filter_id, num, (gplayer_imp *)_imp);
 }
 
 bool 
@@ -3045,7 +3188,7 @@ object_interface::SendClientAttackData()
 									_imp->_attack_degree, _imp->_defend_degree, 
 									_imp->_crit_rate+_imp->_base_crit_rate, _imp->_crit_damage_bonus,
 									((gactive_object*)_imp->_parent)->invisible_degree, ((gactive_object*)_imp->_parent)->anti_invisible_degree,
-									_imp->_penetration, _imp->_resilience, _imp->GetVigour());
+									_imp->_penetration, _imp->_resilience, _imp->GetVigour(), _imp->_anti_defense_degree, _imp->_anti_resistance_degree, ((gplayer_imp*)_imp)->_rank_kill, ((gplayer_imp*)_imp)->_rank_dead);
 }
 
 void 
@@ -3056,7 +3199,7 @@ object_interface::SendClientDefenseData()
 									_imp->_attack_degree, _imp->_defend_degree, 
 									_imp->_crit_rate+_imp->_base_crit_rate, _imp->_crit_damage_bonus,
 									((gactive_object*)_imp->_parent)->invisible_degree, ((gactive_object*)_imp->_parent)->anti_invisible_degree,
-									_imp->_penetration, _imp->_resilience, _imp->GetVigour());
+									_imp->_penetration, _imp->_resilience, _imp->GetVigour(), _imp->_anti_defense_degree, _imp->_anti_resistance_degree, ((gplayer_imp*)_imp)->_rank_kill, ((gplayer_imp*)_imp)->_rank_dead);
 }
 
 void 
@@ -3460,6 +3603,54 @@ void
 object_interface::DecResilience(int val)
 {
 	_imp->_resilience -= val;
+}
+
+void object_interface::ImpairPlusDamage(int dmg)
+{
+	_imp->_plus_enhanced_param.damage -= dmg;
+}
+void object_interface::EnhancePlusDamage(int dmg)
+{
+	_imp->_plus_enhanced_param.damage += dmg;
+}
+void object_interface::ImpairPlusMagicDamage(int dmg)
+{
+	_imp->_plus_enhanced_param.magic_dmg -= dmg;
+}
+void object_interface::EnhancePlusMagicDamage(int dmg)
+{
+	_imp->_plus_enhanced_param.magic_dmg += dmg;
+}
+void object_interface::ImpairPlusDefense(int defence)
+{
+	_imp->_plus_enhanced_param.defence -= defence;
+}
+void object_interface::EnhancePlusDefense(int defence)
+{
+	_imp->_plus_enhanced_param.defence += defence;
+}
+void object_interface::ImpairPlusResistance(size_t cls, int res)
+{
+	_imp->_plus_enhanced_param.resistance[cls] -= res;
+}
+void object_interface::EnhancePlusResistance(size_t cls, int res)
+{
+	_imp->_plus_enhanced_param.resistance[cls] += res;
+}
+void object_interface::ImpairPlusMaxHP(int hp, bool update)
+{
+	_imp->_plus_enhanced_param.max_hp -= hp;
+	if(update)
+	{
+		property_policy::UpdateLife(_imp);
+		_imp->SetRefreshState();
+	}
+}
+void object_interface::EnhancePlusMaxHP(int hp)
+{
+	_imp->_plus_enhanced_param.max_hp += hp;
+	property_policy::UpdateLife(_imp);
+	_imp->SetRefreshState();
 }
 
 bool 

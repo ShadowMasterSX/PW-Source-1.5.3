@@ -19,9 +19,9 @@ namespace GNET
         Skill2691Stub ():SkillStub (2691)
         {
             cls = 11;
-            name = L"ëÊ×åÑªÂö";
-            nativename = "ëÊ×åÑªÂö";
-            icon = "¼¼ÄÜ¼õÉË.dds";
+            name = L"èƒ§æ—è¡€è„‰";
+            nativename = "èƒ§æ—è¡€è„‰";
+            icon = "æŠ€èƒ½å‡ä¼¤.dds";
             max_level = 10;
             type = 5;
             apcost = 0;

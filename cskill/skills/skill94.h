@@ -173,7 +173,7 @@ namespace GNET
             cls = 1;
             name = L"*";
             nativename = "*";
-            icon = "±ù±¢.dds";
+            icon = "å†°é›¹.dds";
             max_level = 10;
             type = 1;
             apcost = 0;

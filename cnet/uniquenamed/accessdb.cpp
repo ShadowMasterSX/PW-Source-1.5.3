@@ -1125,6 +1125,59 @@ bool ImportCsvFamily( const char * filename )
 	return false;
 }
 
+
+bool ImportRoleList(unsigned int userid, unsigned int rolelist)
+{
+    printf("ImportRoleList Begin\n");
+
+    try
+    {
+        StorageEnv::Storage* puidrole = StorageEnv::GetStorage("uidrole");
+        StorageEnv::AtomTransaction txn;
+
+        try
+        {
+            Marshal::OctetsStream key, value;
+            key << userid;
+
+            if (puidrole->find(key, value, txn))
+            {
+                int uni_logicuid = 0;
+                unsigned int uni_rolelist = 0;
+                value >> uni_rolelist >> uni_logicuid;
+
+                unsigned int merge_rolelist = (rolelist | uni_rolelist);
+                if (uni_rolelist != merge_rolelist)
+                {
+                    value = (Marshal::OctetsStream() << merge_rolelist << uni_logicuid);
+                    puidrole->insert(key, value, txn);
+                }
+
+                printf("found: userid=%u, rolelist=%x, uni_rolelist=%x, uni_logicuid=%d.\n", userid, rolelist, uni_rolelist, uni_logicuid);
+                return true;
+            }
+            else
+            {
+                printf("not found: userid=%u.\n", userid);
+            }
+        }
+        catch (DbException e) {throw;}
+        catch (...)
+        {
+            DbException ee(DB_OLD_VERSION);
+            txn.abort(ee);
+            throw ee;
+        }
+    }
+    catch (DbException e)
+    {
+        Log::log(LOG_ERR, "ImportRoleList, userid=%u, what=%s\n", userid, e.what());
+    }
+
+    return false;
+}
+
+
 class MergeDBQuery : public StorageEnv::IQuery
 {
 public:
@@ -1291,6 +1344,7 @@ void MergeDBAll( const char * srcpath )
 
 	printf( "\nMERGE FINISHED. \n" );
 }
+
 
 };
 

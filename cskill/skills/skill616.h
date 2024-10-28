@@ -137,9 +137,9 @@ namespace GNET
       Skill616Stub ():SkillStub (616)
         {
             cls = 6;
-            name = L"�桤��Ы֮ʸ";
-            nativename = "�桤��Ы֮ʸ";
-            icon = "��Ы֮ʸ1.dds";
+            name = L"真·蛇蝎之矢";
+            nativename = "真·蛇蝎之矢";
+            icon = "蛇蝎之矢1.dds";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -164,7 +164,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (13);
             }
-            effect = "1��Ы֮ʸ.sgc";
+            effect = "1蛇蝎之矢.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

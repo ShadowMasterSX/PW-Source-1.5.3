@@ -1,7 +1,7 @@
 #ifndef _ATASK_TEMPL_H_
 #define _ATASK_TEMPL_H_
 
-#include <ASSERT.h>
+#include <assert.h>
 #include <stdio.h>
 #include <string.h>
 #include <wchar.h>
@@ -188,6 +188,7 @@ enum
 	enumTMReachLevel,				// 检查等级：普通等级，转生次数，境界等级
 	enumTMSimpleClientTask,			// 简单任务，只做客户端验证，目前只验证表情动作
 	enumTMSimpleClientTaskForceNavi,// 强制移动
+	enumTMHasIconStateID,			// 验证状态图标ID
 };
 
 /* 完成条件 */
@@ -1127,7 +1128,8 @@ struct AWARD_DATA
 				m_ulPQRankingAwardCnt		==	src.m_ulPQRankingAwardCnt		&&
 				m_bMulti					==	src.m_bMulti					&&
 				m_nNumType					==	src.m_nNumType					&&
-				m_lNum						==	src.m_lNum				
+				m_lNum						==	src.m_lNum						&&
+				m_iSoloTowerChallengeScore	==	src.m_iSoloTowerChallengeScore
 				);
 	}
 
@@ -1166,6 +1168,8 @@ struct AWARD_DATA
 	bool				m_bAwardSkill;  // 是否奖励技能 [Yongdong, 2010-1-6]
 	int					m_iAwardSkillID; // 技能ID
 	int					m_iAwardSkillLevel;// 技能等级
+
+	int					m_iSoloTowerChallengeScore;		// 单人爬塔积分奖励，同时增加积分上限和当前积分
 
 //////////////////////////////////////////////////// PQ任务奖励 start
 	
@@ -1266,7 +1270,8 @@ struct AWARD_DATA
 			|| m_iForceSetRepu
 			|| m_iTaskLimit
 			|| m_ulRealmExp != 0
-			|| m_bExpandRealmLevelMax;
+			|| m_bExpandRealmLevelMax
+			|| m_iSoloTowerChallengeScore != 0;
 	}
 
 	int MarshalBasicData(char* pData)
@@ -2145,6 +2150,9 @@ struct ATaskTemplFixedData // No Virtual Functions, No Embedded Class
 	bool			m_bCompareItemAndInventory;
 	unsigned long 	m_ulInventorySlotNum; // 所需包裹空位个数
 	
+	// 爬塔相关
+	bool			m_bTowerTask; // 是否关联爬塔
+	
 /////////////////////////////////////////////// PQ Task start
 	// 是否是PQ任务
 	bool				m_bPQTask;
@@ -2341,6 +2349,14 @@ struct ATaskTemplFixedData // No Virtual Functions, No Embedded Class
 	unsigned long	  m_ulPremGeneralCardRankCount;
 	bool			  m_bShowByGeneralCardRank;
 
+	unsigned long	  m_ulPremIconStateID;		//	前提状态图标ID
+	bool			  m_bShowByIconStateID;
+
+	//	VIP限制
+	int				m_iVIPLevelMin;
+	int				m_iVIPLevelMax;
+	bool			m_bShowByVIPLevel;
+
 	/* 任务完成的方式及条件 */
 
 	unsigned long	m_enumMethod;
@@ -2418,6 +2434,8 @@ struct ATaskTemplFixedData // No Virtual Functions, No Embedded Class
 	unsigned long	m_ulReachRealmLevel;
 
 	unsigned int	m_uiEmotion; // 表情动作
+
+	unsigned long	m_ulTMIconStateID;
 
 
 	/* 任务结束后的奖励 */
@@ -2547,6 +2565,10 @@ inline void ATaskTemplFixedData::Init()
 
 	m_iPremForceActivityLevel = -1;
 	m_iPremGeneralCardRank = -1;
+
+	m_ulPremIconStateID	 = 0;
+	m_bShowByIconStateID = false;
+	m_ulTMIconStateID = 0;
 }
 
 class ATaskTempl : public ATaskTemplFixedData
@@ -2778,10 +2800,10 @@ public:
 #ifdef _TASK_CLIENT
 	void SyncTaskType(); // 使子任务的任务类型随父任务
 	bool GetShowGfxFlag() { return m_bShowGfxFinished;} 
-	const wchar_t* GetDescription() const { ASSERT(m_pwstrDescript); return (wchar_t*)m_pwstrDescript; }
-	const wchar_t* GetOkText() const { ASSERT(m_pwstrOkText); return (wchar_t*)m_pwstrOkText; }
-	const wchar_t* GetNoText() const { ASSERT(m_pwstrNoText); return (wchar_t*)m_pwstrNoText; }
-	const wchar_t* GetTribute() const { ASSERT(m_pwstrTribute); return (wchar_t*)m_pwstrTribute; }
+	const wchar_t* GetDescription() const { assert(m_pwstrDescript); return (wchar_t*)m_pwstrDescript; }
+	const wchar_t* GetOkText() const { assert(m_pwstrOkText); return (wchar_t*)m_pwstrOkText; }
+	const wchar_t* GetNoText() const { assert(m_pwstrNoText); return (wchar_t*)m_pwstrNoText; }
+	const wchar_t* GetTribute() const { assert(m_pwstrTribute); return (wchar_t*)m_pwstrTribute; }
 
 	const talk_proc* GetDeliverTaskTalk() const { return &m_DelvTaskTalk; }
 	const talk_proc* GetUnqualifiedTalk() const { return &m_UnqualifiedTalk; }
@@ -2892,6 +2914,9 @@ public:
 	unsigned long CheckCardCollection(TaskInterface* pTask) const;
 	unsigned long CheckCardRankCount(TaskInterface* pTask) const;
 	unsigned long CheckInTransformShape(TaskInterface* pTask) const;
+	unsigned long CheckPremIconStateID(TaskInterface *pTask)const;
+	bool		  CheckTMIconStateID(TaskInterface *pTask)const;
+	unsigned long CheckVIPLevel(TaskInterface* pTask)const;
 
 #ifdef _TASK_CLIENT
 #else
@@ -2916,12 +2941,25 @@ public:
 	unsigned long CalcAwardMulti	(TaskInterface* pTask, ActiveTaskEntry* pEntry, unsigned long ulTaskTime, unsigned long ulCurTime) const;
 	unsigned long GetMemTaskByInfo	(const task_team_member_info* pInfo) const;
 	bool IsAutoDeliver				() const;
+	bool NeedFinishedTaskListSupport()const;
+	bool NeedFinishTimeListSupport()const;
+	bool NeedFinishCountListSupport()const;
 	unsigned long GetSuitableLevel	() { return GetTopTask()->m_ulSuitableLevel; }
 	bool CanShowPrompt				() const { return GetTopTask()->m_bShowPrompt; }
 	bool IsKeyTask					() const { return GetTopTask()->m_bKeyTask; }
 	unsigned long HasAllTeamMemsWanted(TaskInterface* pTask, bool bStrict) const;
 	unsigned long RecursiveCheckAward(TaskInterface* pTask, ActiveTaskList* pList, ActiveTaskEntry* pEntry, unsigned long ulCurTime, int nChoice) const;
 	bool CanDeliverWorldContribution(TaskInterface* pTask) const;
+
+	class TaskRecursiveChecker{
+	public:
+		virtual ~TaskRecursiveChecker(){}
+		virtual bool Downward()const=0;
+		virtual bool IsMatch(const ATaskTempl *pTask)const=0;
+	};
+	bool RecursiveCheck(TaskRecursiveChecker *pChecker)const;
+
+	unsigned long CheckRecordListSpace(TaskInterface *pTask)const;
 	
 
 #ifdef _TASK_CLIENT

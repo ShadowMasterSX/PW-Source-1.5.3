@@ -186,6 +186,22 @@ target_aggro_first::GetTarget(policy * self, XID & target)
 		target.id  = -1;
 	}
 }
+void target_aggro_first_redirected::GetTarget(policy * self, XID & target)
+{
+	ai_object * ps =self->GetAIObject();
+	if(ps->GetAggroCount() > 0)
+	{
+		ps->GetAggroEntry(0,target);
+		if(target.IsPet())
+		{
+			XID transfer_target(-1,-1);
+			int master_id = ps->GetPetMaster(target);
+			transfer_target.id=master_id;
+			transfer_target.type=GM_TYPE_PLAYER;
+			target=transfer_target;
+		}
+	}
+}
 
 void 
 target_aggro_second::GetTarget(policy * self, XID & target)
@@ -824,7 +840,7 @@ bool op_summon_mine::DoSomething(policy *self)
 
 bool op_change_path::DoSomething(policy * self)
 {
-	if(world_manager::GetWorldTag() != _world_tag) return false;
+	if(_world_tag && world_manager::GetWorldTag() != _world_tag) return false;
 	ai_policy * pAI = self->GetAIPolicy();
 	int path_id = world_manager::GetPathMan().IdConvert(_global_path_id);
 	pAI->ChangePath(path_id,_path_type,_speed_flag);
@@ -833,7 +849,7 @@ bool op_change_path::DoSomething(policy * self)
 
 bool op_change_path_2::DoSomething(policy * self)
 {
-	if(world_manager::GetWorldTag() != _world_tag) return false;
+	if(_world_tag && world_manager::GetWorldTag() != _world_tag) return false;
 	ai_policy * pAI = self->GetAIPolicy();
 	logic_val lv_pathid(_global_path_id_type,_global_path_id,self->GetAIObject()->GetImpl());
 	int path_id = world_manager::GetPathMan().IdConvert(lv_pathid.getval());
@@ -920,5 +936,16 @@ bool op_deliver_task_in_dmglist::DoSomething(policy* self)
 	return true;
 }
 
+bool op_clear_tower_task_in_region::DoSomething(policy * self)
+{
+	gactive_imp* pImp = self->GetAIObject()->GetImpl();
+	MSG msg;
+	BuildMessage(msg, GM_MSG_CLEAR_TOWER_TASK, XID(GM_TYPE_PLAYER,0),
+			pImp->_parent->ID,pImp->_parent->pos);
+
+	pImp->_plane->BroadcastLocalBoxMessage(msg,_rect);
+
+	return true;
+}
 }
 

@@ -132,8 +132,8 @@ namespace GNET
       Skill702Stub ():SkillStub (702)
         {
             cls = 127;
-            name = L"2¼¶³ÇÕ½BOSS×ÔÉí¼ÓÒ÷³ª";
-            nativename = "2¼¶³ÇÕ½BOSS×ÔÉí¼ÓÒ÷³ª";
+            name = L"2çº§åŸæˆ˜BOSSè‡ªèº«åŠ åŸå”±";
+            nativename = "2çº§åŸæˆ˜BOSSè‡ªèº«åŠ åŸå”±";
             icon = "";
             max_level = 5;
             type = 2;
@@ -153,7 +153,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "Ä§.sgc";
+            effect = "é­”.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

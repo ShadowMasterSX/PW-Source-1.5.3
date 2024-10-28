@@ -58,9 +58,9 @@ namespace GNET
       Skill428Stub ():SkillStub (428)
         {
             cls = 0;
-            name = L"Õæ¡¤Ò×Ëè¾­";
-            nativename = "Õæ¡¤Ò×Ëè¾­";
-            icon = "Ò×Ëè¾­1.dds";
+            name = L"çœŸÂ·æ˜“é«“ç»";
+            nativename = "çœŸÂ·æ˜“é«“ç»";
+            icon = "æ˜“é«“ç»1.dds";
             max_level = 1;
             type = 2;
             apcost = 0;
@@ -99,7 +99,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (9);
             }
-            effect = "1Ò×Ëè¾­.sgc";
+            effect = "1æ˜“é«“ç».sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

@@ -57,8 +57,8 @@ namespace GNET
       Skill1898Stub ():SkillStub (1898)
         {
             cls = 127;
-            name = L"ÎïÆ·¼¼ÄÜ-ÆÕ¹¥¼õÉË";
-            nativename = "ÎïÆ·¼¼ÄÜ-ÆÕ¹¥¼õÉË";
+            name = L"ç‰©å“æŠ€èƒ½-æ™®æ”»å‡ä¼¤";
+            nativename = "ç‰©å“æŠ€èƒ½-æ™®æ”»å‡ä¼¤";
             icon = "";
             max_level = 5;
             type = 4;
@@ -79,7 +79,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "ÏÉ.sgc";
+            effect = "ä»™.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

@@ -132,8 +132,8 @@ namespace GNET
       Skill2168Stub ():SkillStub (2168)
         {
             cls = 127;
-            name = L"中央喷吐";
-            nativename = "中央喷吐";
+            name = L"涓ぎ鍠峰悙";
+            nativename = "涓ぎ鍠峰悙";
             icon = "";
             max_level = 10;
             type = 2;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "霸王献鼎.sgc";
+            effect = "闇哥帇鐚紟.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

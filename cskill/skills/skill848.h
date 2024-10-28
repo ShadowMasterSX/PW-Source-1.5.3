@@ -132,8 +132,8 @@ namespace GNET
       Skill848Stub ():SkillStub (848)
         {
             cls = 127;
-            name = L"金系单体持续魔伤";
-            nativename = "金系单体持续魔伤";
+            name = L"閲戠郴鍗曚綋鎸佺画榄斾激";
+            nativename = "閲戠郴鍗曚綋鎸佺画榄斾激";
             icon = "";
             max_level = 10;
             type = 3;
@@ -153,7 +153,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "神雷.sgc";
+            effect = "绁為浄.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

@@ -58,9 +58,9 @@ namespace GNET
       Skill1360Stub ():SkillStub (1360)
         {
             cls = 8;
-            name = L"еРТЈѕч";
-            nativename = "еРТЈѕч";
-            icon = "еРТЈѕч.dds";
+            name = L"йЂЌйЃҐиЇЂ";
+            nativename = "йЂЌйЃҐиЇЂ";
+            icon = "йЂЌйЃҐиЇЂ.dds";
             max_level = 10;
             type = 2;
             apcost = 0;
@@ -84,7 +84,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (1);
             }
-            effect = "ЅЈБй_еРТЈѕч.sgc";
+            effect = "е‰‘зЃµ_йЂЌйЃҐиЇЂ.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

@@ -132,8 +132,8 @@ namespace GNET
       Skill2347Stub ():SkillStub (2347)
         {
             cls = 127;
-            name = L"天地回光";
-            nativename = "天地回光";
+            name = L"澶╁湴鍥炲厜";
+            nativename = "澶╁湴鍥炲厜";
             icon = "";
             max_level = 10;
             type = 3;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "1玄冰水龙.sgc";
+            effect = "1鐜勫啺姘撮緳.sgc";
             range.type = 3;
             doenchant = true;
             dobless = false;

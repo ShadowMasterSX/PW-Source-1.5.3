@@ -260,11 +260,27 @@ void set_to_classid(DATA_TYPE type, item_data * data, int major_type)
 			data->classid = CLS_ITEM_GENERALCARD_DICE;
 			break;
 
+		case DT_ASTROLABE_ESSENCE:
+			data->classid = CLS_ITEM_ASTROLABE;
+			break;
+
+		case DT_ITEM_PACKAGE_BY_PROFESSION_ESSENCE:
+			data->classid = CLS_ITEM_OCCUP_PACKAGE;
+			break;
+
 		case DT_SHOP_TOKEN_ESSENCE:
 		case DT_UNIVERSAL_TOKEN_ESSENCE:
 			data->classid = -1;
 			break;
 
+		case DT_FIREWORKS2_ESSENCE:
+			data->classid = CLS_ITEM_FIREWORKS2;
+			break;
+
+		case DT_FIX_POSITION_TRANSMIT_ESSENCE:
+			data->classid = CLS_ITEM_FIX_POSITION_TRANSMIT;
+			break;
+			
 		default:
 			//printf("未能确定的Datatype %d\n",type);
 			data->classid = -1;

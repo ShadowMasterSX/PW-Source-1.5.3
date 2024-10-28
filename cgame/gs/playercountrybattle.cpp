@@ -237,12 +237,12 @@ gplayer_countrybattle::PlayerEnterWorld()
 }
 
 void 
-gplayer_countrybattle::PlayerEnterServer()
+gplayer_countrybattle::PlayerEnterServer(int source_tag)
 {
 	//提前设置FACTION，因为playerenterserver函数会用到
 	SetBattleFaction();
 
-	gplayer_imp::PlayerEnterServer();
+	gplayer_imp::PlayerEnterServer(source_tag);
 	gplayer * pPlayer = GetParent();
 
 	countrybattle_ctrl * pCtrl = (countrybattle_ctrl *)_plane->w_ctrl;
@@ -575,9 +575,9 @@ gplayer_countrybattle::CanResurrect(int param)
 }
 
 int
-gplayer_countrybattle::Resurrect(const A3DVECTOR & pos,bool nomove,float exp_reduce,int target_tag,float hp_factor, float mp_factor, int param)
+gplayer_countrybattle::Resurrect(const A3DVECTOR & pos,bool nomove,float exp_reduce,int target_tag,float hp_factor, float mp_factor, int param, float ap_factor, int extra_invincible_time)
 {
-	gplayer_imp::Resurrect(pos,nomove,exp_reduce, target_tag,hp_factor,mp_factor,param);
+	gplayer_imp::Resurrect(pos,nomove,exp_reduce, target_tag,hp_factor,mp_factor,param,ap_factor,extra_invincible_time);
 
 	//设置无敌
 	_filters.AddFilter(new invincible_filter(this,FILTER_INVINCIBLE,15));

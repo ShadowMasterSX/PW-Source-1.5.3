@@ -137,9 +137,9 @@ namespace GNET
       Skill88Stub ():SkillStub (88)
         {
             cls = 1;
-            name = L"ӿȪ";
-            nativename = "ӿȪ";
-            icon = "ӿȪ.dds";
+            name = L"涌泉";
+            nativename = "涌泉";
+            icon = "涌泉.dds";
             max_level = 10;
             type = 1;
             apcost = 0;
@@ -166,7 +166,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (292);
             }
-            effect = "ӿȪ.sgc";
+            effect = "涌泉.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

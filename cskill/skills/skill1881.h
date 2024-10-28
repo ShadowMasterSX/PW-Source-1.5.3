@@ -19,8 +19,8 @@ namespace GNET
         Skill1881Stub ():SkillStub (1881)
         {
             cls = 7;
-            name = L"ò¯³Ï£¨Ğ§¹û×¨ÓÃ£©";
-            nativename = "ò¯³Ï£¨Ğ§¹û×¨ÓÃ£©";
+            name = L"è™”è¯šï¼ˆæ•ˆæœä¸“ç”¨ï¼‰";
+            nativename = "è™”è¯šï¼ˆæ•ˆæœä¸“ç”¨ï¼‰";
             icon = "";
             max_level = 1;
             type = 1;
@@ -45,7 +45,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (23749);
             }
-            effect = "´Ì¿Í_ÈçÀ´ÌìĞÄÖä.sgc";
+            effect = "åˆºå®¢_å¦‚æ¥å¤©å¿ƒå’’.sgc";
             range.type = 5;
             doenchant = false;
             dobless = false;

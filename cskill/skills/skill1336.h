@@ -57,8 +57,8 @@ namespace GNET
       Skill1336Stub ():SkillStub (1336)
         {
             cls = 127;
-            name = L"pkÈü¹ÛÖÚ×´Ì¬";
-            nativename = "pkÈü¹ÛÖÚ×´Ì¬";
+            name = L"pkèµ›è§‚ä¼—çŠ¶æ€";
+            nativename = "pkèµ›è§‚ä¼—çŠ¶æ€";
             icon = "";
             max_level = MAX_LEVEL;
             type = 4;

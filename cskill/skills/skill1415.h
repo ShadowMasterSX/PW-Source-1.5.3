@@ -133,8 +133,8 @@ namespace GNET
       Skill1415Stub ():SkillStub (1415)
         {
             cls = 127;
-            name = L"�����¹��ͷ�ͨ��";
-            nativename = "�����¹��ͷ�ͨ��";
+            name = L"灵族新怪释放通用";
+            nativename = "灵族新怪释放通用";
             icon = "";
             max_level = 10;
             type = 1;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "��ˮ��.sgc";
+            effect = "避水诀.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

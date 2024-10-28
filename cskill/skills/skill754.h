@@ -132,9 +132,9 @@ namespace GNET
       Skill754Stub ():SkillStub (754)
         {
             cls = 127;
-            name = L"º¿½Ğ";
-            nativename = "º¿½Ğ";
-            icon = "³èÎïº¿½Ğ.dds";
+            name = L"åšå«";
+            nativename = "åšå«";
+            icon = "å® ç‰©åšå«.dds";
             max_level = 5;
             type = 3;
             apcost = 0;
@@ -153,7 +153,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "ÆÆÌì.sgc";
+            effect = "ç ´å¤©.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

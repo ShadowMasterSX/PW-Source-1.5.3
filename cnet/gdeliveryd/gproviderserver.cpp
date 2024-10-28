@@ -14,6 +14,8 @@
 #include "forcemanager.h"
 #include "globalcontrol.h"
 
+#include "cdcmnfbattleman.h"
+#include "cdsmnfbattleman.h"
 namespace GNET
 {
 
@@ -38,6 +40,16 @@ void GProviderServer::OnAddSession(Session::ID sid)
 		
 	ForceManager::GetInstance()->OnGSConnect(this, sid);
 	GlobalControl::GetInstance()->OnGSConnect(this, sid);
+
+	bool is_central = GDeliveryServer::GetInstance()->IsCentralDS();
+	if(is_central)
+	{
+		CDS_MNFactionBattleMan::GetInstance()->GSMNDomainInfoNotice(sid);
+	}
+	else
+	{
+		CDC_MNFactionBattleMan::GetInstance()->GSMNDomainInfoNotice(sid);
+	}
 }
 
 void GProviderServer::OnDelSession(Session::ID sid)
@@ -105,7 +117,7 @@ void GProviderServer::DeliverGameControl(GMControlGame *gmcg, unsigned int sid)
 	gmcg->xid = ++send_xid;
 	for (GameServerMap::iterator it=instance.gameservermap.begin(); it!=instance.gameservermap.end(); it++)
 	{
-		if ((*it).second.worldtag == gmcg->worldtag ) 
+		if ( -1 == gmcg->worldtag || (*it).second.worldtag == gmcg->worldtag ) 
 		{
 			GMControlGameRes res;
 			res.gsid = (*it).first;

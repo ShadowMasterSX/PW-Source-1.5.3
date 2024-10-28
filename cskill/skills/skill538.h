@@ -130,9 +130,9 @@ namespace GNET
       Skill538Stub ():SkillStub (538)
         {
             cls = 4;
-            name = L"Õæ¡¤±äÉíÇ¿»¯";
-            nativename = "Õæ¡¤±äÉíÇ¿»¯";
-            icon = "±äÉíÇ¿»¯1.dds";
+            name = L"çœŸÂ·å˜èº«å¼ºåŒ–";
+            nativename = "çœŸÂ·å˜èº«å¼ºåŒ–";
+            icon = "å˜èº«å¼ºåŒ–1.dds";
             max_level = 1;
             type = 5;
             apcost = 0;

@@ -132,8 +132,8 @@ namespace GNET
       Skill1339Stub ():SkillStub (1339)
         {
             cls = 127;
-            name = L"Å×»¨Çò";
-            nativename = "Å×»¨Çò";
+            name = L"æŠ›èŠ±çƒ";
+            nativename = "æŠ›èŠ±çƒ";
             icon = "";
             max_level = 10;
             type = 2;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 1;
-            effect = "»éÀñĞåÇò.sgc";
+            effect = "å©šç¤¼ç»£çƒ.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

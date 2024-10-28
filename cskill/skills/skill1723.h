@@ -134,9 +134,9 @@ namespace GNET
       Skill1723Stub ():SkillStub (1723)
         {
             cls = 9;
-            name = L"ÁéÏ¬";
-            nativename = "ÁéÏ¬";
-            icon = "ÁéÏ¬.dds";
+            name = L"çµçŠ€";
+            nativename = "çµçŠ€";
+            icon = "çµçŠ€.dds";
             max_level = 1;
             type = 2;
             apcost = 0;

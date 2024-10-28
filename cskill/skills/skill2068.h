@@ -132,9 +132,9 @@ namespace GNET
       Skill2068Stub ():SkillStub (2068)
         {
             cls = 127;
-            name = L"春节活动特效";
-            nativename = "春节活动特效";
-            icon = "寒冰领域.dds";
+            name = L"鏄ヨ妭娲诲姩鐗规晥";
+            nativename = "鏄ヨ妭娲诲姩鐗规晥";
+            icon = "瀵掑啺棰嗗煙.dds";
             max_level = 10;
             type = 2;
             apcost = 0;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 3;
-            effect = "刺客_飘零.sgc";
+            effect = "鍒哄_椋橀浂.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

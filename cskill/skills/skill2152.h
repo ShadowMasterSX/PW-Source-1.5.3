@@ -57,8 +57,8 @@ namespace GNET
       Skill2152Stub ():SkillStub (2152)
         {
             cls = 127;
-            name = L"Áú±äÉí";
-            nativename = "Áú±äÉí";
+            name = L"é¾™å˜èº«";
+            nativename = "é¾™å˜èº«";
             icon = "";
             max_level = 10;
             type = 4;

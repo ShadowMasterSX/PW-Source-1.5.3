@@ -58,9 +58,9 @@ namespace GNET
       Skill188Stub ():SkillStub (188)
         {
             cls = 4;
-            name = L"ÊŞÍõÖ®Å­";
-            nativename = "ÊŞÍõÖ®Å­";
-            icon = "ÊŞÍõÖ®Å­ĞÂ.dds";
+            name = L"å…½ç‹ä¹‹æ€’";
+            nativename = "å…½ç‹ä¹‹æ€’";
+            icon = "å…½ç‹ä¹‹æ€’æ–°.dds";
             max_level = 1;
             type = 2;
             apcost = 0;
@@ -87,7 +87,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "¹ÖÎïÖÎÁÆÊõ.sgc";
+            effect = "æ€ªç‰©æ²»ç–—æœ¯.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

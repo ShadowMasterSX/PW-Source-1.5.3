@@ -57,8 +57,8 @@ namespace GNET
       Skill2158Stub ():SkillStub (2158)
         {
             cls = 127;
-            name = L"¹úÇì½Ú¼Ó·ÉËÙÓÎËÙ";
-            nativename = "¹úÇì½Ú¼Ó·ÉËÙÓÎËÙ";
+            name = L"å›½åº†èŠ‚åŠ é£é€Ÿæ¸¸é€Ÿ";
+            nativename = "å›½åº†èŠ‚åŠ é£é€Ÿæ¸¸é€Ÿ";
             icon = "";
             max_level = 10;
             type = 4;
@@ -80,7 +80,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "Óù·ç¾÷.sgc";
+            effect = "å¾¡é£è¯€.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

@@ -135,9 +135,9 @@ namespace GNET
       Skill515Stub ():SkillStub (515)
         {
             cls = 4;
-            name = L"狂·化血成魔";
-            nativename = "狂·化血成魔";
-            icon = "化血成魔2.dds";
+            name = L"鐙偮峰寲琛�鎴愰瓟";
+            nativename = "鐙偮峰寲琛�鎴愰瓟";
+            icon = "鍖栬鎴愰瓟2.dds";
             max_level = 1;
             type = 2;
             apcost = 0;
@@ -161,7 +161,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (9);
             }
-            effect = "2化血成魔.sgc";
+            effect = "2鍖栬鎴愰瓟.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

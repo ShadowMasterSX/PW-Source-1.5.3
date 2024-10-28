@@ -133,8 +133,8 @@ namespace GNET
       Skill2394Stub ():SkillStub (2394)
         {
             cls = 127;
-            name = L"近身闪电";
-            nativename = "近身闪电";
+            name = L"杩戣韩闂數";
+            nativename = "杩戣韩闂數";
             icon = "";
             max_level = 10;
             type = 1;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "神雷.sgc";
+            effect = "绁為浄.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

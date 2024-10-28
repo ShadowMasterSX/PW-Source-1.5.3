@@ -17,9 +17,8 @@ class CountryBattleLeaveNotice : public GNET::Protocol
 	void Process(Manager *manager, Manager::Session::ID sid)
 	{
 		DEBUG_PRINT("countrybattleleavenotice, roleid=%d, country_id=%d, major_strength=%d, minor_strength=%d", roleid, country_id, major_strength, minor_strength);
-		CountryBattleMan* pMan = CountryBattleMan::GetInstance();
 		
-		pMan->LeaveBattle(roleid, country_id, major_strength, minor_strength);
+		CountryBattleMan::OnPlayerLeaveBattle(roleid, country_id, major_strength, minor_strength);
 	}
 };
 

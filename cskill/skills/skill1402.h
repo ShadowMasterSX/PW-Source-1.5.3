@@ -19,9 +19,9 @@ namespace GNET
         Skill1402Stub ():SkillStub (1402)
         {
             cls = 255;
-            name = L"´òÄ¥¾«Í¨";
-            nativename = "´òÄ¥¾«Í¨";
-            icon = "´òÄ¥¾«Í¨.dds";
+            name = L"æ‰“ç£¨ç²¾é€š";
+            nativename = "æ‰“ç£¨ç²¾é€š";
+            icon = "æ‰“ç£¨ç²¾é€š.dds";
             max_level = 10;
             type = 9;
             apcost = 0;

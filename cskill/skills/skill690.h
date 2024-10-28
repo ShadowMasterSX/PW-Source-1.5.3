@@ -19,8 +19,8 @@ namespace GNET
         Skill690Stub ():SkillStub (690)
         {
             cls = 255;
-            name = L"²âÊÔÎïÆ·¼¼ÄÜ";
-            nativename = "²âÊÔÎïÆ·¼¼ÄÜ";
+            name = L"æµ‹è¯•ç‰©å“æŠ€èƒ½";
+            nativename = "æµ‹è¯•ç‰©å“æŠ€èƒ½";
             icon = "";
             max_level = 1;
             type = 6;
@@ -41,7 +41,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "Ğş¾»Öä.sgc";
+            effect = "ç„å‡€å’’.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

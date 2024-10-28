@@ -137,9 +137,9 @@ namespace GNET
       Skill379Stub ():SkillStub (379)
         {
             cls = 0;
-            name = L"¿ñ¡¤Á÷Ë®";
-            nativename = "¿ñ¡¤Á÷Ë®";
-            icon = "Á÷Ë®2.dds";
+            name = L"ç‹‚Â·æµæ°´";
+            nativename = "ç‹‚Â·æµæ°´";
+            icon = "æµæ°´2.dds";
             max_level = 1;
             type = 1;
             apcost = 30;
@@ -178,7 +178,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (9);
             }
-            effect = "2Á÷Ë®.sgc";
+            effect = "2æµæ°´.sgc";
             range.type = 0;
             doenchant = false;
             dobless = true;

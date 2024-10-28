@@ -183,6 +183,7 @@ void do_player_login(const A3DVECTOR & ppos, const GDB::base_info * pInfo, const
 		}
 	}
 	pImp->_skill.EventReset(pImp);
+	pImp->_skill.EventEnter(pImp,world_manager::GetWorldTag());
 
 	//初始化物品
 	pImp->GetInventory().SetSize(pInfo->bagsize);
@@ -396,6 +397,8 @@ void do_player_login(const A3DVECTOR & ppos, const GDB::base_info * pInfo, const
 	//境界
 	pImp->SetDBRealmData(data->realm.level,data->realm.exp);	
 
+	pImp->SetRankData(data->rank.point, data->rank.kill, data->rank.dead);
+
 	//卡牌图鉴
 	if(data->generalcard_collection.data && data->generalcard_collection.size)
 	{
@@ -411,6 +414,24 @@ void do_player_login(const A3DVECTOR & ppos, const GDB::base_info * pInfo, const
 	pImp->SetDBRandMallData(randmalldata);
 	
 	pImp->SetDBWorldContrib(pInfo->world_contribution.contrib,pInfo->world_contribution.cost);
+	pImp->SetDBAstrolabeExtern(pInfo->astrolabe_extern.level,pInfo->astrolabe_extern.exp);
+
+    pImp->SetDBSoloChallengeInfo(pInfo->solo_challenge_info);
+    pImp->SetDBMNFactionInfo(pInfo->mnfaction_info.unifid);
+    pImp->SetDBVisaInfo(pInfo->visa_info.type, pInfo->visa_info.stay_timestamp, pInfo->visa_info.cost_item, pInfo->visa_info.cost_item_count);
+
+	raw_wrapper fixpositiontransmitdata(data->fix_position_transmit_data.data, data->fix_position_transmit_data.size);
+	pImp->SetDBFixPositionTransmit(fixpositiontransmitdata);
+
+    pImp->SetDBCashResurrectTimesInCoolDown(pInfo->cash_resurrect_info.times);
+
+	pImp->SetDBCashVipInfo(pInfo->vip_level, pInfo->score_add, pInfo->score_cost, pInfo->score_consume);
+
+	pImp->SetDBPurchaseLimitInfo(pInfo->next_day_item_clear_timestamp, pInfo->next_week_item_clear_timestamp, pInfo->next_month_item_clear_timestamp, pInfo->next_year_item_clear_timestamp);
+
+	raw_wrapper purchase_limit_data(data->purchase_limit_data.data, data->purchase_limit_data.size);
+	pImp->SetDBPurchaseLimitInfo(purchase_limit_data);
+
 	//重新计算玩家的所有数据
 	property_policy::UpdatePlayer(pInfo->cls,pImp);
 
@@ -717,6 +738,8 @@ void    user_save_data(gplayer * pPlayer,GDB::Result * callback, int priority,in
 	//境界
 	pImp->GetDBRealmData(data.realm.level,data.realm.exp);
 
+	pImp->GetRankData(data.rank.point, data.rank.kill, data.rank.dead);
+
 	//卡牌图鉴
 	info.leadership = pImp->GetDBLeadership();
 	data.generalcard_collection.data = pImp->_generalcard_collection.data(data.generalcard_collection.size);
@@ -751,6 +774,29 @@ void    user_save_data(gplayer * pPlayer,GDB::Result * callback, int priority,in
 	data.rand_mall_data.size = randmalldata.size();
 
 	pImp->GetDBWorldContrib(info.world_contribution.contrib,info.world_contribution.cost);
+	pImp->GetDBAstrolabeExtern(info.astrolabe_extern.level,info.astrolabe_extern.exp);
+
+    pImp->GetDBSoloChallengeInfo(info.solo_challenge_info);
+    pImp->GetDBMNFactionInfo(info.mnfaction_info.unifid);
+    pImp->GetDBVisaInfo(info.visa_info.type, info.visa_info.stay_timestamp, info.visa_info.cost_item, info.visa_info.cost_item_count);
+
+	raw_wrapper fixpositiontransmitdata;
+	pImp->GetDBFixPositionTransmit(fixpositiontransmitdata);
+	data.fix_position_transmit_data.data = fixpositiontransmitdata.data();
+	data.fix_position_transmit_data.size = fixpositiontransmitdata.size();
+
+    pImp->GetDBCashResurrectTimesInCoolDown(info.cash_resurrect_info.times);
+
+	pImp->GetDBCashVipInfo(info.vip_level, info.score_add, info.score_cost, info.score_consume);
+
+	pImp->GetDBPurchaseLimitData(info.next_day_item_clear_timestamp, info.next_week_item_clear_timestamp, info.next_month_item_clear_timestamp, info.next_year_item_clear_timestamp);
+	
+	raw_wrapper purchase_limit_data;
+	pImp->GetDBPurchaseLimitInfo(purchase_limit_data);
+	data.purchase_limit_data.data = purchase_limit_data.data();
+	data.purchase_limit_data.size = purchase_limit_data.size();
+
+
 /*---------------------------发出保存请求------------------------------------*/
 	GDB::put_role(info.id,&info,&data,callback,priority,mask);
 /*-------------------------发出保存请求完成----------------------------------*/

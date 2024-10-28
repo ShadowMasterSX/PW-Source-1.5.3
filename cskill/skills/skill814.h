@@ -133,8 +133,8 @@ namespace GNET
       Skill814Stub ():SkillStub (814)
         {
             cls = 127;
-            name = L"怪物无效果自杀";
-            nativename = "怪物无效果自杀";
+            name = L"鎬墿鏃犳晥鏋滆嚜鏉�";
+            nativename = "鎬墿鏃犳晥鏋滆嚜鏉�";
             icon = "";
             max_level = 10;
             type = 2;

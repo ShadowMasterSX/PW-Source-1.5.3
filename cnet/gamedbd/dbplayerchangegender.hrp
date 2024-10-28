@@ -1,0 +1,140 @@
+
+#ifndef __GNET_DBPLAYERCHANGEGENDER_HPP
+#define __GNET_DBPLAYERCHANGEGENDER_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbplayerchangegenderarg"
+#include "dbplayerchangegenderres"
+
+namespace GNET
+{
+
+class DBPlayerChangeGender : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbplayerchangegender"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBPlayerChangeGenderArg *arg = (DBPlayerChangeGenderArg *)argument;
+		DBPlayerChangeGenderRes *res = (DBPlayerChangeGenderRes *)result;
+
+        unsigned int orignal_money = arg->syncdata.inventory.money;
+
+        LOG_TRACE("DBPlayerChangeGender, roleid=%d, item_id=%d, item_num=%d, item_pos=%d", arg->roleid, arg->item_id, arg->item_num, arg->item_pos);
+
+        try
+        {
+            StorageEnv::Storage* pbase = StorageEnv::GetStorage("base");
+            StorageEnv::Storage* pinventory = StorageEnv::GetStorage("inventory");
+            StorageEnv::Storage* pequipment = StorageEnv::GetStorage("equipment");
+            StorageEnv::Storage* pstorehouse = StorageEnv::GetStorage("storehouse");
+            StorageEnv::Storage* plog = arg->syncdata.logs.size() ? StorageEnv::GetStorage("shoplog") : NULL;
+            StorageEnv::CommonTransaction txn;
+
+            try
+            {
+                Marshal::OctetsStream key_roleid;
+                key_roleid << arg->roleid;
+
+                GRoleBase base;
+                Marshal::OctetsStream(pbase->find(key_roleid, txn)) >> base;
+                unsigned char oldgender = base.gender;
+                if (arg->newgender == oldgender)
+                {
+                    Log::log(LOG_ERR, "DBPlayerChangeGender, the same gender. roleid=%d, newgender=%d, oldgender=%d", arg->roleid, arg->newgender, oldgender);
+                    throw DbException(DB_VERIFY_BAD);
+                }
+
+                GRolePocket pocket;
+                Marshal::OctetsStream(pinventory->find(key_roleid, txn)) >> pocket;
+                if (arg->syncdata.inventory.timestamp <= pocket.timestamp)
+                {
+                    Log::log(LOG_ERR, "DBPlayerChangeGender, timestamp mismatch. roleid=%d (%d<=%d)", arg->roleid, arg->syncdata.inventory.timestamp, pocket.timestamp);
+                    throw DbException(DB_VERIFY_BAD);
+                }
+
+                int money_delta = arg->syncdata.inventory.money - pocket.money;
+                GRoleInventoryVector::iterator it;
+                GRoleInventoryVector& v = arg->syncdata.inventory.items;
+
+                unsigned int pos = 0;
+                for (pos = 0; pos < v.size(); ++pos)
+                {
+                    if (v[pos].pos == arg->item_pos)
+                        break;
+                }
+
+                if (pos >= v.size())
+                    throw DbException(DB_VERIFY_BAD);
+
+                int count = arg->item_num;
+                if ((v[pos].id != (unsigned int)(arg->item_id)) || (v[pos].count < count))
+                    throw DbException(DB_VERIFY_BAD);
+
+                if (v[pos].count == count)
+                {
+                    v[pos].count = 0;
+                    res->syncdata.inventory.items.push_back(v[pos]);
+                    v.erase(v.begin() + pos);
+                }
+                else
+                {
+                    v[pos].count -= count;
+                    res->syncdata.inventory.items.push_back(v[pos]);
+                }
+
+                pinventory->insert(key_roleid, Marshal::OctetsStream() << arg->syncdata.inventory, txn);
+                pequipment->insert(key_roleid, Marshal::OctetsStream() << arg->syncdata.equipment, txn);
+                WriteRestSyncData(pstorehouse, plog, arg->roleid, arg->syncdata, money_delta, txn);
+
+                base.gender = arg->newgender;
+                base.custom_data = arg->custom_data;
+                pbase->insert(key_roleid, Marshal::OctetsStream() << base, txn);
+
+                res->oldgender = oldgender;
+                res->custom_data = arg->custom_data;
+                res->syncdata.inventory.money = arg->syncdata.inventory.money;
+                res->syncdata.data_mask = arg->syncdata.data_mask;
+                res->retcode = ERR_SUCCESS;
+
+                Log::formatlog("dbplayerchangegender", "roleid=%d item_id=%d item_num=%d item_pos=%d", arg->roleid, arg->item_id, arg->item_num, arg->item_pos);
+            }
+ 
+            catch (DbException e) { throw; }
+            catch (...)
+            {
+                DbException ee(DB_OLD_VERSION);
+                txn.abort(ee);
+                throw ee;
+            }
+        }
+        catch (DbException e)
+        {
+            Log::log(LOG_ERR, "DBPlayerChangeGender, roleid=%d, what=%s\n", arg->roleid, e.what());
+            res->retcode = ERR_VERIFYFAILED;
+            res->syncdata.inventory.money = orignal_money;
+            res->syncdata.inventory.items.clear();
+        }
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBPlayerChangeGenderArg *arg = (DBPlayerChangeGenderArg *)argument;
+		// DBPlayerChangeGenderRes *res = (DBPlayerChangeGenderRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

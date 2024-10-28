@@ -133,8 +133,8 @@ namespace GNET
       Skill2025Stub ():SkillStub (2025)
         {
             cls = 127;
-            name = L"ÓğÁé¿ñÀ×ÌìÍş";
-            nativename = "ÓğÁé¿ñÀ×ÌìÍş";
+            name = L"ç¾½çµç‹‚é›·å¤©å¨";
+            nativename = "ç¾½çµç‹‚é›·å¤©å¨";
             icon = "";
             max_level = 10;
             type = 1;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "2¿ñÀ×ÌìÍş.sgc";
+            effect = "2ç‹‚é›·å¤©å¨.sgc";
             range.type = 3;
             doenchant = true;
             dobless = false;

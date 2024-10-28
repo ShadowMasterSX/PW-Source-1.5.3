@@ -132,8 +132,8 @@ namespace GNET
       Skill828Stub ():SkillStub (828)
         {
             cls = 127;
-            name = L"�ƻ��¼���ҫ";
-            nativename = "�ƻ��¼���ҫ";
+            name = L"黄昏新加神耀";
+            nativename = "黄昏新加神耀";
             icon = "";
             max_level = 5;
             type = 3;
@@ -153,7 +153,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "��սboss����.sgc";
+            effect = "城战boss升级.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

@@ -19,8 +19,8 @@ namespace GNET
         Skill212Stub ():SkillStub (212)
         {
             cls = 255;
-            name = L"重生";
-            nativename = "重生";
+            name = L"閲嶇敓";
+            nativename = "閲嶇敓";
             icon = "";
             max_level = 1;
             type = 6;
@@ -41,7 +41,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "怪物生命吸取.sgc";
+            effect = "鎬墿鐢熷懡鍚稿彇.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

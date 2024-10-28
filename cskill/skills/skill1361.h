@@ -134,9 +134,9 @@ namespace GNET
       Skill1361Stub ():SkillStub (1361)
         {
             cls = 8;
-            name = L"琉璃金身";
-            nativename = "琉璃金身";
-            icon = "琉璃金身.dds";
+            name = L"鐞夌拑閲戣韩";
+            nativename = "鐞夌拑閲戣韩";
+            icon = "鐞夌拑閲戣韩.dds";
             max_level = 10;
             type = 2;
             apcost = 0;
@@ -160,7 +160,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (1);
             }
-            effect = "剑灵_琉璃金身.sgc";
+            effect = "鍓戠伒_鐞夌拑閲戣韩.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

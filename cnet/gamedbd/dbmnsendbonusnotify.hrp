@@ -1,0 +1,87 @@
+
+#ifndef __GNET_DBMNSENDBONUSNOTIFY_HPP
+#define __GNET_DBMNSENDBONUSNOTIFY_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "gamedbmanager.h"
+
+#include "dbmnsendbonusnotifyarg"
+#include "dbmnsendbonusnotifyres"
+
+
+namespace GNET
+{
+
+class DBMNSendBonusNotify : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbmnsendbonusnotify"
+#undef	RPC_BASECLASS
+
+    void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+    {
+        DBMNSendBonusNotifyArg *arg = (DBMNSendBonusNotifyArg *)argument;
+        DBMNSendBonusNotifyRes *res = (DBMNSendBonusNotifyRes *)result;
+
+        // only on central db
+        if (!GameDBManager::GetInstance()->IsCentralDB()) return;
+
+        try
+        {
+            StorageEnv::Storage* pbonus = StorageEnv::GetStorage("mndomainbonus");
+            StorageEnv::AtomTransaction txn;
+
+            try
+            {
+                Marshal::OctetsStream mnfid_key, mninfo_value;
+                mnfid_key << (arg->unifid);
+
+                if (pbonus->find(mnfid_key, mninfo_value, txn))
+                {
+                    pbonus->del(mnfid_key, txn);
+                    res->retcode = ERR_SUCCESS;
+                }
+                else
+                {
+                    res->retcode = ERR_MNF_DATA_NOT_FOUND;
+                    Log::log(LOG_ERR, "DBMNSendBonusNotify, faction not found. unifid=%lld.\n", (arg->unifid));
+                }
+            }
+            catch (DbException e) {throw;}
+            catch (...)
+            {
+                DbException e(DB_OLD_VERSION);
+                txn.abort(e);
+                throw e;
+            }
+        }
+        catch (DbException e)
+        {
+            if (e.get_errno() == DB_LOCK_DEADLOCK)
+                res->retcode = ERR_AGAIN;
+            else
+                res->retcode = ERR_EXCEPTION;
+
+            Log::log(LOG_ERR, "DBMNSendBonusNotify, what=%s.\n", e.what());
+        }
+    }
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBMNSendBonusNotifyArg *arg = (DBMNSendBonusNotifyArg *)argument;
+		// DBMNSendBonusNotifyRes *res = (DBMNSendBonusNotifyRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

@@ -134,9 +134,9 @@ namespace GNET
       Skill2604Stub ():SkillStub (2604)
         {
             cls = 10;
-            name = L"Ë®ÔÂ¾µ»¨¡¤¸´³ğÖ®»ê¡ª¾µÏñ";
-            nativename = "Ë®ÔÂ¾µ»¨¡¤¸´³ğÖ®»ê¡ª¾µÏñ";
-            icon = "·´»÷Ö®»ê.dds";
+            name = L"æ°´æœˆé•œèŠ±Â·å¤ä»‡ä¹‹é­‚â€”é•œåƒ";
+            nativename = "æ°´æœˆé•œèŠ±Â·å¤ä»‡ä¹‹é­‚â€”é•œåƒ";
+            icon = "åå‡»ä¹‹é­‚.dds";
             max_level = 1;
             type = 2;
             apcost = 0;
@@ -160,7 +160,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (44878);
             }
-            effect = "Ò¹Ó°_Ë®ÔÂÔ¶³Ì_»÷ÖĞ.sgc";
+            effect = "å¤œå½±_æ°´æœˆè¿œç¨‹_å‡»ä¸­.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

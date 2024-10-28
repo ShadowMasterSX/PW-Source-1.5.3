@@ -16,7 +16,7 @@ class CountryBattleGetKingCommandPoint : public GNET::Protocol
 
 	void Process(Manager *manager, Manager::Session::ID sid)
 	{
-		CountryBattleMan::GetInstance()->SendKingCmdPoint(roleid);
+		CountryBattleMan::OnKingGetCommandPoint(roleid);
 	}
 };
 

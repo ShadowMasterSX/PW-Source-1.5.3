@@ -1,0 +1,83 @@
+
+#ifndef __GNET_DBMNDOMAININFOUPDATE_HPP
+#define __GNET_DBMNDOMAININFOUPDATE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "gamedbmanager.h"
+
+#include "dbmndomaininfoupdatearg"
+#include "dbmndomaininfoupdateres"
+
+
+namespace GNET
+{
+
+class DBMNDomainInfoUpdate : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbmndomaininfoupdate"
+#undef	RPC_BASECLASS
+
+    void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+    {
+        DBMNDomainInfoUpdateArg *arg = (DBMNDomainInfoUpdateArg *)argument;
+        DBMNDomainInfoUpdateRes *res = (DBMNDomainInfoUpdateRes *)result;
+
+        // only on central db
+        if (!GameDBManager::GetInstance()->IsCentralDB()) return;
+
+        try
+        {
+            StorageEnv::Storage* pdomain = StorageEnv::GetStorage("mndomaininfo");
+            StorageEnv::AtomTransaction txn;
+
+            try
+            {
+                MNDomainInfoVector::const_iterator iter = arg->domaininfo_list.begin(), iter_end = arg->domaininfo_list.end();
+                for (; iter != iter_end; ++iter)
+                {
+                    pdomain->insert((Marshal::OctetsStream() << (iter->domain_id)),
+                                    (Marshal::OctetsStream() << (*iter)),
+                                    txn);
+                }
+
+                res->retcode = ERR_SUCCESS;
+            }
+            catch (DbException e) {throw;}
+            catch (...)
+            {
+                DbException e(DB_OLD_VERSION);
+                txn.abort(e);
+                throw e;
+            }
+        }
+        catch (DbException e)
+        {
+            if (e.get_errno() == DB_LOCK_DEADLOCK)
+                res->retcode = ERR_AGAIN;
+            else
+                res->retcode = ERR_EXCEPTION;
+
+            Log::log(LOG_ERR, "DBMNDomainInfoUpdate, what=%s.\n", e.what());
+        }
+    }
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBMNDomainInfoUpdateArg *arg = (DBMNDomainInfoUpdateArg *)argument;
+		// DBMNDomainInfoUpdateRes *res = (DBMNDomainInfoUpdateRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

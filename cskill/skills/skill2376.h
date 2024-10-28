@@ -134,8 +134,8 @@ namespace GNET
       Skill2376Stub ():SkillStub (2376)
         {
             cls = 127;
-            name = L"怪物剑气";
-            nativename = "怪物剑气";
+            name = L"鎬墿鍓戞皵";
+            nativename = "鎬墿鍓戞皵";
             icon = "";
             max_level = 10;
             type = 1;
@@ -157,7 +157,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "剑灵_破风剑气.sgc";
+            effect = "鍓戠伒_鐮撮鍓戞皵.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

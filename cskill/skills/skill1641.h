@@ -19,9 +19,9 @@ namespace GNET
         Skill1641Stub ():SkillStub (1641)
         {
             cls = 9;
-            name = L"��ľ��ͨ";
-            nativename = "��ľ��ͨ";
-            icon = "ľϵ��ͨ2.dds";
+            name = L"狂·木精通";
+            nativename = "狂·木精通";
+            icon = "木系精通2.dds";
             max_level = 1;
             type = 5;
             apcost = 0;

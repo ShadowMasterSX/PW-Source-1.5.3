@@ -57,8 +57,8 @@ namespace GNET
       Skill2508Stub ():SkillStub (2508)
         {
             cls = 127;
-            name = L"ÎïÆ·¼¼ÄÜ-°ïÅÉPVPÒ©Æ·";
-            nativename = "ÎïÆ·¼¼ÄÜ-°ïÅÉPVPÒ©Æ·";
+            name = L"ç‰©å“æŠ€èƒ½-å¸®æ´¾PVPè¯å“";
+            nativename = "ç‰©å“æŠ€èƒ½-å¸®æ´¾PVPè¯å“";
             icon = "";
             max_level = 10;
             type = 4;

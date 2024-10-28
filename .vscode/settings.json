@@ -56,6 +56,16 @@
         "streambuf": "cpp",
         "cinttypes": "cpp",
         "typeinfo": "cpp",
-        "cassert": "cpp"
+        "cassert": "cpp",
+        "grolebase": "cpp",
+        "groledetail": "cpp",
+        "groleinfo": "cpp",
+        "roleimportbean": "cpp",
+        "roleinfo": "cpp",
+        "roleinfobean": "cpp",
+        "rolesimpleinfo": "cpp",
+        "pshopcancelgoods": "cpp",
+        "pshopcancelgoods_re": "cpp",
+        "groleinventory": "cpp"
     }
 }

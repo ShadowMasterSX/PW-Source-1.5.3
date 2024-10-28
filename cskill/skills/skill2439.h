@@ -134,9 +134,9 @@ namespace GNET
       Skill2439Stub ():SkillStub (2439)
         {
             cls = 5;
-            name = L"»Ä¡¤Éî¶È±ù´Ì";
-            nativename = "»Ä¡¤Éî¶È±ù´Ì";
-            icon = "±ù½£»¤ÌåÄ§¼¼ÄÜ.dds";
+            name = L"è’Â·æ·±åº¦å†°åˆº";
+            nativename = "è’Â·æ·±åº¦å†°åˆº";
+            icon = "å†°å‰‘æŠ¤ä½“é­”æŠ€èƒ½.dds";
             max_level = 1;
             type = 2;
             apcost = 0;
@@ -161,7 +161,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (23749);
             }
-            effect = "¿Õ.sgc";
+            effect = "ç©º.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;
@@ -240,7 +240,7 @@ namespace GNET
         {
             skill->GetVictim ()->SetProbability (1.0 * 100);
             skill->GetVictim ()->SetTime (600000);
-            skill->GetVictim ()->SetRatio (0.7);
+            skill->GetVictim ()->SetRatio (0.2);//skill->GetVictim ()->SetRatio (0.7);
             skill->GetVictim ()->SetValue (35);
             skill->GetVictim ()->SetDeepicethrust (1);
             return true;

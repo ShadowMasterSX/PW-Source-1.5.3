@@ -22,6 +22,9 @@
 #include "announcecentraldelivery.hpp"
 #include "centraldeliveryserver.hpp"
 #include "mappasswd.h"
+#include "dbmnfactioninfoget.hrp"
+#include "dbmnfactionapplyinfoget.hrp"
+#include "solochallengerank.h"
 
 namespace GNET
 {
@@ -72,11 +75,11 @@ void GameDBClient::OnAddSession(Session::ID sid)
 	//Anounce whether central delivery or not to gamedbd
 	AnnounceCentralDelivery acd_proto;
 	acd_proto.is_central = dsm->IsCentralDS();
-	if(acd_proto.is_central)
-	{
-		CentralDeliveryServer* cds = CentralDeliveryServer::GetInstance();
-		cds->GetAcceptedZone(acd_proto.accepted_zone_list);
-	}
+//	if(acd_proto.is_central)
+//	{
+//		CentralDeliveryServer* cds = CentralDeliveryServer::GetInstance();
+//		cds->GetAcceptedZone(acd_proto.accepted_zone_list); //todo ddr
+//	}
 	Send(sid, acd_proto);
 
 	// get sell point list
@@ -84,8 +87,25 @@ void GameDBClient::OnAddSession(Session::ID sid)
 	GlobalControl::GetInstance()->OnDBConnect(this, sid);
 	if(!DisabledSystem::GetDisabled(SYS_UNIQUEDATAMAN)) UniqueDataServer::GetInstance()->OnDBConnect(this, sid);
     if (!DisabledSystem::GetDisabled(SYS_MAPPASSWORD)) Passwd::GetInstance().OnDBConnect(this, sid);
+    if (!DisabledSystem::GetDisabled(SYS_SOLOCHALLENGERANK)) SoloChallengeRank::GetInstance().OnDBConnect(this, sid);
 	//get rolename list
 	NameManager::GetInstance()->OnDBConnect(this, sid);
+
+	/*
+	if(!DisabledSystem::GetDisabled(SYS_MNFACTIONBATTLE))
+	{
+		bool is_central = dsm->IsCentralDS();
+		if(is_central)
+		{
+			Send(sid, Rpc::Call(RPC_DBMNFACTIONINFOGET, DBMNFactionInfoGetArg()));
+			//Send(sid, Rpc::Call(RPC_DBMNFACTIONAPPLYINFOGET, DBMNFactionApplyInfoGetArg()));
+		}
+		else
+		{
+			Send(sid, Rpc::Call(RPC_DBMNFACTIONAPPLYINFOGET, DBMNFactionApplyInfoGetArg()));
+		}
+	}
+	*/
 }
 
 void GameDBClient::OnDelSession(Session::ID sid)

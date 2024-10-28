@@ -41,6 +41,11 @@
 #include "gconsumptionrecord"
 #include "pshopdetail"
 #include "guniquedataelem"
+#include "mnfactioninfo"
+#include "genemylist"
+#include "gcashvipinfo"
+
+
 #ifdef USE_WDB
 
 namespace CMGDB
@@ -94,7 +99,7 @@ inline bool IsLogicuidAvailable( int logicuid )
 {
 	return ( g_setLogicuid.end() == g_setLogicuid.find( logicuid ) );
 }
-const static int ABNORMAL_LOGICUID_START=(INT_MAX-10000000)&0xfffffff0;
+const static int ABNORMAL_LOGICUID_START=(INT_MAX-80000000)&0xfffffff0;
 //当源数据库账号的logicuid被使用时，用于分配从ABNORMAL_LOGICUID_START起始的logicuid
 int AllocAbnormalLogicuid()
 {
@@ -179,6 +184,144 @@ bool PrepareLogicuid( )
 	
 	StorageEnv::checkpoint();
 	return true;
+}
+
+void merge_cash_vip_info(GCashVipInfo &vipinfo1,GCashVipInfo &vipinfo2)
+{
+	vipinfo1.score_add     += vipinfo2.score_add;
+	vipinfo1.score_cost    += vipinfo2.score_cost;
+	vipinfo1.score_consume += vipinfo2.score_consume;
+	if(vipinfo1.score_cost_stamp < vipinfo2.score_cost_stamp)
+		vipinfo1.score_cost_stamp = vipinfo2.score_cost_stamp;
+	if(vipinfo1.day_clear_stamp < vipinfo2.day_clear_stamp)
+		vipinfo1.day_clear_stamp = vipinfo2.day_clear_stamp;
+	if(vipinfo1.week_clear_stamp < vipinfo2.week_clear_stamp)
+		vipinfo1.week_clear_stamp = vipinfo2.week_clear_stamp;
+	if(vipinfo1.month_clear_stamp < vipinfo2.month_clear_stamp)
+		vipinfo1.month_clear_stamp = vipinfo2.month_clear_stamp;
+	if(vipinfo1.year_clear_stamp < vipinfo2.year_clear_stamp)
+		vipinfo1.year_clear_stamp = vipinfo2.year_clear_stamp;
+	if(!vipinfo2.purchase_limit_items_info.size() && !vipinfo1.purchase_limit_items_info.size())
+		return;
+	if(!vipinfo2.purchase_limit_items_info.size() && vipinfo1.purchase_limit_items_info.size())
+		return;
+	if(vipinfo2.purchase_limit_items_info.size() && !vipinfo1.purchase_limit_items_info.size())
+	{
+		vipinfo1.purchase_limit_items_info = vipinfo2.purchase_limit_items_info;
+		return;
+	}
+	if(vipinfo2.purchase_limit_items_info.size() && vipinfo1.purchase_limit_items_info.size())
+	{
+		std::map<int, int> items;
+		Marshal::OctetsStream tmp;
+		Marshal::OctetsStream limit1(vipinfo1.purchase_limit_items_info);
+		Marshal::OctetsStream limit2(vipinfo2.purchase_limit_items_info);
+		int size1 = 0, size2 = 0;
+		limit1 >> size1;//day_limit
+		limit2 >> size2;
+		for(int i = 0; i < size1; ++i)
+		{
+			int item_id, purchase_count;
+			limit1 >> item_id >> purchase_count;
+			if(items.find(item_id) != items.end())
+				items[item_id] += purchase_count;
+			else
+				items[item_id] = purchase_count;
+		}
+		for(int i = 0; i < size2; ++i)
+		{
+			int item_id, purchase_count;
+			limit2 >> item_id >> purchase_count;
+			if(items.find(item_id) != items.end())
+				items[item_id] += purchase_count;
+			else
+				items[item_id] = purchase_count;
+		}
+		tmp << items.size();
+		for(std::map<int, int>::iterator it = items.begin(); it != items.end(); ++it)
+		{
+			tmp << it->first << it->second;
+		}
+		items.clear();
+		limit1 >> size1;//week_limit
+		limit2 >> size2;
+		for(int i = 0; i < size1; ++i)
+		{
+			int item_id, purchase_count;
+			limit1 >> item_id >> purchase_count;
+			if(items.find(item_id) != items.end())
+				items[item_id] += purchase_count;
+			else
+				items[item_id] = purchase_count;
+		}
+		for(int i = 0; i < size2; ++i)
+		{
+			int item_id, purchase_count;
+			limit2 >> item_id >> purchase_count;
+			if(items.find(item_id) != items.end())
+				items[item_id] += purchase_count;
+			else
+				items[item_id] = purchase_count;
+		}
+		tmp << items.size();
+		for(std::map<int, int>::iterator it = items.begin(); it != items.end(); ++it)
+		{
+			tmp << it->first << it->second;
+		}
+		items.clear();
+		limit1 >> size1;//month_limit
+		limit2 >> size2;
+		for(int i = 0; i < size1; ++i)
+		{
+			int item_id, purchase_count;
+			limit1 >> item_id >> purchase_count;
+			if(items.find(item_id) != items.end())
+				items[item_id] += purchase_count;
+			else
+				items[item_id] = purchase_count;
+		}
+		for(int i = 0; i < size2; ++i)
+		{
+			int item_id, purchase_count;
+			limit2 >> item_id >> purchase_count;
+			if(items.find(item_id) != items.end())
+				items[item_id] += purchase_count;
+			else
+				items[item_id] = purchase_count;
+		}
+		tmp << items.size();
+		for(std::map<int, int>::iterator it = items.begin(); it != items.end(); ++it)
+		{
+			tmp << it->first << it->second;
+		}
+		items.clear();
+		limit1 >> size1;//year_limit
+		limit2 >> size2;
+		for(int i = 0; i < size1; ++i)
+		{
+			int item_id, purchase_count;
+			limit1 >> item_id >> purchase_count;
+			if(items.find(item_id) != items.end())
+				items[item_id] += purchase_count;
+			else
+				items[item_id] = purchase_count;
+		}
+		for(int i = 0; i < size2; ++i)
+		{
+			int item_id, purchase_count;
+			limit2 >> item_id >> purchase_count;
+			if(items.find(item_id) != items.end())
+				items[item_id] += purchase_count;
+			else
+				items[item_id] = purchase_count;
+		}
+		tmp << items.size();
+		for(std::map<int, int>::iterator it = items.begin(); it != items.end(); ++it)
+		{
+			tmp << it->first << it->second;
+		}
+		vipinfo1.purchase_limit_items_info = tmp;
+	}
 }
 
 class MergeUserQuery : public StorageEnv::IQuery
@@ -297,8 +440,18 @@ public:
 					}
 
 					user1.rolelist = r_sum.GetRoleList();
-					user1.cash += user2.cash;
-					user1.money += user2.money;
+					int cash_temp = user1.cash + user2.cash;
+					int money_temp = user1.money + user2.money;
+					if(cash_temp > 0)
+						user1.cash += user2.cash;
+					else
+						printf("\tERR:user cash overflaw,userid=%d,user1.cash=%d,user2.cash=%d",userid,user1.cash,user2.cash);
+					
+					if(money_temp > 0)
+						user1.money += user2.money;
+					else
+						printf("\tERR:user money overflaw,userid=%d,user1.money=%d,user2.money=%d",userid,user1.money,user2.money);
+
 					user1.cash_add += user2.cash_add;
 					user1.cash_buy += user2.cash_buy;
 					user1.cash_sell += user2.cash_sell;
@@ -383,10 +536,17 @@ public:
 						user1.reference = Marshal::OctetsStream() << ref1;
 					//合并充值返利	
 					GRewardStore reward1, reward2;
+					GCashVipInfo vipinfo1, vipinfo2;
 					if (user1.consume_reward.size())
 					{
 						Marshal::OctetsStream   os(user1.consume_reward);
 						os >> reward1;
+
+						if(reward1.cash_vip_info.size())
+						{
+							Marshal::OctetsStream os_vip_info(reward1.cash_vip_info);
+							os_vip_info >> vipinfo1;
+						}
 					}
 					if (user2.consume_reward.size())
 					{
@@ -407,6 +567,15 @@ public:
 							}
 							reward1.rewardlist.insert(it2, *it);
 						}
+						
+						if(reward2.cash_vip_info.size())
+						{
+							Marshal::OctetsStream os_vip_info(reward2.cash_vip_info);
+							os_vip_info >> vipinfo2;
+						}
+
+						merge_cash_vip_info(vipinfo1, vipinfo2);
+						reward1.cash_vip_info = Marshal::OctetsStream() << vipinfo1;	
 						user1.consume_reward = Marshal::OctetsStream() << reward1;
 					}
 
@@ -2399,6 +2568,19 @@ public:
 				{
 					it->rid = g_mapRoleid[it->rid];
 				}
+
+                if (fe.enemylistinfo.size() > 0)
+                {
+                    GEnemyListVector enemylist;
+                    Marshal::OctetsStream(fe.enemylistinfo) >> enemylist;
+                    for (GEnemyListVector::iterator it = enemylist.begin(); it != enemylist.end(); ++it)
+                    {
+                        it->rid = g_mapRoleid[it->rid];
+                        it->name = g_mapRolename[it->name];
+                    }
+                    fe.enemylistinfo = (Marshal::OctetsStream() << enemylist);
+                }
+
 				if( pstorage->find( Marshal::OctetsStream()<<newroleid, os_value1, txn ) )
 					printf( "\tWARN:MergeFriendExtQuery Error, overwrite friends. oldroleid = %d, newroleid = %d.\n",
 								oldroleid, newroleid );
@@ -2606,6 +2788,89 @@ void MergeUniqueData( const char * srcpath)
 		Log::log( LOG_ERR, "MergeUniqueData, error when walk, what=%s\n", e.what() );
 	}
 }
+
+
+class MergeMNFactionInfoQuery : public StorageEnv::IQuery
+{
+public:
+    bool Update(StorageEnv::Transaction& txn, Octets& key, Octets& value)
+    {
+        try
+        {
+            StorageEnv::Storage* pstorage = StorageEnv::GetStorage("mnfactioninfo");
+            try
+            {
+                Marshal::OctetsStream mnfid_key(key), mninfo_value(value), mninfo_value2;
+
+                MNFactionInfo mninfo;
+                mninfo_value >> mninfo;
+
+                if (pstorage->find(mnfid_key, mninfo_value2, txn))
+                {
+                    printf("\tERROR: MergeMNFactionInfoQuery Error, same unifid. unifid = %lld, src_fid = %u.\n", mninfo.unifid, mninfo.fid);
+                    return true;
+                }
+
+                unsigned int fid = mninfo.fid;
+                unsigned int new_fid = g_mapFactionid[fid];
+                mninfo.fid = new_fid;
+                ++mninfo.version;
+
+                pstorage->insert(mnfid_key, (Marshal::OctetsStream() << mninfo), txn);
+            }
+            catch (DbException e) {throw;}
+            catch (...)
+            {
+                DbException ee(DB_OLD_VERSION);
+                txn.abort(ee);
+                throw ee;
+            }
+        }
+        catch (DbException e)
+        {
+            Log::log(LOG_ERR, "MergeMNFactionInfoQuery, what=%s\n", e.what());
+        }
+
+        return true;
+    }
+};
+
+void MergeMNFactionInfo(const char* srcpath)
+{
+    printf("\nMerge mnfactioninfo:\n");
+    std::string srcdir = std::string(srcpath) + "/mnfactioninfo";
+
+    MergeMNFactionInfoQuery q;
+    try
+    {
+        DBStandalone* pstandalone = new DBStandalone(srcdir.c_str());
+        pstandalone->init();
+
+        StorageEnv::AtomTransaction txn;
+        try
+        {
+            StorageEnv::Storage::Cursor cursor(&txn, srcdir.c_str(), pstandalone, new StorageEnv::Uncompressor());
+            cursor.walk(q);
+        }
+        catch (DbException e) {throw;}
+        catch (...)
+        {
+            DbException ee(DB_OLD_VERSION);
+            txn.abort(ee);
+            throw ee;
+        }
+
+        pstandalone->checkpoint();
+        delete pstandalone;
+        pstandalone = NULL;
+        StorageEnv::checkpoint();
+    }
+    catch (DbException e)
+    {
+        Log::log(LOG_ERR, "MergeMNFactionInfo, error when walk. what=%s\n", e.what());
+    }
+}
+
 
 void LoadConfig( )
 {
@@ -3013,6 +3278,7 @@ void MergeDBAll( const char * srcpath, int srczoneid )
 	DelOldWebTradeSold();
 	MergeForce( srcpath );
 	MergeUniqueData( srcpath );
+    MergeMNFactionInfo(srcpath);
 
 	StorageEnv::checkpoint();
 	StorageEnv::Close();
@@ -3025,6 +3291,11 @@ void MergeDBAll( const char * srcpath, int srczoneid )
 	system( ("/bin/rm -f " + data_dir + "/rolenamehis").c_str() );
 	system( ("/bin/rm -f " + data_dir + "/kingelection").c_str() );
     system( ("/bin/rm -f " + data_dir + "/mappassword").c_str() );
+
+    system(("/bin/rm -f " + data_dir + "/solochallengerank").c_str());
+    system(("/bin/rm -f " + data_dir + "/mnfactionapplyinfo").c_str());
+    system(("/bin/rm -f " + data_dir + "/mndomaininfo").c_str());
+    system(("/bin/rm -f " + data_dir + "/mndomainbonus").c_str());
 
 	StorageEnv::Open();
 	StorageEnv::checkpoint( );

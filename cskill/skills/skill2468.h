@@ -133,8 +133,8 @@ namespace GNET
       Skill2468Stub ():SkillStub (2468)
         {
             cls = 127;
-            name = L"自身圆扇形流血";
-            nativename = "自身圆扇形流血";
+            name = L"鑷韩鍦嗘墖褰㈡祦琛�";
+            nativename = "鑷韩鍦嗘墖褰㈡祦琛�";
             icon = "";
             max_level = 10;
             type = 1;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "2013人界野外BOSS扇形.sgc";
+            effect = "2013浜虹晫閲庡BOSS鎵囧舰.sgc";
             range.type = 4;
             doenchant = true;
             dobless = false;

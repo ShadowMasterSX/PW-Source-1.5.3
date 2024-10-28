@@ -56,9 +56,9 @@ namespace GNET
       Skill2105Stub ():SkillStub (2105)
         {
             cls = 127;
-            name = L"噪音专用";
-            nativename = "噪音专用";
-            icon = "宠物鼓舞.dds";
+            name = L"鍣煶涓撶敤";
+            nativename = "鍣煶涓撶敤";
+            icon = "瀹犵墿榧撹垶.dds";
             max_level = 10;
             type = 3;
             apcost = 0;
@@ -79,7 +79,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "风卷残云.sgc";
+            effect = "椋庡嵎娈嬩簯.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

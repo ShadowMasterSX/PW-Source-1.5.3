@@ -132,8 +132,8 @@ namespace GNET
       Skill283Stub ():SkillStub (283)
         {
             cls = 127;
-            name = L"�¹�֮Ⱥ��Ĭ";
-            nativename = "�¹�֮Ⱥ��Ĭ";
+            name = L"新怪之群沉默";
+            nativename = "新怪之群沉默";
             icon = "";
             max_level = 10;
             type = 3;
@@ -153,7 +153,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "���з�.sgc";
+            effect = "五行符.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

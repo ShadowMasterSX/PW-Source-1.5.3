@@ -155,6 +155,7 @@ class GetUser : public Rpc
 			userinfo->rolelist=UserInfo::RoleList(res->value.rolelist);
 			userinfo->logicuid = res->value.logicuid;
 			userinfo->autolock = res->value.autolock;
+			userinfo->is_vip = res->value.cash_add >= VIP_CASH_LIMIT;
 			if (res->value.reference.size())
 			{
 				Marshal::OctetsStream   os_ref(res->value.reference);

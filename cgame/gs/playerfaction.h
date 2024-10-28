@@ -27,7 +27,7 @@ public:
 	virtual void FillAttackMsg(const XID & target,attack_msg & attack,int dec_arrow);
 	virtual void FillEnchantMsg(const XID & target,enchant_msg & enchant);
 	virtual void PlayerEnterWorld();  
-	virtual void PlayerEnterServer(); 
+	virtual void PlayerEnterServer(int source_tag); 
 	virtual void PlayerLeaveServer(); 
 	virtual void PlayerLeaveWorld();
 	virtual int GetFaction();

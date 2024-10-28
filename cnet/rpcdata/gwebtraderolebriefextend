@@ -13,8 +13,8 @@ namespace GNET
 		Octets card_leadership;
 		Octets fate_ring_data;
 		Octets title_data;
-		int reserved1;
-		int reserved2;
+		Octets astrolabe_data;
+		Octets shopping_consume_vip_data;
 		int reserved3;
 		int reserved4;
 		int reserved5;
@@ -22,11 +22,11 @@ namespace GNET
 
 	public:
 		GWebTradeRoleBriefExtend (const Octets& l_meridian_data = Octets(),const Octets& l_card_leadership = Octets(),const Octets& l_fate_ring_data = Octets()
-			,const Octets& l_title_data = Octets(),int l_reserved1 = 0,int l_reserved2 = 0
+			,const Octets& l_title_data = Octets(),const Octets& l_astrolabe_data = Octets(),const Octets& l_shopping_consume_vip_data = Octets()
 			,int l_reserved3 = 0,int l_reserved4 = 0,int l_reserved5 = 0
 			,int l_reserved6 = 0)
 			: meridian_data(l_meridian_data),card_leadership(l_card_leadership),fate_ring_data(l_fate_ring_data)
-			,title_data(l_title_data),reserved1(l_reserved1),reserved2(l_reserved2)
+			,title_data(l_title_data),astrolabe_data(l_astrolabe_data),shopping_consume_vip_data(l_shopping_consume_vip_data)
 			,reserved3(l_reserved3),reserved4(l_reserved4),reserved5(l_reserved5)
 			,reserved6(l_reserved6)
 		{
@@ -34,7 +34,7 @@ namespace GNET
 
 		GWebTradeRoleBriefExtend(const GWebTradeRoleBriefExtend &rhs)
 			: meridian_data(rhs.meridian_data),card_leadership(rhs.card_leadership),fate_ring_data(rhs.fate_ring_data),
-			title_data(rhs.title_data),reserved1(rhs.reserved1),reserved2(rhs.reserved2),
+			title_data(rhs.title_data),astrolabe_data(rhs.astrolabe_data),shopping_consume_vip_data(rhs.shopping_consume_vip_data),
 			reserved3(rhs.reserved3),reserved4(rhs.reserved4),reserved5(rhs.reserved5),
 			reserved6(rhs.reserved6) { }
 
@@ -49,8 +49,8 @@ namespace GNET
 				card_leadership = r->card_leadership;
 				fate_ring_data = r->fate_ring_data;
 				title_data = r->title_data;
-				reserved1 = r->reserved1;
-				reserved2 = r->reserved2;
+				astrolabe_data = r->astrolabe_data;
+				shopping_consume_vip_data = r->shopping_consume_vip_data;
 				reserved3 = r->reserved3;
 				reserved4 = r->reserved4;
 				reserved5 = r->reserved5;
@@ -68,8 +68,8 @@ namespace GNET
 				card_leadership = r->card_leadership;
 				fate_ring_data = r->fate_ring_data;
 				title_data = r->title_data;
-				reserved1 = r->reserved1;
-				reserved2 = r->reserved2;
+				astrolabe_data = r->astrolabe_data;
+				shopping_consume_vip_data = r->shopping_consume_vip_data;
 				reserved3 = r->reserved3;
 				reserved4 = r->reserved4;
 				reserved5 = r->reserved5;
@@ -84,8 +84,8 @@ namespace GNET
 			os << card_leadership;
 			os << fate_ring_data;
 			os << title_data;
-			os << reserved1;
-			os << reserved2;
+			os << astrolabe_data;
+			os << shopping_consume_vip_data;
 			os << reserved3;
 			os << reserved4;
 			os << reserved5;
@@ -99,8 +99,8 @@ namespace GNET
 			os >> card_leadership;
 			os >> fate_ring_data;
 			os >> title_data;
-			os >> reserved1;
-			os >> reserved2;
+			os >> astrolabe_data;
+			os >> shopping_consume_vip_data;
 			os >> reserved3;
 			os >> reserved4;
 			os >> reserved5;

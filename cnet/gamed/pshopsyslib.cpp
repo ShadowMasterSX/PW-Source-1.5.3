@@ -235,6 +235,7 @@ bool Handle_PShopPlayerSell(PShopPlayerSell &proto, object_interface &player)
 	if(proto.roleid != player.GetSelfID().id) return false;
 	if(proto.item_id <= 0 || proto.item_pos < 0 || proto.item_count <= 0 || proto.inv_pos < 0) return false;
 	if(proto.item_price <= 0 || proto.item_price > (unsigned int)PSHOP_ITEM_PRICE_LIMIT) return false;
+	if(!player.CheckItem(proto.inv_pos, proto.item_id, proto.item_count)) return false;
 
 	//¼ì²é°ü¹ü
 	uint64_t money_gain = (uint64_t)proto.item_count * (uint64_t)proto.item_price;
@@ -256,7 +257,6 @@ bool Handle_PShopPlayerSell(PShopPlayerSell &proto, object_interface &player)
 		if(player.GetEmptySlotSize() < need_slot) return false;//°ü¹üÂú,Î´¿¼ÂÇÒøÆ±¶Ñµþ´æ·Å
 	}
 
-	if(!player.CheckItem(proto.inv_pos, proto.item_id, proto.item_count)) return false;
 	if(!QuerySyncData(proto.syncdata,player)) return false;
 	if(player.TradeLockPlayer(0,DBMASK_PUT_SYNC_TIMEOUT) == 0)
 	{

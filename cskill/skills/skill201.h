@@ -19,8 +19,8 @@ namespace GNET
         Skill201Stub ():SkillStub (201)
         {
             cls = 255;
-            name = L"Ŀä";
-            nativename = "Ŀä";
+            name = L"目盲";
+            nativename = "目盲";
             icon = "";
             max_level = 1;
             type = 6;
@@ -41,7 +41,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "��ɫ��.sgc";
+            effect = "五色符.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

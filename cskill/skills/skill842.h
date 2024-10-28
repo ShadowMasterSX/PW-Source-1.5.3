@@ -134,8 +134,8 @@ namespace GNET
       Skill842Stub ():SkillStub (842)
         {
             cls = 127;
-            name = L"金系群体魔伤";
-            nativename = "金系群体魔伤";
+            name = L"閲戠郴缇や綋榄斾激";
+            nativename = "閲戠郴缇や綋榄斾激";
             icon = "";
             max_level = 10;
             type = 3;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "狂雷天威.sgc";
+            effect = "鐙傞浄澶╁▉.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

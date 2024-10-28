@@ -17,7 +17,7 @@ namespace GNET
 		GMember master;
 		GMemberVector member;
 		Octets announce;
-		Octets sysinfo;
+		Octets extenddata;
 
 	public:
 		GFactionInfo (unsigned int l_fid = 0,const Octets& l_name = Octets(0),char l_level = 0
@@ -30,7 +30,7 @@ namespace GNET
 		GFactionInfo(const GFactionInfo &rhs)
 			: fid(rhs.fid),name(rhs.name),level(rhs.level),
 			master(rhs.master),member(rhs.member),announce(rhs.announce),
-			sysinfo(rhs.sysinfo) { }
+			extenddata(rhs.extenddata) { }
 
 		Rpc::Data *Clone() const { return new GFactionInfo(*this); }
 
@@ -45,7 +45,7 @@ namespace GNET
 				master = r->master;
 				member = r->member;
 				announce = r->announce;
-				sysinfo = r->sysinfo;
+				extenddata = r->extenddata;
 			}
 			return *this;
 		}
@@ -61,7 +61,7 @@ namespace GNET
 				master = r->master;
 				member = r->member;
 				announce = r->announce;
-				sysinfo = r->sysinfo;
+				extenddata = r->extenddata;
 			}
 			return *this;
 		}
@@ -74,7 +74,7 @@ namespace GNET
 			os << master;
 			os << member;
 			os << announce;
-			os << sysinfo;
+			os << extenddata;
 			return os;
 		}
 
@@ -86,7 +86,7 @@ namespace GNET
 			os >> master;
 			os >> member;
 			os >> announce;
-			os >> sysinfo;
+			os >> extenddata;
 			return os;
 		}
 

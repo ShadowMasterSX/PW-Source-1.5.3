@@ -133,8 +133,8 @@ namespace GNET
       Skill2350Stub ():SkillStub (2350)
         {
             cls = 127;
-            name = L"近战撕咬";
-            nativename = "近战撕咬";
+            name = L"杩戞垬鎾曞挰";
+            nativename = "杩戞垬鎾曞挰";
             icon = "";
             max_level = 10;
             type = 1;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "年兽_击中.sgc";
+            effect = "骞村吔_鍑讳腑.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

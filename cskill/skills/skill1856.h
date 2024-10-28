@@ -134,9 +134,9 @@ namespace GNET
       Skill1856Stub ():SkillStub (1856)
         {
             cls = 8;
-            name = L"Ò×Î»¾÷";
-            nativename = "Ò×Î»¾÷";
-            icon = "èäèô¾÷2.dds";
+            name = L"æ˜“ä½è¯€";
+            nativename = "æ˜“ä½è¯€";
+            icon = "æ¡Žæ¢è¯€2.dds";
             max_level = 1;
             type = 3;
             apcost = 0;

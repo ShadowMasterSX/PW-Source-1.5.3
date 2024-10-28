@@ -133,8 +133,8 @@ namespace GNET
       Skill1741Stub ():SkillStub (1741)
         {
             cls = 127;
-            name = L"ÑÌ»¨±¬Öñ";
-            nativename = "ÑÌ»¨±¬Öñ";
+            name = L"çƒŸèŠ±çˆ†ç«¹";
+            nativename = "çƒŸèŠ±çˆ†ç«¹";
             icon = "";
             max_level = 1;
             type = 2;

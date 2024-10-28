@@ -217,9 +217,9 @@ namespace GNET
       Skill2568Stub ():SkillStub (2568)
         {
             cls = 10;
-            name = L"²ÔÄñ";
-            nativename = "²ÔÄñ";
-            icon = "²ÔÄñ.dds";
+            name = L"è‹é¸Ÿ";
+            nativename = "è‹é¸Ÿ";
+            icon = "è‹é¸Ÿ.dds";
             max_level = 10;
             type = 1;
             apcost = 0;

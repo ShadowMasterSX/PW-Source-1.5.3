@@ -132,9 +132,9 @@ namespace GNET
       Skill1567Stub ():SkillStub (1567)
         {
             cls = 127;
-            name = L"Ê§ĞÄÃÜ¾í";
-            nativename = "Ê§ĞÄÃÜ¾í";
-            icon = "Ïû»êÖä.dds";
+            name = L"å¤±å¿ƒå¯†å·";
+            nativename = "å¤±å¿ƒå¯†å·";
+            icon = "æ¶ˆé­‚å’’.dds";
             max_level = 10;
             type = 3;
             apcost = 0;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 3;
-            effect = "¹ÖÎïÊ©¶¾Êõ.sgc";
+            effect = "æ€ªç‰©æ–½æ¯’æœ¯.sgc";
             range.type = 3;
             doenchant = true;
             dobless = false;

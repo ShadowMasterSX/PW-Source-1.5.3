@@ -132,9 +132,9 @@ namespace GNET
       Skill1722Stub ():SkillStub (1722)
         {
             cls = 255;
-            name = L"åë³ß´«Çé";
-            nativename = "åë³ß´«Çé";
-            icon = "·òÆÞ´«ËÍ.dds";
+            name = L"å’«å°ºä¼ æƒ…";
+            nativename = "å’«å°ºä¼ æƒ…";
+            icon = "å¤«å¦»ä¼ é€.dds";
             max_level = 1;
             type = 2;
             apcost = 0;
@@ -145,7 +145,7 @@ namespace GNET
             eventflag = 0;
             posdouble = 0;
             clslimit = 0;
-            time_type = 0;
+            time_type = 3;
             showorder = 7001;
             allow_land = 1;
             allow_air = 1;
@@ -217,7 +217,7 @@ namespace GNET
         }
         int GetCoolingtime (Skill * skill) const
         {
-            return 1800000;
+            return 300000;
         }
         int GetRequiredLevel (Skill * skill) const
         {
@@ -264,10 +264,10 @@ namespace GNET
         bool StateAttack (Skill * skill) const
         {
             skill->GetVictim ()->SetLongjumptospouse (1);
-            skill->GetVictim ()->SetProbability (1.0 * 100);
-            skill->GetVictim ()->SetTime (3000);
-            skill->GetVictim ()->SetShowicon (1);
-            skill->GetVictim ()->SetInvincible (1);
+            //skill->GetVictim ()->SetProbability (1.0 * 100);
+            //skill->GetVictim ()->SetTime (3000);
+            //skill->GetVictim ()->SetShowicon (1);
+            //skill->GetVictim ()->SetInvincible (1);
             return true;
         }
         bool TakeEffect (Skill * skill) const

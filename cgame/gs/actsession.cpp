@@ -1,6 +1,6 @@
-#include "world.h"
 #include "actobject.h"
 #include "actsession.h"
+#include "world.h"
 #include "npc.h"
 #include "ainpc.h"
 #include "aipolicy.h"
@@ -68,6 +68,7 @@ DEFINE_SUBSTANCE(session_rebuild_pet_inheritratio, act_session,CLS_SESSION_REBUI
 DEFINE_SUBSTANCE(session_rebuild_pet_nature, act_session,CLS_SESSION_REBUILD_PET_NATURE)
 DEFINE_SUBSTANCE(session_knockup, act_session,CLS_SESSION_KNOCKUP)
 DEFINE_SUBSTANCE(session_produce5,act_session,CLS_SESSION_PRODUCE5)
+DEFINE_SUBSTANCE(session_resurrect_by_cash, session_resurrect, CLS_SESSION_RESURRECT_BY_CASH)
 
 act_session::act_session(gactive_imp * imp):_imp(imp),_session_id(-2),_plane(0)
 {
@@ -1322,7 +1323,7 @@ session_resurrect::EndSession()
 	RemoveTimer();
 	if(!_imp->_parent->IsZombie()) return true;
 	gplayer_imp * pImp = (gplayer_imp *)_imp;
-	pImp->Resurrect(pImp->_parent->pos,true,_exp_reduce,1,DEFAULT_RESURRECT_HP_FACTOR,DEFAULT_RESURRECT_MP_FACTOR,_param);
+	pImp->Resurrect(pImp->_parent->pos,true,_exp_reduce,1,DEFAULT_RESURRECT_HP_FACTOR,DEFAULT_RESURRECT_MP_FACTOR,_param,0.f,0);
 	return true;
 }
 
@@ -1344,6 +1345,16 @@ session_resurrect_in_town::EndSession()
 	gplayer_controller * pCtrl = (gplayer_controller *)(_imp->_commander);
 	pCtrl->ResurrectInTown(_exp_reduce,_param);
 	return false;
+}
+
+bool
+session_resurrect_by_cash::EndSession()
+{
+    RemoveTimer();
+    if (!_imp->_parent->IsZombie()) return true;
+    gplayer_controller* pCtrl = (gplayer_controller*)(_imp->_commander);
+    pCtrl->ResurrectByCash(_exp_reduce, _param);
+    return true;
 }
 
 bool
@@ -1475,7 +1486,7 @@ session_resurrect_protect::StartSession(bool hasmorecmd)
 	_self_id = _imp->_parent->ID;
 
 	SetTimer(g_timer,PLAYER_REBORN_PROTECT*20,1);
-	_imp->_filters.AddFilter(new invincible_banish_filter(_imp,FILTER_INVINCIBLE_BANISH,PLAYER_REBORN_PROTECT));
+	_imp->_filters.AddFilter(new invincible_banish_filter(_imp,FILTER_INVINCIBLE_BANISH,PLAYER_REBORN_PROTECT + _more_time));
 	_imp->_runner->resurrect(1);
 	return true;
 

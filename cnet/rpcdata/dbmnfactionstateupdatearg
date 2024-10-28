@@ -1,0 +1,59 @@
+#ifndef __GNET_DBMNFACTIONSTATEUPDATEARG_RPCDATA
+#define __GNET_DBMNFACTIONSTATEUPDATEARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBMNFactionStateUpdateArg : public GNET::Rpc::Data
+	{
+	public:
+		unsigned char state;
+
+	public:
+		DBMNFactionStateUpdateArg (unsigned char l_state = 0)
+			: state(l_state)
+		{
+		}
+
+		DBMNFactionStateUpdateArg(const DBMNFactionStateUpdateArg &rhs)
+			: state(rhs.state) { }
+
+		Rpc::Data *Clone() const { return new DBMNFactionStateUpdateArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBMNFactionStateUpdateArg *r = dynamic_cast<const DBMNFactionStateUpdateArg *>(&rhs);
+			if (r && r != this)
+			{
+				state = r->state;
+			}
+			return *this;
+		}
+
+		DBMNFactionStateUpdateArg& operator = (const DBMNFactionStateUpdateArg &rhs)
+		{
+			const DBMNFactionStateUpdateArg *r = &rhs;
+			if (r && r != this)
+			{
+				state = r->state;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << state;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> state;
+			return os;
+		}
+
+	};
+};
+#endif

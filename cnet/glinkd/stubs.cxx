@@ -37,6 +37,8 @@
 #include "announcelinkversion.hpp"
 #include "playerrename_re.hpp"
 #include "playernameupdate.hpp"
+#include "getsolochallengerank_re.hpp"
+#include "updateenemylist_re.hpp"
 #include "playergivepresent_re.hpp"
 #include "playeraskforpresent_re.hpp"
 #include "announcelinktype.hpp"
@@ -44,6 +46,13 @@
 #include "tankbattleplayergetrank.hpp"
 #include "tankbattleplayergetrank_re.hpp"
 #include "uniquedatamodifybroadcast.hpp"
+#include "mnfactionbattleapply_re.hpp"
+#include "mngetdomaindata_re.hpp"
+#include "mngetplayerlastenterinfo.hpp"
+#include "mngetplayerlastenterinfo_re.hpp"
+#include "mngetfactionbriefinfo.hpp"
+#include "mngetfactionbriefinfo_re.hpp"
+#include "mngettoplist_re.hpp"
 #include "response.hpp"
 #include "keepalive.hpp"
 #include "acreport.hpp"
@@ -68,6 +77,7 @@
 #include "webtraderolegetdetail.hpp"
 #include "getplayeridbyname.hpp"
 #include "ssogetticket.hpp"
+#include "cancelwaitqueue.hpp"
 #include "enterworld.hpp"
 #include "publicchat.hpp"
 #include "privatechat.hpp"
@@ -83,6 +93,7 @@
 #include "addfriendremarks.hpp"
 #include "getfriends.hpp"
 #include "getfriends_re.hpp"
+#include "getenemylist.hpp"
 #include "setgroupname.hpp"
 #include "setgroupname_re.hpp"
 #include "setfriendgroup.hpp"
@@ -101,6 +112,7 @@
 #include "chatroomspeak.hpp"
 #include "chatroomlist.hpp"
 #include "sendaumail.hpp"
+#include "playerrequitefriend.hpp"
 #include "tradestart.hpp"
 #include "tradeaddgoods.hpp"
 #include "traderemovegoods.hpp"
@@ -170,6 +182,7 @@
 #include "playerprofilegetmatchresult.hpp"
 #include "factionresourcebattlegetmap.hpp"
 #include "factionresourcebattlegetrecord.hpp"
+#include "mngetfactioninfo.hpp"
 #include "domainvalidate.hpp"
 #include "domaincmd.hpp"
 #include "queryuserprivilege_re.hpp"
@@ -197,11 +210,14 @@
 #include "getplayerbriefinfo_re.hpp"
 #include "gmgetplayerconsumeinfo_re.hpp"
 #include "disconnectplayer.hpp"
+#include "waitqueuestatenotify.hpp"
+#include "cancelwaitqueue_re.hpp"
 #include "chatbroadcast.hpp"
 #include "chatmulticast.hpp"
 #include "chatsinglecast.hpp"
 #include "rolestatusannounce.hpp"
 #include "addfriendremarks_re.hpp"
+#include "getenemylist_re.hpp"
 #include "chatroomcreate_re.hpp"
 #include "chatroomjoin_re.hpp"
 #include "chatroomlist_re.hpp"
@@ -345,6 +361,7 @@
 #include "factionresourcebattlegetmap_re.hpp"
 #include "factionresourcebattlegetrecord_re.hpp"
 #include "factionresourcebattlenotifyplayerevent.hpp"
+#include "mngetfactioninfo_re.hpp"
 #include "announceproviderid.hpp"
 #include "s2cgamedatasend.hpp"
 #include "s2cmulticast.hpp"
@@ -426,6 +443,8 @@ static MatrixFailure __stub_MatrixFailure((void*)0);
 static AnnounceLinkVersion __stub_AnnounceLinkVersion((void*)0);
 static PlayerRename_Re __stub_PlayerRename_Re((void*)0);
 static PlayerNameUpdate __stub_PlayerNameUpdate((void*)0);
+static GetSoloChallengeRank_Re __stub_GetSoloChallengeRank_Re((void*)0);
+static UpdateEnemyList_Re __stub_UpdateEnemyList_Re((void*)0);
 static PlayerGivePresent_Re __stub_PlayerGivePresent_Re((void*)0);
 static PlayerAskForPresent_Re __stub_PlayerAskForPresent_Re((void*)0);
 static AnnounceLinkType __stub_AnnounceLinkType((void*)0);
@@ -433,6 +452,13 @@ static TankBattlePlayerApply_Re __stub_TankBattlePlayerApply_Re((void*)0);
 static TankBattlePlayerGetRank __stub_TankBattlePlayerGetRank((void*)0);
 static TankBattlePlayerGetRank_Re __stub_TankBattlePlayerGetRank_Re((void*)0);
 static UniqueDataModifyBroadcast __stub_UniqueDataModifyBroadcast((void*)0);
+static MNFactionBattleApply_Re __stub_MNFactionBattleApply_Re((void*)0);
+static MNGetDomainData_Re __stub_MNGetDomainData_Re((void*)0);
+static MNGetPlayerLastEnterInfo __stub_MNGetPlayerLastEnterInfo((void*)0);
+static MNGetPlayerLastEnterInfo_Re __stub_MNGetPlayerLastEnterInfo_Re((void*)0);
+static MNGetFactionBriefInfo __stub_MNGetFactionBriefInfo((void*)0);
+static MNGetFactionBriefInfo_Re __stub_MNGetFactionBriefInfo_Re((void*)0);
+static MNGetTopList_Re __stub_MNGetTopList_Re((void*)0);
 static Response __stub_Response((void*)0);
 static KeepAlive __stub_KeepAlive((void*)0);
 static ACReport __stub_ACReport((void*)0);
@@ -457,6 +483,7 @@ static WebTradeRolePreCancelPost __stub_WebTradeRolePreCancelPost((void*)0);
 static WebTradeRoleGetDetail __stub_WebTradeRoleGetDetail((void*)0);
 static GetPlayerIDByName __stub_GetPlayerIDByName((void*)0);
 static SSOGetTicket __stub_SSOGetTicket((void*)0);
+static CancelWaitQueue __stub_CancelWaitQueue((void*)0);
 static EnterWorld __stub_EnterWorld((void*)0);
 static PublicChat __stub_PublicChat((void*)0);
 static PrivateChat __stub_PrivateChat((void*)0);
@@ -472,6 +499,7 @@ static AddFriend_Re __stub_AddFriend_Re((void*)0);
 static AddFriendRemarks __stub_AddFriendRemarks((void*)0);
 static GetFriends __stub_GetFriends((void*)0);
 static GetFriends_Re __stub_GetFriends_Re((void*)0);
+static GetEnemyList __stub_GetEnemyList((void*)0);
 static SetGroupName __stub_SetGroupName((void*)0);
 static SetGroupName_Re __stub_SetGroupName_Re((void*)0);
 static SetFriendGroup __stub_SetFriendGroup((void*)0);
@@ -490,6 +518,7 @@ static ChatRoomExpel __stub_ChatRoomExpel((void*)0);
 static ChatRoomSpeak __stub_ChatRoomSpeak((void*)0);
 static ChatRoomList __stub_ChatRoomList((void*)0);
 static SendAUMail __stub_SendAUMail((void*)0);
+static PlayerRequiteFriend __stub_PlayerRequiteFriend((void*)0);
 static TradeStart __stub_TradeStart((void*)0);
 static TradeAddGoods __stub_TradeAddGoods((void*)0);
 static TradeRemoveGoods __stub_TradeRemoveGoods((void*)0);
@@ -559,6 +588,7 @@ static PlayerProfileSetProfileData __stub_PlayerProfileSetProfileData((void*)0);
 static PlayerProfileGetMatchResult __stub_PlayerProfileGetMatchResult((void*)0);
 static FactionResourceBattleGetMap __stub_FactionResourceBattleGetMap((void*)0);
 static FactionResourceBattleGetRecord __stub_FactionResourceBattleGetRecord((void*)0);
+static MNGetFactionInfo __stub_MNGetFactionInfo((void*)0);
 static DomainValidate __stub_DomainValidate((void*)0);
 static DomainCmd __stub_DomainCmd((void*)0);
 static QueryUserPrivilege_Re __stub_QueryUserPrivilege_Re((void*)0);
@@ -586,11 +616,14 @@ static GetHelpStates_Re __stub_GetHelpStates_Re((void*)0);
 static GetPlayerBriefInfo_Re __stub_GetPlayerBriefInfo_Re((void*)0);
 static GMGetPlayerConsumeInfo_Re __stub_GMGetPlayerConsumeInfo_Re((void*)0);
 static DisconnectPlayer __stub_DisconnectPlayer((void*)0);
+static WaitQueueStateNotify __stub_WaitQueueStateNotify((void*)0);
+static CancelWaitQueue_Re __stub_CancelWaitQueue_Re((void*)0);
 static ChatBroadCast __stub_ChatBroadCast((void*)0);
 static ChatMultiCast __stub_ChatMultiCast((void*)0);
 static ChatSingleCast __stub_ChatSingleCast((void*)0);
 static RoleStatusAnnounce __stub_RoleStatusAnnounce((void*)0);
 static AddFriendRemarks_Re __stub_AddFriendRemarks_Re((void*)0);
+static GetEnemyList_Re __stub_GetEnemyList_Re((void*)0);
 static ChatRoomCreate_Re __stub_ChatRoomCreate_Re((void*)0);
 static ChatRoomJoin_Re __stub_ChatRoomJoin_Re((void*)0);
 static ChatRoomList_Re __stub_ChatRoomList_Re((void*)0);
@@ -734,6 +767,7 @@ static FactionResourceBattlePlayerQueryResult __stub_FactionResourceBattlePlayer
 static FactionResourceBattleGetMap_Re __stub_FactionResourceBattleGetMap_Re((void*)0);
 static FactionResourceBattleGetRecord_Re __stub_FactionResourceBattleGetRecord_Re((void*)0);
 static FactionResourceBattleNotifyPlayerEvent __stub_FactionResourceBattleNotifyPlayerEvent((void*)0);
+static MNGetFactionInfo_Re __stub_MNGetFactionInfo_Re((void*)0);
 static AnnounceProviderID __stub_AnnounceProviderID((void*)0);
 static S2CGamedataSend __stub_S2CGamedataSend((void*)0);
 static S2CMulticast __stub_S2CMulticast((void*)0);

@@ -132,9 +132,9 @@ namespace GNET
       Skill2127Stub ():SkillStub (2127)
         {
             cls = 127;
-            name = L"神魂";
-            nativename = "神魂";
-            icon = "般若心经.dds";
+            name = L"绁為瓊";
+            nativename = "绁為瓊";
+            icon = "鑸嫢蹇冪粡.dds";
             max_level = 10;
             type = 10;
             apcost = 0;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "巨灵神力.sgc";
+            effect = "宸ㄧ伒绁炲姏.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

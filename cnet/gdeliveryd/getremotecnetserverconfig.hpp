@@ -30,7 +30,8 @@ class GetRemoteCNetServerConfig : public GNET::Protocol
 				{
 					bool is_open = !DisabledSystem::GetDisabled(SYS_COUNTRYBATTLE);
 					if(is_open) { //¹úÕ½¿ªÆô
-						int total_bonus = CountryBattleMan::GetInstance()->GetTotalBonus();
+						int group = CentralDeliveryServer::GetInstance()->GetGroupIdByZoneId(zoneid); 
+						int total_bonus = CountryBattleMan::GetDefault(group)->GetTotalBonus();
 						re.result.push_back(IntOctets(keys[i], Marshal::OctetsStream() << total_bonus));
 					} else {
 						re.result.push_back(IntOctets(keys[i], Marshal::OctetsStream() << -1));

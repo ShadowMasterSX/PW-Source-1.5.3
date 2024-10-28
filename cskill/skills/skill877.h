@@ -132,8 +132,8 @@ namespace GNET
       Skill877Stub ():SkillStub (877)
         {
             cls = 127;
-            name = L"自身圆心群体封印";
-            nativename = "自身圆心群体封印";
+            name = L"鑷韩鍦嗗績缇や綋灏佸嵃";
+            nativename = "鑷韩鍦嗗績缇や綋灏佸嵃";
             icon = "";
             max_level = 10;
             type = 3;
@@ -153,7 +153,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "石破天惊.sgc";
+            effect = "鐭崇牬澶╂儕.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

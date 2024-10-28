@@ -174,9 +174,9 @@ namespace GNET
       Skill2307Stub ():SkillStub (2307)
         {
             cls = 255;
-            name = L"¼ýÕó";
-            nativename = "¼ýÕó";
-            icon = "¼ýÕó1.dds";
+            name = L"ç®­é˜µ";
+            nativename = "ç®­é˜µ";
+            icon = "ç®­é˜µ1.dds";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -201,7 +201,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (13);
             }
-            effect = "1¼ýÕó.sgc";
+            effect = "1ç®­é˜µ.sgc";
             range.type = 3;
             doenchant = false;
             dobless = false;

@@ -57,8 +57,8 @@ namespace GNET
       Skill1952Stub ():SkillStub (1952)
         {
             cls = 127;
-            name = L"ÊÆÁ¦PK»ØÔª";
-            nativename = "ÊÆÁ¦PK»ØÔª";
+            name = L"åŠ¿åŠ›PKå›žå…ƒ";
+            nativename = "åŠ¿åŠ›PKå›žå…ƒ";
             icon = "";
             max_level = 10;
             type = 4;
@@ -79,7 +79,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "Ä§.sgc";
+            effect = "é­”.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

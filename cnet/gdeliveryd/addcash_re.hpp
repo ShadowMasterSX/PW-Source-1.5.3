@@ -9,6 +9,7 @@
 #include "addcashnotify.hpp"
 #include "mapuser.h"
 #include "gproviderserver.hpp"
+#include "waitqueue.h"
 
 namespace GNET
 {
@@ -26,7 +27,18 @@ class AddCash_Re : public GNET::Protocol
 			UserInfo * userinfo = UserContainer::GetInstance().FindUser(userid);
 			if(userinfo && userinfo->status == _STATUS_ONGAME)
 			{
-				GProviderServer::GetInstance()->DispatchProtocol(userinfo->gameid, AddCashNotify(userinfo->roleid));	
+				GProviderServer::GetInstance()->DispatchProtocol(userinfo->gameid, AddCashNotify(userinfo->roleid));
+			}
+			else if(userinfo && userinfo->status == _STATUS_ONLINE)
+			{
+				if(cash_stub > VIP_CASH_LIMIT)
+				{
+					if(!userinfo->is_vip)
+					{
+						userinfo->is_vip = true;
+						WaitQueueManager::GetInstance()->OnBecomeVip(userinfo->userid);
+					}
+				}
 			}
 		}
 	}

@@ -10,6 +10,7 @@
 #include "addcash_re.hpp"
 #include "localmacro.h"
 #include "gsysauctioncash"
+#include "gcashvipinfo"
 
 #include "gamedbmanager.h"
 
@@ -19,7 +20,7 @@ namespace GNET
 class AddCash : public GNET::Protocol
 {
 	#include "addcash"
-
+	
 	void Process(Manager *manager, Manager::Session::ID sid)
 	{
 		AddCash_Re re(0, userid, zoneid, sn);
@@ -65,6 +66,32 @@ class AddCash : public GNET::Protocol
 						user.cash_add += cash;
 						Log::formatlog("addcash","userid=%d:oldserial=%d:newserial=%d:cash_add=%d:delta=%d",
 							userid,user.add_serial,sn,user.cash_add, cash);
+						/* 
+						 CASH VIP
+						*/
+						GRewardStore reward_store;
+						if(0 != user.consume_reward.size())
+						{
+							Marshal::OctetsStream os_reward(user.consume_reward);
+							os_reward >> reward_store;
+						}
+						GCashVipInfo vipinfo;
+						if(0 != reward_store.cash_vip_info.size())
+						{
+							Marshal::OctetsStream os_vip_info(reward_store.cash_vip_info);
+							os_vip_info >> vipinfo;
+						}
+						if(vipinfo.cash_vip_level == 0)
+							vipinfo.score_cost_stamp = CashVip::GetTodayReduceScoreStamp();
+						vipinfo.score_add += (cash / 100 * 3);
+						int cur_score = vipinfo.score_add - vipinfo.score_cost - vipinfo.score_consume;
+						CashVip::CalCashVipLevel(vipinfo.cash_vip_level, cur_score);
+						Log::formatlog("CASH_VIP ADD_CASH","userid=%d:oldserial=%d:newserial=%d:score_add=%d:vip_level=%d:score_daily_reduce=%d:score_consume=%d",
+							userid,user.add_serial,sn,vipinfo.score_add, vipinfo.cash_vip_level, vipinfo.score_cost, vipinfo.score_consume);
+						
+						reward_store.cash_vip_info = Marshal::OctetsStream() << vipinfo;
+						user.consume_reward = Marshal::OctetsStream() << reward_store;
+						
 						if(used)
 						{
 							/*
@@ -83,6 +110,7 @@ class AddCash : public GNET::Protocol
 									0/*ÎÞÐ§roleid*/, userid, user.use_serial, dummy_item.id, dummy_item.expire, used, used, pocket_cash, dummy_item.guid1, dummy_item.guid2);
 							user.use_serial ++;
 						}						
+						re.cash_stub = user.cash_add;
 						puser->insert( key, Marshal::OctetsStream()<<user, txn );
 						re.retcode = ERR_SUCCESS;
 					}

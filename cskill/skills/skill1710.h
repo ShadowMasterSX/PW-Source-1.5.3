@@ -137,9 +137,9 @@ namespace GNET
       Skill1710Stub ():SkillStub (1710)
         {
             cls = 8;
-            name = L"Õæ¡¤ÍòÏó½£¾¢";
-            nativename = "Õæ¡¤ÍòÏó½£¾¢";
-            icon = "ÍòÏó½£¾¢ÏÉ¼¼ÄÜ.dds";
+            name = L"çœŸÂ·ä¸‡è±¡å‰‘åŠ²";
+            nativename = "çœŸÂ·ä¸‡è±¡å‰‘åŠ²";
+            icon = "ä¸‡è±¡å‰‘åŠ²ä»™æŠ€èƒ½.dds";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -164,7 +164,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (1);
             }
-            effect = "½£Áé_ÍòÏó½£¾¢.sgc";
+            effect = "å‰‘çµ_ä¸‡è±¡å‰‘åŠ².sgc";
             range.type = 3;
             doenchant = false;
             dobless = false;

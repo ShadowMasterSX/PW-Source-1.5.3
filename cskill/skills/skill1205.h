@@ -137,9 +137,9 @@ namespace GNET
       Skill1205Stub ():SkillStub (1205)
         {
             cls = 2;
-            name = L"结晶之光";
-            nativename = "结晶之光";
-            icon = "结晶之光.dds";
+            name = L"缁撴櫠涔嬪厜";
+            nativename = "缁撴櫠涔嬪厜";
+            icon = "缁撴櫠涔嬪厜.dds";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -166,7 +166,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (25333);
             }
-            effect = "巫师_结晶之光.sgc";
+            effect = "宸笀_缁撴櫠涔嬪厜.sgc";
             range.type = 1;
             doenchant = true;
             dobless = false;

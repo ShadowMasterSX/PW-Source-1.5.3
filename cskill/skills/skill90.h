@@ -134,9 +134,9 @@ namespace GNET
       Skill90Stub ():SkillStub (90)
         {
             cls = 1;
-            name = L"º®Â¶";
-            nativename = "º®Â¶";
-            icon = "º®Ëª.dds";
+            name = L"å¯’éœ²";
+            nativename = "å¯’éœ²";
+            icon = "å¯’éœœ.dds";
             max_level = 10;
             type = 2;
             apcost = 0;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (292);
             }
-            effect = "º®Â¶.sgc";
+            effect = "å¯’éœ².sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

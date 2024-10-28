@@ -133,9 +133,9 @@ namespace GNET
       Skill1070Stub ():SkillStub (1070)
         {
             cls = 127;
-            name = L"º®±ùÁìÓò";
-            nativename = "º®±ùÁìÓò";
-            icon = "º®±ùÁìÓò.dds";
+            name = L"å¯’å†°é¢†åŸŸ";
+            nativename = "å¯’å†°é¢†åŸŸ";
+            icon = "å¯’å†°é¢†åŸŸ.dds";
             max_level = 10;
             type = 1;
             apcost = 801099;
@@ -154,7 +154,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 1;
-            effect = "º®±ùÁìÓò.sgc";
+            effect = "å¯’å†°é¢†åŸŸ.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

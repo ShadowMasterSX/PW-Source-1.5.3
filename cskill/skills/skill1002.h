@@ -59,9 +59,9 @@ namespace GNET
       Skill1002Stub ():SkillStub (1002)
         {
             cls = 258;
-            name = L"─р┼в";
-            nativename = "─р┼в";
-            icon = "─р┼в.dds";
+            name = L"ц│ец│Ю";
+            nativename = "ц│ец│Ю";
+            icon = "ц│ец│Ю.dds";
             max_level = 10;
             type = 3;
             apcost = 220020;
@@ -80,7 +80,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 1;
-            effect = "─р┼в.sgc";
+            effect = "ц│ец│Ю.sgc";
             range.type = 3;
             doenchant = true;
             dobless = false;

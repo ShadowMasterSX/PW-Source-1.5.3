@@ -58,9 +58,9 @@ namespace GNET
       Skill1828Stub ():SkillStub (1828)
         {
             cls = 3;
-            name = L"共舞";
-            nativename = "共舞";
-            icon = "火狐之术.dds";
+            name = L"鍏辫垶";
+            nativename = "鍏辫垶";
+            icon = "鐏嫄涔嬫湳.dds";
             max_level = 1;
             type = 10;
             apcost = 100;
@@ -87,7 +87,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "妖精_共舞_自身飞行.sgc";
+            effect = "濡栫簿_鍏辫垶_鑷韩椋炶.sgc";
             range.type = 0;
             doenchant = true;
             dobless = true;

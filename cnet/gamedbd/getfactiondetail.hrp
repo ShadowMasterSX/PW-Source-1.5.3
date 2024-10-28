@@ -11,6 +11,7 @@
 #include "gfactiondetail"
 #include "factiondetailres"
 #include "gfactionrelation"
+#include "gfactionextenddata"
 
 namespace GNET
 {
@@ -113,6 +114,14 @@ class GetFactionDetail : public Rpc
 				res->value.level = info.level;
 				res->value.master = info.master.rid;
 				res->value.announce.swap(info.announce);
+				
+				if(info.extenddata.size())
+				{
+					GFactionExtendData exdata;
+					Marshal::OctetsStream(info.extenddata) >> exdata;
+					res->value.unifid = exdata.unifid;
+				}
+
 				for(GMemberVector::iterator it=info.member.begin(),ie=info.member.end(); it!=ie;++it)
 				{
 					FMemberInfo member;

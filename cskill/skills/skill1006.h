@@ -59,9 +59,9 @@ namespace GNET
       Skill1006Stub ():SkillStub (1006)
         {
             cls = 258;
-            name = L"守护";
-            nativename = "守护";
-            icon = "守护.dds";
+            name = L"瀹堟姢";
+            nativename = "瀹堟姢";
+            icon = "瀹堟姢.dds";
             max_level = 10;
             type = 2;
             apcost = 700000;
@@ -80,7 +80,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 1;
-            effect = "守护.sgc";
+            effect = "瀹堟姢.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

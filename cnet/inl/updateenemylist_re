@@ -1,0 +1,47 @@
+	public:
+		int retcode;
+		char optype;
+		int srcroleid;
+		GEnemyList enemy;
+		unsigned int localsid;
+		enum { PROTOCOL_TYPE = PROTOCOL_UPDATEENEMYLIST_RE };
+	public:
+		UpdateEnemyList_Re() { type = PROTOCOL_UPDATEENEMYLIST_RE; }
+		UpdateEnemyList_Re(void*) : Protocol(PROTOCOL_UPDATEENEMYLIST_RE) { }
+		UpdateEnemyList_Re (int l_retcode,char l_optype,int l_srcroleid,
+			GEnemyList l_enemy,unsigned int l_localsid)
+			 : retcode(l_retcode),optype(l_optype),srcroleid(l_srcroleid)
+			,enemy(l_enemy),localsid(l_localsid)
+		{
+			type = PROTOCOL_UPDATEENEMYLIST_RE;
+		}
+
+		UpdateEnemyList_Re(const UpdateEnemyList_Re &rhs)
+			: Protocol(rhs),retcode(rhs.retcode),optype(rhs.optype),srcroleid(rhs.srcroleid)
+			,enemy(rhs.enemy),localsid(rhs.localsid) { }
+
+		GNET::Protocol *Clone() const { return new UpdateEnemyList_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << optype;
+			os << srcroleid;
+			os << enemy;
+			os << localsid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> optype;
+			os >> srcroleid;
+			os >> enemy;
+			os >> localsid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 256; }

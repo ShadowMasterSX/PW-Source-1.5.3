@@ -134,9 +134,9 @@ namespace GNET
       Skill1363Stub ():SkillStub (1363)
         {
             cls = 8;
-            name = L"身外化身";
-            nativename = "身外化身";
-            icon = "身外化身.dds";
+            name = L"韬鍖栬韩";
+            nativename = "韬鍖栬韩";
+            icon = "韬鍖栬韩.dds";
             max_level = 10;
             type = 3;
             apcost = 0;
@@ -160,7 +160,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (1);
             }
-            effect = "剑灵_身外化身.sgc";
+            effect = "鍓戠伒_韬鍖栬韩.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

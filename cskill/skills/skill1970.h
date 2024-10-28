@@ -57,8 +57,8 @@ namespace GNET
       Skill1970Stub ():SkillStub (1970)
         {
             cls = 127;
-            name = L"变身5分钟";
-            nativename = "变身5分钟";
+            name = L"鍙樿韩5鍒嗛挓";
+            nativename = "鍙樿韩5鍒嗛挓";
             icon = "";
             max_level = 1;
             type = 4;

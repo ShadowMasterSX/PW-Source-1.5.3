@@ -1,0 +1,24 @@
+#ifndef __CPPGEN_GNET_SKILL2919
+#define __CPPGEN_GNET_SKILL2919
+namespace GNET
+{
+#ifdef _SKILL_SERVER
+    class Skill2919:public Skill
+    {
+      public:
+        enum
+        { SKILL_ID = 2919 };
+          Skill2919 ():Skill (SKILL_ID)
+        {
+        }
+    };
+#endif
+    class Skill2919Stub:public SkillStub
+    {
+      public:
+        Skill2919Stub ():SkillStub (2919)
+        {
+            cls = 255;
+            name = L"锟斤拷锟斤拷千锟斤拷";
+            nativename = "锟斤拷锟斤拷千锟斤拷";
+            icon = "锟斤拷锟斤拷锟剿猴拷锟斤拷锟

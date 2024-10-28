@@ -1,0 +1,38 @@
+	public:
+		int roleid;
+		int64_t unifid;
+		int domain_id;
+		enum { PROTOCOL_TYPE = PROTOCOL_MNDOMAINBATTLEENTER };
+	public:
+		MNDomainBattleEnter() { type = PROTOCOL_MNDOMAINBATTLEENTER; }
+		MNDomainBattleEnter(void*) : Protocol(PROTOCOL_MNDOMAINBATTLEENTER) { }
+		MNDomainBattleEnter (int l_roleid,int64_t l_unifid,int l_domain_id)
+			 : roleid(l_roleid),unifid(l_unifid),domain_id(l_domain_id)
+		{
+			type = PROTOCOL_MNDOMAINBATTLEENTER;
+		}
+
+		MNDomainBattleEnter(const MNDomainBattleEnter &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),unifid(rhs.unifid),domain_id(rhs.domain_id) { }
+
+		GNET::Protocol *Clone() const { return new MNDomainBattleEnter(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << unifid;
+			os << domain_id;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> unifid;
+			os >> domain_id;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 32; }

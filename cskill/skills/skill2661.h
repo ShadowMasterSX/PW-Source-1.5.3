@@ -57,8 +57,8 @@ namespace GNET
       Skill2661Stub ():SkillStub (2661)
         {
             cls = 127;
-            name = L"ÒşÉí¼¼ÄÜ1";
-            nativename = "ÒşÉí¼¼ÄÜ1";
+            name = L"éšèº«æŠ€èƒ½1";
+            nativename = "éšèº«æŠ€èƒ½1";
             icon = "";
             max_level = 10;
             type = 4;

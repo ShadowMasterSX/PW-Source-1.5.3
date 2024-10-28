@@ -1989,6 +1989,13 @@ gnpc_imp::Reborn()
 
 	_npc_state = NPC_STATE_NORMAL;
 	_parent->b_zombie = false;
+
+	npc_template * pTemplate = npc_stubs_manager::Get(GetNPCID());
+	if(pTemplate != NULL)
+	{
+		memcpy(_local_var,pTemplate->local_var,sizeof(_local_var));
+	}
+
 	ClearDamageList();
 	ClearSession();
 	

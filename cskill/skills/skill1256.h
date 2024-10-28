@@ -19,9 +19,9 @@ namespace GNET
         Skill1256Stub ():SkillStub (1256)
         {
             cls = 2;
-            name = L"�桤ˮ��ͨ";
-            nativename = "�桤ˮ��ͨ";
-            icon = "ˮϵħ����ͨ�ɼ���.dds";
+            name = L"真·水精通";
+            nativename = "真·水精通";
+            icon = "水系魔法精通仙技能.dds";
             max_level = 1;
             type = 5;
             apcost = 0;

@@ -137,9 +137,9 @@ namespace GNET
       Skill54Stub ():SkillStub (54)
         {
             cls = 0;
-            name = L"流水";
-            nativename = "流水";
-            icon = "流水.dds";
+            name = L"娴佹按";
+            nativename = "娴佹按";
+            icon = "娴佹按.dds";
             max_level = 10;
             type = 1;
             apcost = 30;
@@ -178,7 +178,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (9);
             }
-            effect = "流水.sgc";
+            effect = "娴佹按.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

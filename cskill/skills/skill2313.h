@@ -134,9 +134,9 @@ namespace GNET
       Skill2313Stub ():SkillStub (2313)
         {
             cls = 255;
-            name = L"如影随形";
-            nativename = "如影随形";
-            icon = "瞬移.dds";
+            name = L"濡傚奖闅忓舰";
+            nativename = "濡傚奖闅忓舰";
+            icon = "鐬Щ.dds";
             max_level = 10;
             type = 8;
             apcost = 0;

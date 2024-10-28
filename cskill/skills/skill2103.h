@@ -56,9 +56,9 @@ namespace GNET
       Skill2103Stub ():SkillStub (2103)
         {
             cls = 127;
-            name = L"超重专用";
-            nativename = "超重专用";
-            icon = "宠物鼓舞.dds";
+            name = L"瓒呴噸涓撶敤";
+            nativename = "瓒呴噸涓撶敤";
+            icon = "瀹犵墿榧撹垶.dds";
             max_level = 10;
             type = 3;
             apcost = 0;
@@ -79,7 +79,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "排山倒海.sgc";
+            effect = "鎺掑北鍊掓捣.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

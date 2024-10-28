@@ -58,9 +58,9 @@ namespace GNET
       Skill1688Stub ():SkillStub (1688)
         {
             cls = 8;
-            name = L"Õæ¡¤åĞÒ£¾÷";
-            nativename = "Õæ¡¤åĞÒ£¾÷";
-            icon = "åĞÒ£¾÷ÏÉ¼¼ÄÜ.dds";
+            name = L"çœŸÂ·é€é¥è¯€";
+            nativename = "çœŸÂ·é€é¥è¯€";
+            icon = "é€é¥è¯€ä»™æŠ€èƒ½.dds";
             max_level = 1;
             type = 2;
             apcost = 0;
@@ -85,7 +85,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (1);
             }
-            effect = "½£Áé_åĞÒ£¾÷.sgc";
+            effect = "å‰‘çµ_é€é¥è¯€.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

@@ -95,8 +95,8 @@ namespace GNET
       Skill1938Stub ():SkillStub (1938)
         {
             cls = 127;
-            name = L"×¯Ô°boss¹ÖÀÏÍ··ßÅ­";
-            nativename = "×¯Ô°boss¹ÖÀÏÍ··ßÅ­";
+            name = L"åº„å›­bossæ€ªè€å¤´æ„¤æ€’";
+            nativename = "åº„å›­bossæ€ªè€å¤´æ„¤æ€’";
             icon = "";
             max_level = 10;
             type = 3;
@@ -118,7 +118,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "Ñı¾«_Íò¹ÆºéÁ÷.sgc";
+            effect = "å¦–ç²¾_ä¸‡è›Šæ´ªæµ.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

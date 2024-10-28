@@ -57,8 +57,8 @@ namespace GNET
       Skill745Stub ():SkillStub (745)
         {
             cls = 127;
-            name = L"ÎïÆ·¼¼ÄÜ-¾Õ»¨»·ÈÆ";
-            nativename = "ÎïÆ·¼¼ÄÜ-¾Õ»¨»·ÈÆ";
+            name = L"ç‰©å“æŠ€èƒ½-èŠèŠ±ç¯ç»•";
+            nativename = "ç‰©å“æŠ€èƒ½-èŠèŠ±ç¯ç»•";
             icon = "";
             max_level = 10;
             type = 4;

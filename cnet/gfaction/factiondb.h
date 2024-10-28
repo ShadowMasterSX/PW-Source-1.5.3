@@ -148,6 +148,8 @@ namespace GNET
 		unsigned char GetPvpMask(unsigned int fid);
 		void SetPvpMask(unsigned int fid, unsigned char pmask);
 		// 特殊标志判断
+		void SetUnifid(unsigned int fid,int64_t unifid);
+		int64_t GetUnifid(unsigned int fid); 
 		bool GetMemberInfo(unsigned int fid, unsigned int rid, FMemberInfo& info);
 		bool GetMemberList(unsigned int fid, unsigned int rid, std::vector<int>& list);
 		bool CheckMemberList(unsigned int fid, unsigned int rid, std::vector<int>& list);
@@ -184,7 +186,7 @@ namespace GNET
 		int FindFaction(unsigned int fid, OperWrapper::wref_t oper);
 		int ListMember(unsigned int fid, unsigned int rid, int version);
 		int ListRelation(unsigned int fid, unsigned int rid);
-		void ListOnlineFaction(std::vector<unsigned int>& list); 	//列出在线的3级帮派
+		void ListOnlineFaction(std::vector<unsigned int>& list, std::vector<Octets>& master, std::vector<Octets>& proclaim); 	//列出在线的3级帮派
 		void NotifyPlayerFactionRelation(int fid, int roleid=0);
 		int GetMaxbonus(unsigned int fid, int rid=0);
 		void UpdateUser(unsigned int fid, GUserFaction& user);

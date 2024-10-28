@@ -132,9 +132,9 @@ namespace GNET
       Skill2725Stub ():SkillStub (2725)
         {
             cls = 127;
-            name = L"月神祝福";
-            nativename = "月神祝福";
-            icon = "月神之体.dds";
+            name = L"鏈堢绁濈";
+            nativename = "鏈堢绁濈";
+            icon = "鏈堢涔嬩綋.dds";
             max_level = 10;
             type = 10;
             apcost = 0;

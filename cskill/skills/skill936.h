@@ -57,8 +57,8 @@ namespace GNET
       Skill936Stub ():SkillStub (936)
         {
             cls = 127;
-            name = L"Ê±¿ÕËéÆ¬.ÒÆ¶¯";
-            nativename = "Ê±¿ÕËéÆ¬.ÒÆ¶¯";
+            name = L"æ—¶ç©ºç¢Žç‰‡.ç§»åŠ¨";
+            nativename = "æ—¶ç©ºç¢Žç‰‡.ç§»åŠ¨";
             icon = "";
             max_level = 1;
             type = 4;

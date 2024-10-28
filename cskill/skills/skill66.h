@@ -137,9 +137,9 @@ namespace GNET
       Skill66Stub ():SkillStub (66)
         {
             cls = 0;
-            name = L"流星赶月";
-            nativename = "流星赶月";
-            icon = "流星赶月.dds";
+            name = L"娴佹槦璧舵湀";
+            nativename = "娴佹槦璧舵湀";
+            icon = "娴佹槦璧舵湀.dds";
             max_level = 10;
             type = 1;
             apcost = 0;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (5);
             }
-            effect = "流星赶月.sgc";
+            effect = "娴佹槦璧舵湀.sgc";
             range.type = 1;
             doenchant = true;
             dobless = false;

@@ -58,9 +58,9 @@ namespace GNET
       Skill1303Stub ():SkillStub (1303)
         {
             cls = 5;
-            name = L"�񡤱�ˮһս";
-            nativename = "�񡤱�ˮһս";
-            icon = "����ħ����.dds";
+            name = L"狂·背水一战";
+            nativename = "狂·背水一战";
+            icon = "定身魔技能.dds";
             max_level = 1;
             type = 2;
             apcost = 0;
@@ -85,7 +85,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (23749);
             }
-            effect = "�̿�_��ˮһս.sgc";
+            effect = "刺客_背水一战.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

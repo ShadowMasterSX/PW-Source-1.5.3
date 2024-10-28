@@ -1,0 +1,83 @@
+#ifndef __GNET_MNDOMAININFO_RPCDATA
+#define __GNET_MNDOMAININFO_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class MNDomainInfo : public GNET::Rpc::Data
+	{
+	public:
+		int domain_id;
+		unsigned char domain_type;
+		int64_t owner_unifid;
+		int64_t attacker_unifid;
+		int64_t defender_unifid;
+
+	public:
+		MNDomainInfo (int l_domain_id = 0,unsigned char l_domain_type = 0,int64_t l_owner_unifid = 0
+			,int64_t l_attacker_unifid = 0,int64_t l_defender_unifid = 0)
+			: domain_id(l_domain_id),domain_type(l_domain_type),owner_unifid(l_owner_unifid)
+			,attacker_unifid(l_attacker_unifid),defender_unifid(l_defender_unifid)
+		{
+		}
+
+		MNDomainInfo(const MNDomainInfo &rhs)
+			: domain_id(rhs.domain_id),domain_type(rhs.domain_type),owner_unifid(rhs.owner_unifid),
+			attacker_unifid(rhs.attacker_unifid),defender_unifid(rhs.defender_unifid) { }
+
+		Rpc::Data *Clone() const { return new MNDomainInfo(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const MNDomainInfo *r = dynamic_cast<const MNDomainInfo *>(&rhs);
+			if (r && r != this)
+			{
+				domain_id = r->domain_id;
+				domain_type = r->domain_type;
+				owner_unifid = r->owner_unifid;
+				attacker_unifid = r->attacker_unifid;
+				defender_unifid = r->defender_unifid;
+			}
+			return *this;
+		}
+
+		MNDomainInfo& operator = (const MNDomainInfo &rhs)
+		{
+			const MNDomainInfo *r = &rhs;
+			if (r && r != this)
+			{
+				domain_id = r->domain_id;
+				domain_type = r->domain_type;
+				owner_unifid = r->owner_unifid;
+				attacker_unifid = r->attacker_unifid;
+				defender_unifid = r->defender_unifid;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << domain_id;
+			os << domain_type;
+			os << owner_unifid;
+			os << attacker_unifid;
+			os << defender_unifid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> domain_id;
+			os >> domain_type;
+			os >> owner_unifid;
+			os >> attacker_unifid;
+			os >> defender_unifid;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<MNDomainInfo>	MNDomainInfoVector;
+};
+#endif

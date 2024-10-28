@@ -8,7 +8,7 @@
 #include "pfactioninfo"
 namespace GNET
 {
-void ReceivePlayerFactionInfo(int roleid,unsigned int faction_id,char faction_role,unsigned char faction_pvp_mask);
+void ReceivePlayerFactionInfo(int roleid,unsigned int faction_id,char faction_role,unsigned char faction_pvp_mask,int64_t unifid);
 class PlayerFactionInfo_Re : public GNET::Protocol
 {
 	#include "playerfactioninfo_re"
@@ -22,12 +22,12 @@ class PlayerFactionInfo_Re : public GNET::Protocol
 		{
 			for (size_t i=0;i<faction_info.size();i++)
 			{
-				printf("player %3d's faction id is %3d, faction roleid is %d\n",faction_info[i].roleid,faction_info[i].faction_id,faction_info[i].faction_role);
+				printf("player %3d's faction id is %3d, faction roleid is %d\n",faction_info[i].roleid,faction_info[i].faction_id);
 			}
 		}
 #else
 		for (size_t i=0;i<faction_info.size();i++)
-			ReceivePlayerFactionInfo(faction_info[i].roleid,faction_info[i].faction_id,faction_info[i].faction_role,faction_info[i].faction_pvp_mask);		
+			ReceivePlayerFactionInfo(faction_info[i].roleid,faction_info[i].faction_id,faction_info[i].faction_role,faction_info[i].faction_pvp_mask,faction_info[i].unifid);		
 #endif
 		
 	}

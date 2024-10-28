@@ -1,0 +1,59 @@
+#ifndef __GNET_DBSOLOCHALLENGERANKSAVERES_RPCDATA
+#define __GNET_DBSOLOCHALLENGERANKSAVERES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBSoloChallengeRankSaveRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+
+	public:
+		DBSoloChallengeRankSaveRes (int l_retcode = -1)
+			: retcode(l_retcode)
+		{
+		}
+
+		DBSoloChallengeRankSaveRes(const DBSoloChallengeRankSaveRes &rhs)
+			: retcode(rhs.retcode) { }
+
+		Rpc::Data *Clone() const { return new DBSoloChallengeRankSaveRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBSoloChallengeRankSaveRes *r = dynamic_cast<const DBSoloChallengeRankSaveRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		DBSoloChallengeRankSaveRes& operator = (const DBSoloChallengeRankSaveRes &rhs)
+		{
+			const DBSoloChallengeRankSaveRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			return os;
+		}
+
+	};
+};
+#endif

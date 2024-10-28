@@ -164,6 +164,42 @@ void UniqueDataServer::ModifyUniqueData(int worldtag,int key, int vtype, Octets&
 
 }
 
+int UniqueDataServer::GetIntByDelivery(int key)
+{
+	if(_data.elems.find(key) == _data.elems.end())	
+		return -1;
+	SGUniqueData::SGUniqueDataElem& data = _data.elems[key];
+	return *(int*)data.elem.value.begin(); 
+}
+
+void UniqueDataServer::ModifyByDelivery(int key ,int val,bool cl_broadcast)
+{
+	if(!_initialized) 
+	{
+		Log::log(LOG_ERR,"ModifyByDelivery,Uninitialized, key=%d,value=%d\n", key, val);
+		return;
+	}
+
+	Thread::Mutex::Scoped l(lock);
+
+	Octets newval(&val,sizeof(val));
+	SGUniqueData::SGUniqueDataElem& data = _data.elems[key];
+
+	if((data.elem.vtype == UDT_INT) && (*(int*)data.elem.value.begin() == val))	
+		return; // 值未改变不用执行
+
+	if(ERR_SUCCESS == data.modify(UDT_INT,newval,data.elem.value,true,data.elem.version,false))
+	{
+		SyncModifyToGS(0, key, UDT_INT, newval, newval, true, ERR_SUCCESS, data.elem.version,-1);
+		Log::log(LOG_NOTICE,"ModifyByDelivery, Modify, key=%d,value=%d\n",key, val);
+		if(cl_broadcast) data.broadcast = true;
+	}
+	else
+	{
+		Log::log(LOG_ERR,"ModifyUniqueData, Modify fail, key=%d,value=%d\n",key, val);
+	}
+}
+
 void UniqueDataServer::InitGSData(int worldtag, int sid)
 {
 	if(!_initialized) 

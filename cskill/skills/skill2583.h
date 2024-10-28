@@ -138,9 +138,9 @@ namespace GNET
       Skill2583Stub ():SkillStub (2583)
         {
             cls = 11;
-            name = L"万类霜天";
-            nativename = "万类霜天";
-            icon = "万类霜天.dds";
+            name = L"涓囩被闇滃ぉ";
+            nativename = "涓囩被闇滃ぉ";
+            icon = "涓囩被闇滃ぉ.dds";
             max_level = 10;
             type = 1;
             apcost = 0;
@@ -167,7 +167,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "月仙_万类霜天_击中.sgc";
+            effect = "鏈堜粰_涓囩被闇滃ぉ_鍑讳腑.sgc";
             range.type = 3;
             doenchant = true;
             dobless = false;

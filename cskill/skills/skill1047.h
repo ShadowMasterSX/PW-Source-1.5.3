@@ -60,9 +60,9 @@ namespace GNET
       Skill1047Stub ():SkillStub (1047)
         {
             cls = 258;
-            name = L"灵气爆发";
-            nativename = "灵气爆发";
-            icon = "灵气爆发.dds";
+            name = L"鐏垫皵鐖嗗彂";
+            nativename = "鐏垫皵鐖嗗彂";
+            icon = "鐏垫皵鐖嗗彂.dds";
             max_level = 10;
             type = 2;
             apcost = 500000;
@@ -81,7 +81,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 1;
-            effect = "灵气爆发.sgc";
+            effect = "鐏垫皵鐖嗗彂.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

@@ -19,9 +19,9 @@ namespace GNET
         Skill678Stub ():SkillStub (678)
         {
             cls = 3;
-            name = L"�桤�ⲫ��ͨ";
-            nativename = "�桤�ⲫ��ͨ";
-            icon = "ȭ����ͨ1.dds";
+            name = L"真·肉搏精通";
+            nativename = "真·肉搏精通";
+            icon = "拳术精通1.dds";
             max_level = 1;
             type = 5;
             apcost = 0;

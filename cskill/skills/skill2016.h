@@ -133,8 +133,8 @@ namespace GNET
       Skill2016Stub ():SkillStub (2016)
         {
             cls = 127;
-            name = L"��ʦ�һ��";
-            nativename = "��ʦ�һ��";
+            name = L"法师烈火符";
+            nativename = "法师烈火符";
             icon = "";
             max_level = 10;
             type = 1;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "1�һ��.sgc";
+            effect = "1烈火符.sgc";
             range.type = 0;
             doenchant = false;
             dobless = true;

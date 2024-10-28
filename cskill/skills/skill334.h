@@ -133,8 +133,8 @@ namespace GNET
       Skill334Stub ():SkillStub (334)
         {
             cls = 127;
-            name = L"¹ÖÎï¹ãÄ¿Ìì½«¼¼ÄÜ¹¥»÷";
-            nativename = "¹ÖÎï¹ãÄ¿Ìì½«¼¼ÄÜ¹¥»÷";
+            name = L"æ€ªç‰©å¹¿ç›®å¤©å°†æŠ€èƒ½æ”»å‡»";
+            nativename = "æ€ªç‰©å¹¿ç›®å¤©å°†æŠ€èƒ½æ”»å‡»";
             icon = "";
             max_level = 10;
             type = 1;
@@ -154,7 +154,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "¹ÖÎï¹ãÄ¿Ìì½«¼¼ÄÜ¹¥»÷.sgc";
+            effect = "æ€ªç‰©å¹¿ç›®å¤©å°†æŠ€èƒ½æ”»å‡».sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

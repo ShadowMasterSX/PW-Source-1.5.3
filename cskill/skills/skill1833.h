@@ -137,9 +137,9 @@ namespace GNET
       Skill1833Stub ():SkillStub (1833)
         {
             cls = 4;
-            name = L"ÑÜÃğ¡¤Áú·É¾ø";
-            nativename = "ÑÜÃğ¡¤Áú·É¾ø";
-            icon = "ÑıÊŞÖ®Á¦.DDS";
+            name = L"è¡ç­Â·é¾™é£ç»";
+            nativename = "è¡ç­Â·é¾™é£ç»";
+            icon = "å¦–å…½ä¹‹åŠ›.DDS";
             max_level = 1;
             type = 1;
             apcost = 200;
@@ -164,7 +164,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (9);
             }
-            effect = "ÑıÊŞ_ÊŞÁéÖ®Á¦.sgc";
+            effect = "å¦–å…½_å…½çµä¹‹åŠ›.sgc";
             range.type = 3;
             doenchant = true;
             dobless = false;

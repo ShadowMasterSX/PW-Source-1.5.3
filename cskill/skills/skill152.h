@@ -137,9 +137,9 @@ namespace GNET
       Skill152Stub ():SkillStub (152)
         {
             cls = 4;
-            name = L"排山倒海";
-            nativename = "排山倒海";
-            icon = "排山倒海.dds";
+            name = L"鎺掑北鍊掓捣";
+            nativename = "鎺掑北鍊掓捣";
+            icon = "鎺掑北鍊掓捣.dds";
             max_level = 10;
             type = 1;
             apcost = 0;
@@ -166,7 +166,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "排山倒海.sgc";
+            effect = "鎺掑北鍊掓捣.sgc";
             range.type = 3;
             doenchant = true;
             dobless = false;

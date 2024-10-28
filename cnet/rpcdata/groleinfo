@@ -39,6 +39,7 @@ namespace GNET
 		CrossInfoData cross_data;
 		Octets reincarnation_data;
 		Octets realm_data;
+		Octets rank;
 
 	public:
 		GRoleInfo (char l_version = 1,unsigned int l_id = 0,const Octets& l_name = Octets(0)
@@ -47,7 +48,8 @@ namespace GNET
 			,float l_posy = 0,float l_posz = 0,int l_worldtag = 0
 			,unsigned int l_custom_stamp = 0,char l_status = 0,int l_delete_time = 0
 			,int l_create_time = 0,int l_lastlogin_time = 0,int l_referrer_role = 0
-			,int l_cash_add = 0,const Octets& l_reincarnation_data = Octets(0),const Octets& l_realm_data = Octets(0))
+			,int l_cash_add = 0,const Octets& l_reincarnation_data = Octets(0),const Octets& l_realm_data = Octets(0)
+			,const Octets& l_rank = Octets(0))
 			: version(l_version),id(l_id),name(l_name)
 			,race(l_race),cls(l_cls),gender(l_gender)
 			,level(l_level),level2(l_level2),posx(l_posx)
@@ -55,6 +57,7 @@ namespace GNET
 			,custom_stamp(l_custom_stamp),status(l_status),delete_time(l_delete_time)
 			,create_time(l_create_time),lastlogin_time(l_lastlogin_time),referrer_role(l_referrer_role)
 			,cash_add(l_cash_add),reincarnation_data(l_reincarnation_data),realm_data(l_realm_data)
+			,rank(l_rank)
 		{
 		}
 
@@ -67,7 +70,8 @@ namespace GNET
 			charactermode(rhs.charactermode),equipment(rhs.equipment),status(rhs.status),
 			delete_time(rhs.delete_time),create_time(rhs.create_time),lastlogin_time(rhs.lastlogin_time),
 			forbid(rhs.forbid),referrer_role(rhs.referrer_role),cash_add(rhs.cash_add),
-			cross_data(rhs.cross_data),reincarnation_data(rhs.reincarnation_data),realm_data(rhs.realm_data) { }
+			cross_data(rhs.cross_data),reincarnation_data(rhs.reincarnation_data),realm_data(rhs.realm_data),
+			rank(rhs.rank) { }
 
 		Rpc::Data *Clone() const { return new GRoleInfo(*this); }
 
@@ -103,6 +107,7 @@ namespace GNET
 				cross_data = r->cross_data;
 				reincarnation_data = r->reincarnation_data;
 				realm_data = r->realm_data;
+				rank = r->rank;
 			}
 			return *this;
 		}
@@ -139,6 +144,7 @@ namespace GNET
 				cross_data = r->cross_data;
 				reincarnation_data = r->reincarnation_data;
 				realm_data = r->realm_data;
+				rank = r->rank;
 			}
 			return *this;
 		}
@@ -172,6 +178,7 @@ namespace GNET
 			os << cross_data;
 			os << reincarnation_data;
 			os << realm_data;
+			os << rank;
 			return os;
 		}
 
@@ -204,6 +211,7 @@ namespace GNET
 			os >> cross_data;
 			os >> reincarnation_data;
 			os >> realm_data;
+			os >> rank;
 			return os;
 		}
 

@@ -23,7 +23,7 @@ namespace GNET
 	bool ForwardBattleOP(unsigned int type,const void* pParams,size_t param_len,object_interface obj_if );
 
 	/* To implement the following interfaces */
-	void ReceivePlayerFactionInfo(int roleid,unsigned int faction_id,char faction_role);
+	void ReceivePlayerFactionInfo(int roleid,unsigned int faction_id,char faction_role,int64_t unifid);
 	void FactionLockPlayer(unsigned int tid,int roleid);
 	void FactionUnLockPlayer(unsigned int tid,int roleid,const syncdata_t& syncdata);
 

@@ -58,9 +58,9 @@ namespace GNET
       Skill176Stub ():SkillStub (176)
         {
             cls = 0;
-            name = L"�貨΢��";
-            nativename = "�貨΢��";
-            icon = "�貨΢��.dds";
+            name = L"凌波微步";
+            nativename = "凌波微步";
+            icon = "凌波微步.dds";
             max_level = 1;
             type = 2;
             apcost = 100;
@@ -99,7 +99,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (9);
             }
-            effect = "�貨΢��.sgc";
+            effect = "凌波微步.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

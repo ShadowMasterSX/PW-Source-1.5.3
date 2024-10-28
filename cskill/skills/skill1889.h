@@ -132,8 +132,8 @@ namespace GNET
       Skill1889Stub ():SkillStub (1889)
         {
             cls = 127;
-            name = L"藏宝图BOSS常规BUFF";
-            nativename = "藏宝图BOSS常规BUFF";
+            name = L"钘忓疂鍥綛OSS甯歌BUFF";
+            nativename = "钘忓疂鍥綛OSS甯歌BUFF";
             icon = "";
             max_level = 10;
             type = 2;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "妖精_共舞_自身飞行.sgc";
+            effect = "濡栫簿_鍏辫垶_鑷韩椋炶.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

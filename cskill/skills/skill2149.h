@@ -132,8 +132,8 @@ namespace GNET
       Skill2149Stub ():SkillStub (2149)
         {
             cls = 127;
-            name = L"安抚";
-            nativename = "安抚";
+            name = L"瀹夋姎";
+            nativename = "瀹夋姎";
             icon = "";
             max_level = 10;
             type = 3;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 15;
-            effect = "真灵护体.sgc";
+            effect = "鐪熺伒鎶や綋.sgc";
             range.type = 0;
             doenchant = true;
             dobless = true;

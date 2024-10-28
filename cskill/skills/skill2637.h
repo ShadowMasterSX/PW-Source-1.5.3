@@ -132,8 +132,8 @@ namespace GNET
       Skill2637Stub ():SkillStub (2637)
         {
             cls = 127;
-            name = L"火之结界";
-            nativename = "火之结界";
+            name = L"鐏箣缁撶晫";
+            nativename = "鐏箣缁撶晫";
             icon = "";
             max_level = 10;
             type = 2;

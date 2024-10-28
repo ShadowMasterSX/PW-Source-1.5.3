@@ -57,8 +57,8 @@ namespace GNET
       Skill2159Stub ():SkillStub (2159)
         {
             cls = 127;
-            name = L"冥兽城任务DEBUFF";
-            nativename = "冥兽城任务DEBUFF";
+            name = L"鍐ュ吔鍩庝换鍔EBUFF";
+            nativename = "鍐ュ吔鍩庝换鍔EBUFF";
             icon = "";
             max_level = 10;
             type = 4;
@@ -79,7 +79,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "巨灵神力.sgc";
+            effect = "宸ㄧ伒绁炲姏.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

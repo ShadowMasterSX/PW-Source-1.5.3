@@ -132,8 +132,8 @@ namespace GNET
       Skill2716Stub ():SkillStub (2716)
         {
             cls = 127;
-            name = L"˫�Ӽӷ�";
-            nativename = "˫�Ӽӷ�";
+            name = L"双子加防";
+            nativename = "双子加防";
             icon = "";
             max_level = 10;
             type = 2;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "ħ.sgc";
+            effect = "魔.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

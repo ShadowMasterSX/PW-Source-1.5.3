@@ -354,6 +354,7 @@
 		<variable name="cash_add" type="int" default="0"/>
 		<variable name="reincarnation_data" type="Octets" default="Octets(0)" attr="ref"/>
 		<variable name="realm_data" type="Octets" default="Octets(0)" attr="ref"/>
+		<variable name="rank" type="Octets" default="Octets(0)" attr="ref"/>
 	</rpcdata>
 	<protocol debug="0" name="RoleList" maxsize="32" prior="101" type="82">
 		<variable name="userid" type="int"/>
@@ -808,7 +809,7 @@
 	</protocol>
 	<protocol name="QPGetActivatedServices_Re" type="151" maxsize="1024" prior="1">
 		<variable name="localsid" type="int"/>
-		<variable name="merchants" type="std::vector&lt;int&gt;" att="ref"/>
+		<variable name="merchants" type="std::vector&lt;int&gt;" attr="ref"/>
 		<variable name="retcode" type="int" default="0"/>
 	</protocol>
 	<protocol name="QPAddCash" type="152" maxsize="512" prior="1">
@@ -901,6 +902,23 @@
 	<protocol name="ServerTriggerNotify" type="163" maxsize="1024" prior="1">
 		<variable name="trigger_ctrl_list" type="std::vector&lt;int&gt;" attr="ref"/>
 	</protocol>
+	
+	<protocol name="WaitQueueStateNotify" type="164" maxsize="128" prior="1">
+		<variable name="localsid" type="unsigned int"/>
+		<variable name="vip" 	  type="char"/>
+		<variable name="vq_size"  type="short"/>
+		<variable name="cur_queue_pos"  type="short"/>
+		<variable name="waittime" type="int"/>
+	</protocol>
+	<protocol name="CancelWaitQueue" type="165" maxsize="128" prior="1">
+		<variable name="userid" type="int"/> 	
+		<variable name="localsid" type="unsigned int" default="0"/>
+	</protocol>
+	<protocol name="CancelWaitQueue_Re" type="166" maxsize="128" prior="1">
+		<variable name="result" type="int"/>
+		<variable name="localsid" type="unsigned int" default="0"/>
+	</protocol> 	
+
 	<!-- **************************************************************************** -->
 	<!-- 		 	Protocols and Rpcs about GameMaster tools	350-500			  	 -->
 	<!-- **************************************************************************** -->
@@ -1362,6 +1380,7 @@
 		<variable name="userid" type="int" default="-1"/>
 		<variable name="zoneid" type="int" default="-1"/>
 		<variable name="sn" type="int" default="0"/>
+		<variable name="cash_stub" type="unsigned int" default="0"/>
 	</protocol>
 	<protocol debug="0" name="UseCash" type="517" maxsize="128" prior="0">
 		<variable name="userid" type="int" default="-1"/>
@@ -1947,7 +1966,7 @@
 		<variable name="title_data" type="Octets" attr="ref" default="Octets(0)"/>
 		<variable name="reincarnation_data" type="Octets" attr="ref" default="Octets(0)"/>
 		<variable name="realm_data" type="Octets" attr="ref" default="Octets(0)"/>
-		<variable name="reserved2" type="char" default="0"/>
+		<variable name="rank" type="Octets" attr="ref" default="Octets(0)"/>
 		<variable name="reserved3" type="char" default="0"/>
 	</rpcdata>
 	<rpcdata name="GRoleInventory" attr="vector">
@@ -2127,6 +2146,7 @@
 		<variable name="cross_data" type="CrossInfoData" attr="ref" />
 		<variable name="reincarnation_data" type="Octets" attr="ref" default="Octets(0)"/>
 		<variable name="realm_data" type="Octets" attr="ref" default="Octets(0)"/>
+		<variable name="rank" type="Octets" attr="ref" default="Octets(0)"/>
 	</rpcdata>
 	<rpcdata name="GRoleDetail">
 		<variable name="version" type="char" default="1" fixvalue="true"/>
@@ -2153,7 +2173,7 @@
 		<variable name="storehouse" type="GRoleStorehouse"  attr="ref"/>
 		<variable name="task" type="GRoleTask"  attr="ref"/>
 		<variable name="addiction" type="Octets" attr="ref"/>
-		<variable name="logs" type="std::vector&lt;GShopLog>" att="ref"/>
+		<variable name="logs" type="std::vector&lt;GShopLog>" attr="ref"/>
 		<variable name="bonus_add" type="int" default="0"/>
 		<variable name="bonus_reward" type="int" default="0"/>
 		<variable name="bonus_used" type="int" default="0"/>
@@ -2164,6 +2184,16 @@
 		<variable name="factionhostile" type="GFactionHostileVector" attr="ref"/>
 		<variable name="mall_consumption" type="int" default="0"/>
 		<variable name="src_zoneid" type="int" default="0"/>
+		<variable name="unifid" type="int64_t" default="0"/>
+		<variable name="vip_level" type="int" default="0" />
+		<variable name="score_add" type="int" default="0" />
+		<variable name="score_cost" type="int" default="0" />
+		<variable name="score_consume" type="int" default="0" />
+		<variable name="day_clear_stamp" type="int" default="0" />
+		<variable name="week_clear_stamp" type="int" default="0" />
+		<variable name="month_clear_stamp" type="int" default="0" />
+		<variable name="year_clear_stamp" type="int" default="0" />
+		<variable name="purchase_limit_data" type="Octets" default="Octets(0)" attr="ref"/>
 	</rpcdata>
 
 	<rpcdata name="GRoleTableUser" bdbtable="user" key="RoleId">
@@ -2251,6 +2281,11 @@
 		<variable name="uniquedata" type="GUniqueDataElem"/>
 		<variable name="recalluser" type="char"/>
         <variable name="mappassword" type="MapPasswordData"/>
+        <variable name="solochallengerank" type="SoloChallengeRankDataExt"/>
+        <variable name="mnfactioninfo" type="MNFactionInfo"/>
+        <variable name="mnfactionapplyinfo" type="MNFactionApplyInfo"/>
+        <variable name="mndomaininfo" type="MNDomainInfo"/>
+        <variable name="mndomainbonus" type="MNDomainBonus"/>
 	</rpcdata>
 
     <rpcdata name="MapPasswordValue">
@@ -2290,6 +2325,84 @@
     </rpcdata>
 
     <rpc debug="0" name="DBMapPasswordSave" type="3044" argument="DBMapPasswordSaveArg" result="DBMapPasswordSaveRes" table="mappassword" key="username" value="value" maxsize="524288" prior="1" timeout="30"/>
+
+
+    <rpcdata name="SoloChallengeRankData" attr="vector">
+        <variable name="roleid" type="int" default="0"/>
+        <variable name="level" type="int" default="0"/>
+        <variable name="cls" type="int" default="-1"/>
+        <variable name="total_time" type="int" default="0"/>
+        <variable name="name" type="Octets" default="Octets()" attr="ref"/>
+        <variable name="type" type="char" default="0"/>
+        <variable name="zoneid" type="unsigned char" default="0"/>
+        <variable name="update_time" type="int" default="0"/>
+        <variable name="reserved1" type="short" default="0"/>
+        <variable name="reserved2" type="int" default="0"/>
+        <variable name="reserved3" type="int" default="0"/>
+    </rpcdata>
+
+    <rpcdata name="SoloChallengeRankDataExt">
+        <variable name="update_time" type="int" default="0"/>
+        <variable name="data" type="SoloChallengeRankDataVector" default="SoloChallengeRankDataVector()" attr="ref"/>
+        <variable name="zoneid" type="int" default="0"/>
+        <variable name="reserved1" type="int" default="0"/>
+        <variable name="reserved2" type="int" default="0"/>
+        <variable name="reserved3" type="int" default="0"/>
+    </rpcdata>
+
+    <rpcdata name="DBSoloChallengeRankLoadArg">
+        <variable name="type" type="char" default="0"/>
+    </rpcdata>
+
+    <rpcdata name="DBSoloChallengeRankLoadRes">
+        <variable name="retcode" type="int" default="-1"/>
+        <variable name="data_ext_local" type="SoloChallengeRankDataExt" default="SoloChallengeRankDataExt()" attr="ref"/>
+        <variable name="data_ext_global" type="SoloChallengeRankDataExt" default="SoloChallengeRankDataExt()" attr="ref"/>
+    </rpcdata>
+
+    <rpc debug="0" name="DBSoloChallengeRankLoad" type="3047" argument="DBSoloChallengeRankLoadArg" result="DBSoloChallengeRankLoadRes" table="solochallengerank" maxsize="262144" prior="1" timeout="30"/>
+
+    <rpcdata name="DBSoloChallengeRankSaveArg">
+        <variable name="ranktype" type="char" default="0"/>
+        <variable name="data_ext" type="SoloChallengeRankDataExt" default="SoloChallengeRankDataExt()" attr="ref"/>
+    </rpcdata>
+
+    <rpcdata name="DBSoloChallengeRankSaveRes">
+        <variable name="retcode" type="int" default="-1"/>
+    </rpcdata>
+
+    <rpc debug="0" name="DBSoloChallengeRankSave" type="3048" argument="DBSoloChallengeRankSaveArg" result="DBSoloChallengeRankSaveRes" table="solochallengerank" maxsize="131072" prior="1" timeout="30"/>
+
+
+    <protocol debug="0" name="UpdateSoloChallengeRank" type="3074" maxsize="64" prior="1">
+        <variable name="roleid" type="int"/>
+        <variable name="total_time" type="int"/>
+    </protocol>
+
+    <protocol debug="0" name="GetSoloChallengeRank" type="3075" maxsize="64" prior="1">
+        <variable name="roleid" type="int"/>
+        <variable name="ranktype" type="char"/>
+        <variable name="cls" type="char"/>
+    </protocol>
+
+    <protocol debug="0" name="GetSoloChallengeRank_Re" type="3076" maxsize="32768" prior="1">
+        <variable name="retcode" type="int"/>
+        <variable name="roleid" type="int"/>
+        <variable name="ranktype" type="char"/>
+        <variable name="cls" type="char"/>
+        <variable name="next_sort_time" type="int"/>
+        <variable name="data" type="std::vector&lt;SoloChallengeRankData&gt;" attr="ref"/>
+        <variable name="localsid" type="unsigned int"/>
+    </protocol>
+
+    <protocol debug="0" name="CrossSoloChallengeRank" type="3077" maxsize="131072" prior="1">
+        <variable name="data_ext" type="SoloChallengeRankDataExt" attr="ref"/>
+    </protocol>
+	
+    <protocol debug="0" name="CrossSoloChallengeRank_Re" type="3078" maxsize="64" prior="1">
+        <variable name="retcode" type="int"/>
+        <variable name="zoneid" type="int"/>
+    </protocol>
 
 	<rpcdata name="RoleId">
 		<variable name="id" type="unsigned int" default="0"/>
@@ -2501,7 +2614,14 @@
 		<variable name="priority" type="char" default="0"/>
 		<variable name="value" type="GRoleDetail"/>
 	</rpcdata>
-	<rpc debug="0" name="PutRole" type="3024" argument="RolePair" result="RpcRetcode" table="base" attr="put" key="key" value="value" maxsize="1048576" prior="1" timeout="20"/>
+	<rpcdata name="PutRoleRes">
+		<variable name="retcode" type="int" default="0" />
+		<variable name="cash_vip_level" type="int" default="0" />
+		<variable name="score_add" type="int" default="0" />
+		<variable name="score_cost" type="int" default="0" />
+		<variable name="score_consume" type="int" default="0" />
+	</rpcdata>
+	<rpc debug="0" name="PutRole" type="3024" argument="RolePair" result="PutRoleRes" table="base" attr="put" key="key" value="value" maxsize="1048576" prior="1" timeout="20"/>
 
 	<rpcdata name="GetRoleBaseStatusRes">
 		<variable name="retcode" type="int" default="-1"/>
@@ -2736,9 +2856,30 @@
 		<variable name="retcode" type="int" default="-1"/>
 		<variable name="handle" type="int" default="-1"/>
 		<variable name="finish" type="char" default="0"/>
-		<variable name="rolenamelist" type="std::vector&lt;GRoleIDandName>" att="ref"/>
+		<variable name="rolenamelist" type="std::vector&lt;GRoleIDandName>" attr="ref"/>
 	</rpcdata>
 	<rpc debug="0" name="DBRoleNameList" type="3064" argument="DBRoleNameListArg" result="DBRoleNameListRes" maxsize="131072" prior="1" timeout="30"/>
+
+    <!-- player change gender -->
+    <rpcdata name="DBPlayerChangeGenderArg">
+        <variable name="roleid" type="int" default="-1"/>
+        <variable name="item_id" type="int" default="-1"/>
+        <variable name="item_num" type="int" default="0"/>
+        <variable name="item_pos" type="int" default="-1"/>
+        <variable name="newgender" type="unsigned char" default="0"/>
+        <variable name="custom_data" type="Octets" default="Octets()" attr="ref"/>
+        <!-- below parameter is provide by gameserver-->
+        <variable name="syncdata" type="GMailSyncData" default="GMailSyncData()" attr="ref"/>
+    </rpcdata>
+
+    <rpcdata name="DBPlayerChangeGenderRes">
+        <variable name="retcode" type="int" default="-1"/>
+        <variable name="oldgender" type="unsigned char" default="0"/>
+        <variable name="custom_data" type="Octets" default="Octets()" attr="ref"/>
+        <variable name="syncdata" type="GMailSyncData" default="GMailSyncData()" attr="ref"/>
+    </rpcdata>
+
+    <rpc debug="0" name="DBPlayerChangeGender" type="3071" argument="DBPlayerChangeGenderArg" result="DBPlayerChangeGenderRes" maxsize="131072" prior="1" timeout="20"/>
 
 	<!-- player give present -->
 	<protocol name="PlayerGivePresent" type="3065" maxsize="131072" prior="1">
@@ -2810,13 +2951,34 @@
 	</rpcdata>
 	<rpc debug="0" name="DBPlayerAskForPresent" type="3070" argument="DBPlayerAskForPresentArg" result="DBPlayerAskForPresentRes" maxsize="128" prior="1" timeout="30"/>
 
+
+	<protocol name="PlayerRequiteFriend" type="3072" maxsize="64" prior="1">
+		<variable name="localsid" type="int"/>
+		<variable name="roleid" type="int"/>
+		<variable name="friendid" type="int"/>
+	</protocol>
+	<rpcdata name="DBPlayerRequiteFriendArg">
+		<variable name="roleid" type="int" default="-1"/>  
+		<variable name="friendid" type="int" default="-1"/>
+		<variable name="rolename" type="Octets" default="Octets()" attr="ref"/>
+		<variable name="opttype" type="int" default="0"/>
+		<variable name="item" type="GRoleInventory" default="GRoleInventory()" attr="ref"/>	
+		<variable name="mail_list" type="IntVector" default="IntVector()" attr="ref"/>
+	</rpcdata>
+	<rpcdata name="DBPlayerRequiteFriendRes">
+		<variable name="retcode" type="int" default="-1"/> 
+		<variable name="sysheader" type="GMailHeader" default="GMailHeader()" attr="ref"/>
+	</rpcdata>
+	<rpc debug="0" name="DBPlayerRequiteFriend" type="3073" argument="DBPlayerRequiteFriendArg" result="DBPlayerRequiteFriendRes" maxsize="1024" prior="1" timeout="30"/>
+
+
 	<!-- 这里是每个gs进程(地图)要保存的特有的数据 server data -->
 	<rpcdata name="GServerData">
 		<variable name="world_tag" type="int" default="0"/>
 		<variable name="wedding_data" type="Octets" default="Octets()" attr="ref"/>
 		<variable name="dpsrank_data" type="Octets" default="Octets()" attr="ref"/>
-		<variable name="reserved11" type="char" default="0"/>
-		<variable name="reserved12" type="short" default="0"/>
+        <variable name="reserved11" type="char" default="0"/>
+        <variable name="reserved12" type="short" default="0"/>
 		<variable name="reserved2" type="int" default="0"/>
 		<variable name="reserved3" type="int" default="0"/>
 		<variable name="reserved4" type="int" default="0"/>
@@ -2845,6 +3007,8 @@
 	<rpcdata name="GetCashTotalRes">
 		<variable name="retcode" type="int" default="-1"/>
 		<variable name="cash_total" type="int" default="-1"/>
+		<variable name="cash_vip_score_add" type="int" default="-1"/>
+		<variable name="cash_vip_level" type="int" default="-1"/>
 	</rpcdata>
 	<rpc debug="0" name="GetCashTotal" type="3058" argument="GetCashTotalArg" result="GetCashTotalRes" maxsize="32" prior="1" timeout="30"/>
 
@@ -2933,10 +3097,10 @@
 		<variable name="vtype" type="int"/>
 		<variable name="value" type="Octets" attr="ref"/>
 		<variable name="oldvalue" type="Octets" attr="ref"/>
-		<variable name="exclusive" type="bool"/>
-		<variable name="broadcast" type="bool"/>
+		<variable name="exclusive" type="char"/>
+		<variable name="broadcast" type="char"/>
 		<variable name="version" type="int"/>
-		<variable name="timeout" type="bool"/>
+		<variable name="timeout" type="char"/>
 	</protocol>
 	<protocol name="UniqueDataModifyNotice" type="3116" maxsize="1024" prior="101"> 
 		<variable name="worldtag" type="int"/>
@@ -2944,7 +3108,7 @@
 		<variable name="vtype" type="int"/>
 		<variable name="value" type="Octets" attr="ref"/>
 		<variable name="oldvalue" type="Octets" attr="ref"/>
-		<variable name="exclusive" type="bool"/>
+		<variable name="exclusive" type="char"/>
 		<variable name="retcode" type="int"/>
 		<variable name="version" type="int"/>
 	</protocol>
@@ -3309,7 +3473,7 @@
 		<variable name="inventory" type="GRolePocket" default="GRolePocket()" attr="ref"/>
 		<variable name="storehouse" type="GRoleStorehouse" default="GRoleStorehouse()" attr="ref"/>
 		<variable name="equipment" type="GRoleInventoryVector" default="GRoleInventoryVector()" attr="ref"/>
-		<variable name="logs" type="std::vector&lt;GShopLog>" att="ref"/>
+		<variable name="logs" type="std::vector&lt;GShopLog>" attr="ref"/>
 	</rpcdata>
 	<rpcdata name="GMailBox">
 		<variable name="timestamp" type="unsigned int" default="0"/>
@@ -3653,8 +3817,8 @@
 		<variable name="card_leadership" type ="Octets" default="Octets()" attr="ref"/>
 		<variable name="fate_ring_data" type ="Octets" default="Octets()" attr="ref"/>
 		<variable name="title_data" type ="Octets" default="Octets()" attr="ref"/>
-		<variable name="reserved1" type="int" default="0"/>
-		<variable name="reserved2" type="int" default="0"/>
+		<variable name="astrolabe_data" type="Octets" default="Octets()" attr="ref"/>
+		<variable name="shopping_consume_vip_data" type="Octets" default="Octets()" attr="ref"/>
 		<variable name="reserved3" type="int" default="0"/>
 		<variable name="reserved4" type="int" default="0"/>
 		<variable name="reserved5" type="int" default="0"/>
@@ -3955,9 +4119,9 @@
 	</rpcdata>
 	<rpcdata name="TimeInfo"> 
 		<variable name="actiontime" type="int64_t"/>  <!-- 动作发起时间点,ms为单位 -->
-		<variable name="showperiod" type="int"/> <!-- 公示期时长min为单位-->
-		<variable name="sellperiod" type="int"/> <!-- 出售时长min为单位 -->
-		<variable name="postperiod" type="int"/> <!-- 寄售时长min为单位 -->
+		<variable name="showperiod" type="int"/> <!-- 公示期时长?mmin为单位-->
+		<variable name="sellperiod" type="int"/> <!-- 出售时长?mmin为单位 -->
+		<variable name="postperiod" type="int"/> <!-- 寄售时长?mmin为单位 -->
 	</rpcdata>
 	<protocol name="Post" type="8020" maxsize="1048576" prior="1">
 		<variable name="aid" type="int"/>
@@ -5478,7 +5642,7 @@
 	</rpcdata>
 	<protocol name="PlayerProfileGetMatchResult_Re" type="955" maxsize="1024" prior="1">
 		<variable name="roleid" type="int"/>
-		<variable name="result" type="std::vector&lt;ProfileMatchResult&gt;" att="ref"/>
+		<variable name="result" type="std::vector&lt;ProfileMatchResult&gt;" attr="ref"/>
 		<variable name="localsid" type="unsigned int"/>
 	</protocol>
 	<rpcdata name="DBGetPlayerProfileDataArg">
@@ -5555,8 +5719,10 @@
 	<protocol name="TryChangeDS" type="1101" maxsize="32" prior="1">
 		<variable name="roleid" type="int"/>
 		<variable name="flag" type="char" default="0"/> <!--0:正常登陆逻辑 1:原服到跨服 2:跨服到原服 3:直接登录跨服服务器-->
+		<variable name="cross_type" type="short" default="-1"/>
+        <variable name="unifid" type="int64_t" default="0"/>
 	</protocol>
-	<protocol name="PlayerChangeDS" type="1102" maxsize="32" prior="1">
+	<protocol name="PlayerChangeDS" type="1102" maxsize="64" prior="1">
 		<variable name="roleid" type="int"/>
 		<variable name="flag" type="char" default="0"/> <!--0:正常登陆逻辑 1:原服到跨服 2:跨服到原服 3:直接登录跨服服务器-->
 	</protocol>
@@ -5672,8 +5838,10 @@
 	</rpcdata>
 	<rpcdata name="FreezePlayerDataRes">
 		<variable name="retcode" type="int" default="0"/>
+		<variable name="cross_type" type="short" default="-1"/>
+        <variable name="unifid" type="int64_t"/>
 	</rpcdata>
-	<rpc debug="0" name="FreezePlayerData" type="1112" maxsize="32" prior="1" timeout="30"/>
+	<rpc debug="0" name="FreezePlayerData" type="1112" maxsize="64" prior="1" timeout="30"/>
 	<rpcdata name="PlayerIdentityMatchArg">
 		<variable name="roleid" type="int" default="0"/>
 		<variable name="userid" type="int" default="0"/>
@@ -5707,6 +5875,8 @@
 		<variable name="retcode" type="int" default="0"/>
 		<variable name="new_roleid" type="int" default="0"/>
 		<variable name="roleinfo" type="GRoleInfo" attr="ref"/>
+		<variable name="cross_type" type="short"/>
+        <variable name="unifid" type="int64_t"/>
 	</rpcdata>
 	<rpc debug="0" name="SavePlayerData" type="1114" maxsize="1048576" prior="1" timeout="30"/>
 	<protocol debug="0" name="DSAnnounceIdentity" maxsize="128" prior="1" type="1116">
@@ -5781,7 +5951,11 @@
 	</protocol>
 	<protocol debug="0" name="AnnounceCentralDelivery" maxsize="512" prior="101" type="1131">
 		<variable name="is_central" type="char"/>
-		<variable name="accepted_zone_list" type="std::vector&lt;int&gt;" att="ref"/>
+	</protocol>
+	<protocol debug="0" name="AnnounceZoneGroup" maxsize="4096" prior="1" type="1132">
+		<variable name="accepted_zone_list" type="std::map&lt;int,int&gt;" attr="ref"/>
+		<variable name="is_central" type="char" default="0"/>
+		<variable name="group" type="int" default="0"/>
 	</protocol>
 
 	<rpcdata name="StockOrder">
@@ -5937,6 +6111,12 @@
         <variable name="items" type="GRoleInventoryVector" />
         <variable name="log" type="GFactionLogVector"/>
     </rpcdata>
+    <rpcdata name="GFactionExtendData">
+		<variable name="unifid" type="int64_t" default="0"/>
+		<variable name="reserved1" type="int" default="0"/>
+		<variable name="reserved2" type="int" default="0"/>
+		<variable name="reserved3" type="int" default="0"/>
+    </rpcdata>
     <rpcdata name="GFactionInfo">
         <variable name="fid" type="unsigned int" default="0"/>
         <variable name="name" type="Octets" attr="ref" default="Octets(0)"/>
@@ -5944,7 +6124,7 @@
         <variable name="master" type="GMember"  default="0"/>
         <variable name="member" type="GMemberVector"/>
         <variable name="announce" type="Octets"/>
-        <variable name="sysinfo" type="Octets"/>
+        <variable name="extenddata" type="Octets"/>
     </rpcdata>
 	<rpcdata name="GFactionBaseInfo">
 		<variable name="fid" type="unsigned int" default="0"/>
@@ -5952,11 +6132,20 @@
         <variable name="level" type = "char" default="0"/>
 		<variable name="mem_num" type="short" default="0"/>
 	</rpcdata>
+    <rpcdata name="GUniqueInfo">
+        <variable name="unifid" type="int64_t" default="0"/>
+        <variable name="reserved1" type="int" default="0"/>
+        <variable name="reserved2" type="int" default="0"/>
+        <variable name="reserved3" type="int" default="0"/>
+        <variable name="reserved4" type="int" default="0"/>
+    </rpcdata>
     <rpcdata name="GFactionExtend">
 		<variable name="jointime"  type="int" default="0"/>
         <variable name="loyalty"   type="int" default="0"/>
 		<variable name="logintime" type="int" default="0"/>
-		<variable name="reserved1" type="int" default="0"/>
+		<variable name="uniqueinfo" type="Octets" default="Octets()" attr="ref"/>
+        <variable name="reserved1" type="char" default="0"/>
+        <variable name="reserved2" type="short" default="0"/>
     </rpcdata>
     <rpcdata name="GUserFaction">
         <variable name="rid" type="unsigned int" default="0"/>
@@ -6098,6 +6287,7 @@
 		<variable name="alliance" type="GFactionAllianceVector" default="GFactionAllianceVector()" attr="ref"/>
 		<variable name="hostile" type="GFactionHostileVector" default="GFactionHostileVector()" attr="ref"/>
 		<variable name="apply" type="GFactionRelationApplyVector" default="GFactionRelationApplyVector()" attr="ref"/>
+        <variable name="unifid" type="int64_t" default="0"/>
 	</rpcdata>
 	<rpcdata name="FactionDetailRes">
 		<variable name="retcode" type="int" default="-1"/>
@@ -6772,6 +6962,7 @@
 		<variable name="keys" type="IntVector" attr="ref"/>
 		<variable name="linksid" type="unsigned int"/>
 		<variable name="localsid" type="unsigned int"/>
+		<variable name="zoneid" type="int"/>
 	</protocol>
 	<protocol name="GetRemoteCNetServerConfig_Re" type="4791" maxsize="8192" prior="1">
 		<variable name="result" type="IntOctetsVector" attr="ref"/>
@@ -6782,6 +6973,9 @@
 		<variable name="domain_id" type="int"/>
 		<variable name="world_tag" type="int"/>
 	</protocol>
+	<protocol name="CrossGuardNotify" type="4793" maxsize="512" prior="1">
+		<variable name="carnival" type="IntVector"/>
+	</protocol>
 
 	<!-- ***************************************************************************** -->
 	<!--  Inter-Server Protocols between factionServer and other Server , id 4800-4850 -->
@@ -6791,6 +6985,7 @@
 		<variable name="faction_id" type="unsigned int" default="0"/>
 		<variable name="faction_role" type="char" default="-1"/>
 		<variable name="faction_pvp_mask" type="unsigned char" default="0"/>
+        <variable name="unifid" type="int64_t" default="0"/>
 	</rpcdata>
 	<protocol debug="0" name="PlayerFactionInfo" type="4801" maxsize="10240" prior="1">
 		<variable name="rolelist" type="IntVector"/>
@@ -6910,6 +7105,8 @@
 	</protocol>
 	<protocol debug="0" name="FactionListOnline_Re" type="4820" maxsize="8192" prior="1">
 		<variable name="fid_list" type="std::vector&lt;unsigned int&gt;" attr="ref"/>
+		<variable name="fid_master" type="std::vector&lt;Octets&gt;" attr="ref"/>
+		<variable name="proclaim" type="std::vector&lt;Octets&gt;" attr="ref"/>
 		<variable name="localsid" type="unsigned int"/>
 	</protocol>
 	
@@ -6929,7 +7126,10 @@
 		<variable name="data" type="Octets" attr="ref"/>
 		<variable name="member" type="std::vector&lt;int&gt;" attr="ref"/>
 	</protocol>
-
+	<protocol debug="0" name="FactionUniqueIdAnnounce" type="4824" maxsize="1024" prior="1">
+		<variable name="factionid" type="int"/>
+		<variable name="unifid" type="int64_t"/>
+	</protocol>
 	<!-- ***************************************************************************** -->
 	<!--    Protocols and Rpcs used in King Election System is 4851 - 4870 	           -->
 	<!-- ***************************************************************************** -->
@@ -7179,13 +7379,26 @@
 		<variable name="value" type="GFriendList"/>
 		<variable name="extra_info" type="GFriendExtInfoVector"/>
 		<variable name="sendmail_info" type="GSendAUMailRecordVector"/>
+        <variable name="enemylist_info" type="GEnemyListVector" default="GEnemyListVector()" attr="ref"/>
 	</rpcdata>
 	<rpcdata name="FriendListRes">
 		<variable name="retcode" type="char" default="-1"/>
 		<variable name="value" type="GFriendList"/>
 		<variable name="extra_info" type="GFriendExtInfoVector"/>
 		<variable name="sendmail_info" type="GSendAUMailRecordVector"/>
+        <variable name="enemylist_info" type="GEnemyListVector" default="GEnemyListVector()" attr="ref"/>
 	</rpcdata>
+    <rpcdata name="GEnemyList" attr="vector">
+        <variable name="rid" type="int" default="0"/>
+        <variable name="cls" type="char" default="0"/>
+        <variable name="type" type="char" default="0"/>
+        <variable name="add_time" type="int" default="0"/>
+        <variable name="name" type="Octets" default="Octets()" attr="ref"/>
+        <variable name="reserved1" type="int" default="0"/>
+        <variable name="reserved2" type="int" default="0"/>
+        <variable name="reserved3" type="int" default="0"/>
+        <variable name="reserved4" type="int" default="0"/>
+    </rpcdata>
 	<rpcdata name="GSendAUMailRecord" attr="vector">
 		<variable name="rid" type="int" default="0"/>
 		<variable name="sendmail_time" type="int" default="0"/>
@@ -7205,7 +7418,9 @@
 	<rpcdata name="GFriendExtra">
 		<variable name="friendExtInfo" type="GFriendExtInfoVector"/>
 		<variable name="sendaumailinfo" type="GSendAUMailRecordVector"/>
-		<variable name="reserved1" type="int" default="0"/>
+        <variable name="enemylistinfo" type="Octets" default="Octets()"/>
+		<variable name="reserved11" type="char" default="0"/>
+        <variable name="reserved12" type="short" default="0"/>
 		<variable name="reserved2" type="int" default="0"/>
 		<variable name="reserved3" type="int" default="0"/>
 		<variable name="reserved4" type="int" default="0"/>
@@ -7258,6 +7473,32 @@
 		<variable name="status" type="CharVector"/>
 		<variable name="localsid" type="unsigned int"/>
 	</protocol>
+
+    <protocol debug="0" name="UpdateEnemyList" maxsize="64" prior="1" type="238">
+        <variable name="optype" type="char"/>
+        <variable name="srcroleid" type="int"/>
+        <variable name="dstroleid" type="int"/>
+    </protocol>
+    <protocol debug="0" name="UpdateEnemyList_Re" maxsize="256" prior="1" type="239">
+        <variable name="retcode" type="int"/>
+        <variable name="optype" type="char"/>
+        <variable name="srcroleid" type="int"/>
+        <variable name="enemy" type="GEnemyList"/>
+        <variable name="localsid" type="unsigned int"/>
+    </protocol>
+
+    <protocol debug="0" name="GetEnemyList" maxsize="64" prior="1" type="240">
+        <variable name="roleid" type="int"/>
+        <variable name="localsid" type="unsigned int"/>
+    </protocol>
+    <protocol debug="0" name="GetEnemyList_Re" maxsize="16384" prior="1" type="241">
+        <variable name="retcode" type="int"/>
+        <variable name="roleid" type="int"/>
+        <variable name="enemylist" type="GEnemyListVector"/>
+        <variable name="status" type="CharVector"/>
+        <variable name="localsid" type="unsigned int"/>
+    </protocol>
+
 	<protocol debug="0" name="SetGroupName" maxsize="64" prior="1" type="208">
 		<variable name="roleid" type="int"/>
 		<variable name="gid" type="char"/>
@@ -7576,11 +7817,27 @@
 		<variable name="reserved3" type="int" default="0" />
 		<variable name="reserved4" type="int" default="0" />
 	</rpcdata>
+	<rpcdata name="GCashVipInfo">
+		<variable name="cash_vip_level" type="int" default="0" />
+		<variable name="score_add" type="unsigned int" default="0" />
+		<variable name="score_cost" type="unsigned int" default="0" />
+		<variable name="score_consume" type="unsigned int" default="0" />
+		<variable name="score_cost_stamp" type="int" default="0" />
+		<variable name="purchase_limit_items_info" type="Octets" default="Octets(0)" attr="ref" />	
+		<variable name="day_clear_stamp" type="int" default="0" />
+		<variable name="week_clear_stamp" type="int" default="0" />
+		<variable name="month_clear_stamp" type="int" default="0" />
+		<variable name="year_clear_stamp" type="int" default="0" />
+		<variable name="reserved0" type="int" default="0" />
+		<variable name="reserved1" type="int" default="0" />
+		<variable name="reserved2" type="int" default="0" />
+		<variable name="reserved3" type="int" default="0" />
+	</rpcdata>
 	<rpcdata name="GRewardStore">
 		<variable name="consume_points" type="int" default="0" />
 		<variable name="bonus_reward" type="int" default="0" />
 		<variable name="rewardlist" type="GRewardItemVector" attr="ref"/>
-		<variable name="reserved1" type="int" default="0" />
+		<variable name="cash_vip_info" type="Octets" default="Octets(0)" attr="ref" />
 		<variable name="reserved2" type="int" default="0" />
 		<variable name="reserved3" type="int" default="0" />
 		<variable name="reserved4" type="int" default="0" />
@@ -8059,6 +8316,384 @@
 		<variable name="locktime" type="int"/>
 		<variable name="timeout" type="int"/>
 		<variable name="settime" type="int"/>
+	</protocol>
+
+	<!--******************************************************************************-->
+	<!--Protocols and rpc used by MNFaction, id 5201-5300 guoshi				  -->
+	<!--******************************************************************************-->
+	<!--初始化--><!--5201~5210-->
+    <rpcdata name="MNDomainInfo" attr="vector">
+		<variable name="domain_id" type="int" default="0"/>
+		<variable name="domain_type" type="unsigned char" default="0"/>
+		<variable name="owner_unifid" type="int64_t" default="0"/>
+		<variable name="attacker_unifid" type="int64_t" default="0"/>
+		<variable name="defender_unifid" type="int64_t" default="0"/>
+	</rpcdata>
+    <rpcdata name="MNFactionInfo" attr="vector">
+		<variable name="unifid" type="int64_t" default="0"/>
+		<variable name="fid" type="unsigned int" default="0"/>
+		<variable name="faction_name" type="Octets" attr="ref" default="Octets()"/>
+		<variable name="master_name" type="Octets" attr="ref" default="Octets()"/>
+		<variable name="zoneid" type="int" default="0"/>
+		<variable name="domain_num" type="std::vector&lt;char&gt;" attr="ref" default="std::vector&lt;char&gt;()"/>
+		<variable name="credit" type="int" default="0"/>
+		<variable name="credit_this_week" type="int" default="0"/>
+		<variable name="credit_get_time" type="int" default="0"/>
+		<variable name="invite_count" type="unsigned int" default="0"/>
+		<variable name="accept_sn" type="unsigned int" default="0"/>
+		<variable name="bonus_sn" type="unsigned int" default="0"/>
+		<variable name="version" type="unsigned int" default="0"/>
+	</rpcdata>
+    <rpcdata name="DBMNFactionInfoGetRes">
+		<variable name="retcode" type="int" default="-1"/>
+		<variable name="sn" type="unsigned int" default="0"/>
+		<variable name="state" type="unsigned char" default="0"/>
+        <variable name="handle" type="Octets" attr="ref" default="Octets()"/>
+		<variable name="domaininfo_list" type="MNDomainInfoVector" attr="ref" default="MNDomainInfoVector()"/>
+		<variable name="factioninfo_list" type="MNFactionInfoVector" attr="ref" default="MNFactionInfoVector()"/>
+	</rpcdata>
+    <rpcdata name="DBMNFactionInfoGetArg">
+        <variable name="handle" type="Octets" attr="ref" default="Octets()"/>
+	</rpcdata>
+	<rpc debug="0" name="DBMNFactionInfoGet" type="5201" argument="DBMNFactionInfoGetArg" result="DBMNFactionInfoGetRes" maxsize="1048576" prior="1" timeout="30"/>
+	<protocol name="MNFactionCacheGet" type="5202" maxsize="32" prior="1">
+		<variable name="zoneid" type="int"/>
+	</protocol>
+	<protocol name="MNFactionCacheGet_Re" type="5203" maxsize="1048576" prior="1">
+		<variable name="sn" type="unsigned int"/>
+		<variable name="apply_begin_time" type="int"/>
+		<variable name="apply_end_time" type="int"/>
+		<variable name="cross_begin_time" type="int"/>
+		<variable name="battle_begin_time" type="int"/>
+		<variable name="battle_end_time" type="int"/>
+		<variable name="domaininfo_list" type="MNDomainInfoVector" attr="ref"/>
+		<variable name="factioninfo_list" type="MNFactionInfoVector" attr="ref"/>
+	</protocol>
+	<protocol name="DBMNFactionCacheUpdate" type="5204" maxsize="1048576" prior="1">
+		<variable name="factioninfo_list" type="MNFactionInfoVector" attr="ref" />
+	</protocol>
+	<protocol name="MNFactionInfoUpdate" type="5205" maxsize="1048576" prior="1">
+		<variable name="zoneid" type="int"/>
+		<variable name="factioninfo_list" type="MNFactionInfoVector" attr="ref"/>
+	</protocol>
+	<rpcdata name="DBMNFactionInfoUpdateArg">
+		<variable name="factioninfo_list" type="MNFactionInfoVector" attr="ref" default="MNFactionInfoVector()"/>
+	</rpcdata>
+	<rpcdata name="DBMNFactionInfoUpdateRes">
+		<variable name="retcode" type="int" default="-1"/>
+	</rpcdata>
+	<rpc debug="0" name="DBMNFactionInfoUpdate" type="5206" argument="DBMNFactionInfoUpdateArg" result="DBMNFactionInfoUpdateRes" maxsize="1048576" prior="1" timeout="30"/>
+
+	<rpcdata name="DBMNDomainInfoUpdateArg">
+		<variable name="domaininfo_list" type="MNDomainInfoVector" attr="ref" default="MNDomainInfoVector()"/>
+	</rpcdata>
+	<rpcdata name="DBMNDomainInfoUpdateRes">
+		<variable name="retcode" type="int" default="-1"/>
+	</rpcdata>
+	<rpc debug="0" name="DBMNDomainInfoUpdate" type="5207" argument="DBMNDomainInfoUpdateArg" result="DBMNDomainInfoUpdateRes" maxsize="1048576" prior="1" timeout="30"/>
+
+	<rpcdata name="DBMNFactionApplyInfoGetArg">
+        <variable name="handle" type="Octets" default="Octets()" attr="ref"/>
+	</rpcdata>   
+	<rpcdata name="DBMNFactionApplyInfoGetRes">
+		<variable name="retcode" type="int" default="-1"/>
+		<variable name="applyinfo_list" type="MNFactionApplyInfoVector" attr="ref" default="MNFactionApplyInfoVector()"/>
+	</rpcdata>   
+	<rpc debug="0" name="DBMNFactionApplyInfoGet" type="5208" argument="DBMNFactionApplyInfoGetArg" result="DBMNFactionApplyInfoGetRes" maxsize="1048576" prior="1" timeout="30"/>
+
+	<protocol name="MNDomainInfoGSNotice" type="5209" maxsize="4096" prior="1">
+		<variable name="domaininfo_list" type="MNDomainInfoVector" attr="ref"/>
+	</protocol>
+	
+	<rpcdata name="DBMNFactionStateUpdateArg">
+		<variable name="state" type="unsigned char" default="0"/>
+	</rpcdata>   
+	<rpcdata name="DBMNFactionStateUpdateRes">
+		<variable name="retcode" type="int" default="-1"/>
+	</rpcdata>   
+	<rpc debug="0" name="DBMNFactionStateUpdate" type="5210" argument="DBMNFactionStateUpdateArg" result="DBMNFactionStateUpdateRes" maxsize="32" prior="1" timeout="30"/>
+
+	<!--报名和宣战--><!--5211~5219-->
+    <rpcdata name="MNFactionApplyInfo" attr="vector">
+        <variable name="unifid" type="int64_t" default="0"/>
+        <variable name="applicant_id" type="int" default="0"/>
+        <variable name="dest" type="unsigned char" default="0"/>
+        <variable name="cost" type="unsigned int" default="0"/>
+    </rpcdata>
+	<protocol name="MNFactionBattleApply" type="5211" maxsize="131072" prior="1">
+        <variable name="fid" type="unsigned int"/>
+		<variable name="unifid" type="int64_t"/> 
+        <variable name="roleid" type="int"/>
+        <variable name="target" type="unsigned char"/>
+		<variable name="cost" type="unsigned int"/> 
+        <variable name="syncdata" type="GMailSyncData" attr="ref"/>
+	</protocol>
+	<protocol name="MNFactionBattleApply_Re" type="5212" maxsize="1024" prior="1">
+		<variable name="retcode" type="int"/>
+		<variable name="target" type="unsigned char"/>
+		<variable name="localsid" type="unsigned int" />
+	</protocol>
+	<rpcdata name="DBMNFactionBattleApplyArg">
+		<variable name="fid" type="unsigned int" default="0"/>
+		<variable name="unifid" type="int64_t" default="0"/> 
+        <variable name="roleid" type="int" default="0"/>
+        <variable name="target" type="unsigned char" default="0"/>
+		<variable name="cost" type="unsigned int" default="0"/> 
+		<variable name="zoneid" type="int" default="0"/>
+        <variable name="syncdata" type="GMailSyncData" default="GMailSyncData()" attr="ref"/>
+	</rpcdata>   
+	<rpcdata name="DBMNFactionBattleApplyRes">
+		<variable name="retcode" type="int" default="-1"/>
+        <variable name="roleid" type="int" default="0"/>
+		<variable name="factioninfo" type="MNFactionInfo" default="MNFactionInfo()" attr="ref"/>
+		<variable name="applyinfo" type="MNFactionApplyInfo" default="MNFactionApplyInfo()" attr="ref"/>
+        <variable name="syncdata" type="GMailSyncData" default="GMailSyncData()" attr="ref"/>
+	</rpcdata>   
+	<rpc debug="0" name="DBMNFactionBattleApply" type="5213" argument="DBMNFactionBattleApplyArg" result="DBMNFactionBattleApplyRes" maxsize="1048576" prior="1" timeout="30"/>
+	
+	<protocol name="MNFactionProclaim" type="5214" maxsize="1048576" prior="1">
+		<variable name="zoneid" type="int"/>
+		<variable name="applyinfo_list" type="MNFactionApplyInfoVector" attr="ref"/>
+		<variable name="factioninfo_list" type="MNFactionInfoVector" attr="ref"/>
+		<variable name="lvl3_list" type="std::vector&lt;int64_t&gt;" default="std::vector&lt;int64_t&gt;()" attr="ref"/>
+	</protocol>
+	<protocol name="MNFactionProclaim_Re" type="5215" maxsize="256" prior="1">
+		<variable name="retcode" type="int"/>
+	</protocol>
+	<rpcdata name="DBMNFactionApplyResNotifyArg">
+		<variable name="status" type="unsigned char"/>
+		<variable name="rejected_list" type="std::vector&lt;int64_t&gt;" default="std::vector&lt;int64_t&gt;()" attr="ref"/>
+		<variable name="chosen_list" type="std::vector&lt;int64_t&gt;" default="std::vector&lt;int64_t&gt;()" attr="ref"/>
+	</rpcdata>   
+	<rpcdata name="DBMNFactionApplyResNotifyRes">
+		<variable name="retcode" type="int"/>
+	</rpcdata>   
+	<rpc debug="0" name="DBMNFactionApplyResNotify" type="5216" argument="DBMNFactionApplyResNotifyArg" result="DBMNFactionApplyResNotifyRes" maxsize="4096" prior="1" timeout="30"/>
+	<rpcdata name="DBMNFactionApplyInfoPutArg">
+		<variable name="applyinfo_list" type="MNFactionApplyInfoVector" attr="ref"/>
+	</rpcdata>   
+	<rpcdata name="DBMNFactionApplyInfoPutRes">
+		<variable name="retcode" type="int"/>
+	</rpcdata>   
+	<rpc debug="0" name="DBMNFactionApplyInfoPut" type="5217" argument="DBMNFactionApplyInfoPutArg" result="DBMNFactionApplyInfoPutRes" maxsize="1048576" prior="1" timeout="30"/>
+	<protocol name="MNFetchFiltrateResult" type="5218" maxsize="32" prior="1">
+		<variable name="zoneid" type="int"/>
+	</protocol>
+	<protocol name="MNFetchFiltrateResult_Re" type="5219" maxsize="4096" prior="1">
+		<variable name="chosen_list" type="std::vector&lt;int64_t&gt;" attr="ref"/>
+	</protocol>
+
+	<!--战场匹配-->
+	<rpcdata name="DBMNDomainBattleMatchArg">
+		<variable name="domaininfo_list" type="MNDomainInfoVector" attr="ref" default="MNDomainInfoVector()"/>
+	</rpcdata>   
+	<rpcdata name="DBMNDomainBattleMatchRes">
+		<variable name="retcode" type="int" default="-1"/>
+	</rpcdata>   
+	<rpc debug="0" name="DBMNDomainBattleMatch" type="5220" argument="DBMNDomainBattleMatchArg" result="DBMNDomainBattleMatchRes" maxsize="4096" prior="1" timeout="30"/>
+
+	<!--战场结算--><!--5221~5229-->
+	<protocol name="MNBattleServerRegister" type="5221" maxsize="32" prior="1">
+		<variable name="server_id" type="int"/>
+		<variable name="world_tag" type="int"/>
+	</protocol>
+	<protocol name="MNDomainBattleStart" type="5222" maxsize="256" prior="1">
+		<variable name="domain_id" type="int"/>
+		<variable name="sn" type="unsigned int"/>
+		<variable name="domain_type" type="unsigned char"/>
+		<variable name="owner" type="int64_t"/>
+		<variable name="attacker" type="int64_t"/>
+		<variable name="defender" type="int64_t"/>
+		<variable name="expiretime" type="int"/>
+	</protocol>
+	<protocol name="MNDomainBattleStart_Re" type="5223" maxsize="32" prior="1">
+		<variable name="retcode" type="int"/>
+		<variable name="domain_id" type="int"/>
+		<variable name="world_tag" type="int"/>
+	</protocol>
+	<protocol name="MNDomainBattleEnter" type="5224" maxsize="32" prior="1">
+		<variable name="roleid" type="int"/>
+		<variable name="unifid" type="int64_t"/>
+		<variable name="domain_id" type="int"/>
+	</protocol>
+	<protocol name="MNDomainBattleEnter_Re" type="5225" maxsize="64" prior="1">
+		<variable name="retcode" type="int"/>
+		<variable name="roleid" type="int"/>
+		<variable name="unifid" type="int64_t"/>
+		<variable name="world_tag" type="int"/>
+		<variable name="domain_id" type="int"/>
+	</protocol>
+	<protocol name="MNDomainBattleEnterSuccessNotice" type="5226" maxsize="32" prior="1">
+		<variable name="roleid" type="int"/>
+		<variable name="unifid" type="int64_t"/>
+		<variable name="domain_id" type="int"/>
+	</protocol>
+	<protocol name="MNDomainBattleLeaveNotice" type="5227" maxsize="32" prior="1">
+		<variable name="roleid" type="int"/>
+		<variable name="unifid" type="int64_t"/>
+		<variable name="domain_id" type="int"/>
+	</protocol>
+	<protocol name="MNDomainBattleEnd" type="5228" maxsize="16" prior="1">
+		<variable name="domain_id" type="int"/>
+		<variable name="winner_fid" type="int64_t"/>
+	</protocol>
+	
+	<!--战场奖励--><!--5230~5239-->
+	<rpcdata name="MNDomainBonusRewardItem" attr="vector">
+		<variable name="item_id" type="int" default="0"/> 
+		<variable name="item_num" type="unsigned int" default="0"/>
+		<variable name="proc_type" type="int" default="0"/> 
+		<variable name="max_count" type="int" default="0"/> 
+	</rpcdata>
+	<rpcdata name="MNDomainBonus" attr="vector">
+		<variable name="unifid" type="int64_t" default="0"/>
+		<variable name="bonus_sn" type="unsigned int" default="0"/>
+		<variable name="reward_list" type="MNDomainBonusRewardItemVector" attr="ref" default="MNDomainBonusRewardItemVector()"/>
+		<variable name="master_reward" type="MNDomainBonusRewardItem" attr="ref" default="MNDomainBonusRewardItem()"/>
+		<variable name="rolelist" type="std::vector&lt;int&gt;" attr="ref" default="std::vector&lt;int&gt;()"/>
+	</rpcdata>
+	<rpcdata name="DBMNPutBattleBonusArg">
+		<variable name="sn" type="unsigned int" default="0"/>
+		<variable name="bonus_list" type="MNDomainBonusVector" default="MNDomainBonusVector()"/>
+	</rpcdata>
+	<rpcdata name="DBMNPutBattleBonusRes">
+		<variable name="retcode" type="int" default="-1"/>
+	</rpcdata>
+	<rpc debug="0" name="DBMNPutBattleBonus" type="5230" argument="DBMNPutBattleBonusArg" result="DBMNPutBattleBonusRes" maxsize="1048576" prior="1" timeout="30"/>
+	<protocol name="MNDomainSendBonusData" type="5231" maxsize="1048576" prior="1">
+		<variable name="bonus" type="MNDomainBonus"/>
+	</protocol>
+	<protocol name="MNDomainSendBonusData_Re" type="5232" maxsize="16" prior="1">
+		<variable name="retcode" type="int"/>
+		<variable name="unifid" type="int64_t"/>
+	</protocol>
+
+	<rpcdata name="DBMNSendBattleBonusArg">
+		<variable name="bonus" type="MNDomainBonus" default="MNDomainBonus()" attr="ref"/>
+	</rpcdata>
+	<rpcdata name="DBMNSendBattleBonusRes">
+		<variable name="retcode" type="int" default="-1"/>
+		<variable name="maillist" type="GMailHeaderVector" default="GMailHeaderVector()" attr="ref"/>
+	</rpcdata>
+	<rpc debug="0" name="DBMNSendBattleBonus" type="5233" argument="DBMNSendBattleBonusArg" result="DBMNSendBattleBonusRes" maxsize="1048576" prior="1" timeout="30"/>
+
+	<rpcdata name="DBMNSendBonusNotifyArg">
+		<variable name="unifid" type="int64_t"/>
+	</rpcdata>
+	<rpcdata name="DBMNSendBonusNotifyRes">
+		<variable name="retcode" type="int" default="-1"/>
+	</rpcdata>
+	<rpc debug="0" name="DBMNSendBonusNotify" type="5234" argument="DBMNSendBonusNotifyArg" result="DBMNSendBonusNotifyRes" maxsize="256" prior="1" timeout="30"/>
+
+	<protocol name="MNFetchTopList" type="5235" maxsize="8" prior="1">
+		<variable name="zoneid" type="int"/>
+	</protocol>
+	<protocol name="MNFetchTopList_Re" type="5236" maxsize="1048576" prior="1">
+		<variable name="toplist" type="MNFactionBriefInfoVector"/>
+	</protocol>
+
+    <!--相应客户端的查询请求MNClient--> <!--5240 ~ 5249-->
+	<rpcdata name="MNDomainData" attr="vector">
+		<variable name="domain_id" type="int" default="0"/>
+		<variable name="domain_type" type="unsigned char" default="0"/>
+		<variable name="owner_unifid" type="int64_t" default="0"/>
+		<variable name="faction_name" type="Octets" attr="ref" default="Octets()"/>
+		<variable name="owner_rank" type="int" default="0"/> <!--0未上榜-->
+		<variable name="master_name" type="Octets" attr="ref" default="Octets()"/>
+		<variable name="zoneid" type="int" default="0"/>
+		<variable name="credit" type="int" default="0"/>
+		<variable name="attacker_unifid" type="int64_t" default="0"/>
+		<variable name="attacker_zoneid" type="int" default="0"/>
+		<variable name="attacker_name" type="Octets" attr="ref" default="Octets()"/>
+		<variable name="attacker_rank" type="int" default="0"/> <!--0未上榜-->
+		<variable name="defender_unifid" type="int64_t" default="0"/>
+		<variable name="defender_zoneid" type="int" default="0"/>
+		<variable name="defender_name" type="Octets" attr="ref" default="Octets()"/>
+		<variable name="defender_rank" type="int" default="0"/> <!--0未上榜-->
+	</rpcdata>
+    <rpcdata name="MNFactionApplyData" attr="vector">
+        <variable name="fid" type="unsigned int" default="0"/>
+        <variable name="dest" type="unsigned char" default="0"/>
+	</rpcdata>
+	<protocol name="MNGetDomainData" type="5240" maxsize="16" prior="1">
+		<variable name="roleid" type="int"/>
+	</protocol>
+	<protocol name="MNGetDomainData_Re" type="5241" maxsize="1048576" prior="1">
+		<variable name="retcode" type="int"/>
+		<variable name="domain_data" type="MNDomainDataVector"/>
+		<variable name="apply_data" type="MNFactionApplyDataVector"/>
+		<variable name="localsid" type="unsigned int" />
+	</protocol>
+	<protocol name="MNGetPlayerLastEnterInfo" type="5242" maxsize="12" prior="1">
+		<variable name="roleid" type="int"/>
+		<variable name="localsid" type="unsigned int" />
+	</protocol>
+	<protocol name="MNGetPlayerLastEnterInfo_Re" type="5243" maxsize="64" prior="1">
+		<variable name="retcode" type="int"/>
+		<variable name="domain_id" type="int"/>
+		<variable name="domain_type" type="unsigned char"/>
+		<variable name="localsid" type="unsigned int" />
+	</protocol>
+	<protocol name="MNGetFactionBriefInfo" type="5244" maxsize="32" prior="1">
+		<variable name="roleid" type="int"/>
+		<variable name="fid" type="unsigned int"/>
+		<variable name="zoneid" type="int"/>
+	</protocol>
+	<rpcdata name="MNFactionBriefInfo" attr="vector">
+		<variable name="fid" type="unsigned int" default="0"/>
+		<variable name="faction_name" type="Octets" attr="ref" default="Octets()"/>
+		<variable name="master_name" type="Octets" attr="ref" default="Octets()"/>
+		<variable name="zoneid" type="int" default="0"/>
+		<variable name="credit" type="int" default="0"/>
+	</rpcdata>
+	<protocol name="MNGetFactionBriefInfo_Re" type="5245" maxsize="4096" prior="1">
+		<variable name="retcode" type="int" />
+		<variable name="rank" type="int"/> <!--0未上榜-->
+		<variable name="credit_this_week" type="int"/>
+		<variable name="info" type="MNFactionBriefInfo"/>
+		<variable name="localsid" type="unsigned int" />
+	</protocol>
+	<protocol name="MNGetTopList" type="5246" maxsize="16" prior="1">
+		<variable name="roleid" type="int"/>
+	</protocol>
+	<protocol name="MNGetTopList_Re" type="5247" maxsize="1048576" prior="1">
+		<variable name="retcode" type="int"/>
+		<variable name="toplist" type="MNFactionBriefInfoVector"/>
+		<variable name="localsid" type="unsigned int" />
+	</protocol>
+	<protocol name="MNGetFactionInfo" type="5248" maxsize="64" prior="1">
+		<variable name="roleid" type="int"/>
+		<variable name="unifid" type="int64_t"/>
+	</protocol>
+	<protocol name="MNGetFactionInfo_Re" type="5249" maxsize="8192" prior="1">
+		<variable name="retcode" type="int" />
+        <variable name="mnfactioninfo" type="MNFactionInfo"/>
+		<variable name="localsid" type="unsigned int" />
+	</protocol>
+
+	<!--******************************************************************************-->
+	<!--Protocols used by CrossSystem, id 5301 = 5350                  -->
+	<!--******************************************************************************-->
+	<protocol name="CrossChat" type="5301" maxsize="8192" prior="1">
+		<variable name="sn" type="int" />
+		<variable name="zoneid" type="int" />
+		<variable name="channel" type="unsigned char"/>
+		<variable name="emotion" type="unsigned char"/>
+		<variable name="roleid" type="int"/>
+		<variable name="timestamp" type="int"/>
+		<variable name="name" type="Octets" attr="ref"/>
+		<variable name="msg" type="Octets" attr="ref"/>
+		<variable name="data" type="Octets" attr="ref"/>
+	</protocol>
+	<protocol name="CrossChat_Re" type="5302" maxsize="8192" prior="1">
+		<variable name="sn" type="int" />
+		<variable name="zoneid" type="int" />
+		<variable name="channel" type="unsigned char"/>
+		<variable name="emotion" type="unsigned char"/>
+		<variable name="roleid" type="int"/>
+		<variable name="name" type="Octets" attr="ref"/>
+		<variable name="msg" type="Octets" attr="ref"/>
+		<variable name="data" type="Octets" attr="ref"/>
 	</protocol>
 
 	<!--******************************************************************************-->
@@ -8699,12 +9334,13 @@
 		<protocol ref="WebTradeRolePreCancelPost"/>
 		<protocol ref="WebTradeRoleGetDetail"/>
 		<protocol ref="GetPlayerIDByName"/>
-        <protocol ref="SSOGetTicket"/>
+		<protocol ref="SSOGetTicket"/>
 	</state>
 	<state name="GSelectRoleReceive" timeout="120">
 		<protocol ref="KeepAlive"/>
 		<protocol ref="ACReport"/>
 		<protocol ref="ACAnswer"/>
+		<protocol ref="CancelWaitQueue"/>
 		
 		<!-- reset player pos -->
 		<rpc ref="PlayerPositionResetRqst"/>
@@ -8778,6 +9414,7 @@
         <protocol ref="AddFriendRemarks"/>
 		<protocol ref="GetFriends"/>
 		<protocol ref="GetFriends_Re"/>
+        <protocol ref="GetEnemyList"/>
 		<protocol ref="SetGroupName"/>
 		<protocol ref="SetGroupName_Re"/>
 		<protocol ref="SetFriendGroup"/>
@@ -8797,7 +9434,7 @@
 		<protocol ref="ChatRoomSpeak"/>
 		<protocol ref="ChatRoomList"/>
 		<protocol ref="SendAUMail"/>
-
+		<protocol ref="PlayerRequiteFriend"/>
 		<!--trade relative protocols-->
 		<protocol ref="TradeStart"/>
 		<protocol ref="TradeAddGoods"/>
@@ -8900,6 +9537,11 @@
         <!-- faction resource battle -->
         <protocol ref="FactionResourceBattleGetMap"/>
         <protocol ref="FactionResourceBattleGetRecord"/>
+
+		<!-- MNfaction -->
+		<protocol ref="MNGetPlayerLastEnterInfo"/>
+		<protocol ref="MNGetFactionBriefInfo"/>
+		<protocol ref="MNGetFactionInfo"/>
 	</state>
 	
 	<state name="GPhoneReceive" timeout="120">
@@ -8982,6 +9624,8 @@
 		<protocol ref="WebTradePreCancelPost_Re"/>
 		<protocol ref="WebTradeGetDetail_Re"/>
 		<protocol ref="GetPlayerIDByName_Re"/>
+		<protocol ref="WaitQueueStateNotify"/>
+		<protocol ref="CancelWaitQueue_Re"/>
 		
 		<!-- cross server -->
 		<protocol ref="PlayerChangeDS_Re"/>
@@ -9062,6 +9706,8 @@
 		<protocol ref="AddFriend_Re"/>
         <protocol ref="AddFriendRemarks_Re"/>
 		<protocol ref="GetFriends_Re"/>
+        <protocol ref="UpdateEnemyList_Re"/>
+        <protocol ref="GetEnemyList_Re"/>
 		<protocol ref="SetGroupName"/>
 		<protocol ref="SetGroupName_Re"/>
 		<protocol ref="SetFriendGroup"/>
@@ -9222,7 +9868,9 @@
 		<!-- player rename -->
 		<protocol ref="PlayerRename_Re"/>
 		<protocol ref="PlayerNameUpdate"/>
-		
+
+        <protocol ref="GetSoloChallengeRank_Re"/>
+
 		<protocol ref="KEGetStatus_Re"/>
 		<protocol ref="KECandidateApply_Re"/>
 		<protocol ref="KEVoting_Re"/>
@@ -9269,6 +9917,14 @@
         <protocol ref="FactionResourceBattleNotifyPlayerEvent"/>
 		<!-- faction rename -->
 		<protocol ref="FactionRenameAnnounce"/>
+
+		<!-- MNfaction -->
+		<protocol ref="MNFactionBattleApply_Re"/>
+		<protocol ref="MNGetDomainData_Re"/>
+		<protocol ref="MNGetPlayerLastEnterInfo_Re"/>
+		<protocol ref="MNGetFactionBriefInfo_Re"/>
+		<protocol ref="MNGetFactionInfo_Re"/>
+		<protocol ref="MNGetTopList_Re"/>
 	</state>
 	
 	<!-- ******************************** -->
@@ -9387,6 +10043,7 @@
 		<protocol ref="GetPlayerBriefInfo"/>
 		<protocol ref="GMGetPlayerConsumeInfo"/>
         <protocol ref="CollectClientMachineInfo"/>
+		<protocol ref="CancelWaitQueue"/>
 
 		<protocol ref="PublicChat"/>
 		<protocol ref="PrivateChat"/>
@@ -9395,6 +10052,7 @@
 		<protocol ref="AddFriend"/>
         <protocol ref="AddFriendRemarks"/>
 		<protocol ref="GetFriends"/>
+        <protocol ref="GetEnemyList"/>
 		<protocol ref="SetGroupName"/>
 		<protocol ref="SetFriendGroup"/>
 		<protocol ref="DelFriend"/>
@@ -9411,7 +10069,8 @@
 		<protocol ref="ChatRoomSpeak"/>
 		<protocol ref="ChatRoomList"/>
 		<protocol ref="SendAUMail"/>
-		
+		<protocol ref="PlayerRequiteFriend"/>
+
 		<!--trade relative protocols-->
 		<protocol ref="TradeStart"/>
 		<protocol ref="TradeAddGoods"/>
@@ -9554,6 +10213,11 @@
         <!-- faction resource battle -->
         <protocol ref="FactionResourceBattleGetMap"/>
         <protocol ref="FactionResourceBattleGetRecord"/>
+
+		<!-- MNfaction -->
+		<protocol ref="MNGetPlayerLastEnterInfo"/>
+		<protocol ref="MNGetFactionBriefInfo"/>
+		<protocol ref="MNGetFactionInfo"/>
 	</state>
 
 	<state name="GDeliverClient" timeout="86400">
@@ -9582,6 +10246,8 @@
 		<protocol ref="GetPlayerBriefInfo_Re"/>
 		<protocol ref="GMGetPlayerConsumeInfo_Re"/>
 		<protocol ref="DisconnectPlayer"/>
+		<protocol ref="WaitQueueStateNotify"/>
+		<protocol ref="CancelWaitQueue_Re"/>
 		
 		<protocol ref="PrivateChat"/>
 		<protocol ref="ChatBroadCast"/>
@@ -9594,6 +10260,8 @@
 		<protocol ref="AddFriend_Re"/>
         <protocol ref="AddFriendRemarks_Re"/>
 		<protocol ref="GetFriends_Re"/>
+        <protocol ref="UpdateEnemyList_Re"/>
+        <protocol ref="GetEnemyList_Re"/>
 		<protocol ref="SetGroupName_Re"/>
 		<protocol ref="SetFriendGroup_Re"/>
 		<protocol ref="DelFriend_Re"/>
@@ -9780,6 +10448,8 @@
 		<protocol ref="PlayerRename_Re"/>
 		<protocol ref="PlayerNameUpdate"/>
 
+        <protocol ref="GetSoloChallengeRank_Re"/>
+
 		<protocol ref="KEGetStatus_Re"/>
 		<protocol ref="KECandidateApply_Re"/>
 		<protocol ref="KEVoting_Re"/>
@@ -9824,6 +10494,14 @@
         <protocol ref="FactionResourceBattleGetMap_Re"/>
         <protocol ref="FactionResourceBattleGetRecord_Re"/>
         <protocol ref="FactionResourceBattleNotifyPlayerEvent"/>
+
+		<!-- MNfaction -->
+		<protocol ref="MNFactionBattleApply_Re"/>
+		<protocol ref="MNGetDomainData_Re"/>
+		<protocol ref="MNGetPlayerLastEnterInfo_Re"/>
+		<protocol ref="MNGetFactionBriefInfo_Re"/>
+		<protocol ref="MNGetFactionInfo_Re"/>
+		<protocol ref="MNGetTopList_Re"/>
 	</state>
 	
 	<state name="CentralDeliveryServer" timeout="120">
@@ -9836,6 +10514,15 @@
 		<protocol ref="GetRemoteRoleInfo"/>
 		<protocol ref="AddictionControl"/>
 		<protocol ref="GetRemoteCNetServerConfig"/>
+		<protocol ref="MNFactionCacheGet"/>
+        <protocol ref="MNFactionInfoUpdate"/>
+		<protocol ref="MNFactionProclaim"/>
+		<protocol ref="MNFetchFiltrateResult"/>
+		<protocol ref="MNDomainSendBonusData_Re"/>
+		<protocol ref="MNFetchTopList"/>
+		<protocol ref="CrossChat"/>
+		<protocol ref="CrossSoloChallengeRank"/>
+		<protocol ref="CrossSoloChallengeRank_Re"/>
 	</state>
 	
 	<state name="CentralDeliveryClient" timeout="120">
@@ -9851,6 +10538,15 @@
 		<protocol ref="GMShutup"/>
 		<protocol ref="GetRemoteRoleInfo_Re"/>
 		<protocol ref="GetRemoteCNetServerConfig_Re"/>
+		<protocol ref="CrossGuardNotify"/>
+		<protocol ref="MNFactionCacheGet_Re"/>
+		<protocol ref="MNFetchFiltrateResult_Re"/>
+		<protocol ref="MNFactionProclaim_Re"/>
+		<protocol ref="MNDomainSendBonusData"/>
+		<protocol ref="MNFetchTopList_Re"/>
+		<protocol ref="CrossChat_Re"/>
+		<protocol ref="CrossSoloChallengeRank"/>
+		<protocol ref="CrossSoloChallengeRank_Re"/>
 	</state>
 	
 	<!-- *********************************** -->
@@ -10006,6 +10702,13 @@
 		<!-- player rename -->
 		<protocol ref="PlayerRename"/>
 
+        <!-- player change gender -->
+        <rpc ref="DBPlayerChangeGender"/>
+
+        <protocol ref="UpdateSoloChallengeRank"/>
+        <protocol ref="GetSoloChallengeRank"/>
+        <protocol ref="UpdateEnemyList"/>
+
 		<protocol ref="KEGetStatus"/>
 		<protocol ref="KECandidateApply"/>
 		<protocol ref="KEVoting"/>
@@ -10056,6 +10759,17 @@
         <protocol ref="FactionResourceBattleServerRegister"/>
         <protocol ref="FactionResourceBattleEventNotice"/>
         <protocol ref="FactionResourceBattlePlayerQuery"/>
+
+		<!-- MNfaction -->
+		<protocol ref="MNFactionBattleApply"/>
+		<protocol ref="MNBattleServerRegister"/>
+		<protocol ref="MNDomainBattleStart_Re"/>
+		<protocol ref="MNDomainBattleEnter"/>
+		<protocol ref="MNDomainBattleEnterSuccessNotice"/>
+		<protocol ref="MNDomainBattleLeaveNotice"/>
+		<protocol ref="MNDomainBattleEnd"/>
+		<protocol ref="MNGetTopList"/>
+		<protocol ref="MNGetDomainData"/>
 	</state>
 	
 	<state name="GProviderLinkServer" timeout="120">
@@ -10176,6 +10890,10 @@
 		
 		<!-- player rename -->
 		<protocol ref="PlayerRename_Re"/>
+
+        <!-- player change gender -->
+        <rpc ref="DBPlayerChangeGender"/>
+
 		<!-- faction rename -->
 		<protocol ref="FactionRenameGsVerify"/>
 
@@ -10204,6 +10922,11 @@
         <!-- faction resource battle related -->
 		<protocol ref="FactionResourceBattleRequestConfig"/>
         <protocol ref="FactionResourceBattleStatusNotice"/>
+
+        <!-- MNFaction -->
+		<protocol ref="MNDomainBattleStart"/>
+		<protocol ref="MNDomainBattleEnter_Re"/>
+		<protocol ref="MNDomainInfoGSNotice"/>
 	</state>
 
 	<!-- ********************************* -->
@@ -10253,6 +10976,8 @@
 		<rpc ref="PutTaskDataRpc"/>
         <rpc ref="DBMapPasswordLoad"/>
         <rpc ref="DBMapPasswordSave"/>
+        <rpc ref="DBSoloChallengeRankLoad"/>
+        <rpc ref="DBSoloChallengeRankSave"/>
 
 		<rpc ref="GetUserRoles" />
 		<rpc ref="ClearStorehousePasswd" />
@@ -10294,6 +11019,7 @@
 		<rpc ref="TransactionAcquire"/>
 		<rpc ref="TransactionAbort"/>
 		<rpc ref="TransactionCommit"/>
+		<rpc ref="DBPlayerRequiteFriend"/>
 		<protocol ref="DBFriendExtList"/>
 
 		<!-- mail related rpcs -->
@@ -10419,6 +11145,9 @@
 		<rpc ref="DBPlayerRename"/>
 		<rpc ref="DBRoleNameList"/>
 
+        <!-- player change gender -->
+        <rpc ref="DBPlayerChangeGender"/>
+
 		<rpc ref="DBKELoad"/>
 		<rpc ref="DBKECandidateApply"/>
 		<rpc ref="DBKECandidateConfirm"/>
@@ -10464,6 +11193,20 @@
 		<rpc ref="DBCopyRole"/>
 		<!-- faction rename -->
 		<rpc ref="DBFactionRename" baseclass="Rpc"/>
+
+		<!-- MNFaction -->
+		<rpc ref="DBMNFactionInfoGet"/>
+		<rpc ref="DBMNFactionStateUpdate"/>
+		<protocol ref="DBMNFactionCacheUpdate"/>
+		<rpc ref="DBMNFactionApplyInfoGet"/> 
+		<rpc ref="DBMNFactionBattleApply"/>
+		<rpc ref="DBMNFactionInfoUpdate"/>
+		<rpc ref="DBMNDomainInfoUpdate"/>
+        <rpc ref="DBMNFactionApplyResNotify"/>
+		<rpc ref="DBMNPutBattleBonus"/>
+		<rpc ref="DBMNSendBattleBonus"/>
+		<rpc ref="DBMNSendBonusNotify"/>
+		<rpc ref="DBMNFactionApplyInfoPut"/>
 	</state>
 	<state name="GFactionDBClient" timeout="86400">
 		<rpc ref="AddFaction"/>
@@ -10533,6 +11276,8 @@
 		<rpc ref="DBGetConsumeInfos"/>
         <rpc ref="DBMapPasswordLoad"/>
         <rpc ref="DBMapPasswordSave"/>
+        <rpc ref="DBSoloChallengeRankLoad"/>
+        <rpc ref="DBSoloChallengeRankSave"/>
 
 		<rpc ref="GetUserRoles" />
 		<rpc ref="ClearStorehousePasswd" />
@@ -10544,6 +11289,7 @@
 		<rpc ref="TransactionAcquire"/>
 		<rpc ref="TransactionAbort"/>
 		<rpc ref="TransactionCommit"/>
+		<rpc ref="DBPlayerRequiteFriend"/>
 		<protocol ref="DBFriendExtList_Re"/>
 
 		<!-- mail related rpcs -->
@@ -10668,13 +11414,16 @@
 
 		<rpc ref="DBLoadGlobalControl"/>
 		<rpc ref="DBPutGlobalControl"/>
-
+		<protocol ref="AnnounceZoneGroup"/>
 		<!-- unique data -->
 		<rpc ref="DBUniqueDataLoad"/>	
 		<rpc ref="DBUniqueDataSave"/>	
 		<!-- player rename -->
 		<rpc ref="DBPlayerRename"/>
 		<rpc ref="DBRoleNameList"/>
+
+        <!-- player change gender -->
+        <rpc ref="DBPlayerChangeGender"/>
 
 		<rpc ref="DBKELoad"/>
 		<rpc ref="DBKECandidateApply"/>
@@ -10721,6 +11470,21 @@
 		<rpc ref="DBCopyRole"/>
        	<!-- faction rename -->
 		<rpc ref="DBFactionRename"/>
+
+		<!-- MNFaction cdc -->
+		<rpc ref="DBMNFactionApplyInfoGet"/> 
+		<rpc ref="DBMNFactionBattleApply"/>
+        <protocol ref="MNFactionInfoUpdate"/>
+        <rpc ref="DBMNFactionApplyResNotify"/>
+		<rpc ref="DBMNSendBattleBonus"/>
+		<!-- MNFaction cds -->
+		<rpc ref="DBMNFactionInfoGet"/>
+		<rpc ref="DBMNFactionStateUpdate"/>
+		<rpc ref="DBMNFactionInfoUpdate"/>
+		<rpc ref="DBMNDomainInfoUpdate"/>
+		<rpc ref="DBMNFactionApplyInfoPut"/>
+		<rpc ref="DBMNPutBattleBonus"/>
+		<rpc ref="DBMNSendBonusNotify"/>
 
 	</state>
 	<state name="UniqueNameServer" timeout="86400">
@@ -10810,6 +11574,7 @@
 		<rpc ref="DBFactionRename"/>
         <!-- faction resource battle related -->
         <protocol ref="FactionResourceBattleLimitNotice"/>
+		<protocol ref="FactionUniqueIdAnnounce"/>
 	</state>
 	<state name="GFactionLinkClient" timeout="86400">
 		<protocol ref="FactionOPRequest_Re"/>
@@ -11037,7 +11802,10 @@
 		<!-- player rename -->
 		<protocol ref="PlayerRename_Re"/>
 		<protocol ref="PlayerNameUpdate"/>
-		
+
+        <protocol ref="GetSoloChallengeRank_Re"/>
+        <protocol ref="UpdateEnemyList_Re"/>
+
 		<!-- player give present -->
 		<protocol ref="PlayerGivePresent_Re"/>
 		<protocol ref="PlayerAskForPresent_Re"/>
@@ -11050,6 +11818,15 @@
 		<protocol ref="TankBattlePlayerGetRank_Re"/>
 		<!-- unique data -->
 		<protocol ref="UniqueDataModifyBroadcast"/>
+
+		<!-- MNfaction -->
+		<protocol ref="MNFactionBattleApply_Re"/>
+		<protocol ref="MNGetDomainData_Re"/>
+		<protocol ref="MNGetPlayerLastEnterInfo"/>
+		<protocol ref="MNGetPlayerLastEnterInfo_Re"/>
+		<protocol ref="MNGetFactionBriefInfo"/>
+		<protocol ref="MNGetFactionBriefInfo_Re"/>
+		<protocol ref="MNGetTopList_Re"/>
 	</service>
 	
 	<!--
@@ -11116,6 +11893,8 @@
 		<protocol ref="GetHelpStates_Re"/>
 		<protocol ref="GetPlayerBriefInfo_Re"/>
 		<protocol ref="GMGetPlayerConsumeInfo_Re"/>
+		<protocol ref="WaitQueueStateNotify"/>
+		<protocol ref="CancelWaitQueue_Re"/>
 
 		<protocol ref="GMControlGame"/>
 		<protocol ref="GMControlGame_Re"/>
@@ -11135,6 +11914,8 @@
 		<protocol ref="AddFriend_Re"/>
         <protocol ref="AddFriendRemarks_Re"/>
 		<protocol ref="GetFriends_Re"/>
+        <protocol ref="UpdateEnemyList_Re"/>
+        <protocol ref="GetEnemyList_Re"/>
 		<protocol ref="SetGroupName_Re"/>
 		<protocol ref="SetFriendGroup_Re"/>
 		<protocol ref="GetSavedMsg_Re"/>
@@ -11144,6 +11925,7 @@
 		<protocol ref="ChatRoomList_Re"/>
 		<protocol ref="FriendExtList"/>
 		<protocol ref="SendAUMail_Re"/>
+		<rpc ref="DBPlayerRequiteFriend" baseclass="Rpc"/>
 
 		<!--trade relative protocols-->
 		<protocol ref="TradeStart_Re"/>
@@ -11185,11 +11967,16 @@
 		<protocol ref="PostPlayerRename"/>
 		<protocol ref="PlayerNameUpdate"/>
 
+        <!-- player change gender -->
+        <rpc ref="DBPlayerChangeGender" baseclass="ProxyRpc" sendmanager="GameDBClient"/>
+
 		<!-- faction rename -->
 		<rpc ref="DBFactionRename" baseclass="ProxyRpc" sendmanager="GameDBClient" />
 		<!-- player give present -->
 		<protocol ref="PlayerGivePresent_Re"/>
 		<protocol ref="PlayerAskForPresent_Re"/>
+
+        <protocol ref="GetSoloChallengeRank_Re"/>
 
 		<!-- GM related protocols -->
 		<protocol ref="AnnounceGM"/> <!-- announce Gm's privilege to Gameserver-->
@@ -11489,6 +12276,24 @@
         <protocol ref="FactionResourceBattleGetMap_Re"/>
         <protocol ref="FactionResourceBattleGetRecord_Re"/>
         <protocol ref="FactionResourceBattleNotifyPlayerEvent"/>
+
+		<protocol ref="FactionUniqueIdAnnounce"/>
+		<protocol ref="DBMNFactionCacheUpdate"/>
+		<protocol ref="MNDomainBattleStart"/>
+		<protocol ref="MNDomainBattleEnter_Re"/>
+		<rpc ref="DBMNPutBattleBonus"/>
+		<protocol ref="MNDomainInfoGSNotice"/>
+		<protocol ref="MNFactionBattleApply_Re"/>
+		<protocol ref="MNGetDomainData_Re"/>
+		<protocol ref="MNGetPlayerLastEnterInfo_Re"/>
+		<protocol ref="MNGetFactionBriefInfo_Re"/>
+		<protocol ref="MNGetFactionInfo_Re"/>
+		<protocol ref="MNGetTopList_Re"/>
+		
+		<protocol ref="CrossChat"/>
+		<protocol ref="CrossChat_Re"/>
+		<protocol ref="CrossSoloChallengeRank"/>
+		<protocol ref="CrossSoloChallengeRank_Re"/>
 	</service>
 	
 	<service name="gauthd">
@@ -11532,6 +12337,7 @@
 		<protocol ref="GetPlayerBriefInfo"/>
 		<protocol ref="GMGetPlayerConsumeInfo"/>
         <protocol ref="CollectClientMachineInfo"/>
+		<protocol ref="CancelWaitQueue"/>
 
 		<protocol ref="PublicChat"/>
 
@@ -11539,6 +12345,8 @@
 		<protocol ref="GetFriends"/>
 		<protocol ref="SendAUMail"/>
         <protocol ref="AddFriendRemarks"/>
+		<protocol ref="PlayerRequiteFriend"/>
+        <protocol ref="GetEnemyList"/>
 		
 		<!-- faction related protocols -->
 		<protocol ref="FactionOPRequest"/>
@@ -11713,6 +12521,10 @@
         <!-- faction resource battle -->
         <protocol ref="FactionResourceBattleGetMap"/>
         <protocol ref="FactionResourceBattleGetRecord"/>
+		<!-- MNfaction -->
+		<protocol ref="MNGetPlayerLastEnterInfo"/>
+		<protocol ref="MNGetFactionBriefInfo"/>
+		<protocol ref="MNGetFactionInfo"/>
 	</service>
 	
 	<service name="gamed">
@@ -11863,7 +12675,14 @@
 		
 		<!-- player rename -->
 		<protocol ref="PlayerRename"/>
-		
+
+        <!-- player change gender -->
+        <rpc ref="DBPlayerChangeGender"/>
+
+        <protocol ref="UpdateSoloChallengeRank"/>
+        <protocol ref="GetSoloChallengeRank"/>
+        <protocol ref="UpdateEnemyList"/>
+
 		<!--cross server-->
 		<protocol ref="TryChangeDS" />
 		<protocol ref="PlayerChangeDS_Re" />
@@ -11920,6 +12739,17 @@
 		<protocol ref="FactionResourceBattleRequestConfig_Re"/>
 		<!-- faction rename -->
 		<protocol ref="FactionRenameGsVerify_Re"/>
+
+		<!-- MNfaction -->
+		<protocol ref="MNFactionBattleApply"/>
+		<protocol ref="MNBattleServerRegister"/>
+		<protocol ref="MNDomainBattleStart_Re"/>
+		<protocol ref="MNDomainBattleEnter"/>
+		<protocol ref="MNDomainBattleEnterSuccessNotice"/>
+		<protocol ref="MNDomainBattleLeaveNotice"/>
+		<protocol ref="MNDomainBattleEnd"/>
+		<protocol ref="MNGetTopList"/>
+		<protocol ref="MNGetDomainData"/>
 	</service>
 
 	<service name="gamedbd">
@@ -11939,6 +12769,9 @@
 		<!--cross server-->
 		<rpc ref="PlayerIdentityMatch" baseclass="Rpc" />
 		<rpc ref="DBFactionRename" baseclass="Rpc" />
+		<protocol ref="AnnounceZoneGroup"/>
+
+        <protocol ref="MNFactionInfoUpdate"/>
 	</service>
 
 	<service name="uniquenamed">

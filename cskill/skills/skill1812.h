@@ -134,9 +134,9 @@ namespace GNET
       Skill1812Stub ():SkillStub (1812)
         {
             cls = 7;
-            name = L"极光幻雷";
-            nativename = "极光幻雷";
-            icon = "流光溢彩.dds";
+            name = L"鏋佸厜骞婚浄";
+            nativename = "鏋佸厜骞婚浄";
+            icon = "娴佸厜婧㈠僵.dds";
             max_level = 1;
             type = 3;
             apcost = 0;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "羽灵_流光溢彩.sgc";
+            effect = "缇界伒_娴佸厜婧㈠僵.sgc";
             range.type = 2;
             doenchant = true;
             dobless = true;

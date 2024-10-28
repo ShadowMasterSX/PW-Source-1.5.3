@@ -38,7 +38,7 @@ public:
 			poison(rhs.poison), attack_water(rhs.attack_water), wood_factor(rhs.wood_factor),
 			wood_prob(rhs.wood_prob), fix_prob(rhs.fix_prob), defence(rhs.defence),
 			velocity(rhs.velocity), interval(rhs.interval), view(rhs.view),
-			search_distance(rhs.search_distance), attack_distance(rhs.attack_distance) { }
+			search_distance(rhs.search_distance), attack_distance(attack_distance) { }
 	virtual ~Callup() { }
 	Callup& operator = (const Callup& rhs)
 	{

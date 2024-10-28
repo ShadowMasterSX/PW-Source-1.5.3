@@ -132,9 +132,9 @@ namespace GNET
       Skill805Stub ():SkillStub (805)
         {
             cls = 127;
-            name = L"×£¸£";
-            nativename = "×£¸£";
-            icon = "³èÎïÇ¿Ìå.dds";
+            name = L"ç¥ç¦";
+            nativename = "ç¥ç¦";
+            icon = "å® ç‰©å¼ºä½“.dds";
             max_level = 5;
             type = 10;
             apcost = 0;
@@ -154,7 +154,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "ÊŞÍõ¹ÄÎè.sgc";
+            effect = "å…½ç‹é¼“èˆ.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

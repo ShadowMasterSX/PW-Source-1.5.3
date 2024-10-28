@@ -16,7 +16,7 @@ class CountryBattleGetScore : public GNET::Protocol
 
 	void Process(Manager *manager, Manager::Session::ID sid)
 	{
-		CountryBattleMan::GetInstance()->SendCountryScore(roleid, sid, localsid);
+		CountryBattleMan::OnPlayerGetScore(roleid, sid, localsid);
 	}
 };
 

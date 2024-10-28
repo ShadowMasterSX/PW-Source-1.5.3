@@ -15,6 +15,9 @@ DEFINE_SUBSTANCE(aegw_filter,filter,CLS_FILTER_CHECK_KICKOUT)
 DEFINE_SUBSTANCE(aect_filter,filter,CLS_FILTER_CHECK_COUNTRYKICKOUT)
 DEFINE_SUBSTANCE(aecb_filter,filter,CLS_FILTER_CHECK_COUNTRYBATTLE_KEY)
 DEFINE_SUBSTANCE(aetb_filter,filter,CLS_FILTER_CHECK_TRICKBATTLE_KEY)
+DEFINE_SUBSTANCE(aecv_filter,filter,CLS_FILTER_CHECK_VISA)
+DEFINE_SUBSTANCE(aemf_filter,filter,CLS_FILTER_CHECK_MNFACTION_KEY)
+DEFINE_SUBSTANCE(aesl_filter,filter,CLS_FILTER_CHECK_SOLOCHALLENGE_KEY)
 
 void 
 aei_filter::OnAttach()
@@ -386,12 +389,8 @@ aect_filter::Heartbeat(int tick)
 			}
 			else
 			{
-				pImp->LeaveAbnormalState();
 				_timeout = 3;
-				int tag;
-				A3DVECTOR pos;
-				pImp->GetCountryKickoutPos(tag, pos);
-				pImp->LongJump(pos, tag);			
+				pImp->ReturnRestWorld();
 			}
 		}
 	}
@@ -489,15 +488,8 @@ aecb_filter::Heartbeat(int tick)
 		}
 		else
 		{
-			pImp->LeaveAbnormalState();
 			_timeout = 3;
-			A3DVECTOR pos;
-			int tag;
-			pImp->GetLastInstanceSourcePos(tag,pos);
-			if(tag > 0)
-			{
-				pImp->LongJump(pos,tag);
-			}
+			pImp->CountryReturn();				
 		}
 	}
 }
@@ -563,15 +555,8 @@ aetb_filter::Heartbeat(int tick)
 		}
 		else
 		{
-			pImp->LeaveAbnormalState();
 			_timeout = 3;
-			A3DVECTOR pos;
-			int tag;
-			pImp->GetLastInstanceSourcePos(tag,pos);
-			if(tag > 0)
-			{
-				pImp->LongJump(pos,tag);
-			}
+			pImp->ReturnRestWorld();
 		}
 	}
 }
@@ -582,5 +567,160 @@ aetb_filter::OnModify(int ctrlname,void * ctrlval,size_t ctrllen)
 	if(ctrlname == FMID_CLEAR_AETB)
 	{
 		_err_condition = 1;
+	}
+}
+
+void 
+aecv_filter::Heartbeat(int tick)
+{
+	gplayer_imp * pImp = (gplayer_imp*)_parent.GetImpl();
+
+	if(_state == NORMAL)
+	{
+		if(_timeout > 0) _timeout --;
+		if(_timeout <= 0)
+		{
+			//检查踢出标志全局变量
+			if(!pImp->CheckVisaValid())
+			{
+				//该踢出了
+				_state = WAIT_ESCAPE;
+				_timeout = 5;
+				pImp->_runner->kickout_instance(KIR_VISA_EXPIRED, _timeout);
+			}
+			else
+			{
+				_timeout = 3;
+			}
+		}
+	}
+	else if(_state == WAIT_ESCAPE)
+	{
+		if(_timeout > 0) _timeout --;	
+		if(_timeout <= 0)
+		{
+			_kickout ++;
+			if(_kickout > 5)
+			{
+				//如果多次都不能离开副本，则断线之
+				_is_deleted = true;
+				pImp->LostConnection(gplayer_imp::PLAYER_OFF_LPG_DISCONNECT);
+			}
+			else
+			{
+				_timeout = 5;
+				pImp->Repatriate();
+			}
+		}
+	}
+}
+
+void
+aemf_filter::Heartbeat(int tick)
+{
+	gplayer_imp* pImp = (gplayer_imp*)_parent.GetImpl(); 
+	world * pPlane = pImp->_plane;
+	
+	ASSERT(pPlane->w_ctrl);
+	
+	if(!_battle_result)
+	{
+		if(pImp->_plane->w_battle_result != _battle_result)
+		{
+			_battle_result = pImp->_plane->w_battle_result;
+			pImp->_runner->mnfaction_result(_battle_result);
+
+			//激活准备离开的操作
+			_battle_end_timer = 4;
+			_timeout = 20;
+		}
+	}
+	
+	if(_battle_end_timer)
+	{
+		--_battle_end_timer;
+		if(_battle_end_timer <= 0)
+		{
+			_timeout = abase::Rand(15,20);
+			pImp->_runner->kickout_instance(KIR_MNFACTION_END, _timeout);
+		}
+	}
+
+	
+	
+	if(_battle_result)
+	{
+		if(_timeout > 0)  _timeout --;
+		if(_timeout <=0)
+		{
+			_kickout ++;
+		}
+	
+	}
+	else
+	{
+		if(_origin_domain_id < 0  && !(world_manager::GetWorldLimit().gmfree && _parent.CheckGMPrivilege()))
+		{
+			_origin_domain_id = -1;
+			if(_timeout > 0)  _timeout --;
+			if(_timeout <=0)
+			{
+				_kickout ++;
+			}
+		}
+	}
+	if(_kickout && _timeout <=0)
+	{
+		if(_kickout > 3)
+		{
+			_is_deleted = true;
+			pImp->LostConnection(gplayer_imp::PLAYER_OFF_LPG_DISCONNECT);
+		}
+		else
+		{
+			_timeout = 3;
+			pImp->ReturnRestWorld();
+		}
+	}
+}
+
+void aemf_filter::OnModify(int ctrlname,void * ctrlval,size_t ctrllen)
+{
+	if(ctrlname == FMID_CLEAR_AEMF)
+	{
+		_origin_domain_id = -1;
+	}
+}
+
+void aesl_filter::Heartbeat(int tick)
+{
+	gplayer_imp* pImp = (gplayer_imp*)_parent.GetImpl();
+	if(_kickout)
+	{
+		--_timeout;
+	}
+	else if(pImp->_plane->w_life_time == 0 && !_kickout)
+	{
+		if( !(world_manager::GetWorldLimit().gmfree && _parent.CheckGMPrivilege()) )
+		{
+			_timeout = 60;
+			pImp->_runner->kickout_instance(KIR_KEY_MISMATCH, _timeout);
+			_kickout = true;
+		}
+	}
+	if(_timeout <= 0 && _kickout)
+	{
+		++_kicktime;
+		if(_kicktime > 3)
+		{
+			_is_deleted = true;
+			pImp->LostConnection(gplayer_imp::PLAYER_OFF_LPG_DISCONNECT);
+		}
+		else
+		{
+			world_pos kickout_pos = world_manager::GetKickoutPoint();
+			pImp->LongJump(kickout_pos.pos, kickout_pos.tag);
+			_timeout = 3;
+		}
 	}
 }

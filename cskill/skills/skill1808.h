@@ -134,9 +134,9 @@ namespace GNET
       Skill1808Stub ():SkillStub (1808)
         {
             cls = 1;
-            name = L"»ÍºÚÖ®Ñæ";
-            nativename = "»ÍºÚÖ®Ñæ";
-            icon = "ÖËÑæ.dds";
+            name = L"ç…Œé»‘ä¹‹ç„°";
+            nativename = "ç…Œé»‘ä¹‹ç„°";
+            icon = "ç‚™ç„°.dds";
             max_level = 1;
             type = 3;
             apcost = 100;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "·¨Ê¦_¾ÄÑæ.sgc";
+            effect = "æ³•å¸ˆ_ç¸ç„°.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

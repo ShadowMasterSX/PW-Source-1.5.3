@@ -133,9 +133,9 @@ namespace GNET
       Skill479Stub ():SkillStub (479)
         {
             cls = 1;
-            name = L"¿ñ¡¤ËõµØÊõ";
-            nativename = "¿ñ¡¤ËõµØÊõ";
-            icon = "ËõµØÊõ2.dds";
+            name = L"ç‹‚Â·ç¼©åœ°æœ¯";
+            nativename = "ç‹‚Â·ç¼©åœ°æœ¯";
+            icon = "ç¼©åœ°æœ¯2.dds";
             max_level = 1;
             type = 8;
             apcost = 20;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (292);
             }
-            effect = "ËõµØÊõ.sgc";
+            effect = "ç¼©åœ°æœ¯.sgc";
             range.type = 5;
             doenchant = false;
             dobless = false;

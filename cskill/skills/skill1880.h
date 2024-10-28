@@ -133,9 +133,9 @@ namespace GNET
       Skill1880Stub ():SkillStub (1880)
         {
             cls = 127;
-            name = L"天地无极";
-            nativename = "天地无极";
-            icon = "悲悯剑劲.dds";
+            name = L"澶╁湴鏃犳瀬";
+            nativename = "澶╁湴鏃犳瀬";
+            icon = "鎮叉偗鍓戝姴.dds";
             max_level = 10;
             type = 1;
             apcost = 0;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "双子星_天地无界.sgc";
+            effect = "鍙屽瓙鏄焈澶╁湴鏃犵晫.sgc";
             range.type = 3;
             doenchant = true;
             dobless = false;

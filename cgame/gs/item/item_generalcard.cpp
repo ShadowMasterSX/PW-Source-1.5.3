@@ -230,7 +230,7 @@ bool generalcard_item::CheckRebirthCondition(int material_rebirth_times)
 			&& _ess.rebirth_times == material_rebirth_times);
 }
 
-void generalcard_item::DoRebirth()
+bool generalcard_item::DoRebirth(int arg)
 {
 	ASSERT(!_is_active);
 	_ess.level = 1;
@@ -238,9 +238,10 @@ void generalcard_item::DoRebirth()
 	_ess.rebirth_times ++;
 
 	OnRefreshItem();
+	return true;
 }
 
-bool generalcard_item::InsertExp(int exp, bool ischeck)
+bool generalcard_item::InsertExp(int& exp, bool ischeck)
 {
 	if(_ess.level >= _ess.max_level) return false;
 	int tmp = _ess.exp + exp;

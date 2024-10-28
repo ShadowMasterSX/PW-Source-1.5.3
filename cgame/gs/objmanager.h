@@ -437,11 +437,11 @@ public:
 			return -1;
 		}
 	}
-	
+
 	int GetState(int state);
-	
+
 	template <typename INFO>
-	bool QueryObjecta(int id, INFO & info)
+	bool QueryObject(int id, INFO & info)
 	{
 		ONET::Thread::Mutex::Scoped keeper(_lock);
 		OBJECT_MAP::iterator it= _map.find(id);
@@ -471,10 +471,8 @@ protected:
 	friend class world;
 	virtual void Run();
 	void OnTimer(int index,int rtimes);
-	
 private:
 	static int GetWorldIndex();// { return world_manager::GetWorldIndex(); }
-	
 public:
 	void RunTick()
 	{	
@@ -495,7 +493,7 @@ public:
 		app.level= pNPC->base_info.level;
 		app.hp= pNPC->base_info.hp;
 		app.state = pNPC->IsZombie();
-		app.where = GetWorldIndex();
+		app.where = 1;
 		MSG msg;
 		BuildMessage(msg,GM_MSG_EXTERN_OBJECT_APPEAR,XID(GM_TYPE_BROADCAST,-1),pNPC->ID,
 				pNPC->pos,0,&app,sizeof(app));
@@ -512,7 +510,7 @@ public:
 		app.level= 0;
 		app.hp= 0;
 		app.state = 0;
-		app.where = GetWorldIndex();
+		app.where = 1;
 		MSG msg;
 		BuildMessage(msg,GM_MSG_EXTERN_OBJECT_APPEAR,XID(GM_TYPE_BROADCAST,-1),pMatter->ID,
 				pMatter->pos,0,&app,sizeof(app));
@@ -529,7 +527,7 @@ public:
 		app.level= pPlayer->base_info.level;
 		app.hp= pPlayer->base_info.hp;
 		app.state = pPlayer->IsZombie();
-		app.where = GetWorldIndex();
+		app.where = 1;
 		MSG msg;
 		BuildMessage(msg,GM_MSG_EXTERN_OBJECT_APPEAR,XID(GM_TYPE_BROADCAST,-1),pPlayer->ID,
 				pPlayer->pos,0,&app,sizeof(app));

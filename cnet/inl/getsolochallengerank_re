@@ -1,0 +1,56 @@
+	public:
+		int retcode;
+		int roleid;
+		char ranktype;
+		char cls;
+		int next_sort_time;
+		std::vector<SoloChallengeRankData> data;
+		unsigned int localsid;
+		enum { PROTOCOL_TYPE = PROTOCOL_GETSOLOCHALLENGERANK_RE };
+	public:
+		GetSoloChallengeRank_Re() { type = PROTOCOL_GETSOLOCHALLENGERANK_RE; }
+		GetSoloChallengeRank_Re(void*) : Protocol(PROTOCOL_GETSOLOCHALLENGERANK_RE) { }
+		GetSoloChallengeRank_Re (int l_retcode,int l_roleid,char l_ranktype,
+			char l_cls,int l_next_sort_time,const std::vector<SoloChallengeRankData>& l_data,
+			unsigned int l_localsid)
+			 : retcode(l_retcode),roleid(l_roleid),ranktype(l_ranktype)
+			,cls(l_cls),next_sort_time(l_next_sort_time),data(l_data)
+			,localsid(l_localsid)
+		{
+			type = PROTOCOL_GETSOLOCHALLENGERANK_RE;
+		}
+
+		GetSoloChallengeRank_Re(const GetSoloChallengeRank_Re &rhs)
+			: Protocol(rhs),retcode(rhs.retcode),roleid(rhs.roleid),ranktype(rhs.ranktype)
+			,cls(rhs.cls),next_sort_time(rhs.next_sort_time),data(rhs.data)
+			,localsid(rhs.localsid) { }
+
+		GNET::Protocol *Clone() const { return new GetSoloChallengeRank_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << roleid;
+			os << ranktype;
+			os << cls;
+			os << next_sort_time;
+			os << data;
+			os << localsid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> roleid;
+			os >> ranktype;
+			os >> cls;
+			os >> next_sort_time;
+			os >> data;
+			os >> localsid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 32768; }

@@ -133,8 +133,8 @@ namespace GNET
       Skill1607Stub ():SkillStub (1607)
         {
             cls = 127;
-            name = L"四神兽台白虎";
-            nativename = "四神兽台白虎";
+            name = L"鍥涚鍏藉彴鐧借檸";
+            nativename = "鍥涚鍏藉彴鐧借檸";
             icon = "";
             max_level = 10;
             type = 1;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "四神兽台白虎_击中.sgc";
+            effect = "鍥涚鍏藉彴鐧借檸_鍑讳腑.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

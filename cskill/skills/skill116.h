@@ -134,9 +134,9 @@ namespace GNET
       Skill116Stub ():SkillStub (116)
         {
             cls = 7;
-            name = L"海纳百川";
-            nativename = "海纳百川";
-            icon = "海纳百川.dds";
+            name = L"娴风撼鐧惧窛";
+            nativename = "娴风撼鐧惧窛";
+            icon = "娴风撼鐧惧窛.dds";
             max_level = 10;
             type = 2;
             apcost = 0;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (292);
             }
-            effect = "海纳百川.sgc";
+            effect = "娴风撼鐧惧窛.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

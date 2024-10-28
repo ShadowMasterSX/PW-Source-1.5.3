@@ -132,8 +132,8 @@ namespace GNET
       Skill173Stub ():SkillStub (173)
         {
             cls = 127;
-            name = L"¹ÖÎïÈºÌå´ßÃßÊõ";
-            nativename = "¹ÖÎïÈºÌå´ßÃßÊõ";
+            name = L"æ€ªç‰©ç¾¤ä½“å‚¬çœ æœ¯";
+            nativename = "æ€ªç‰©ç¾¤ä½“å‚¬çœ æœ¯";
             icon = "";
             max_level = 10;
             type = 3;
@@ -153,7 +153,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "¹ÖÎïÈºÌå´ßÃßÊõ.sgc";
+            effect = "æ€ªç‰©ç¾¤ä½“å‚¬çœ æœ¯.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

@@ -132,8 +132,8 @@ namespace GNET
       Skill2684Stub ():SkillStub (2684)
         {
             cls = 127;
-            name = L"¹ÖÎïÃëÉ±¼¼";
-            nativename = "¹ÖÎïÃëÉ±¼¼";
+            name = L"æ€ªç‰©ç§’æ€æŠ€";
+            nativename = "æ€ªç‰©ç§’æ€æŠ€";
             icon = "";
             max_level = 10;
             type = 3;
@@ -154,7 +154,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "¹ÖÎïÅùö¨Êõ.sgc";
+            effect = "æ€ªç‰©éœ¹é›³æœ¯.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

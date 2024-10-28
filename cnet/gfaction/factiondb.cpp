@@ -159,7 +159,7 @@ namespace GNET
 	// ½¨Á¢°ïÅÉ
 	int Factiondb::CreateFaction(unsigned int fid,Octets& name, unsigned int rid, OperWrapper::wref_t oper)
 	{
-		if(name.size()>18 || Matcher::GetInstance()->Match((char*)name.begin(),name.size())!=0)
+		if(name.size()>(17*2) || Matcher::GetInstance()->Match((char*)name.begin(),name.size())!=0)
 			return ERR_FC_INVALIDNAME;
 
 		AddFactionArg arg(name, rid, fid);
@@ -348,7 +348,7 @@ namespace GNET
 
 	int Factiondb::UpdateNickname(unsigned int fid, unsigned int rid, Octets& nick, OperWrapper::wref_t oper)
 	{
-		if(nick.size()>16 || Matcher::GetInstance()->Match((char*)nick.begin(),nick.size())!=0)
+		if(nick.size()>(15*2) || Matcher::GetInstance()->Match((char*)nick.begin(),nick.size())!=0)
 			return ERR_FC_INVALIDNAME;
 		UpdateUserFactionArg arg;
 		arg.fid = fid;
@@ -378,7 +378,7 @@ namespace GNET
 			}
 		}
 		
-		if(announce.size()>160 || Matcher::GetInstance()->Match((char*)an_filter.begin(),an_filter.size())!=0)
+		if(announce.size()>(512*2) || Matcher::GetInstance()->Match((char*)an_filter.begin(),an_filter.size())!=0)
 			return ERR_FC_INVALIDNAME;
 		UpdateFactionArg arg;
 		arg.fid = fid;
@@ -425,6 +425,7 @@ namespace GNET
 		detail->maxbonus = 0;
 		detail->updatetime = 0;
 		detail->info.fid = info.fid;
+		detail->info.unifid = info.unifid;
 		detail->info.name.swap(info.name);
 		detail->info.level = info.level;
 		detail->info.master = info.master;
@@ -613,12 +614,22 @@ namespace GNET
 		return 0;
 	}
 
-	void Factiondb::ListOnlineFaction(std::vector<unsigned int>& list)
+	void Factiondb::ListOnlineFaction(std::vector<unsigned int>& list, std::vector<Octets>& master, std::vector<Octets>& proclaim)
 	{
 		Thread::RWLock::RDScoped l(locker);
 		for(Map::iterator it = factions.begin(); it!=factions.end(); ++it)
 		{
-			if(it->second->info.level >= 2) list.push_back(it->first);
+			FMemberInfo info;
+			FactionDetailInfo* pf = it->second;
+			
+			if(pf->info.level >= 0) 
+			{
+				list.push_back(it->first);
+				proclaim.push_back(pf->info.announce);
+				if (GetMemberInfo(it->first, pf->info.master, info))
+					master.push_back(info.name);			
+			}
+			//if(it->second->info.level >= 2) list.push_back(it->first);
 		}
 	}
 
@@ -1661,6 +1672,30 @@ namespace GNET
 		pf->info.name = new_name;
 	}
 
+	int64_t Factiondb::GetUnifid(unsigned int fid)
+	{
+		Thread::RWLock::RDScoped l(locker);
+		Map::iterator it = factions.find(fid);
+		if(!IsReady(fid, it))
+			return 0;
+		FactionDetailInfo* pf = it->second;
+
+		return pf->info.unifid;
+	}
+
+	void Factiondb::SetUnifid(unsigned int fid,int64_t unifid)
+	{
+		Thread::RWLock::RDScoped l(locker);
+		Map::iterator it = factions.find(fid);
+		if(!IsReady(fid, it))
+			return;
+		FactionDetailInfo* pf = it->second;
+
+		pf->info.unifid = unifid;
+
+		gfs_update_factionunifidannounce(fid,GetPvpMask(fid),unifid);
+	}
+
 	int Factiondb::GetDelayExpelTime(unsigned int rid)
 	{
 	    Thread::RWLock::RDScoped l(locker);
@@ -1724,7 +1759,7 @@ namespace GNET
 		Map::iterator it = factions.find(fid);
 		if(!IsReady(fid, it))
 			return ;
-		gfs_update_factionpvpmask(fid,pmask);
+		gfs_update_factionpvpmask(fid,pmask,it->second->info.unifid);
 	}
 
 	void Factiondb::SetPvpStatus(char status) 
@@ -1738,7 +1773,13 @@ namespace GNET
 			PvPMaskMap::iterator iter = pvpmask_map.begin();
 			PvPMaskMap::iterator iend = pvpmask_map.end();
 			for(;iter != iend; ++iter)
-				gfs_update_factionpvpmask(iter->first,0);
+			{
+				Map::iterator it = factions.find(iter->first);
+				int64_t unifid = 0;
+				if(it != factions.end()) 
+					unifid = it->second->info.unifid;
+				gfs_update_factionpvpmask(iter->first,0,unifid);
+			}
 			
 			pvpmask_map.clear();
 		}

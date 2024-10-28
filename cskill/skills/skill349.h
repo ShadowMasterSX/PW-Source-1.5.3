@@ -134,8 +134,8 @@ namespace GNET
       Skill349Stub ():SkillStub (349)
         {
             cls = 127;
-            name = L"¹ÖÎï³¯Ìì·¨Íõ¼¼ÄÜ¹¥»÷";
-            nativename = "¹ÖÎï³¯Ìì·¨Íõ¼¼ÄÜ¹¥»÷";
+            name = L"æ€ªç‰©æœå¤©æ³•ç‹æŠ€èƒ½æ”»å‡»";
+            nativename = "æ€ªç‰©æœå¤©æ³•ç‹æŠ€èƒ½æ”»å‡»";
             icon = "";
             max_level = 10;
             type = 1;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "¹ÖÎï³¯Ìì·¨Íõ¼¼ÄÜ¹¥»÷.sgc";
+            effect = "æ€ªç‰©æœå¤©æ³•ç‹æŠ€èƒ½æ”»å‡».sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

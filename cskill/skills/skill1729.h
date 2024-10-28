@@ -137,9 +137,9 @@ namespace GNET
       Skill1729Stub ():SkillStub (1729)
         {
             cls = 9;
-            name = L"Îè¡¤·çÆü";
-            nativename = "Îè¡¤·çÆü";
-            icon = "·çÆü.dds";
+            name = L"èˆÂ·é£æ³£";
+            nativename = "èˆÂ·é£æ³£";
+            icon = "é£æ³£.dds";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -166,7 +166,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "÷ÈÁé_·çÆü.sgc";
+            effect = "é­…çµ_é£æ³£.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

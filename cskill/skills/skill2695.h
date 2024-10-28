@@ -132,8 +132,8 @@ namespace GNET
       Skill2695Stub ():SkillStub (2695)
         {
             cls = 127;
-            name = L"赌神自损";
-            nativename = "赌神自损";
+            name = L"璧岀鑷崯";
+            nativename = "璧岀鑷崯";
             icon = "";
             max_level = 10;
             type = 2;

@@ -132,8 +132,8 @@ namespace GNET
       Skill1338Stub ():SkillStub (1338)
         {
             cls = 127;
-            name = L"Èö»¨°ê";
-            nativename = "Èö»¨°ê";
+            name = L"æ’’èŠ±ç“£";
+            nativename = "æ’’èŠ±ç“£";
             icon = "";
             max_level = 10;
             type = 2;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 1;
-            effect = "¿Õ.sgc";
+            effect = "ç©º.sgc";
             range.type = 3;
             doenchant = true;
             dobless = false;

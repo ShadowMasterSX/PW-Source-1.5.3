@@ -134,8 +134,8 @@ namespace GNET
       Skill2015Stub ():SkillStub (2015)
         {
             cls = 127;
-            name = L"��ʦ�𺣵�ɽ";
-            nativename = "��ʦ�𺣵�ɽ";
+            name = L"法师火海刀山";
+            nativename = "法师火海刀山";
             icon = "";
             max_level = 10;
             type = 1;
@@ -157,7 +157,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "1�𺣵�ɽ.sgc";
+            effect = "1火海刀山.sgc";
             range.type = 3;
             doenchant = false;
             dobless = false;

@@ -132,9 +132,9 @@ namespace GNET
       Skill802Stub ():SkillStub (802)
         {
             cls = 127;
-            name = L"利爪";
-            nativename = "利爪";
-            icon = "宠物利爪.dds";
+            name = L"鍒╃埅";
+            nativename = "鍒╃埅";
+            icon = "瀹犵墿鍒╃埅.dds";
             max_level = 5;
             type = 10;
             apcost = 0;
@@ -154,7 +154,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "巨灵神力.sgc";
+            effect = "宸ㄧ伒绁炲姏.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

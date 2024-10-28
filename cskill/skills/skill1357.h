@@ -137,9 +137,9 @@ namespace GNET
       Skill1357Stub ():SkillStub (1357)
         {
             cls = 8;
-            name = L"万象剑劲";
-            nativename = "万象剑劲";
-            icon = "万象剑劲.dds";
+            name = L"涓囪薄鍓戝姴";
+            nativename = "涓囪薄鍓戝姴";
+            icon = "涓囪薄鍓戝姴.dds";
             max_level = 10;
             type = 1;
             apcost = 0;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (1);
             }
-            effect = "剑灵_万象剑劲.sgc";
+            effect = "鍓戠伒_涓囪薄鍓戝姴.sgc";
             range.type = 3;
             doenchant = false;
             dobless = false;

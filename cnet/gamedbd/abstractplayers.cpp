@@ -2,6 +2,7 @@
 #include "saveplayerdata.hrp"
 #include "accessdb.h"
 #include "grolestatusextraprop"
+#include "guniquedataelem"
 
 namespace GNET
 {
@@ -116,20 +117,6 @@ void AbstractPlayerData(const GRoleBase & src_base, const GRoleStatus & src_stat
 	dst_status.profit_time_data	= src_status.profit_time_data;
 	dst_status.king_data 		= src_status.king_data;
 	dst_status.meridian_data 	= src_status.meridian_data;
-	enum		//原始定义在../gdbclient/db_if.h 请保持一致
-	{
-		GROLE_STATUS_EXTRAPROP_TOUCH_HALF_TRADE = 0, // Touch
-		GROLE_STATUS_EXTRAPROP_DAILY_SIGN_IN,
-		GROLE_STATUS_EXTRAPROP_GIFTCARD_HALF_REDEEM, // 礼品码兑换
-		GROLE_STATUS_EXTRAPROP_LEADERSHIP,
-		GROLE_STATUS_EXTRAPROP_GENERALCARD_COLLECTION,
-		GROLE_STATUS_EXTRAPROP_FATERING,
-		GROLE_STATUS_EXTRAPROP_CLOCK_DATA,
-		GROLE_STATUS_EXTRAPROP_RAND_MALL_DATA,
-		GROLE_STATUS_EXTRAPROP_WORLD_CONTRIBUTION,
-
-		GROLE_STATUS_EXTRAPROP_COUNT, // 总数，请放最后
-	};
 	GRoleStatusExtraProp dst_extraprop;
 	if(dst_status.extraprop.size())
 	{
@@ -156,6 +143,10 @@ void AbstractPlayerData(const GRoleBase & src_base, const GRoleStatus & src_stat
 				case GROLE_STATUS_EXTRAPROP_GENERALCARD_COLLECTION:
 				case GROLE_STATUS_EXTRAPROP_FATERING:
 				case GROLE_STATUS_EXTRAPROP_CLOCK_DATA:
+				case GROLE_STATUS_EXTRAPROP_ASTROLABE_EXTERN:	
+				case GROLE_STATUS_EXTRAPROP_MNFACTION_INFO:
+				case GROLE_STATUS_EXTRAPROP_VISA_INFO:
+				case GROLE_STATUS_EXTRAPROP_FIX_POSITION_TRANSMIT_INFO:
 					dst_extraprop.data[it->first] = it->second;
 					break;
 				
@@ -163,6 +154,7 @@ void AbstractPlayerData(const GRoleBase & src_base, const GRoleStatus & src_stat
 				case GROLE_STATUS_EXTRAPROP_GIFTCARD_HALF_REDEEM:
 				case GROLE_STATUS_EXTRAPROP_RAND_MALL_DATA:	
 				case GROLE_STATUS_EXTRAPROP_WORLD_CONTRIBUTION:	
+				case GROLE_STATUS_EXTRAPROP_SOLO_CHALLENGE_INFO:
 					break;
 
 				default:
@@ -174,7 +166,8 @@ void AbstractPlayerData(const GRoleBase & src_base, const GRoleStatus & src_stat
 	dst_status.title_data		= src_status.title_data;
 	dst_status.reincarnation_data	= src_status.reincarnation_data;
 	dst_status.realm_data = src_status.realm_data;
-	(void)dst_status.reserved2;
+	dst_status.rank = src_status.rank;
+	(void)dst_status.rank;
 	(void)dst_status.reserved3;
 }
 
@@ -215,6 +208,7 @@ void BuildRoleInfo(GRoleBase & base, GRoleStatus & status, GRoleEquipment & equi
 	}
 	roleinfo.reincarnation_data = status.reincarnation_data;
 	roleinfo.realm_data = status.realm_data;
+	roleinfo.rank = status.rank;
 }
 
 /**
@@ -520,6 +514,38 @@ void AbstractPlayers(const char* srcpath, int zoneid)
 
 		Log::log(LOG_INFO, "checkpoint ignore %d records, fix %d records, process %d records",
 			ignore_count, fix_count, process_count);
+	}
+	
+	//清除跨服人数
+	{
+		try
+		{
+			StorageEnv::Storage* punique = StorageEnv::GetStorage("uniquedata");
+			StorageEnv::CommonTransaction txn;
+
+			for(int nkey = CT_TYPE_BEG; nkey < CT_TYPE_END; ++nkey)
+			{
+				Marshal::OctetsStream os_key;
+				Marshal::OctetsStream os_value;
+				int value = 0; 
+
+				GUniqueDataElem elem;
+				elem.vtype = UDT_INT;
+				elem.version = 100;
+				elem.value = Octets(&value,sizeof(int));
+
+				os_key << int(nkey + CARNIVAL_COUNT_UNKEY_BEG);
+				os_value << elem;
+				punique->insert(os_key,os_value,txn);
+			}
+		} catch (DbException e){
+			Log::log(LOG_ERR, "AbstractPlayer, Uniquedate Reset exception what=%s", e.what());
+
+		} catch(...) {
+			Log::log(LOG_ERR, "AbstractPlayer, Uniquedate Error ");
+		}
+
+		StorageEnv::checkpoint();
 	}
 
 	pbase_alone->checkpoint();

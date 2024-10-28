@@ -1,0 +1,119 @@
+#ifndef __GNET_SOLOCHALLENGERANKDATA_RPCDATA
+#define __GNET_SOLOCHALLENGERANKDATA_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class SoloChallengeRankData : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		int level;
+		int cls;
+		int total_time;
+		Octets name;
+		char type;
+		unsigned char zoneid;
+		int update_time;
+		short reserved1;
+		int reserved2;
+		int reserved3;
+
+	public:
+		SoloChallengeRankData (int l_roleid = 0,int l_level = 0,int l_cls = -1
+			,int l_total_time = 0,const Octets& l_name = Octets(),char l_type = 0
+			,unsigned char l_zoneid = 0,int l_update_time = 0,short l_reserved1 = 0
+			,int l_reserved2 = 0,int l_reserved3 = 0)
+			: roleid(l_roleid),level(l_level),cls(l_cls)
+			,total_time(l_total_time),name(l_name),type(l_type)
+			,zoneid(l_zoneid),update_time(l_update_time),reserved1(l_reserved1)
+			,reserved2(l_reserved2),reserved3(l_reserved3)
+		{
+		}
+
+		SoloChallengeRankData(const SoloChallengeRankData &rhs)
+			: roleid(rhs.roleid),level(rhs.level),cls(rhs.cls),
+			total_time(rhs.total_time),name(rhs.name),type(rhs.type),
+			zoneid(rhs.zoneid),update_time(rhs.update_time),reserved1(rhs.reserved1),
+			reserved2(rhs.reserved2),reserved3(rhs.reserved3) { }
+
+		Rpc::Data *Clone() const { return new SoloChallengeRankData(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const SoloChallengeRankData *r = dynamic_cast<const SoloChallengeRankData *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				level = r->level;
+				cls = r->cls;
+				total_time = r->total_time;
+				name = r->name;
+				type = r->type;
+				zoneid = r->zoneid;
+				update_time = r->update_time;
+				reserved1 = r->reserved1;
+				reserved2 = r->reserved2;
+				reserved3 = r->reserved3;
+			}
+			return *this;
+		}
+
+		SoloChallengeRankData& operator = (const SoloChallengeRankData &rhs)
+		{
+			const SoloChallengeRankData *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				level = r->level;
+				cls = r->cls;
+				total_time = r->total_time;
+				name = r->name;
+				type = r->type;
+				zoneid = r->zoneid;
+				update_time = r->update_time;
+				reserved1 = r->reserved1;
+				reserved2 = r->reserved2;
+				reserved3 = r->reserved3;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << level;
+			os << cls;
+			os << total_time;
+			os << name;
+			os << type;
+			os << zoneid;
+			os << update_time;
+			os << reserved1;
+			os << reserved2;
+			os << reserved3;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> level;
+			os >> cls;
+			os >> total_time;
+			os >> name;
+			os >> type;
+			os >> zoneid;
+			os >> update_time;
+			os >> reserved1;
+			os >> reserved2;
+			os >> reserved3;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<SoloChallengeRankData>	SoloChallengeRankDataVector;
+};
+#endif

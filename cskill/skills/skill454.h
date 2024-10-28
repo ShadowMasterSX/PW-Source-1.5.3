@@ -140,9 +140,9 @@ namespace GNET
       Skill454Stub ():SkillStub (454)
         {
             cls = 1;
-            name = L"�桤�𺣵�ɽ";
-            nativename = "�桤�𺣵�ɽ";
-            icon = "�𺣵�ɽ1.dds";
+            name = L"真·火海刀山";
+            nativename = "真·火海刀山";
+            icon = "火海刀山1.dds";
             max_level = 1;
             type = 1;
             apcost = 200;
@@ -169,7 +169,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "1�𺣵�ɽ.sgc";
+            effect = "1火海刀山.sgc";
             range.type = 3;
             doenchant = false;
             dobless = true;

@@ -1,0 +1,87 @@
+
+#ifndef __GNET_DBMNFACTIONSTATEUPDATE_HPP
+#define __GNET_DBMNFACTIONSTATEUPDATE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "gamedbmanager.h"
+
+#include "dbmnfactionstateupdatearg"
+#include "dbmnfactionstateupdateres"
+
+
+namespace GNET
+{
+
+class DBMNFactionStateUpdate : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbmnfactionstateupdate"
+#undef	RPC_BASECLASS
+
+    void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+    {
+        DBMNFactionStateUpdateArg *arg = (DBMNFactionStateUpdateArg *)argument;
+        DBMNFactionStateUpdateRes *res = (DBMNFactionStateUpdateRes *)result;
+
+        // only on central db
+        if (!GameDBManager::GetInstance()->IsCentralDB()) return;
+
+        try
+        {
+            StorageEnv::Storage* pmnfaction = StorageEnv::GetStorage("mnfactioninfo");
+            StorageEnv::AtomTransaction txn;
+
+            try
+            {
+                unsigned int sn = 0;
+                unsigned char state = 0;
+                Marshal::OctetsStream spec_key, spec_value;
+                spec_key << (int64_t)0;
+
+                if (pmnfaction->find(spec_key, spec_value, txn))
+                    spec_value >> sn >> state;
+
+                spec_value = (Marshal::OctetsStream() << sn << (arg->state));
+                pmnfaction->insert(spec_key, spec_value, txn);
+                res->retcode = ERR_SUCCESS;
+
+                Log::formatlog("dbmnfactionstateupdate", "sn=%d:oldstate=%d:newstate=%d", sn, state, (arg->state));
+            }
+            catch (DbException e) {throw;}
+            catch (...)
+            {
+                DbException e(DB_OLD_VERSION);
+                txn.abort(e);
+                throw e;
+            }
+        }
+        catch (DbException e)
+        {
+            if (e.get_errno() == DB_LOCK_DEADLOCK)
+                res->retcode = ERR_AGAIN;
+            else
+                res->retcode = ERR_EXCEPTION;
+
+            Log::log(LOG_ERR, "DBMNFactionStateUpdate, what=%s.\n", e.what());
+        }
+    }
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBMNFactionStateUpdateArg *arg = (DBMNFactionStateUpdateArg *)argument;
+		// DBMNFactionStateUpdateRes *res = (DBMNFactionStateUpdateRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

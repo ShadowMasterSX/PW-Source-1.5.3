@@ -19,8 +19,8 @@ namespace GNET
         Skill930Stub ():SkillStub (930)
         {
             cls = 4;
-            name = L"作废";
-            nativename = "作废";
+            name = L"浣滃簾";
+            nativename = "浣滃簾";
             icon = "";
             max_level = 1;
             type = 2;
@@ -46,7 +46,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "巨灵神力.sgc";
+            effect = "宸ㄧ伒绁炲姏.sgc";
             range.type = 5;
             doenchant = false;
             dobless = false;

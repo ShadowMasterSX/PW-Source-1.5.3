@@ -57,9 +57,9 @@ namespace GNET
       Skill1916Stub ():SkillStub (1916)
         {
             cls = 255;
-            name = L"真武灵应";
-            nativename = "真武灵应";
-            icon = "玄武刻印.dds";
+            name = L"鐪熸鐏靛簲";
+            nativename = "鐪熸鐏靛簲";
+            icon = "鐜勬鍒诲嵃.dds";
             max_level = 1;
             type = 2;
             apcost = 0;
@@ -116,7 +116,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (44879);
             }
-            effect = "蓄气.sgc";
+            effect = "钃勬皵.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

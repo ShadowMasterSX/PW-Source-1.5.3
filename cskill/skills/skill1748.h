@@ -57,8 +57,8 @@ namespace GNET
       Skill1748Stub ():SkillStub (1748)
         {
             cls = 127;
-            name = L"修罗道_灵动";
-            nativename = "修罗道_灵动";
+            name = L"淇綏閬揰鐏靛姩";
+            nativename = "淇綏閬揰鐏靛姩";
             icon = "";
             max_level = 1;
             type = 4;
@@ -80,7 +80,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "怪物自爆.sgc";
+            effect = "鎬墿鑷垎.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

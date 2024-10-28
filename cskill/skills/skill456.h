@@ -137,9 +137,9 @@ namespace GNET
       Skill456Stub ():SkillStub (456)
         {
             cls = 1;
-            name = L"�桤ӿȪ";
-            nativename = "�桤ӿȪ";
-            icon = "ӿȪ1.dds";
+            name = L"真·涌泉";
+            nativename = "真·涌泉";
+            icon = "涌泉1.dds";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -166,7 +166,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (292);
             }
-            effect = "1ӿȪ.sgc";
+            effect = "1涌泉.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

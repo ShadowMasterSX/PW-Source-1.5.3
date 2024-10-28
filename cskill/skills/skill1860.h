@@ -134,9 +134,9 @@ namespace GNET
       Skill1860Stub ():SkillStub (1860)
         {
             cls = 9;
-            name = L"万物回春";
-            nativename = "万物回春";
-            icon = "万物回春.dds";
+            name = L"涓囩墿鍥炴槬";
+            nativename = "涓囩墿鍥炴槬";
+            icon = "涓囩墿鍥炴槬.dds";
             max_level = 1;
             type = 2;
             apcost = 0;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "魅灵_枯木逢春.sgc";
+            effect = "榄呯伒_鏋湪閫㈡槬.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

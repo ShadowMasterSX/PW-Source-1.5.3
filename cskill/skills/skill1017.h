@@ -59,9 +59,9 @@ namespace GNET
       Skill1017Stub ():SkillStub (1017)
         {
             cls = 258;
-            name = L"´óµØ²¨ÎÆ.ËÀÍö";
-            nativename = "´óµØ²¨ÎÆ.ËÀÍö";
-            icon = "´óµØ²¨ÎÆËÀÍö.dds";
+            name = L"å¤§åœ°æ³¢çº¹.æ­»äº¡";
+            nativename = "å¤§åœ°æ³¢çº¹.æ­»äº¡";
+            icon = "å¤§åœ°æ³¢çº¹æ­»äº¡.dds";
             max_level = 10;
             type = 3;
             apcost = 250018;
@@ -80,7 +80,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 1;
-            effect = "´óµØ²¨ÎÆËÀÍö.sgc";
+            effect = "å¤§åœ°æ³¢çº¹æ­»äº¡.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

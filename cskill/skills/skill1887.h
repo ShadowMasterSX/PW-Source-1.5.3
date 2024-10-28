@@ -57,8 +57,8 @@ namespace GNET
       Skill1887Stub ():SkillStub (1887)
         {
             cls = 127;
-            name = L"变园艺区哨兵";
-            nativename = "变园艺区哨兵";
+            name = L"鍙樺洯鑹哄尯鍝ㄥ叺";
+            nativename = "鍙樺洯鑹哄尯鍝ㄥ叺";
             icon = "";
             max_level = 10;
             type = 4;
@@ -80,7 +80,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 3;
-            effect = "怪物自爆.sgc";
+            effect = "鎬墿鑷垎.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

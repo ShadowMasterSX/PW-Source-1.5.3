@@ -1,0 +1,65 @@
+#ifndef __GNET_MNFACTIONAPPLYDATA_RPCDATA
+#define __GNET_MNFACTIONAPPLYDATA_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class MNFactionApplyData : public GNET::Rpc::Data
+	{
+	public:
+		unsigned int fid;
+		unsigned char dest;
+
+	public:
+		MNFactionApplyData (unsigned int l_fid = 0,unsigned char l_dest = 0)
+			: fid(l_fid),dest(l_dest)
+		{
+		}
+
+		MNFactionApplyData(const MNFactionApplyData &rhs)
+			: fid(rhs.fid),dest(rhs.dest) { }
+
+		Rpc::Data *Clone() const { return new MNFactionApplyData(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const MNFactionApplyData *r = dynamic_cast<const MNFactionApplyData *>(&rhs);
+			if (r && r != this)
+			{
+				fid = r->fid;
+				dest = r->dest;
+			}
+			return *this;
+		}
+
+		MNFactionApplyData& operator = (const MNFactionApplyData &rhs)
+		{
+			const MNFactionApplyData *r = &rhs;
+			if (r && r != this)
+			{
+				fid = r->fid;
+				dest = r->dest;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << fid;
+			os << dest;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> fid;
+			os >> dest;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<MNFactionApplyData>	MNFactionApplyDataVector;
+};
+#endif

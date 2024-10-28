@@ -57,8 +57,8 @@ namespace GNET
       Skill1954Stub ():SkillStub (1954)
         {
             cls = 127;
-            name = L"����PK�޳ͷ�״̬";
-            nativename = "����PK�޳ͷ�״̬";
+            name = L"势力PK无惩罚状态";
+            nativename = "势力PK无惩罚状态";
             icon = "";
             max_level = 10;
             type = 4;
@@ -80,7 +80,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "ħ.sgc";
+            effect = "魔.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

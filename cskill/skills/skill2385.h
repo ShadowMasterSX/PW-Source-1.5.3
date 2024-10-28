@@ -133,8 +133,8 @@ namespace GNET
       Skill2385Stub ():SkillStub (2385)
         {
             cls = 127;
-            name = L"商会头目火球";
-            nativename = "商会头目火球";
+            name = L"鍟嗕細澶寸洰鐏悆";
+            nativename = "鍟嗕細澶寸洰鐏悆";
             icon = "";
             max_level = 10;
             type = 1;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "商会头目_技能_击中.sgc";
+            effect = "鍟嗕細澶寸洰_鎶�鑳絖鍑讳腑.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

@@ -1229,6 +1229,8 @@ gpet_imp::FillAttackMsg(const XID & target, attack_msg & attack,int dec_arrow)
 	attack.ainfo.eff_level = eff_level;
 	attack.ainfo.wallow_level = _leader_data.wallow_level;
 	attack.ainfo.profit_level = _leader_data.profit_level;
+	attack.anti_defense_degree = _leader_data.anti_def_degree;
+	attack.anti_resistance_degree = _leader_data.anti_def_degree;
 
 	//调用master的填充接口
 	if(_attack_fill)

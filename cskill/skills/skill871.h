@@ -132,8 +132,8 @@ namespace GNET
       Skill871Stub ():SkillStub (871)
         {
             cls = 127;
-            name = L"自身圆心群加物攻法攻";
-            nativename = "自身圆心群加物攻法攻";
+            name = L"鑷韩鍦嗗績缇ゅ姞鐗╂敾娉曟敾";
+            nativename = "鑷韩鍦嗗績缇ゅ姞鐗╂敾娉曟敾";
             icon = "";
             max_level = 10;
             type = 3;
@@ -153,7 +153,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "神兵利器.sgc";
+            effect = "绁炲叺鍒╁櫒.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

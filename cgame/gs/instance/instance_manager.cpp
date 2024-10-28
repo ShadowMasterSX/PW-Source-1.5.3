@@ -38,7 +38,8 @@ instance_world_manager::InitNetClient(const char * gmconf)
 	int task_version = _task_templ_cur_version;
 	int gshop_version = globaldata_getmalltimestamp();
 	int gdividendshop_version = globaldata_getmall2timestamp();
-	sprintf(version, "%x%x%x%x", ele_version, task_version, gshop_version, gdividendshop_version);
+	int gcashvipshop_version = globaldata_getmall3timestamp();
+	sprintf(version, "%x%x%x%x%x", ele_version, task_version, gshop_version, gdividendshop_version, gcashvipshop_version);
 
 	rect rt = _plane_template->GetLocalWorld();
 	ASSERT(rt.left < rt.right && rt.top < rt.bottom);
@@ -506,7 +507,7 @@ instance_world_manager::SendRemotePlayerMsg(int uid, const MSG & msg)
 			//转发到世界的另外一个位面 ?			
 			int widx = GetPlayerWorldIdx(uid);
 			if(widx < 0) return -1;
-			world * pPlane = _cur_planes[w_idx];
+			world * pPlane = _cur_planes[widx];
 			if(pPlane) pPlane->PostLazyMessage(msg);
 		}
 	}
@@ -944,6 +945,10 @@ instance_world_manager::HandleSwitchRequest(int link_id,int user_id,int localsid
 				//这个超时时间由2.5s延长至5s，防止gs负载高引起的超时，modify by liuguichen 20131224
 				SetTimer(g_timer,TICK_PER_SEC*5,1);
 				__PRINTF("timer %p %d\n",this,_timer_index);
+			}
+			~switch_task()
+			{
+				if(_timer_index >=0) RemoveTimer();
 			}
 		public:
 			virtual void OnTimer(int index,int rtimes)

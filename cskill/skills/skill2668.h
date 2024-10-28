@@ -132,8 +132,8 @@ namespace GNET
       Skill2668Stub ():SkillStub (2668)
         {
             cls = 127;
-            name = L"¾ŞÏñÕğµØ";
-            nativename = "¾ŞÏñÕğµØ";
+            name = L"å·¨åƒéœ‡åœ°";
+            nativename = "å·¨åƒéœ‡åœ°";
             icon = "";
             max_level = 10;
             type = 3;

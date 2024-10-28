@@ -13,6 +13,8 @@ namespace GNET
 		int retcode;
 		int new_roleid;
 		GRoleInfo roleinfo;
+		short cross_type;
+		int64_t unifid;
 
 	public:
 		SavePlayerDataRes (int l_retcode = 0,int l_new_roleid = 0)
@@ -21,7 +23,8 @@ namespace GNET
 		}
 
 		SavePlayerDataRes(const SavePlayerDataRes &rhs)
-			: retcode(rhs.retcode),new_roleid(rhs.new_roleid),roleinfo(rhs.roleinfo) { }
+			: retcode(rhs.retcode),new_roleid(rhs.new_roleid),roleinfo(rhs.roleinfo),
+			cross_type(rhs.cross_type),unifid(rhs.unifid) { }
 
 		Rpc::Data *Clone() const { return new SavePlayerDataRes(*this); }
 
@@ -33,6 +36,8 @@ namespace GNET
 				retcode = r->retcode;
 				new_roleid = r->new_roleid;
 				roleinfo = r->roleinfo;
+				cross_type = r->cross_type;
+				unifid = r->unifid;
 			}
 			return *this;
 		}
@@ -45,6 +50,8 @@ namespace GNET
 				retcode = r->retcode;
 				new_roleid = r->new_roleid;
 				roleinfo = r->roleinfo;
+				cross_type = r->cross_type;
+				unifid = r->unifid;
 			}
 			return *this;
 		}
@@ -54,6 +61,8 @@ namespace GNET
 			os << retcode;
 			os << new_roleid;
 			os << roleinfo;
+			os << cross_type;
+			os << unifid;
 			return os;
 		}
 
@@ -62,6 +71,8 @@ namespace GNET
 			os >> retcode;
 			os >> new_roleid;
 			os >> roleinfo;
+			os >> cross_type;
+			os >> unifid;
 			return os;
 		}
 

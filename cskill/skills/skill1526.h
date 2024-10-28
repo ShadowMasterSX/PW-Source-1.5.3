@@ -135,9 +135,9 @@ namespace GNET
       Skill1526Stub ():SkillStub (1526)
         {
             cls = 127;
-            name = L"¹³ÔÂÈĞ";
-            nativename = "¹³ÔÂÈĞ";
-            icon = "¹³ÔÂÈĞ.dds";
+            name = L"é’©æœˆåˆƒ";
+            nativename = "é’©æœˆåˆƒ";
+            icon = "é’©æœˆåˆƒ.dds";
             max_level = 10;
             type = 1;
             apcost = 0;
@@ -158,7 +158,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "ÂäÀ×.sgc";
+            effect = "è½é›·.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

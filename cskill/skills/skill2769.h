@@ -217,9 +217,9 @@ namespace GNET
       Skill2769Stub ():SkillStub (2769)
         {
             cls = 10;
-            name = L"¿ñ¡¤²ÔÄñ";
-            nativename = "¿ñ¡¤²ÔÄñ";
-            icon = "Ä§²ÔÄñ.dds";
+            name = L"ç‹‚Â·è‹é¸Ÿ";
+            nativename = "ç‹‚Â·è‹é¸Ÿ";
+            icon = "é­”è‹é¸Ÿ.dds";
             max_level = 1;
             type = 1;
             apcost = 0;

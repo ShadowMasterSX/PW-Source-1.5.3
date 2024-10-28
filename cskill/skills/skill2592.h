@@ -176,9 +176,9 @@ namespace GNET
       Skill2592Stub ():SkillStub (2592)
         {
             cls = 11;
-            name = L"晓月银光";
-            nativename = "晓月银光";
-            icon = "晓月银光.dds";
+            name = L"鏅撴湀閾跺厜";
+            nativename = "鏅撴湀閾跺厜";
+            icon = "鏅撴湀閾跺厜.dds";
             max_level = 10;
             type = 1;
             apcost = 150;
@@ -205,7 +205,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "月仙_晓月银光_击中.sgc";
+            effect = "鏈堜粰_鏅撴湀閾跺厜_鍑讳腑.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

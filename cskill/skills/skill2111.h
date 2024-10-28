@@ -56,9 +56,9 @@ namespace GNET
       Skill2111Stub ():SkillStub (2111)
         {
             cls = 127;
-            name = L"锋锐专用";
-            nativename = "锋锐专用";
-            icon = "宠物鼓舞.dds";
+            name = L"閿嬮攼涓撶敤";
+            nativename = "閿嬮攼涓撶敤";
+            icon = "瀹犵墿榧撹垶.dds";
             max_level = 10;
             type = 3;
             apcost = 0;
@@ -79,7 +79,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "咆哮.sgc";
+            effect = "鍜嗗摦.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

@@ -57,8 +57,8 @@ namespace GNET
       Skill1969Stub ():SkillStub (1969)
         {
             cls = 127;
-            name = L"变龟术_玩具";
-            nativename = "变龟术_玩具";
+            name = L"鍙橀緹鏈痏鐜╁叿";
+            nativename = "鍙橀緹鏈痏鐜╁叿";
             icon = "";
             max_level = 1;
             type = 4;

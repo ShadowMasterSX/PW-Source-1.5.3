@@ -76,6 +76,8 @@
 #define TASK_PREREQU_FAIL_CARD_COUNT_RANK	64
 #define TASK_PREREQU_FAIL_TASK_FORBID 65
 #define TASK_PREREQU_FAIL_NO_NAVIGATE_INSHPAED 66
+#define TASK_PREREQU_FAIL_HAS_ICONSTATE_ID	67
+#define TASK_PREREQU_FAIL_CHECK_VIP_LEVEL	68
 
 #define TASK_AWARD_FAIL_GIVEN_ITEM		150
 #define TASK_AWARD_FAIL_NEW_TASK		151
@@ -97,9 +99,9 @@
 
 #define TASK_ACTIVE_LIST_HEADER_LEN		8
 #define TASK_ACTIVE_LIST_MAX_LEN		175
-#define TASK_FINISHED_LIST_MAX_LEN		2040
+#define TASK_FINISHED_LIST_MAX_LEN		4080
 #define TASK_DATA_BUF_MAX_LEN			32
-#define TASK_FINISH_TIME_MAX_LEN		1700
+#define TASK_FINISH_TIME_MAX_LEN		2500
 #define TASK_FINISH_COUNT_MAX_LEN		730
 
 // 库任务
@@ -111,12 +113,12 @@ static const float	TASK_STORAGE_WHELL_SCALE = 10000.f;
 // 当前激活的任务列表缓冲区大小
 #define TASK_ACTIVE_LIST_BUF_SIZE		(TASK_ACTIVE_LIST_MAX_LEN * TASK_DATA_BUF_MAX_LEN + TASK_ACTIVE_LIST_HEADER_LEN)
 // 已完成的任务列表缓冲区大小
-#define TASK_FINISHED_LIST_BUF_SIZE		8192
+#define TASK_FINISHED_LIST_BUF_SIZE		16384
 #define TASK_FINISHED_LIST_BUF_SIZE_OLD	4096
 // 任务全局数据大小
 #define TASK_GLOBAL_DATA_SIZE			256
 // 任务完成时间
-#define TASK_FINISH_TIME_LIST_BUF_SIZE	10240
+#define TASK_FINISH_TIME_LIST_BUF_SIZE	15100
 //任务完成次数
 #define TASK_FINISH_COUNT_LIST_BUF_SIZE	10240
 // 库任务
@@ -257,6 +259,7 @@ struct Task_State_info
 	unsigned long	m_ulReachReincarnation;
 	unsigned long	m_ulReachRealm;
 	unsigned long	m_ulPremLevelMin;
+	unsigned long	m_ulTMIconStateID;
 	struct
 	{
 		unsigned long	m_ulMonsterId;
@@ -379,6 +382,7 @@ struct TaskInterface
 	virtual bool IsKing() = 0;
 	virtual size_t GetInvEmptySlot() = 0;
 	virtual void LockInventory(bool is_lock) = 0;
+	virtual bool HasIconStateID(unsigned long ulIconStateID)=0;
 
 	virtual unsigned char GetShapeMask() = 0;
 	virtual bool IsAtCrossServer() = 0;
@@ -403,6 +407,10 @@ struct TaskInterface
 
 	bool CheckVersion();
 	bool HasTask(unsigned long ulTaskId);
+	bool HasTopTaskRelatingMarriage(abase::vector<unsigned long> *pTopTaskIDs);
+	bool HasTopTaskRelatingWedding(abase::vector<unsigned long> *pTopTaskIDs);
+	bool HasTopTaskRelatingSpouse(abase::vector<unsigned long> *pTopTaskIDs);
+	bool HasTopTaskRelatingGender(abase::vector<unsigned long> *pTopTaskIDs);
 
 	// static funcs
 	static unsigned long GetCurTime();
@@ -456,6 +464,14 @@ struct TaskInterface
 	virtual void TakeAwayWorldContribution(int contribution) = 0;
 	virtual int GetWorldContributionSpend() = 0;
 	virtual bool PlayerCanSpendContributionAsWill() = 0;
+
+	// 爬塔任务相关
+	virtual void OnTowerTaskDeliver(bool bSuccess) = 0;		// 爬塔任务发放
+	virtual void OnTowerTaskComplete(bool bSuccess) = 0;	// 爬塔任务完成
+	virtual void DeliverSoloTowerChallengeScore(int score) = 0;	// 发放单人爬塔积分奖励(积分上限和当前积分都要增加)
+
+	// VIP
+	virtual int GetVIPLevel() = 0;
 
 #ifdef _TASK_CLIENT
 	static void UpdateTitleUI(unsigned long ulTask);

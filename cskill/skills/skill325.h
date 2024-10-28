@@ -19,9 +19,9 @@ namespace GNET
         Skill325Stub ():SkillStub (325)
         {
             cls = 3;
-            name = L"ľ��ͨ";
-            nativename = "ľ��ͨ";
-            icon = "ľϵ��ͨ.dds";
+            name = L"木精通";
+            nativename = "木精通";
+            icon = "木系精通.dds";
             max_level = 10;
             type = 5;
             apcost = 0;

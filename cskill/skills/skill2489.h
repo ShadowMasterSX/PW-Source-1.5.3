@@ -132,8 +132,8 @@ namespace GNET
       Skill2489Stub ():SkillStub (2489)
         {
             cls = 127;
-            name = L"倒转单体";
-            nativename = "倒转单体";
+            name = L"鍊掕浆鍗曚綋";
+            nativename = "鍊掕浆鍗曚綋";
             icon = "";
             max_level = 10;
             type = 3;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "妖兽_虎啸.sgc";
+            effect = "濡栧吔_铏庡暩.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

@@ -59,9 +59,9 @@ namespace GNET
       Skill2593Stub ():SkillStub (2593)
         {
             cls = 11;
-            name = L"ÄæÂÒÒõÑô";
-            nativename = "ÄæÂÒÒõÑô";
-            icon = "ÄæÂÒÒõÑô.dds";
+            name = L"é€†ä¹±é˜´é˜³";
+            nativename = "é€†ä¹±é˜´é˜³";
+            icon = "é€†ä¹±é˜´é˜³.dds";
             max_level = 10;
             type = 2;
             apcost = 30;

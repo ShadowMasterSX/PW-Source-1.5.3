@@ -134,8 +134,8 @@ namespace GNET
       Skill793Stub ():SkillStub (793)
         {
             cls = 127;
-            name = L"1¼¶³ÇÕ½BOSSÎüÄ§¶¾";
-            nativename = "1¼¶³ÇÕ½BOSSÎüÄ§¶¾";
+            name = L"1çº§åŸæˆ˜BOSSå¸é­”æ¯’";
+            nativename = "1çº§åŸæˆ˜BOSSå¸é­”æ¯’";
             icon = "";
             max_level = 5;
             type = 1;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "ÌúÑÒ¹Æ.sgc";
+            effect = "é“å²©è›Š.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

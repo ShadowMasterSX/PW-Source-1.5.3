@@ -132,8 +132,8 @@ namespace GNET
       Skill2199Stub ():SkillStub (2199)
         {
             cls = 127;
-            name = L"仙幻天传送球";
-            nativename = "仙幻天传送球";
+            name = L"浠欏够澶╀紶閫佺悆";
+            nativename = "浠欏够澶╀紶閫佺悆";
             icon = "";
             max_level = 10;
             type = 3;

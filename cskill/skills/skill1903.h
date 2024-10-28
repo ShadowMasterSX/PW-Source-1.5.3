@@ -133,8 +133,8 @@ namespace GNET
       Skill1903Stub ():SkillStub (1903)
         {
             cls = 127;
-            name = L"Ò¹ÐÌ¼¼ÄÜ";
-            nativename = "Ò¹ÐÌ¼¼ÄÜ";
+            name = L"å¤œåˆ‘æŠ€èƒ½";
+            nativename = "å¤œåˆ‘æŠ€èƒ½";
             icon = "";
             max_level = 10;
             type = 1;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "ÑªöôÓãÈËÆïÊÖ_·ßÅ­»÷ÖÐ.sgc";
+            effect = "è¡€é²·é±¼äººéª‘æ‰‹_æ„¤æ€’å‡»ä¸­.sgc";
             range.type = 1;
             doenchant = true;
             dobless = false;

@@ -51,7 +51,8 @@ class GetRemoteRoleInfo_Re : public GNET::Protocol
 					role.referrer_role,
 					role.cash_add,
 					role.reincarnation_data,
-					role.realm_data);
+					role.realm_data,
+					role.rank);
 			
 			/*user->role_pos[role.id % MAX_ROLE_COUNT] = UserInfo::point_t(role.posx,role.posy,role.posz);
 			user->worldtag[role.id % MAX_ROLE_COUNT] = role.worldtag;

@@ -56,9 +56,9 @@ namespace GNET
       Skill2060Stub ():SkillStub (2060)
         {
             cls = 127;
-            name = L"ÖØ»÷×¨ÓÃ";
-            nativename = "ÖØ»÷×¨ÓÃ";
-            icon = "³èÎï¹ÄÎè.dds";
+            name = L"é‡å‡»ä¸“ç”¨";
+            nativename = "é‡å‡»ä¸“ç”¨";
+            icon = "å® ç‰©é¼“èˆ.dds";
             max_level = 10;
             type = 3;
             apcost = 0;
@@ -79,7 +79,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "Ê¨×Óºğ.sgc";
+            effect = "ç‹®å­å¼.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

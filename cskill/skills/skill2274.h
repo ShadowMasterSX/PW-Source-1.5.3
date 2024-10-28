@@ -132,8 +132,8 @@ namespace GNET
       Skill2274Stub ():SkillStub (2274)
         {
             cls = 127;
-            name = L"怪物变身";
-            nativename = "怪物变身";
+            name = L"鎬墿鍙樿韩";
+            nativename = "鎬墿鍙樿韩";
             icon = "";
             max_level = 10;
             type = 3;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 3;
-            effect = "庇护.sgc";
+            effect = "搴囨姢.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

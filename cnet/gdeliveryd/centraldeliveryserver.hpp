@@ -22,7 +22,7 @@ public:
 		ServerLoad cache_server_load; 
 	};	
 	typedef std::map<int/*zoneid*/, delivery_t> DSMap;
-	typedef std::set<int> AcceptedZoneSet;
+	typedef std::map<int/*zoneid*/,int/*groupid*/> AcceptedZoneMap;
 
 	friend class CrsSvrCheckTimer;
 
@@ -35,14 +35,16 @@ private:
 	void OnDelSession(Session::ID sid);
 
 	DSMap ds_map;
-	AcceptedZoneSet accepted_zone_set; //用来记录可接受的zone id列表
+	AcceptedZoneMap accepted_zone_map; //用来记录可接受的zone id列表
 
 public:
 	static CentralDeliveryServer *GetInstance() { return &instance; }
 	std::string Identification() const { return "CentralDeliveryServer"; }
 	void SetAccumulate(size_t size) { accumulate_limit = size; }
 	CentralDeliveryServer() : accumulate_limit(0) { }
-	
+
+	const DSMap& GetDsMap() const { return ds_map;}
+
 	bool IsConnect(int zoneid)
 	{
 		return (ds_map.find(zoneid) != ds_map.end());
@@ -54,20 +56,47 @@ public:
 	}
 	
 	void SetLoad(int zoneid, int srv_limit, int srv_count);
-	int InitAcceptedZoneList( std::string list_str );
+//	int InitAcceptedZoneList( std::string list_str );
 	
 	bool IsAcceptedZone(int zoneid)
 	{
-		return (accepted_zone_set.find(zoneid) != accepted_zone_set.end());
+		return (accepted_zone_map.find(zoneid) != accepted_zone_map.end());
 	}
-	
-	void GetAcceptedZone(std::vector<int>& zone_list)
+	int  GetGroupIdByZoneId(int zid)
 	{
-		for(AcceptedZoneSet::iterator it = accepted_zone_set.begin(); it != accepted_zone_set.end(); ++it) {
-			zone_list.push_back(*it);
+		AcceptedZoneMap::iterator it = accepted_zone_map.find(zid);
+		if(it == accepted_zone_map.end()) return -1;
+		return it->second;
+	}
+
+	void SetAcceptedZoneGroup(AcceptedZoneMap& azm)
+	{
+		accepted_zone_map.swap(azm);
+	}
+
+	void  GetAcceptedZoneGroup(std::vector<std::pair<int,int> > & list)
+	{
+		list.clear();
+		AcceptedZoneMap::iterator it = accepted_zone_map.begin();
+		AcceptedZoneMap::iterator ie = accepted_zone_map.end();
+		for(;it != ie; ++it)
+		{
+			list.push_back(*it);
 		}
 	}
-	
+
+	void  GetAcceptedZone(int groupid,std::vector<int> &list)
+	{
+		list.clear();
+		AcceptedZoneMap::iterator it = accepted_zone_map.begin();
+		AcceptedZoneMap::iterator ie = accepted_zone_map.end();
+		for(;it != ie; ++it)
+		{
+			if(it->second == groupid)
+				list.push_back(it->first);
+		}
+	}
+
 	void BroadcastProtocol(const Protocol* protocol)
 	{
 		for(DSMap::const_iterator it = ds_map.begin(); it != ds_map.end(); ++it) {

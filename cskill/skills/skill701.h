@@ -132,8 +132,8 @@ namespace GNET
       Skill701Stub ():SkillStub (701)
         {
             cls = 127;
-            name = L"2级城战BOSS自身加攻";
-            nativename = "2级城战BOSS自身加攻";
+            name = L"2绾у煄鎴楤OSS鑷韩鍔犳敾";
+            nativename = "2绾у煄鎴楤OSS鑷韩鍔犳敾";
             icon = "";
             max_level = 5;
             type = 2;
@@ -153,7 +153,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "巨灵神力.sgc";
+            effect = "宸ㄧ伒绁炲姏.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

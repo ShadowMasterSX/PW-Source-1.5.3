@@ -11,15 +11,20 @@ namespace GNET
 	public:
 		int retcode;
 		int cash_total;
+		int cash_vip_score_add;
+		int cash_vip_level;
 
 	public:
-		GetCashTotalRes (int l_retcode = -1,int l_cash_total = -1)
-			: retcode(l_retcode),cash_total(l_cash_total)
+		GetCashTotalRes (int l_retcode = -1,int l_cash_total = -1,int l_cash_vip_score_add = -1
+			,int l_cash_vip_level = -1)
+			: retcode(l_retcode),cash_total(l_cash_total),cash_vip_score_add(l_cash_vip_score_add)
+			,cash_vip_level(l_cash_vip_level)
 		{
 		}
 
 		GetCashTotalRes(const GetCashTotalRes &rhs)
-			: retcode(rhs.retcode),cash_total(rhs.cash_total) { }
+			: retcode(rhs.retcode),cash_total(rhs.cash_total),cash_vip_score_add(rhs.cash_vip_score_add),
+			cash_vip_level(rhs.cash_vip_level) { }
 
 		Rpc::Data *Clone() const { return new GetCashTotalRes(*this); }
 
@@ -30,6 +35,8 @@ namespace GNET
 			{
 				retcode = r->retcode;
 				cash_total = r->cash_total;
+				cash_vip_score_add = r->cash_vip_score_add;
+				cash_vip_level = r->cash_vip_level;
 			}
 			return *this;
 		}
@@ -41,6 +48,8 @@ namespace GNET
 			{
 				retcode = r->retcode;
 				cash_total = r->cash_total;
+				cash_vip_score_add = r->cash_vip_score_add;
+				cash_vip_level = r->cash_vip_level;
 			}
 			return *this;
 		}
@@ -49,6 +58,8 @@ namespace GNET
 		{
 			os << retcode;
 			os << cash_total;
+			os << cash_vip_score_add;
+			os << cash_vip_level;
 			return os;
 		}
 
@@ -56,6 +67,8 @@ namespace GNET
 		{
 			os >> retcode;
 			os >> cash_total;
+			os >> cash_vip_score_add;
+			os >> cash_vip_level;
 			return os;
 		}
 

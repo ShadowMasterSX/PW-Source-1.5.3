@@ -132,8 +132,8 @@ namespace GNET
       Skill1996Stub ():SkillStub (1996)
         {
             cls = 127;
-            name = L"·ÀÓùËş¼¼ÄÜ-»èÃÔ";
-            nativename = "·ÀÓùËş¼¼ÄÜ-»èÃÔ";
+            name = L"é˜²å¾¡å¡”æŠ€èƒ½-æ˜è¿·";
+            nativename = "é˜²å¾¡å¡”æŠ€èƒ½-æ˜è¿·";
             icon = "";
             max_level = 10;
             type = 3;
@@ -154,7 +154,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "ÎåĞĞ·û.sgc";
+            effect = "äº”è¡Œç¬¦.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

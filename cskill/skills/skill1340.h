@@ -134,9 +134,9 @@ namespace GNET
       Skill1340Stub ():SkillStub (1340)
         {
             cls = 8;
-            name = L"三才剑咒";
-            nativename = "三才剑咒";
-            icon = "三才剑咒.dds";
+            name = L"涓夋墠鍓戝拻";
+            nativename = "涓夋墠鍓戝拻";
+            icon = "涓夋墠鍓戝拻.dds";
             max_level = 10;
             type = 2;
             apcost = 0;
@@ -160,7 +160,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (1);
             }
-            effect = "剑灵_三才剑咒.sgc";
+            effect = "鍓戠伒_涓夋墠鍓戝拻.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

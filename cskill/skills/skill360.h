@@ -132,9 +132,9 @@ namespace GNET
       Skill360Stub ():SkillStub (360)
         {
             cls = 255;
-            name = L"仙气";
-            nativename = "仙气";
-            icon = "蓄气.dds";
+            name = L"浠欐皵";
+            nativename = "浠欐皵";
+            icon = "钃勬皵.dds";
             max_level = 1;
             type = 2;
             apcost = 0;
@@ -190,7 +190,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (44879);
             }
-            effect = "蓄气.sgc";
+            effect = "钃勬皵.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

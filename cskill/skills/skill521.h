@@ -137,9 +137,9 @@ namespace GNET
       Skill521Stub ():SkillStub (521)
         {
             cls = 4;
-            name = L"��˺ҧ";
-            nativename = "��˺ҧ";
-            icon = "˺ҧ2.dds";
+            name = L"狂·撕咬";
+            nativename = "狂·撕咬";
+            icon = "撕咬2.dds";
             max_level = 1;
             type = 1;
             apcost = 20;
@@ -167,7 +167,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "2˺ҧ.sgc";
+            effect = "2撕咬.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

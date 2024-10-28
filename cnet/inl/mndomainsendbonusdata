@@ -1,0 +1,32 @@
+	public:
+		MNDomainBonus bonus;
+		enum { PROTOCOL_TYPE = PROTOCOL_MNDOMAINSENDBONUSDATA };
+	public:
+		MNDomainSendBonusData() { type = PROTOCOL_MNDOMAINSENDBONUSDATA; }
+		MNDomainSendBonusData(void*) : Protocol(PROTOCOL_MNDOMAINSENDBONUSDATA) { }
+		MNDomainSendBonusData (MNDomainBonus l_bonus)
+			 : bonus(l_bonus)
+		{
+			type = PROTOCOL_MNDOMAINSENDBONUSDATA;
+		}
+
+		MNDomainSendBonusData(const MNDomainSendBonusData &rhs)
+			: Protocol(rhs),bonus(rhs.bonus) { }
+
+		GNET::Protocol *Clone() const { return new MNDomainSendBonusData(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << bonus;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> bonus;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1048576; }

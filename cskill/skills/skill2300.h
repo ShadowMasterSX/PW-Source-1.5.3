@@ -136,9 +136,9 @@ namespace GNET
       Skill2300Stub ():SkillStub (2300)
         {
             cls = 255;
-            name = L"万蛊食天";
-            nativename = "万蛊食天";
-            icon = "万蛊食天2.dds";
+            name = L"涓囪泭椋熷ぉ";
+            nativename = "涓囪泭椋熷ぉ";
+            icon = "涓囪泭椋熷ぉ2.dds";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -166,7 +166,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (292);
             }
-            effect = "2万蛊食天.sgc";
+            effect = "2涓囪泭椋熷ぉ.sgc";
             range.type = 3;
             doenchant = true;
             dobless = false;

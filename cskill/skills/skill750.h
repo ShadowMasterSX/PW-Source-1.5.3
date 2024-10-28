@@ -134,9 +134,9 @@ namespace GNET
       Skill750Stub ():SkillStub (750)
         {
             cls = 127;
-            name = L"¶¾Îí";
-            nativename = "¶¾Îí";
-            icon = "³èÎï¶¾Îí.dds";
+            name = L"æ¯’é›¾";
+            nativename = "æ¯’é›¾";
+            icon = "å® ç‰©æ¯’é›¾.dds";
             max_level = 5;
             type = 1;
             apcost = 0;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "¹ÖÎï¶¾ÖäÊõ.sgc";
+            effect = "æ€ªç‰©æ¯’å’’æœ¯.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

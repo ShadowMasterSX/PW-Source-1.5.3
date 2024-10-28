@@ -134,9 +134,9 @@ namespace GNET
       Skill96Stub ():SkillStub (96)
         {
             cls = 1;
-            name = L"ÁÒÑæ»¤¼×";
-            nativename = "ÁÒÑæ»¤¼×";
-            icon = "ÁÒÑæ»¤¼×.dds";
+            name = L"çƒˆç„°æŠ¤ç”²";
+            nativename = "çƒˆç„°æŠ¤ç”²";
+            icon = "çƒˆç„°æŠ¤ç”².dds";
             max_level = 10;
             type = 2;
             apcost = 30;

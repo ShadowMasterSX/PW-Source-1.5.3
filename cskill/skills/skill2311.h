@@ -136,9 +136,9 @@ namespace GNET
       Skill2311Stub ():SkillStub (2311)
         {
             cls = 255;
-            name = L"和风拂面";
-            nativename = "和风拂面";
-            icon = "和风拂面1.dds";
+            name = L"鍜岄鎷傞潰";
+            nativename = "鍜岄鎷傞潰";
+            icon = "鍜岄鎷傞潰1.dds";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -166,7 +166,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "1和风拂面.sgc";
+            effect = "1鍜岄鎷傞潰.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

@@ -14,6 +14,7 @@ class wallow_object
 	~wallow_object()
 	{
 		delete _imp;
+		_imp = NULL;
 	}
 
 	inline void GetTimeLeft(time_t * ltime, time_t * htime, int * play_time)

@@ -40,6 +40,24 @@ class GetCashTotal : public Rpc
 					Marshal::OctetsStream(u.cash_sysauction)>>sa_cash;
 
 				res->cash_total = u.cash_add+u.cash_buy-u.cash_sell-sa_cash.cash_used_2-u.cash-sa_cash.cash_2;
+				
+				/* 
+				 CASH VIP
+				*/
+				GRewardStore reward_store;
+				if(0 != u.consume_reward.size())
+				{
+					Marshal::OctetsStream os_reward(u.consume_reward);
+					os_reward >> reward_store;
+				}
+				GCashVipInfo vipinfo;
+				if(0 != reward_store.cash_vip_info.size())
+				{
+					Marshal::OctetsStream os_vip_info(reward_store.cash_vip_info);
+					os_vip_info >> vipinfo;
+				}
+				res->cash_vip_score_add = vipinfo.score_add;
+				res->cash_vip_level     = vipinfo.cash_vip_level;
 				res->retcode = ERR_SUCCESS;
 			}
 			catch ( DbException e ) { throw; }

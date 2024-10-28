@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBMNFACTIONINFOGET_HPP
+#define __GNET_DBMNFACTIONINFOGET_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbmnfactioninfogetarg"
+#include "dbmnfactioninfogetres"
+
+namespace GNET
+{
+
+class DBMNFactionInfoGet : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbmnfactioninfoget"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBMNFactionInfoGetArg *arg = (DBMNFactionInfoGetArg *)argument;
+		// DBMNFactionInfoGetRes *res = (DBMNFactionInfoGetRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBMNFactionInfoGetArg *arg = (DBMNFactionInfoGetArg *)argument;
+		// DBMNFactionInfoGetRes *res = (DBMNFactionInfoGetRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

@@ -58,9 +58,9 @@ namespace GNET
       Skill896Stub ():SkillStub (896)
         {
             cls = 0;
-            name = L"狂龙之力";
-            nativename = "狂龙之力";
-            icon = "狂龙之力.dds";
+            name = L"鐙傞緳涔嬪姏";
+            nativename = "鐙傞緳涔嬪姏";
+            icon = "鐙傞緳涔嬪姏.dds";
             max_level = 1;
             type = 2;
             apcost = 100;
@@ -104,7 +104,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "狂龙之力.sgc";
+            effect = "鐙傞緳涔嬪姏.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

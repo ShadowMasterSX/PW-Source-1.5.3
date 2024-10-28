@@ -138,9 +138,9 @@ namespace GNET
       Skill2619Stub ():SkillStub (2619)
         {
             cls = 11;
-            name = L"真·朔光咏";
-            nativename = "真·朔光咏";
-            icon = "仙朔光咏.dds";
+            name = L"鐪熉锋湐鍏夊拸";
+            nativename = "鐪熉锋湐鍏夊拸";
+            icon = "浠欐湐鍏夊拸.dds";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -168,7 +168,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (44879);
             }
-            effect = "月仙_朔光咏_击中.sgc";
+            effect = "鏈堜粰_鏈斿厜鍜廮鍑讳腑.sgc";
             range.type = 0;
             doenchant = false;
             dobless = true;

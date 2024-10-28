@@ -406,6 +406,11 @@ struct O_DELIVER_TASK_IN_HATE_LIST
 	int			 iPlayerNum;	//发放数量（上限500）
 };
 
+struct O_CLEAR_TOWER_TASK_IN_REGION
+{
+	POLICY_ZONE_VERT	zvMin;		//	区域范围最小值
+	POLICY_ZONE_VERT	zvMax;		//	区域范围最大值
+};
 //----------------------------------------------------------------------------------------
 //Target Occupation
 //----------------------------------------------------------------------------------------

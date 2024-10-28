@@ -176,9 +176,9 @@ namespace GNET
       Skill2814Stub ():SkillStub (2814)
         {
             cls = 11;
-            name = L"¿ñ¡¤ÏşÔÂÒø¹â";
-            nativename = "¿ñ¡¤ÏşÔÂÒø¹â";
-            icon = "Ä§ÏşÔÂÒø¹â.dds";
+            name = L"ç‹‚Â·æ™“æœˆé“¶å…‰";
+            nativename = "ç‹‚Â·æ™“æœˆé“¶å…‰";
+            icon = "é­”æ™“æœˆé“¶å…‰.dds";
             max_level = 1;
             type = 1;
             apcost = 150;
@@ -206,7 +206,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "ÔÂÏÉ_ÏşÔÂÒø¹â_»÷ÖĞ.sgc";
+            effect = "æœˆä»™_æ™“æœˆé“¶å…‰_å‡»ä¸­.sgc";
             range.type = 0;
             doenchant = true;
             dobless = true;

@@ -132,8 +132,8 @@ namespace GNET
       Skill822Stub ():SkillStub (822)
         {
             cls = 127;
-            name = L"黄昏新加BOSS强化";
-            nativename = "黄昏新加BOSS强化";
+            name = L"榛勬槒鏂板姞BOSS寮哄寲";
+            nativename = "榛勬槒鏂板姞BOSS寮哄寲";
             icon = "";
             max_level = 10;
             type = 2;
@@ -153,7 +153,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "城战boss升级.sgc";
+            effect = "鍩庢垬boss鍗囩骇.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

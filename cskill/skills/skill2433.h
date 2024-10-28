@@ -134,9 +134,9 @@ namespace GNET
       Skill2433Stub ():SkillStub (2433)
         {
             cls = 6;
-            name = L"»Ä¡¤Òí¶Ü";
-            nativename = "»Ä¡¤Òí¶Ü";
-            icon = "Òí¶Ü2.dds";
+            name = L"è’Â·ç¿¼ç›¾";
+            nativename = "è’Â·ç¿¼ç›¾";
+            icon = "ç¿¼ç›¾2.dds";
             max_level = 1;
             type = 2;
             apcost = 45;

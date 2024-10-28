@@ -136,9 +136,9 @@ namespace GNET
       Skill2739Stub ():SkillStub (2739)
         {
             cls = 10;
-            name = L"�񡤰�ն";
-            nativename = "�񡤰�ն";
-            icon = "ħ��ն.dds";
+            name = L"狂·傲斩";
+            nativename = "狂·傲斩";
+            icon = "魔傲斩.dds";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (44878);
             }
-            effect = "ҹӰ_��ն_����.sgc";
+            effect = "夜影_傲斩_击中.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

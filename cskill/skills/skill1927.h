@@ -57,8 +57,8 @@ namespace GNET
       Skill1927Stub ():SkillStub (1927)
         {
             cls = 127;
-            name = L"�޶�B·�߷���ҩ";
-            nativename = "�޶�B·�߷���ҩ";
+            name = L"无定B路线反隐药";
+            nativename = "无定B路线反隐药";
             icon = "";
             max_level = 10;
             type = 4;
@@ -79,7 +79,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "ħ.sgc";
+            effect = "魔.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

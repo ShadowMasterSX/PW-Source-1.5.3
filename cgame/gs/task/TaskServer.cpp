@@ -1,5 +1,6 @@
 #include "TaskServer.h"
 #include "TaskTempl.h"
+#include "TaskConst.h"
 
 #ifdef LINUX
 	#include "../template/elementdataman.h"
@@ -271,6 +272,7 @@ bool OnTaskCheckTransform(TaskInterface* pTask,unsigned long ulTaskId);
 void OnTaskChooseAward(TaskInterface* pTask, unsigned long ulTaskId, int nChoice);
 void OnTaskChooseSubTask(TaskInterface* pTask, unsigned long ulTaskId);
 bool OnTaskCheckLevel(TaskInterface* pTask, unsigned long ulTaskId);
+bool OnTaskCheckTMIconStateID(TaskInterface* pTask, unsigned long ulTaskId);
 void OnTaskBuyTokenShopItem(TaskInterface* pTask,unsigned long ulTaskId);
 void OnTaskFinishSpendingWorldContribution(TaskInterface* pTask, unsigned long ulTaskId, unsigned char choice);
 void OnTaskGetLoginReward(TaskInterface* pTask);
@@ -842,6 +844,14 @@ void OnTaskCheckAward(TaskInterface* pTask, unsigned long ulTaskId, int nChoice)
 				pTempl->DeliverAward(pTask, pList, &CurEntry, nChoice);
 			}			
 		}
+		else if (pTempl->m_enumMethod == enumTMHasIconStateID)
+		{
+			if (OnTaskCheckTMIconStateID(pTask, ulTaskId))
+			{
+				CurEntry.SetFinished();
+				pTempl->DeliverAward(pTask, pList, &CurEntry, nChoice);
+			}
+		}
 		else if (CurEntry.IsFinished())
 			pTempl->DeliverAward(pTask, pList, &CurEntry, nChoice);
 		else
@@ -1037,6 +1047,14 @@ void OnTaskCheckAwardDirect(TaskInterface* pTask, unsigned long ulTaskId)
 		{
 			CurEntry.SetFinished();
 			pTempl->DeliverAward(pTask, pList, &CurEntry, -1);
+		}		
+		else if (pTempl->m_enumMethod == enumTMHasIconStateID)
+		{
+			if (OnTaskCheckTMIconStateID(pTask, ulTaskId))
+			{
+				CurEntry.SetFinished();
+				pTempl->DeliverAward(pTask, pList, &CurEntry, -1);
+			}
 		}
 		else if (CurEntry.IsFinished())
 			pTempl->DeliverAward(pTask, pList, &CurEntry, -1);
@@ -1433,16 +1451,19 @@ void OnTaskExternEvent(TaskInterface* pTask, int Event)
 	switch (Event)
 	{
 	case EX_TK_SENDAUMAIL_LEVEL1:
-		OnTaskManualTrig(pTask,26187);
+		OnTaskManualTrig(pTask,INVITE_BACKGAME_LEVEL_1_REWARDING_TASK_ID);
 		break;
 	case EX_TK_SENDAUMAIL_LEVEL2:
-		OnTaskManualTrig(pTask,26188);
+		OnTaskManualTrig(pTask,INVITE_BACKGAME_LEVEL_2_REWARDING_TASK_ID);
 		break;
 	case EX_TK_SENDAUMAIL_LEVEL3:
-		OnTaskManualTrig(pTask,26189);
+		OnTaskManualTrig(pTask,INVITE_BACKGAME_LEVEL_3_REWARDING_TASK_ID);
 		break;
 	case EX_TK_SENDAUMAIL_EXAWARD:
 		OnTaskManualTrig(pTask,26190);
+		break;
+	case EX_TK_WELCOMBACK_REWARD:
+		OnTaskManualTrig(pTask,BACKGAME_INVITEE_MAIL_REWARDING_TASK_ID);
 		break;
 	}
 }
@@ -1568,6 +1589,14 @@ void OnTaskChooseAward(TaskInterface* pTask, unsigned long ulTaskId, int nChoice
 				CurEntry.SetFinished();
 				pTempl->DeliverAward(pTask, pList, &CurEntry, nChoice);
 			}			
+		}		
+		else if (pTempl->m_enumMethod == enumTMHasIconStateID)
+		{
+			if (OnTaskCheckTMIconStateID(pTask, ulTaskId))
+			{
+				CurEntry.SetFinished();
+				pTempl->DeliverAward(pTask, pList, &CurEntry, nChoice);
+			}
 		}
 		else if (CurEntry.IsFinished())
 			pTempl->DeliverAward(pTask, pList, &CurEntry, nChoice);
@@ -1588,5 +1617,40 @@ bool OnTaskCheckLevel(TaskInterface* pTask, unsigned long ulTaskId)
 	if (!pTempl || pTempl->m_enumMethod != enumTMReachLevel) return false;
 	
 	return pTempl->CheckReachLevel(pTask);
+}
+
+bool OnTaskCheckTMIconStateID(TaskInterface* pTask, unsigned long ulTaskId)
+{
+	ActiveTaskList* pLst = (ActiveTaskList*)pTask->GetActiveTaskList();
+	ActiveTaskEntry* pEntry = pLst->GetEntry(ulTaskId);
+	if (!pEntry) return false;
+	
+	const ATaskTempl* pTempl = GetTaskTemplMan()->GetTaskTemplByID(ulTaskId);
+	if (!pTempl || pTempl->m_enumMethod != enumTMHasIconStateID) return false;
+	
+	return pTempl->CheckTMIconStateID(pTask);
+}
+
+void ClearAllTowerTask(TaskInterface* pTask)
+{
+	ActiveTaskList* pList = (ActiveTaskList*)pTask->GetActiveTaskList();
+	for(unsigned char i = 0; i < pList->m_uTaskCount; i++)
+	{
+		ActiveTaskEntry& CurEntry = pList->m_TaskEntries[i];
+		if (!CurEntry.m_ulTemplAddr)
+		{
+			continue;
+		}
+		const ATaskTempl* pTempl = CurEntry.GetTempl();
+		if (!pTempl->m_pParent && pTempl->m_bTowerTask)
+		{
+			// 无论是否能放弃，都强制放弃
+			CurEntry.ClearSuccess();
+			CurEntry.SetGiveUp();
+			pTempl->OnSetFinished(pTask, pList, &CurEntry);
+			TaskInterface::WriteLog(pTask->GetPlayerId(), pTempl->m_ID, 1, "GiveUpTask");
+			TaskInterface::WriteKeyLog(pTask->GetPlayerId(), pTempl->m_ID, 1, "GiveUpTask");
+		}
+	}
 }
 #endif

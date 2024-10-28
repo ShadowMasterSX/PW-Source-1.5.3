@@ -96,8 +96,8 @@ namespace GNET
       Skill2457Stub ():SkillStub (2457)
         {
             cls = 127;
-            name = L"自身圆AOE附加伤害加深";
-            nativename = "自身圆AOE附加伤害加深";
+            name = L"鑷韩鍦咥OE闄勫姞浼ゅ鍔犳繁";
+            nativename = "鑷韩鍦咥OE闄勫姞浼ゅ鍔犳繁";
             icon = "";
             max_level = 10;
             type = 1;
@@ -119,7 +119,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "旋刃.sgc";
+            effect = "鏃嬪垉.sgc";
             range.type = 2;
             doenchant = true;
             dobless = true;

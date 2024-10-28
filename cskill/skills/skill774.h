@@ -133,8 +133,8 @@ namespace GNET
       Skill774Stub ():SkillStub (774)
         {
             cls = 127;
-            name = L"ÏÝ¾®Ö®×Ô±¬µ¹Êý";
-            nativename = "ÏÝ¾®Ö®×Ô±¬µ¹Êý";
+            name = L"é™·äº•ä¹‹è‡ªçˆ†å€’æ•°";
+            nativename = "é™·äº•ä¹‹è‡ªçˆ†å€’æ•°";
             icon = "";
             max_level = 5;
             type = 2;

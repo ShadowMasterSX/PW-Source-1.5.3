@@ -132,8 +132,8 @@ namespace GNET
       Skill875Stub ():SkillStub (875)
         {
             cls = 127;
-            name = L"自身圆心群体物免";
-            nativename = "自身圆心群体物免";
+            name = L"鑷韩鍦嗗績缇や綋鐗╁厤";
+            nativename = "鑷韩鍦嗗績缇や綋鐗╁厤";
             icon = "";
             max_level = 10;
             type = 3;
@@ -153,7 +153,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "玄武附体.sgc";
+            effect = "鐜勬闄勪綋.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

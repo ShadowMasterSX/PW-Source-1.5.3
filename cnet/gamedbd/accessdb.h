@@ -88,8 +88,27 @@ void ListRoleCrossInfo(int roleid);
 void ResetRoleCrossInfo(int roleid, int remote_roleid, int data_timestamp, int cross_timestamp, int src_zoneid);
 
 void ImportRole(const char* roleidfile);
-void DeleteWaitdel();
+bool DeleteWaitdel(bool backup);
+void CalcWaitdel(int year,int level);
 void GetSigninData(int month);
+void SetClsPVPFlag(int flag);
+void GetRoleLoginData(int year, int logicid);
+void GetUserLoginData(int year, int logicid);
+void ListFinTaskCount(int count);
+
+void ListMNFactionInfo();
+void ListMNFactionApplyInfo();
+void ListMNDomainInfo();
+void ClearMNFactionId();
+
+void ImportMNFactionInfo(const char* mnfactioninfofile);
+void ImportMNFactionApplyInfo(const char* mnfactionapplyinfofile);
+void ImportMNDomainInfo(const char* mndomaininfofile);
+
+void SetMNFactionState(int state);
+void ClearMNFactionCredit();
+void ListSoloChallengeRank();
+void ClearSoloChallengeRank(int roleid, int zoneid);
 
 }
 

@@ -134,9 +134,9 @@ namespace GNET
       Skill1841Stub ():SkillStub (1841)
         {
             cls = 6;
-            name = L"ÌìÓğ¡¤²ÔÀ×ÆÆ";
-            nativename = "ÌìÓğ¡¤²ÔÀ×ÆÆ";
-            icon = "ÇæÌìÀ×Ãù.DDS";
+            name = L"å¤©ç¾½Â·è‹é›·ç ´";
+            nativename = "å¤©ç¾½Â·è‹é›·ç ´";
+            icon = "æ“å¤©é›·é¸£.DDS";
             max_level = 1;
             type = 2;
             apcost = 200;
@@ -161,7 +161,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (13);
             }
-            effect = "ÓğÃ¢_ÇæÌìÀ×Ãù.sgc";
+            effect = "ç¾½èŠ’_æ“å¤©é›·é¸£.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

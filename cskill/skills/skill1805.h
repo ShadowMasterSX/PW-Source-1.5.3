@@ -134,9 +134,9 @@ namespace GNET
       Skill1805Stub ():SkillStub (1805)
         {
             cls = 1;
-            name = L"秘法之光";
-            nativename = "秘法之光";
-            icon = "法之奥义.dds";
+            name = L"绉樻硶涔嬪厜";
+            nativename = "绉樻硶涔嬪厜";
+            icon = "娉曚箣濂ヤ箟.dds";
             max_level = 1;
             type = 2;
             apcost = 30;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (292);
             }
-            effect = "法师_法之奥义.sgc";
+            effect = "娉曞笀_娉曚箣濂ヤ箟.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

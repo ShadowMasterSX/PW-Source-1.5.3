@@ -95,8 +95,8 @@ namespace GNET
       Skill1942Stub ():SkillStub (1942)
         {
             cls = 127;
-            name = L"bossÉ°Áú³æ¼¼ÄÜ";
-            nativename = "bossÉ°Áú³æ¼¼ÄÜ";
+            name = L"bossç ‚é¾™è™«æŠ€èƒ½";
+            nativename = "bossç ‚é¾™è™«æŠ€èƒ½";
             icon = "";
             max_level = 10;
             type = 3;
@@ -118,7 +118,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "Ê¨×Óºğ.sgc";
+            effect = "ç‹®å­å¼.sgc";
             range.type = 4;
             doenchant = true;
             dobless = false;

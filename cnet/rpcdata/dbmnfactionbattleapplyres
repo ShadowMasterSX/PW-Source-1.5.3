@@ -1,0 +1,85 @@
+#ifndef __GNET_DBMNFACTIONBATTLEAPPLYRES_RPCDATA
+#define __GNET_DBMNFACTIONBATTLEAPPLYRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "mnfactioninfo"
+#include "mnfactionapplyinfo"
+#include "gmailsyncdata"
+
+namespace GNET
+{
+	class DBMNFactionBattleApplyRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		int roleid;
+		MNFactionInfo factioninfo;
+		MNFactionApplyInfo applyinfo;
+		GMailSyncData syncdata;
+
+	public:
+		DBMNFactionBattleApplyRes (int l_retcode = -1,int l_roleid = 0,const MNFactionInfo& l_factioninfo = MNFactionInfo()
+			,const MNFactionApplyInfo& l_applyinfo = MNFactionApplyInfo(),const GMailSyncData& l_syncdata = GMailSyncData())
+			: retcode(l_retcode),roleid(l_roleid),factioninfo(l_factioninfo)
+			,applyinfo(l_applyinfo),syncdata(l_syncdata)
+		{
+		}
+
+		DBMNFactionBattleApplyRes(const DBMNFactionBattleApplyRes &rhs)
+			: retcode(rhs.retcode),roleid(rhs.roleid),factioninfo(rhs.factioninfo),
+			applyinfo(rhs.applyinfo),syncdata(rhs.syncdata) { }
+
+		Rpc::Data *Clone() const { return new DBMNFactionBattleApplyRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBMNFactionBattleApplyRes *r = dynamic_cast<const DBMNFactionBattleApplyRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				roleid = r->roleid;
+				factioninfo = r->factioninfo;
+				applyinfo = r->applyinfo;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		DBMNFactionBattleApplyRes& operator = (const DBMNFactionBattleApplyRes &rhs)
+		{
+			const DBMNFactionBattleApplyRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				roleid = r->roleid;
+				factioninfo = r->factioninfo;
+				applyinfo = r->applyinfo;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << roleid;
+			os << factioninfo;
+			os << applyinfo;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> roleid;
+			os >> factioninfo;
+			os >> applyinfo;
+			os >> syncdata;
+			return os;
+		}
+
+	};
+};
+#endif

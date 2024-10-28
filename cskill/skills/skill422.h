@@ -134,9 +134,9 @@ namespace GNET
       Skill422Stub ():SkillStub (422)
         {
             cls = 0;
-            name = L"Õæ¡¤½ğÖÓÕÖ";
-            nativename = "Õæ¡¤½ğÖÓÕÖ";
-            icon = "½ğÖÓÕÖ1.dds";
+            name = L"çœŸÂ·é‡‘é’Ÿç½©";
+            nativename = "çœŸÂ·é‡‘é’Ÿç½©";
+            icon = "é‡‘é’Ÿç½©1.dds";
             max_level = 1;
             type = 2;
             apcost = 0;
@@ -175,7 +175,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (9);
             }
-            effect = "1½ğÖÓÕÖ.sgc";
+            effect = "1é‡‘é’Ÿç½©.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

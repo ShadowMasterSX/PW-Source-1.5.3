@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBMNPUTBATTLEBONUS_HPP
+#define __GNET_DBMNPUTBATTLEBONUS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbmnputbattlebonusarg"
+#include "dbmnputbattlebonusres"
+
+namespace GNET
+{
+
+class DBMNPutBattleBonus : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbmnputbattlebonus"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBMNPutBattleBonusArg *arg = (DBMNPutBattleBonusArg *)argument;
+		// DBMNPutBattleBonusRes *res = (DBMNPutBattleBonusRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBMNPutBattleBonusArg *arg = (DBMNPutBattleBonusArg *)argument;
+		// DBMNPutBattleBonusRes *res = (DBMNPutBattleBonusRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

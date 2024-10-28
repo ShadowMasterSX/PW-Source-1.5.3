@@ -58,9 +58,9 @@ namespace GNET
       Skill2225Stub ():SkillStub (2225)
         {
             cls = 9;
-            name = L"ÖÁ¡¤ê¼»¨Ò»ÏÖ";
-            nativename = "ÖÁ¡¤ê¼»¨Ò»ÏÖ";
-            icon = "¿İÈÙ·¨.dds";
+            name = L"è‡³Â·æ˜™èŠ±ä¸€ç°";
+            nativename = "è‡³Â·æ˜™èŠ±ä¸€ç°";
+            icon = "æ¯è£æ³•.dds";
             max_level = 1;
             type = 3;
             apcost = 0;
@@ -88,7 +88,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "÷ÈÁé_ê¼»¨Ò»ÏÖ.sgc";
+            effect = "é­…çµ_æ˜™èŠ±ä¸€ç°.sgc";
             range.type = 0;
             doenchant = true;
             dobless = true;

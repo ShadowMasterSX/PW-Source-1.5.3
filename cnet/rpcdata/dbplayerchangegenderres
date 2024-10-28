@@ -1,0 +1,78 @@
+#ifndef __GNET_DBPLAYERCHANGEGENDERRES_RPCDATA
+#define __GNET_DBPLAYERCHANGEGENDERRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailsyncdata"
+
+namespace GNET
+{
+	class DBPlayerChangeGenderRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		unsigned char oldgender;
+		Octets custom_data;
+		GMailSyncData syncdata;
+
+	public:
+		DBPlayerChangeGenderRes (int l_retcode = -1,unsigned char l_oldgender = 0,const Octets& l_custom_data = Octets()
+			,const GMailSyncData& l_syncdata = GMailSyncData())
+			: retcode(l_retcode),oldgender(l_oldgender),custom_data(l_custom_data)
+			,syncdata(l_syncdata)
+		{
+		}
+
+		DBPlayerChangeGenderRes(const DBPlayerChangeGenderRes &rhs)
+			: retcode(rhs.retcode),oldgender(rhs.oldgender),custom_data(rhs.custom_data),
+			syncdata(rhs.syncdata) { }
+
+		Rpc::Data *Clone() const { return new DBPlayerChangeGenderRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPlayerChangeGenderRes *r = dynamic_cast<const DBPlayerChangeGenderRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				oldgender = r->oldgender;
+				custom_data = r->custom_data;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		DBPlayerChangeGenderRes& operator = (const DBPlayerChangeGenderRes &rhs)
+		{
+			const DBPlayerChangeGenderRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				oldgender = r->oldgender;
+				custom_data = r->custom_data;
+				syncdata = r->syncdata;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << oldgender;
+			os << custom_data;
+			os << syncdata;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> oldgender;
+			os >> custom_data;
+			os >> syncdata;
+			return os;
+		}
+
+	};
+};
+#endif

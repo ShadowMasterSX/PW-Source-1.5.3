@@ -132,8 +132,8 @@ namespace GNET
       Skill2705Stub ():SkillStub (2705)
         {
             cls = 127;
-            name = L"boss无相恶僧分身";
-            nativename = "boss无相恶僧分身";
+            name = L"boss鏃犵浉鎭跺儳鍒嗚韩";
+            nativename = "boss鏃犵浉鎭跺儳鍒嗚韩";
             icon = "";
             max_level = 10;
             type = 3;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "巫师_冥王乐土.sgc";
+            effect = "宸笀_鍐ョ帇涔愬湡.sgc";
             range.type = 2;
             doenchant = true;
             dobless = true;

@@ -132,9 +132,9 @@ namespace GNET
       Skill2125Stub ():SkillStub (2125)
         {
             cls = 127;
-            name = L"斗志";
-            nativename = "斗志";
-            icon = "夺命九式.dds";
+            name = L"鏂楀織";
+            nativename = "鏂楀織";
+            icon = "澶哄懡涔濆紡.dds";
             max_level = 10;
             type = 10;
             apcost = 0;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "巨灵神力.sgc";
+            effect = "宸ㄧ伒绁炲姏.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

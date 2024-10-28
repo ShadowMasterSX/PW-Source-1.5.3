@@ -137,9 +137,9 @@ namespace GNET
       Skill498Stub ():SkillStub (498)
         {
             cls = 4;
-            name = L"�桤ǧ�ﴸ";
-            nativename = "�桤ǧ�ﴸ";
-            icon = "ǧ�ﴸ1.dds";
+            name = L"真·千斤锤";
+            nativename = "真·千斤锤";
+            icon = "千斤锤1.dds";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -164,7 +164,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (9);
             }
-            effect = "2ǧ�ﴸ.sgc";
+            effect = "2千斤锤.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

@@ -175,9 +175,9 @@ namespace GNET
       Skill86Stub ():SkillStub (86)
         {
             cls = 1;
-            name = L"ÖËÑ×Õó";
-            nativename = "ÖËÑ×Õó";
-            icon = "ÖËÑ×Õó.dds";
+            name = L"ç‚™ç‚Žé˜µ";
+            nativename = "ç‚™ç‚Žé˜µ";
+            icon = "ç‚™ç‚Žé˜µ.dds";
             max_level = 10;
             type = 1;
             apcost = 100;
@@ -204,7 +204,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "ÖËÑ×Õó.sgc";
+            effect = "ç‚™ç‚Žé˜µ.sgc";
             range.type = 2;
             doenchant = false;
             dobless = false;

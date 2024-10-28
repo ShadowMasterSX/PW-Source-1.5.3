@@ -132,8 +132,8 @@ namespace GNET
       Skill2379Stub ():SkillStub (2379)
         {
             cls = 127;
-            name = L"无斧可破之盾";
-            nativename = "无斧可破之盾";
+            name = L"鏃犳枾鍙牬涔嬬浘";
+            nativename = "鏃犳枾鍙牬涔嬬浘";
             icon = "";
             max_level = 10;
             type = 2;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "法师_寒冰护甲.sgc";
+            effect = "娉曞笀_瀵掑啺鎶ょ敳.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

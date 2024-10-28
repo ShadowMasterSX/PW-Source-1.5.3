@@ -1,0 +1,9 @@
+		GNET::Protocol *Clone() const {  return new DBMNSendBattleBonus(*this); }
+	public:
+		enum { PROTOCOL_TYPE = RPC_DBMNSENDBATTLEBONUS };
+		DBMNSendBattleBonus(Type type, Rpc::Data *argument, Rpc::Data *result)
+			: RPC_BASECLASS(type, argument, result ) { }
+		DBMNSendBattleBonus(const DBMNSendBattleBonus &rhs) : RPC_BASECLASS(rhs) { }
+		int  PriorPolicy( ) const { return 1; }
+		bool SizePolicy(size_t size) const { return size <= 1048576; }
+		bool TimePolicy(int timeout) const { return timeout <= 30; }

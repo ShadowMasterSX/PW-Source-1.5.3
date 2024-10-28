@@ -137,9 +137,9 @@ namespace GNET
       Skill1831Stub ():SkillStub (1831)
         {
             cls = 4;
-            name = L"无冕之王";
-            nativename = "无冕之王";
-            icon = "无冕之王.DDS";
+            name = L"鏃犲啎涔嬬帇";
+            nativename = "鏃犲啎涔嬬帇";
+            icon = "鏃犲啎涔嬬帇.DDS";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -166,7 +166,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "白虎_无冕之王.sgc";
+            effect = "鐧借檸_鏃犲啎涔嬬帇.sgc";
             range.type = 1;
             doenchant = true;
             dobless = false;

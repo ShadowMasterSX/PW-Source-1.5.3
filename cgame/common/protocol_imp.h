@@ -47,6 +47,146 @@ namespace  S2C
 			}
 		};
 
+		template <>
+		struct Make<INFO::player_info_1>
+		{
+
+			template <typename WRAPPER>
+			static bool From(WRAPPER & wrapper,gplayer * pObject)
+			{
+				if(pObject->gm_invisible) return false;
+				unsigned int state = MakeObjectState(pObject) | pObject->object_state;
+				//临时的数据改变
+				wrapper << pObject->ID.id << pObject->pos 
+				<< (unsigned short)pObject->crc 
+				<< (unsigned short)pObject->custom_crc 
+				<< (unsigned char)pObject->dir << (unsigned char) pObject->sec_level << state << pObject->object_state2; 
+				MakePlayerExtendState(wrapper,pObject,state,pObject->object_state2);
+				return true;
+			}
+
+			template <typename WRAPPER>
+			static bool From(WRAPPER & wrapper,gplayer * pObject,const A3DVECTOR &newpos)
+			{
+				if(pObject->gm_invisible) return false;
+				unsigned int state = MakeObjectState(pObject) | pObject->object_state;
+				//临时的数据改变
+				wrapper << pObject->ID.id << newpos
+				<< (unsigned short)pObject->crc 
+				<< (unsigned short)pObject->custom_crc 
+				<< (unsigned char)pObject->dir << (unsigned char) pObject->sec_level << state << pObject->object_state2;  
+				MakePlayerExtendState(wrapper,pObject,state,pObject->object_state2);
+				return true;
+			}
+		};
+		
+		template <>
+		struct Make<INFO::npc_info>
+		{
+			template <typename WRAPPER>
+			static WRAPPER & From(WRAPPER & wrapper,gnpc * pObject)
+			{
+				unsigned int state = MakeObjectState(pObject) | pObject->object_state;
+				wrapper << pObject->ID.id << pObject->tid  << pObject->vis_tid << pObject->pos 
+					<< (unsigned short)pObject->crc << (unsigned char)pObject->dir << state << pObject->object_state2; 
+				return MakeNPCExtendState(wrapper,pObject,state);
+			}
+
+			template <typename WRAPPER>
+			static WRAPPER & From(WRAPPER & wrapper,gnpc * pObject,const A3DVECTOR &newpos)
+			{
+				unsigned int state = MakeObjectState(pObject) | pObject->object_state;
+				wrapper << pObject->ID.id << pObject->tid << pObject->vis_tid << newpos
+					<< (unsigned short)pObject->crc << (unsigned char)pObject->dir << state << pObject->object_state2; 
+				return MakeNPCExtendState(wrapper,pObject,state);
+			}
+		};
+
+		template <>
+		struct Make<INFO::self_info_1>
+		{
+			template <typename WRAPPER>
+			static WRAPPER & From(WRAPPER & wrapper,gplayer *pPlayer,int exp,int sp)
+			{
+				unsigned int state = MakeObjectState(pPlayer) | pPlayer->object_state;
+				wrapper << exp << sp << pPlayer->ID.id << pPlayer->pos 
+				<< (unsigned short)pPlayer->crc
+				<< (unsigned short)pPlayer->custom_crc 
+				<< (unsigned char)pPlayer->dir << (unsigned char) pPlayer->sec_level << state << pPlayer->object_state2; 
+				return MakePlayerExtendState(wrapper,pPlayer,state,pPlayer->object_state2);
+			}
+		};
+
+		template <>
+		struct Make<CMD::self_info_1>
+		{
+			template <typename WRAPPER>
+			static WRAPPER & From(WRAPPER & wrapper,gplayer *pPlayer,int exp,int sp)
+			{
+				Make<single_data_header>::From(wrapper,SELF_INFO_1);
+				return Make<INFO::self_info_1>::From(wrapper,pPlayer,exp,sp);
+			}
+		};
+
+		template <>
+		struct Make<CMD::player_enter_slice>
+		{
+			template <typename WRAPPER>
+			static WRAPPER & From(WRAPPER & wrapper,gplayer* pPlayer,const A3DVECTOR & pos)
+			{
+				Make<single_data_header>::From(wrapper,PLAYER_ENTER_SLICE);
+				Make<INFO::player_info_1>::From(wrapper,pPlayer,pos);
+				//这里要注意，不能在隐身状态下使用
+				ASSERT(pPlayer->gm_invisible == false);
+				return wrapper;
+			}
+		};
+
+		template <>
+		struct Make<CMD::npc_enter_slice>
+		{
+			template <typename WRAPPER>
+			static WRAPPER & From(WRAPPER & wrapper,gnpc * pNPC,const A3DVECTOR & pos)
+			{
+				Make<single_data_header>::From(wrapper,NPC_ENTER_SLICE);
+				return Make<INFO::npc_info>::From(wrapper,pNPC,pos);
+			}
+		};
+
+		template <>
+		struct Make<CMD::npc_enter_world>
+		{
+			template <typename WRAPPER>
+			static WRAPPER & From(WRAPPER & wrapper,gnpc * pNPC)
+			{
+				Make<single_data_header>::From(wrapper,NPC_ENTER_WORLD);
+				return Make<INFO::npc_info>::From(wrapper,pNPC);
+			}
+		};
+
+
+		template <>
+		struct Make<CMD::leave_slice>
+		{
+			template <typename WRAPPER>
+			static WRAPPER & From(WRAPPER & wrapper,gobject * pObject)
+			{
+				Make<single_data_header>::From(wrapper,OBJECT_LEAVE_SLICE);
+				return wrapper << pObject->ID.id;
+			}
+		};
+
+		template <>
+		struct Make<CMD::notify_pos>
+		{
+			template <typename WRAPPER, typename KEY>
+			static WRAPPER & From(WRAPPER & wrapper,const A3DVECTOR & pos, int tag, const KEY & key)
+			{
+				Make<single_data_header>::From(wrapper,OBJECT_NOTIFY_POS);
+				return wrapper <<  pos << tag << key.key1;
+			}
+		};
+
 		template<typename T>
 		inline unsigned int MakeObjectState(T * pObject)
 		{
@@ -55,6 +195,41 @@ namespace  S2C
 			if(pObject->extend_state || pObject->extend_state2 || pObject->extend_state3 || pObject->extend_state4 || pObject->extend_state5 || pObject->extend_state6) state |= gactive_object::STATE_EXTEND_PROPERTY;
 			if(pObject->effect_count) state |= gactive_object::STATE_EFFECT;
 			return state;
+		}
+
+
+		template <typename WRAPPER>
+		inline WRAPPER & MakeNPCExtendState(WRAPPER & ar, gnpc * pObject,unsigned int state)
+		{
+			if(state & gactive_object::STATE_EXTEND_PROPERTY)
+			{
+				ar << pObject->extend_state << pObject->extend_state2 << pObject->extend_state3 << pObject->extend_state4 << pObject->extend_state5 << pObject->extend_state6;
+			}
+			if(state & gactive_object::STATE_NPC_PET)
+			{
+				ar << pObject->master_id;
+			}
+			if(state & gactive_object::STATE_NPC_NAME)
+			{
+				unsigned char name_size = pObject->name_size;
+				if(name_size >= sizeof(pObject->npc_name)) name_size = sizeof(pObject->npc_name);
+				ar << name_size;
+				ar.push_back(pObject->npc_name,name_size);
+			}
+			if(state & gactive_object::STATE_MULTIOBJ_EFFECT)
+			{
+				int count = pObject->multiobj_effect_count;
+				ar << count;
+				for(int i=0; i<count; i++)
+				{
+					ar << pObject->multiobj_effect_list[i].target << pObject->multiobj_effect_list[i].type;
+				}
+			}
+			if(state & gactive_object::STATE_NPC_MAFIA)
+			{
+				ar << pObject->mafia_id;
+			}
+			return ar;
 		}
 
 		template <typename WRAPPER>
@@ -164,187 +339,19 @@ namespace  S2C
 				ar << pPlayer->mafia_pvp_mask;
 			}
 
-			return ar;
-		}
-		
-
-		template <>
-		struct Make<INFO::player_info_1>
-		{
-
-			template <typename WRAPPER>
-			static bool From(WRAPPER & wrapper,gplayer * pObject)
+			if(state2 & gactive_object::STATE_MNFACTION_MASK)
 			{
-				if(pObject->gm_invisible) return false;
-				unsigned int state = MakeObjectState(pObject) | pObject->object_state;
-				//临时的数据改变
-				wrapper << pObject->ID.id << pObject->pos 
-				<< (unsigned short)pObject->crc 
-				<< (unsigned short)pObject->custom_crc 
-				<< (unsigned char)pObject->dir << (unsigned char) pObject->sec_level << state << pObject->object_state2; 
-				MakePlayerExtendState(wrapper,pObject,state,pObject->object_state2);
-				return true;
+				ar << pPlayer->mnfaction_id;
 			}
 
-			template <typename WRAPPER>
-			static bool From(WRAPPER & wrapper,gplayer * pObject,const A3DVECTOR &newpos)
+			if(state2 & gactive_object::STATE_CASH_VIP_MASK)
 			{
-				if(pObject->gm_invisible) return false;
-				unsigned int state = MakeObjectState(pObject) | pObject->object_state;
-				//临时的数据改变
-				wrapper << pObject->ID.id << newpos
-				<< (unsigned short)pObject->crc 
-				<< (unsigned short)pObject->custom_crc 
-				<< (unsigned char)pObject->dir << (unsigned char) pObject->sec_level << state << pObject->object_state2;  
-				MakePlayerExtendState(wrapper,pObject,state,pObject->object_state2);
-				return true;
+				ar << pPlayer->cash_vip_level << pPlayer->cash_vip_score;
 			}
-		};
-		
-		template <>
-		struct Make<INFO::self_info_1>
-		{
-			template <typename WRAPPER>
-			static WRAPPER & From(WRAPPER & wrapper,gplayer *pPlayer,int exp,int sp)
-			{
-				unsigned int state = MakeObjectState(pPlayer) | pPlayer->object_state;
-				wrapper << exp << sp << pPlayer->ID.id << pPlayer->pos 
-				<< (unsigned short)pPlayer->crc
-				<< (unsigned short)pPlayer->custom_crc 
-				<< (unsigned char)pPlayer->dir << (unsigned char) pPlayer->sec_level << state << pPlayer->object_state2; 
-				return MakePlayerExtendState(wrapper,pPlayer,state,pPlayer->object_state2);
-			}
-		};
 
-		template <>
-		struct Make<CMD::self_info_1>
-		{
-			template <typename WRAPPER>
-			static WRAPPER & From(WRAPPER & wrapper,gplayer *pPlayer,int exp,int sp)
-			{
-				Make<single_data_header>::From(wrapper,SELF_INFO_1);
-				return Make<INFO::self_info_1>::From(wrapper,pPlayer,exp,sp);
-			}
-		};
-
-		template <>
-		struct Make<CMD::player_enter_slice>
-		{
-			template <typename WRAPPER>
-			static WRAPPER & From(WRAPPER & wrapper,gplayer* pPlayer,const A3DVECTOR & pos)
-			{
-				Make<single_data_header>::From(wrapper,PLAYER_ENTER_SLICE);
-				Make<INFO::player_info_1>::From(wrapper,pPlayer,pos);
-				//这里要注意，不能在隐身状态下使用
-				ASSERT(pPlayer->gm_invisible == false);
-				return wrapper;
-			}
-		};
-		
-				template <typename WRAPPER>
-		inline WRAPPER & MakeNPCExtendState(WRAPPER & ar, gnpc * pObject,unsigned int state)
-		{
-			if(state & gactive_object::STATE_EXTEND_PROPERTY)
-			{
-				ar << pObject->extend_state << pObject->extend_state2 << pObject->extend_state3 << pObject->extend_state4 << pObject->extend_state5 << pObject->extend_state6;
-			}
-			if(state & gactive_object::STATE_NPC_PET)
-			{
-				ar << pObject->master_id;
-			}
-			if(state & gactive_object::STATE_NPC_NAME)
-			{
-				unsigned char name_size = pObject->name_size;
-				if(name_size >= sizeof(pObject->npc_name)) name_size = sizeof(pObject->npc_name);
-				ar << name_size;
-				ar.push_back(pObject->npc_name,name_size);
-			}
-			if(state & gactive_object::STATE_MULTIOBJ_EFFECT)
-			{
-				int count = pObject->multiobj_effect_count;
-				ar << count;
-				for(int i=0; i<count; i++)
-				{
-					ar << pObject->multiobj_effect_list[i].target << pObject->multiobj_effect_list[i].type;
-				}
-			}
-			if(state & gactive_object::STATE_NPC_MAFIA)
-			{
-				ar << pObject->mafia_id;
-			}
 			return ar;
 		}
 
-		template <>
-		struct Make<INFO::npc_info>
-		{
-			template <typename WRAPPER>
-			static WRAPPER & From(WRAPPER & wrapper,gnpc * pObject)
-			{
-				unsigned int state = MakeObjectState(pObject) | pObject->object_state;
-				wrapper << pObject->ID.id << pObject->tid  << pObject->vis_tid << pObject->pos 
-					<< (unsigned short)pObject->crc << (unsigned char)pObject->dir << state << pObject->object_state2; 
-				return MakeNPCExtendState(wrapper,pObject,state);
-			}
-
-			template <typename WRAPPER>
-			static WRAPPER & From(WRAPPER & wrapper,gnpc * pObject,const A3DVECTOR &newpos)
-			{
-				unsigned int state = MakeObjectState(pObject) | pObject->object_state;
-				wrapper << pObject->ID.id << pObject->tid << pObject->vis_tid << newpos
-					<< (unsigned short)pObject->crc << (unsigned char)pObject->dir << state << pObject->object_state2; 
-				return MakeNPCExtendState(wrapper,pObject,state);
-			}
-		};
-
-		template <>
-		struct Make<CMD::npc_enter_slice>
-		{
-			template <typename WRAPPER>
-			static WRAPPER & From(WRAPPER & wrapper,gnpc * pNPC,const A3DVECTOR & pos)
-			{
-				Make<single_data_header>::From(wrapper,NPC_ENTER_SLICE);
-				return Make<INFO::npc_info>::From(wrapper,pNPC,pos);
-			}
-		};
-
-		template <>
-		struct Make<CMD::npc_enter_world>
-		{
-			template <typename WRAPPER>
-			static WRAPPER & From(WRAPPER & wrapper,gnpc * pNPC)
-			{
-				Make<single_data_header>::From(wrapper,NPC_ENTER_WORLD);
-				return Make<INFO::npc_info>::From(wrapper,pNPC);
-			}
-		};
-
-
-		template <>
-		struct Make<CMD::leave_slice>
-		{
-			template <typename WRAPPER>
-			static WRAPPER & From(WRAPPER & wrapper,gobject * pObject)
-			{
-				Make<single_data_header>::From(wrapper,OBJECT_LEAVE_SLICE);
-				return wrapper << pObject->ID.id;
-			}
-		};
-
-		template <>
-		struct Make<CMD::notify_pos>
-		{
-			template <typename WRAPPER, typename KEY>
-			static WRAPPER & From(WRAPPER & wrapper,const A3DVECTOR & pos, int tag, const KEY & key)
-			{
-				Make<single_data_header>::From(wrapper,OBJECT_NOTIFY_POS);
-				return wrapper <<  pos << tag << key.key1;
-			}
-		};
-
-
-
-		
 		template<>
 		struct Make<INFO::matter_info_1>
 		{
@@ -937,10 +944,10 @@ namespace  S2C
 		struct Make<CMD::self_get_property>
 		{
 			template <typename WRAPPER>
-			inline static WRAPPER & From(WRAPPER & wrapper,size_t status_point,const struct extend_prop & prop,int attack_degree, int defend_degree, int crit_rate, int crit_damage_bonus, int invisible_degree, int anti_invisible_degree, int penetration, int resilience, int vigour)
+			inline static WRAPPER & From(WRAPPER & wrapper,size_t status_point,const struct extend_prop & prop,int attack_degree, int defend_degree, int crit_rate, int crit_damage_bonus, int invisible_degree, int anti_invisible_degree, int penetration, int resilience, int vigour, int anti_def_degree, int anti_resist_degree, int kills, int deaths)
 			{
 				Make<single_data_header>::From(wrapper,SELF_GET_EXT_PROPERTY);
-				return wrapper << status_point << attack_degree << defend_degree << crit_rate << crit_damage_bonus << invisible_degree << anti_invisible_degree << penetration << resilience << vigour << prop;
+				return wrapper << status_point << attack_degree << defend_degree << crit_rate << crit_damage_bonus << invisible_degree << anti_invisible_degree << penetration << resilience << vigour << anti_def_degree << anti_resist_degree << kills << deaths << prop;
 			}
 		};
 
@@ -2096,7 +2103,7 @@ namespace  S2C
 			inline static WRAPPER & From(WRAPPER & wrapper, gplayer * pObj)
 			{
 				Make<single_data_header>::From(wrapper,MAFIA_INFO_NOTIFY);
-				return wrapper << pObj->ID.id << pObj->id_mafia << pObj->rank_mafia;
+				return wrapper << pObj->ID.id << pObj->id_mafia << pObj->rank_mafia << pObj->mnfaction_id;
 			}
 		};
 
@@ -2713,10 +2720,10 @@ namespace  S2C
 		struct Make<CMD::server_config_data>
 		{
 			template <typename WRAPPER>
-			inline static WRAPPER & From(WRAPPER & wrapper, int mall_time, int mall2_time)
+			inline static WRAPPER & From(WRAPPER & wrapper, int mall_time, int mall2_time, int mall3_time)
 			{
 				Make<single_data_header>::From(wrapper, SERVER_CONFIG_DATA);
-				return wrapper << world_manager::GetWorldTag() << world_manager::GetRegionTag() << world_manager::GetPrecinctTag() << mall_time << mall2_time;
+				return wrapper << world_manager::GetWorldTag() << world_manager::GetRegionTag() << world_manager::GetPrecinctTag() << mall_time << mall2_time << mall3_time;
 			}
 		};
 
@@ -3450,9 +3457,9 @@ namespace  S2C
 			}
 			
 			template <typename WRAPPER>
-			inline static WRAPPER & AddGoods(WRAPPER & wrapper, short index, char slot, int id, char expire_type, int expire_time, int price, char status)
+			inline static WRAPPER & AddGoods(WRAPPER & wrapper, short index, char slot, int id, char expire_type, int expire_time, int price, char status, int min_vip_level)
 			{
-				return wrapper << index << slot << id << expire_type << expire_time << price << status;
+				return wrapper << index << slot << id << expire_type << expire_time << price << status << min_vip_level;
 			}
 			
 		};
@@ -3581,9 +3588,9 @@ namespace  S2C
 			}
 			
 			template <typename WRAPPER>
-			inline static WRAPPER & AddGoods(WRAPPER & wrapper, short index, char slot, int id, char expire_type, int expire_time, int price, char status)
+			inline static WRAPPER & AddGoods(WRAPPER & wrapper, short index, char slot, int id, char expire_type, int expire_time, int price, char status, int min_vip_level)
 			{
-				return wrapper << index << slot << id << expire_type << expire_time << price << status;
+				return wrapper << index << slot << id << expire_type << expire_time << price << status << min_vip_level;
 			}
 			
 		};
@@ -4712,6 +4719,17 @@ namespace  S2C
 		};
 
 		template <>
+		struct Make<CMD::rank_info>
+		{
+			template <typename WRAPPER>
+			inline static WRAPPER & From(WRAPPER & wrapper, int points, int kill, int dead)
+			{
+				Make<single_data_header>::From(wrapper, RANK_INFO);
+				return wrapper << points << kill << dead;
+			}
+		};
+
+		template <>
 		struct Make<CMD::realm_exp>
 		{
 			template <typename WRAPPER>
@@ -5000,6 +5018,422 @@ namespace  S2C
 				return wrapper;
 			}
 		};
+		
+		template<>
+		struct Make<CMD::solo_challenge_award_info_notify>
+		{
+			template <typename WRAPPER>
+			inline static WRAPPER & From(WRAPPER & wrapper, int max_layer_climbed, int total_first_climbing_time, int total_score_earned,int cur_score, int last_success_stage_level, int last_success_stage_cost_time, int total_draw_item_times, int have_drawn_award_times)
+			{
+				Make<single_data_header>::From(wrapper,SOLO_CHALLENGE_AWARD_INFO_NOTIFY);
+				wrapper <<  max_layer_climbed << total_first_climbing_time << total_score_earned << cur_score << last_success_stage_level << last_success_stage_cost_time << total_draw_item_times << have_drawn_award_times;
+				return wrapper;
+			}
+
+			template <typename WRAPPER>
+			inline static WRAPPER & Add(WRAPPER & wrapper, int item_id, int item_count)
+			{
+				return wrapper << item_id << item_count;
+			}
+		};
+
+		template<>
+		struct Make<CMD::solo_challenge_operate_result>
+		{
+			template <typename WRAPPER>
+			inline static WRAPPER & From(WRAPPER & wrapper, int opttype, int retcode,int arg0, int arg1, int arg2)
+			{
+				Make<single_data_header>::From(wrapper,SOLO_CHALLENGE_OPERATE_RESULT);
+				wrapper << opttype << retcode << arg0 << arg1 << arg2;
+				return wrapper;
+			}
+		};
+		
+		template<>
+		struct Make<CMD::solo_challenge_challenging_state_notify>
+		{
+			template <typename WRAPPER>
+			inline static WRAPPER & From(WRAPPER & wrapper, int climbed_layer, unsigned char notify_type)
+			{
+				Make<single_data_header>::From(wrapper, SOLO_CHALLENGE_CHALLENGING_STATE_NOTIFY);
+				wrapper << climbed_layer << notify_type;
+				return wrapper;
+			}
+		};
+
+		template<>
+		struct Make<CMD::solo_challenge_buff_info_notify>
+		{
+			template <typename WRAPPER>
+			inline static WRAPPER & From(WRAPPER & wrapper, int buff_num, int cur_score)
+			{
+				Make<single_data_header>::From(wrapper, SOLO_CHALLENGE_BUFF_INFO_NOTIFY);
+				wrapper << buff_num << cur_score;
+				return wrapper;
+			}
+			
+			template <typename WRAPPER>
+			inline static WRAPPER & Add(WRAPPER & wrapper, int filter_index, int filter_layer)
+			{
+				return wrapper << filter_index << filter_layer;
+			}
+		};
+		
+		template<>
+		struct Make<CMD::astrolabe_info_notify>
+		{
+			template <typename WRAPPER>
+			inline static WRAPPER & From(WRAPPER & wrapper, unsigned char level, int exp)
+			{
+				Make<single_data_header>::From(wrapper,ASTROLABE_INFO_NOTIFY);
+				wrapper << level << exp;
+				return wrapper;
+			}
+		};
+
+		template<>
+		struct Make<CMD::astrolabe_operate_result>
+		{
+			template <typename WRAPPER>
+			inline static WRAPPER & From(WRAPPER & wrapper, int opt, int ret, int arg0,int arg1,int arg2)
+			{
+				Make<single_data_header>::From(wrapper,ASTROLABE_OPERATE_RESULT);
+				wrapper << opt << ret << arg0 << arg1 << arg2;
+				return wrapper;
+			}
+		};
+
+        template <>
+        struct Make<CMD::property_score_result>
+        {
+            template <typename WRAPPER>
+            inline static WRAPPER& From(WRAPPER& wrapper, int fighting_score, int viability_score, int client_data)
+            {
+                Make<single_data_header>::From(wrapper, PROPERTY_SCORE_RESULT);
+                wrapper << fighting_score << viability_score << client_data;
+                return wrapper;
+            }
+        };
+
+        template <>
+        struct Make<CMD::lookup_enemy_result>
+        {
+            template <typename WRAPPER>
+            inline static WRAPPER& From(WRAPPER& wrapper, int rid, int worldtag, const A3DVECTOR& pos)
+            {
+                Make<single_data_header>::From(wrapper, LOOKUP_ENEMY_RESULT);
+                wrapper << rid << worldtag << pos;
+                return wrapper;
+            }
+        };
+
+		template<>
+		struct Make<CMD::mnfaction_player_faction_info>
+		{
+			template <typename WRAPPER>
+			inline static WRAPPER & From(WRAPPER & wrapper, int player_faction, int domain_id)
+			{
+				Make<single_data_header>::From(wrapper, MNFACTION_PLAYER_FACTION_INFO);
+				wrapper << player_faction << domain_id;
+				return wrapper;
+			}
+		};
+		
+		template<>
+		struct Make<CMD::mnfaction_resource_point_info>
+		{
+			template <typename WRAPPER>
+			inline static WRAPPER & From(WRAPPER & wrapper, int attacker_resource_point, int defender_resource_point)
+			{
+				Make<single_data_header>::From(wrapper, MNFACTION_RESOURCE_POINT_INFO);
+				wrapper << attacker_resource_point << defender_resource_point;
+				return wrapper;
+			}
+		};
+		
+		template<>
+		struct Make<CMD::mnfaction_player_count_info>
+		{
+			template <typename WRAPPER>
+			inline static WRAPPER & From(WRAPPER & wrapper, int attend_attacker_player_count, int attend_defender_player_count)
+			{
+				Make<single_data_header>::From(wrapper, MNFACTION_PLAYER_COUNT_INFO);
+				wrapper << attend_attacker_player_count << attend_defender_player_count;
+				return wrapper;
+			}
+		};
+		
+		template<>
+		struct Make<CMD::mnfaction_result>
+		{
+			template <typename WRAPPER>
+			inline static WRAPPER & From(WRAPPER & wrapper, int result)
+			{
+				Make<single_data_header>::From(wrapper, MNFACTION_RESULT);
+				wrapper << result;
+				return wrapper;
+			}
+		};
+		
+		template<>
+		struct Make<CMD::mnfaction_resource_tower_state_info>
+		{
+			template <typename WRAPPER>
+			inline static WRAPPER & From(WRAPPER & wrapper, int num)
+			{
+				Make<single_data_header>::From(wrapper, MNFACTION_RESOURCE_TOWER_STATE_INFO);
+				wrapper << num;
+				return wrapper;
+			}
+			
+			template <typename WRAPPER>
+			inline static WRAPPER & Add(WRAPPER & wrapper, int index, int own_faction, int state ,int time_out)
+			{
+				return wrapper << index << own_faction << state << time_out;
+			}
+		};
+		template<>
+		struct Make<CMD::mnfaction_switch_tower_state_info>
+		{
+			template <typename WRAPPER>
+			inline static WRAPPER & From(WRAPPER & wrapper, int num)
+			{
+				Make<single_data_header>::From(wrapper, MNFACTION_SWITCH_TOWER_STATE_INFO);
+				wrapper << num;
+				return wrapper;
+			}
+			
+			template <typename WRAPPER>
+			inline static WRAPPER & Add(WRAPPER & wrapper, int index, int own_faction, int state, int time_out)
+			{
+				return wrapper << index << own_faction << state << time_out;
+			}
+		};
+		template<>
+		struct Make<CMD::mnfaction_transmit_pos_state_info>
+		{
+			template <typename WRAPPER>
+			inline static WRAPPER & From(WRAPPER & wrapper, int num)
+			{
+				Make<single_data_header>::From(wrapper, MNFACTION_TRANSMIT_POS_STATE_INFO);
+				wrapper << num;
+				return wrapper;
+			}
+			
+			template <typename WRAPPER>
+			inline static WRAPPER & Add(WRAPPER & wrapper, int index, int own_faction, int state, int time_out)
+			{
+				return wrapper << index << own_faction << state << time_out;
+			}
+		};
+
+		template<>
+		struct Make<CMD::mnfaction_resource_point_state_info>
+		{
+			template <typename WRAPPER>
+			inline static WRAPPER & From(WRAPPER & wrapper, int index, int cur_degree)
+			{
+				Make<single_data_header>::From(wrapper, MNFACTION_RESOURCE_POINT_STATE_INFO);
+				wrapper << index << cur_degree;
+				return wrapper;
+			}
+		};
+		
+		template<>
+		struct Make<CMD::mnfaction_battle_ground_have_start_time>
+		{
+			template <typename WRAPPER>
+			inline static WRAPPER & From(WRAPPER & wrapper, int battle_ground_have_start_time)
+			{
+				Make<single_data_header>::From(wrapper, MNFACTION_BATTLE_GROUND_HAVE_START_TIME);
+				wrapper << battle_ground_have_start_time;
+				return wrapper;
+			}
+		};
+		
+		template<>
+		struct Make<CMD::mnfaction_faction_killed_player_num>
+		{
+			template <typename WRAPPER>
+			inline static WRAPPER & From(WRAPPER & wrapper, int attacker_killed_player_count, int defender_killed_player_count)
+			{
+				Make<single_data_header>::From(wrapper, MNFACTION_FACTION_KILLED_PLAYER_NUM);
+				wrapper << attacker_killed_player_count << defender_killed_player_count;
+				return wrapper;
+			}
+		};
+		
+		template<>
+		struct Make<CMD::mnfaction_shout_at_the_client>
+		{
+			template <typename WRAPPER>
+			inline static WRAPPER & From(WRAPPER & wrapper, int type, int args)
+			{
+				Make<single_data_header>::From(wrapper, MNFACTION_SHOUT_AT_THE_CLIENT);
+				wrapper << type << args;
+				return wrapper;
+			}
+		};
+		
+		template<>
+		struct Make<CMD::mnfaction_player_pos_info>
+		{
+			template <typename WRAPPER>
+			inline static WRAPPER & From(WRAPPER & wrapper, int num)
+			{
+				Make<single_data_header>::From(wrapper, MNFACTION_PLAYER_POS_INFO);
+				wrapper << num;
+				return wrapper;
+			}
+			
+			template <typename WRAPPER>
+			inline static WRAPPER & Add(WRAPPER & wrapper, int role_id, float pos_x, float pos_y, float pos_z)
+			{
+				return wrapper << role_id << pos_x << pos_y << pos_z;
+			}
+		};
+		
+		template<>
+		struct Make<CMD::fix_position_transmit_add_position>
+		{
+			template <typename WRAPPER>
+			inline static WRAPPER & From(WRAPPER & wrapper, int index, int world_tag, float posx, float posy, float posz, size_t position_length, const char *position_name)
+			{
+				Make<single_data_header>::From(wrapper, FIX_POSITION_TRANSMIT_ADD_POSITION);
+				wrapper << index << world_tag << posx << posy << posz;
+				wrapper.push_back(position_name, position_length);
+				return wrapper;
+			}
+		};
+
+		template<>
+		struct Make<CMD::fix_position_transmit_delete_position>
+		{
+			template <typename WRAPPER>
+			inline static WRAPPER & From(WRAPPER & wrapper, int index)
+			{
+				Make<single_data_header>::From(wrapper, FIX_POSITION_TRANSMIT_DELETE_POSITION);
+				wrapper << index;
+				return wrapper;
+			}
+		};
+		
+		template<>
+		struct Make<CMD::fix_position_transmit_rename>
+		{
+			template <typename WRAPPER>
+			inline static WRAPPER & From(WRAPPER & wrapper, int index, size_t position_length, char *position_name)
+			{
+				Make<single_data_header>::From(wrapper, FIX_POSITION_TRANSMIT_RENAME);
+				wrapper << index;
+				wrapper.push_back(position_name, position_length);
+				return wrapper;
+			}
+		};
+		
+		template<>
+		struct Make<CMD::fix_position_energy_info>
+		{
+			template <typename WRAPPER>
+			inline static WRAPPER & From(WRAPPER & wrapper,char is_login, int cur_energy)
+			{
+				Make<single_data_header>::From(wrapper, FIX_POSITION_ENERGY_INFO);
+				wrapper << is_login << cur_energy;
+				return wrapper;
+			}
+		};
+		
+		template<>
+		struct Make<CMD::fix_position_all_info>
+		{
+			template <typename WRAPPER>
+			inline static WRAPPER & From(WRAPPER & wrapper, int count)
+			{
+				Make<single_data_header>::From(wrapper, FIX_POSITION_ALL_INFO);
+				wrapper << count;
+				return wrapper;
+			}
+			
+			template <typename WRAPPER>
+			inline static WRAPPER & Add(WRAPPER & wrapper, int index, int world_tag, float pos_x, float pos_y, float pos_z, size_t position_name_length, const char *position_name)
+			{
+				wrapper << index << world_tag << pos_x << pos_y << pos_z;
+				wrapper.push_back(position_name, position_name_length);
+				return wrapper;
+			}
+		};
+		
+		template <>
+		struct Make<CMD::cash_vip_mall_item_price>
+		{
+			template <typename WRAPPER>
+			inline static WRAPPER & From(WRAPPER & wrapper, short start, short end, unsigned short count)
+			{
+				Make<single_data_header>::From(wrapper,CASH_VIP_MALL_ITEM_PRICE);
+				return wrapper << start << end << count;
+			}
+			
+			template <typename WRAPPER>
+			inline static WRAPPER & AddGoods(WRAPPER & wrapper, short index, char slot, int id, char expire_type, int expire_time, int price, char status, int min_vip_level)
+			{
+				return wrapper << index << slot << id << expire_type << expire_time << price << status << min_vip_level;
+			}
+			
+		};
+		
+		template <>
+		struct Make<CMD::cash_vip_mall_item_buy_result>
+		{
+			template <typename WRAPPER>
+			inline static WRAPPER & From(WRAPPER & wrapper,char result, short index, char reason)
+			{
+				Make<single_data_header>::From(wrapper,CASH_VIP_MALL_ITEM_BUY_RESULT);
+				return wrapper << result << index << reason; 
+			}
+		};
+
+		template <>
+		struct Make<CMD::cash_vip_info_notify>
+		{
+			template <typename WRAPPER>
+			inline static WRAPPER & From(WRAPPER & wrapper, int level, int score)
+			{
+				Make<single_data_header>::From(wrapper,CASH_VIP_INFO_NOTIFY);
+				return wrapper << level << score; 
+			}
+		};
+		
+		template<>
+		struct Make<CMD::purchase_limit_info_notify>
+		{
+			template <typename WRAPPER>
+			inline static WRAPPER & From(WRAPPER & wrapper, int count)
+			{
+				Make<single_data_header>::From(wrapper, PURCHASE_LIMIT_INFO_NOTIFY);
+				wrapper << count;
+				return wrapper;
+			}
+			
+			template <typename WRAPPER>
+			inline static WRAPPER & Add(WRAPPER & wrapper,int limit_type, int item_id, int have_purchase_count)
+			{
+				wrapper << limit_type << item_id << have_purchase_count;
+				return wrapper;
+			}
+		};
+
+        template <>
+        struct Make<CMD::cash_resurrect_info>
+        {
+            template <typename WRAPPER>
+            inline static WRAPPER& From(WRAPPER& wrapper, int cash_need, int cash_left)
+            {
+                Make<single_data_header>::From(wrapper, CASH_RESURRECT_INFO);
+                wrapper << cash_need << cash_left;
+                return wrapper;
+            }
+        };
+
 	};
 }
 

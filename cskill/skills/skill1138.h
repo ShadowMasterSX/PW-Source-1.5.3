@@ -58,9 +58,9 @@ namespace GNET
       Skill1138Stub ():SkillStub (1138)
         {
             cls = 5;
-            name = L"»À”„±‰";
-            nativename = "»À”„±‰";
-            icon = "»À”„±‰.dds";
+            name = L"‰∫∫È±ºÂèò";
+            nativename = "‰∫∫È±ºÂèò";
+            icon = "‰∫∫È±ºÂèò.dds";
             max_level = 10;
             type = 2;
             apcost = 0;
@@ -84,7 +84,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (23749);
             }
-            effect = "»À”„±‰.sgc";
+            effect = "‰∫∫È±ºÂèò.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

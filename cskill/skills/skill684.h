@@ -132,8 +132,8 @@ namespace GNET
       Skill684Stub ():SkillStub (684)
         {
             cls = 127;
-            name = L"¼ýËþ¹¥»÷";
-            nativename = "¼ýËþ¹¥»÷";
+            name = L"ç®­å¡”æ”»å‡»";
+            nativename = "ç®­å¡”æ”»å‡»";
             icon = "";
             max_level = 1;
             type = 3;
@@ -153,7 +153,7 @@ namespace GNET
             long_range = 1;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "Á¬Éä.sgc";
+            effect = "è¿žå°„.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

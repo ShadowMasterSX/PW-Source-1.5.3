@@ -134,9 +134,9 @@ namespace GNET
       Skill1279Stub ():SkillStub (1279)
         {
             cls = 5;
-            name = L"¿ñ¡¤ÈçÓ°ËæĞÎ";
-            nativename = "¿ñ¡¤ÈçÓ°ËæĞÎ";
-            icon = "Ë²ÒÆÄ§¼¼ÄÜ.dds";
+            name = L"ç‹‚Â·å¦‚å½±éšå½¢";
+            nativename = "ç‹‚Â·å¦‚å½±éšå½¢";
+            icon = "ç¬ç§»é­”æŠ€èƒ½.dds";
             max_level = 1;
             type = 8;
             apcost = 20;

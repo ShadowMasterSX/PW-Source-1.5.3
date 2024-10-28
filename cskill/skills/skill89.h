@@ -58,9 +58,9 @@ namespace GNET
       Skill89Stub ():SkillStub (89)
         {
             cls = 1;
-            name = L"»Û‘Û";
-            nativename = "»Û‘Û";
-            icon = "»Û‘Û.dds";
+            name = L"Ê∂¶Ê≥Ω";
+            nativename = "Ê∂¶Ê≥Ω";
+            icon = "Ê∂¶Ê≥Ω.dds";
             max_level = 10;
             type = 2;
             apcost = 100;
@@ -87,7 +87,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "»Û‘Û.sgc";
+            effect = "Ê∂¶Ê≥Ω.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

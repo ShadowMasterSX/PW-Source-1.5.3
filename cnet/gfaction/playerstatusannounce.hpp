@@ -48,7 +48,7 @@ class PlayerStatusAnnounce : public GNET::Protocol
 						}
 						cur_gid=ops.gid;
 					}
-					pfi_re.faction_info.add(PFactionInfo(ops.roleid,fplayer.fid,fplayer.role));
+					pfi_re.faction_info.add(PFactionInfo(ops.roleid,fplayer.fid,fplayer.role,0,Factiondb::GetInstance()->GetUnifid(fplayer.fid)));
 				}
 				//add player to map
 				gfs->RegisterPlayer(ops,fplayer.fid,fplayer.role);

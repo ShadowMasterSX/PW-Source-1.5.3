@@ -7,6 +7,11 @@
 #include "elementdataman.h"
 #include "itemdataman.h"
 
+#define CASE_GET_ITEM_ARG(ESSENCE,ARG) case DT_##ESSENCE: \
+	{\
+		return ((ESSENCE*)dataptr)->ARG; \
+	}break;
+
 itemdataman::itemdataman()
 {
 	_edm = new elementdataman;
@@ -403,8 +408,21 @@ int itemdataman::get_item_proc_type(unsigned int id)
 	case DT_SHOP_TOKEN_ESSENCE:
 		return((SHOP_TOKEN_ESSENCE*)dataptr)->proc_type;
 		
+	case DT_FIREWORKS2_ESSENCE:
+		return ((FIREWORKS2_ESSENCE*)dataptr)->proc_type;
+		
+	case DT_FIX_POSITION_TRANSMIT_ESSENCE:
+		return ((FIX_POSITION_TRANSMIT_ESSENCE*)dataptr)->proc_type;
+
+		
 	case DT_UNIVERSAL_TOKEN_ESSENCE:
 		return((UNIVERSAL_TOKEN_ESSENCE*)dataptr)->proc_type;
+
+	CASE_GET_ITEM_ARG(ASTROLABE_ESSENCE, proc_type)
+	CASE_GET_ITEM_ARG(ASTROLABE_RANDOM_ADDON_ESSENCE, proc_type)
+	CASE_GET_ITEM_ARG(ASTROLABE_INC_INNER_POINT_VALUE_ESSENCE, proc_type)
+	CASE_GET_ITEM_ARG(ASTROLABE_INC_EXP_ESSENCE, proc_type)
+	CASE_GET_ITEM_ARG(ITEM_PACKAGE_BY_PROFESSION_ESSENCE, proc_type)
 
 	default:
 		return 0;
@@ -584,6 +602,19 @@ int itemdataman::get_item_sell_price(unsigned int id)
 	case DT_UNIVERSAL_TOKEN_ESSENCE:
 		return((UNIVERSAL_TOKEN_ESSENCE*)dataptr)->price;
 
+	case DT_FIREWORKS2_ESSENCE:
+		return ((FIREWORKS2_ESSENCE*)dataptr)->price;
+		
+	case DT_FIX_POSITION_TRANSMIT_ESSENCE:
+		return ((FIX_POSITION_TRANSMIT_ESSENCE*)dataptr)->price;
+
+
+	CASE_GET_ITEM_ARG(ASTROLABE_ESSENCE, price)
+	CASE_GET_ITEM_ARG(ASTROLABE_RANDOM_ADDON_ESSENCE, price)
+	CASE_GET_ITEM_ARG(ASTROLABE_INC_INNER_POINT_VALUE_ESSENCE, price)
+	CASE_GET_ITEM_ARG(ASTROLABE_INC_EXP_ESSENCE, price)
+	CASE_GET_ITEM_ARG(ITEM_PACKAGE_BY_PROFESSION_ESSENCE, price)
+
 	default:
 		return 0;
 	}
@@ -761,6 +792,19 @@ int itemdataman::get_item_shop_price(unsigned int id)
 		
 	case DT_UNIVERSAL_TOKEN_ESSENCE:
 		return((UNIVERSAL_TOKEN_ESSENCE*)dataptr)->shop_price;
+
+	case DT_FIREWORKS2_ESSENCE:
+		return ((FIREWORKS2_ESSENCE*)dataptr)->shop_price;
+		
+	case DT_FIX_POSITION_TRANSMIT_ESSENCE:
+		return ((FIX_POSITION_TRANSMIT_ESSENCE*)dataptr)->shop_price;
+
+
+	CASE_GET_ITEM_ARG(ASTROLABE_ESSENCE, shop_price)
+	CASE_GET_ITEM_ARG(ASTROLABE_RANDOM_ADDON_ESSENCE, shop_price)
+	CASE_GET_ITEM_ARG(ASTROLABE_INC_INNER_POINT_VALUE_ESSENCE, shop_price)
+	CASE_GET_ITEM_ARG(ASTROLABE_INC_EXP_ESSENCE, shop_price)
+	CASE_GET_ITEM_ARG(ITEM_PACKAGE_BY_PROFESSION_ESSENCE, shop_price)
 
 	default:
 		return 0;
@@ -949,6 +993,19 @@ int itemdataman::get_item_pile_limit(unsigned int id)
 	case DT_UNIVERSAL_TOKEN_ESSENCE:
 		return((UNIVERSAL_TOKEN_ESSENCE*)dataptr)->pile_num_max;
 	
+	case DT_FIREWORKS2_ESSENCE:
+		return ((FIREWORKS2_ESSENCE*)dataptr)->pile_num_max;
+		
+	case DT_FIX_POSITION_TRANSMIT_ESSENCE:
+		return ((FIX_POSITION_TRANSMIT_ESSENCE*)dataptr)->pile_num_max;
+
+
+	CASE_GET_ITEM_ARG(ASTROLABE_ESSENCE, pile_num_max)
+	CASE_GET_ITEM_ARG(ASTROLABE_RANDOM_ADDON_ESSENCE, pile_num_max)
+	CASE_GET_ITEM_ARG(ASTROLABE_INC_INNER_POINT_VALUE_ESSENCE, pile_num_max)
+	CASE_GET_ITEM_ARG(ASTROLABE_INC_EXP_ESSENCE, pile_num_max)
+	CASE_GET_ITEM_ARG(ITEM_PACKAGE_BY_PROFESSION_ESSENCE, pile_num_max)
+
 	default:
 		return 0;
 	}
@@ -1045,6 +1102,49 @@ int	itemdataman::generate_equipment_addon(DATA_TYPE datatype,char * header, unsi
 	data.id = (id & (~(0x3<<13))) | (rparanum<<13);
 	return 0;
 }
+
+int itemdataman::generate_astrolabe_addonlist(const char * candidate_header, size_t candidate_num, addon_data* addon_list,size_t addon_num, unsigned int default_addon_id)
+{
+	if(!addon_num) return 0;
+
+	size_t anum = 0;
+	// candidate_header ¶ÔÓ¦ ASTROLABE_ESSENCE::rands
+	size_t candidate_step = sizeof(unsigned int)+sizeof(float)+sizeof(int);
+	size_t limit_offset = sizeof(unsigned int)+sizeof(float);
+	size_t prob_offset = sizeof(unsigned int);
+	abase::hash_map<unsigned int,int> hmap;
+
+	for(int i = 0; i < 100 && anum < addon_num; ++i)
+	{
+		float * prob_header =(float*) (candidate_header + prob_offset);
+		int addon_index = abase::RandSelect(prob_header, candidate_step, candidate_num);
+		unsigned int id = *(unsigned int*)(candidate_header + addon_index*candidate_step);
+		int limit = *(int*)(candidate_header+ limit_offset + addon_index*candidate_step); 
+		if(id <= 0 || hmap[id] >= limit) continue;
+	
+		addon_data newaddon;
+		if(!generate_addon(id,newaddon)) continue;
+
+		addon_list[anum] = newaddon;		
+		hmap[id] += 1;	
+		++anum;
+	}
+
+	if(anum < addon_num)
+	{
+		addon_data newaddon;
+		if(generate_addon(default_addon_id,newaddon))
+		{
+			for(;anum < addon_num;++anum)
+			{
+				addon_list[anum] = newaddon;
+			}
+		}
+	}
+
+	return anum;
+}
+
 
 bool itemdataman::generate_mine_from_monster(unsigned int id, int & mine_id, int & remain_time)
 {
@@ -1209,6 +1309,10 @@ itemdataman::reset_classid(item_data * data)
 	case DT_POKER_DICE_ESSENCE:
 	case DT_SHOP_TOKEN_ESSENCE:
 	case DT_UNIVERSAL_TOKEN_ESSENCE:
+	case DT_ASTROLABE_ESSENCE:
+	case DT_ITEM_PACKAGE_BY_PROFESSION_ESSENCE:
+	case DT_FIREWORKS2_ESSENCE:
+	case DT_FIX_POSITION_TRANSMIT_ESSENCE:
 		set_to_classid(datatype, data, -1);
 		break;
 	case DT_MEDICINE_ESSENCE:
@@ -1291,6 +1395,18 @@ int itemdataman::generate_item_for_sell(bool disable_bind2)
 		ret = generate_material(id, ID_SPACE_ESSENCE, (char **)&item, size,(DYE_TICKET_ESSENCE*)0,DT_DYE_TICKET_ESSENCE);
 		break;
 
+		CASE_CLEAR_PROC_TYPE(ASTROLABE_RANDOM_ADDON_ESSENCE)
+		ret =  generate_material(id, ID_SPACE_ESSENCE, (char **)&item, size,(ASTROLABE_RANDOM_ADDON_ESSENCE*)0,DT_ASTROLABE_RANDOM_ADDON_ESSENCE);
+		break;
+
+		CASE_CLEAR_PROC_TYPE(ASTROLABE_INC_INNER_POINT_VALUE_ESSENCE)
+		ret =  generate_material(id, ID_SPACE_ESSENCE, (char **)&item, size,(ASTROLABE_INC_INNER_POINT_VALUE_ESSENCE*)0,DT_ASTROLABE_INC_INNER_POINT_VALUE_ESSENCE);
+		break;
+
+		CASE_CLEAR_PROC_TYPE(ASTROLABE_INC_EXP_ESSENCE)
+		ret =  generate_material(id, ID_SPACE_ESSENCE, (char **)&item, size,(ASTROLABE_INC_EXP_ESSENCE*)0,DT_ASTROLABE_INC_EXP_ESSENCE);
+		break;
+		
 		CASE_CLEAR_PROC_TYPE(FIREWORKS_ESSENCE)
 		ret = generate_fireworks(id, ID_SPACE_ESSENCE, (char **)&item, size, element_data::SPECIFIC(0));
 		break;
@@ -1481,6 +1597,22 @@ int itemdataman::generate_item_for_sell(bool disable_bind2)
 		
 		CASE_CLEAR_PROC_TYPE(UNIVERSAL_TOKEN_ESSENCE)	
 		ret = generate_universal_token(id, ID_SPACE_ESSENCE, (char **)&item, size);
+		break;
+		
+		CASE_CLEAR_PROC_TYPE(ASTROLABE_ESSENCE)
+		ret = generate_astrolabe(id, ID_SPACE_ESSENCE, (char **)&item, size);
+		break;
+
+		CASE_CLEAR_PROC_TYPE(ITEM_PACKAGE_BY_PROFESSION_ESSENCE)
+		ret = generate_occup_package(id, ID_SPACE_ESSENCE, (char **)&item, size);
+		break;
+
+		CASE_CLEAR_PROC_TYPE(FIREWORKS2_ESSENCE)
+		ret = generate_fireworks2(id, ID_SPACE_ESSENCE, (char **)&item, size, element_data::SPECIFIC(0));
+		break;
+		
+		CASE_CLEAR_PROC_TYPE(FIX_POSITION_TRANSMIT_ESSENCE)
+		ret = generate_fixpositiontransmit(id, ID_SPACE_ESSENCE, (char **)&item, size, element_data::SPECIFIC(0));
 		break;
 		
 		case DT_MONSTER_ESSENCE:
@@ -1692,6 +1824,9 @@ int itemdataman::get_cool_time(unsigned int id)
 	case DT_TRANSMITSCROLL_ESSENCE:
 		return 0;
 
+	case DT_FIREWORKS2_ESSENCE:
+		return 0;
+
 	default:
 		return 0;
 	}
@@ -1764,6 +1899,8 @@ int itemdataman::get_item_class_limit(unsigned int id)
 	case DT_FASHION_ESSENCE:
 		return ((FASHION_ESSENCE*)dataptr)->character_combo_id;
 
+	CASE_GET_ITEM_ARG(ASTROLABE_ESSENCE, character_combo_id)
+
 	default:
 		return 0;
 	}
@@ -1833,6 +1970,12 @@ int itemdataman::get_item_level(unsigned id)
 
 unsigned char * itemdataman::get_item_name(unsigned id,int &name_len)
 {
+#define CASE_GET_ITEM_NAME(ESSENCE)  case DT_##ESSENCE: \
+	{\
+		name_len = get_name_length(((ESSENCE*)dataptr)->name); \
+		return (unsigned char *)(((ESSENCE*)dataptr)->name); \
+	}break;
+
 	DATA_TYPE datatype;
 	const void * dataptr = get_data_ptr(id,ID_SPACE_ESSENCE,datatype);
 	if(dataptr == NULL || datatype == DT_INVALID)
@@ -2007,12 +2150,22 @@ unsigned char * itemdataman::get_item_name(unsigned id,int &name_len)
 		case DT_POKER_DICE_ESSENCE:
 			name_len = get_name_length(((POKER_DICE_ESSENCE*)dataptr)->name);
 			return (unsigned char *)(((POKER_DICE_ESSENCE*)dataptr)->name);
+
+		CASE_GET_ITEM_NAME(ASTROLABE_ESSENCE)	
+		CASE_GET_ITEM_NAME(ASTROLABE_RANDOM_ADDON_ESSENCE)
+		CASE_GET_ITEM_NAME(ASTROLABE_INC_INNER_POINT_VALUE_ESSENCE)
+		CASE_GET_ITEM_NAME(ASTROLABE_INC_EXP_ESSENCE)
+		CASE_GET_ITEM_NAME(ITEM_PACKAGE_BY_PROFESSION_ESSENCE)
+			
 		case DT_SHOP_TOKEN_ESSENCE:
 			name_len = get_name_length(((SHOP_TOKEN_ESSENCE*)dataptr)->name);
 			return (unsigned char *)(((SHOP_TOKEN_ESSENCE*)dataptr)->name);
 		case DT_UNIVERSAL_TOKEN_ESSENCE:
 			name_len = get_name_length(((UNIVERSAL_TOKEN_ESSENCE*)dataptr)->name);
 			return (unsigned char *)(((UNIVERSAL_TOKEN_ESSENCE*)dataptr)->name);
+
+		case DT_FIREWORKS2_ESSENCE:
+			name_len = get_name_length(((FIREWORKS2_ESSENCE*)dataptr)->name);
 
 		default:
 			return NULL;

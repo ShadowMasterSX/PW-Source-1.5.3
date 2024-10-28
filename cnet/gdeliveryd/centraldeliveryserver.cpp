@@ -65,7 +65,7 @@ void CentralDeliveryServer::SetLoad(int zoneid, int srv_limit, int srv_count)
 	it->second.crs_ttl = CRS_TTL;
 }
 
-int CentralDeliveryServer::InitAcceptedZoneList( std::string list_str )
+/*int CentralDeliveryServer::InitAcceptedZoneList( std::string list_str )
 {
 	accepted_zone_set.clear();
 	if( list_str.length() <= 0 ) return 0;
@@ -85,7 +85,7 @@ int CentralDeliveryServer::InitAcceptedZoneList( std::string list_str )
 
 	delete [] buffer; 
 	return accepted_zone_set.size();
-}
+}*/
 
 void LoadExchangeTask::Run()
 {
@@ -93,7 +93,7 @@ void LoadExchangeTask::Run()
 	
 	LoadExchange exchg;
 	GDeliveryServer* dsm = GDeliveryServer::GetInstance();
-	exchg.zoneid = dsm->zoneid;
+	exchg.zoneid = dsm->GetZoneid();
 	exchg.version = dsm->GetVersion();
 	exchg.edition = dsm->GetEdition();
 	exchg.server_limit = UserContainer::GetInstance().GetPlayerLimit();

@@ -133,8 +133,8 @@ namespace GNET
       Skill2010Stub ():SkillStub (2010)
         {
             cls = 127;
-            name = L"仙风天道";
-            nativename = "仙风天道";
+            name = L"浠欓澶╅亾";
+            nativename = "浠欓澶╅亾";
             icon = "";
             max_level = 10;
             type = 1;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 15;
-            effect = "法师_静谧之术.sgc";
+            effect = "娉曞笀_闈欒哀涔嬫湳.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

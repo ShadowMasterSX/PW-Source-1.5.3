@@ -134,9 +134,9 @@ namespace GNET
       Skill1381Stub ():SkillStub (1381)
         {
             cls = 9;
-            name = L"Áé¹âÆÕÕÕ";
-            nativename = "Áé¹âÆÕÕÕ";
-            icon = "áª»ÆÃîÊÖ.dds";
+            name = L"çµå…‰æ™®ç…§";
+            nativename = "çµå…‰æ™®ç…§";
+            icon = "å²é»„å¦™æ‰‹.dds";
             max_level = 10;
             type = 2;
             apcost = 0;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (292);
             }
-            effect = "÷ÈÁé_áª»ÆÃîÊÖ.sgc";
+            effect = "é­…çµ_å²é»„å¦™æ‰‹.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

@@ -137,9 +137,9 @@ namespace GNET
       Skill150Stub ():SkillStub (150)
         {
             cls = 4;
-            name = L"˺ҧ";
-            nativename = "˺ҧ";
-            icon = "˺ҧ.dds";
+            name = L"撕咬";
+            nativename = "撕咬";
+            icon = "撕咬.dds";
             max_level = 10;
             type = 1;
             apcost = 20;
@@ -166,7 +166,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "˺ҧ.sgc";
+            effect = "撕咬.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

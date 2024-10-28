@@ -132,8 +132,8 @@ namespace GNET
       Skill2067Stub ():SkillStub (2067)
         {
             cls = 127;
-            name = L"´º½Ú¹ÖÎï±äÉí";
-            nativename = "´º½Ú¹ÖÎï±äÉí";
+            name = L"æ˜¥èŠ‚æ€ªç‰©å˜èº«";
+            nativename = "æ˜¥èŠ‚æ€ªç‰©å˜èº«";
             icon = "";
             max_level = 10;
             type = 3;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 3;
-            effect = "¹ÖÎï·çÇòÊõ.sgc";
+            effect = "æ€ªç‰©é£çƒæœ¯.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

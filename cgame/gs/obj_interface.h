@@ -65,6 +65,11 @@ public:
 	void SetNoMount(bool b);
 	void SetNoBind(bool b);
 	void SetNoAmulet(bool b);
+	void SetNoLongJump(bool b);
+	void SetNoSpeedUp(bool b);
+	void SetNoInvisible(bool b);
+
+    bool GetNoInvisible();
 
 	void DenyAttackCmd();
 	void AllowAttackCmd();
@@ -219,8 +224,10 @@ public:
 	void RemoveTeamVisibleState(unsigned short state);
 	void InsertTeamVisibleState(unsigned short state, int param);
 	void InsertTeamVisibleState(unsigned short state, int param, int param2);
+	void InsertTeamVisibleState(unsigned short state, int param, int param2, int param3);
 	void ModifyTeamVisibleState(unsigned short state, int param);
 	void ModifyTeamVisibleState(unsigned short state, int param, int param2);
+	void ModifyTeamVisibleState(unsigned short state, int param, int param2, int param3);
 
 	//设置变身标志	
 	void ChangeShape(int shape);
@@ -298,11 +305,14 @@ public:
 	void EnhanceMaxMP(int mp);		//无需调用更新函数
 	void ImpairMaxMP(int mp);		//无需调用更新函数
 
-	void EnhanceScaleMaxHP(int hp);		//无需调用更新函数
-	void ImpairScaleMaxHP(int hp);		//无需调用更新函数
+	void EnhanceScaleMaxHP(int hp,bool update=true);		//无需调用更新函数
+	void ImpairScaleMaxHP(int hp,bool update=true);		//无需调用更新函数
 
 	void EnhanceScaleMaxMP(int mp);		//无需调用更新函数
 	void ImpairScaleMaxMP(int mp);		//无需调用更新函数
+
+    void EnhanceScaleExp(float exp_sp_factor, float realm_exp_factor);
+    void ImpairScaleExp(float exp_sp_factor, float realm_exp_factor);
 
 	void EnhanceDefense(int def);
 	void ImpairDefense(int def);
@@ -319,6 +329,12 @@ public:
 
 	void EnhanceScaleResistance(size_t cls, int res);	 //cls = [0,4]
 	void ImpairScaleResistance(size_t cls, int res);
+
+    void IncAntiDefenseDegree(int val);
+    void DecAntiDefenseDegree(int val);
+
+    void IncAntiResistanceDegree(int val);
+    void DecAntiResistanceDegree(int val);
 
 	void EnhanceDamage(int dmg);
 	void ImpairDamage(int dmg);
@@ -443,6 +459,19 @@ public:
 	void EnhanceFarSkillDmgReduce(float scale);
 	void ImpairFarSkillDmgReduce(float scale);
 
+	//单人副本状态包属性操作
+	void ImpairPlusDamage(int dmg);
+	void EnhancePlusDamage(int dmg);
+	void ImpairPlusMagicDamage(int dmg);
+	void EnhancePlusMagicDamage(int dmg);
+	void ImpairPlusDefense(int defence);
+	void EnhancePlusDefense(int defence);
+	void ImpairPlusResistance(size_t cls, int res);
+	void EnhancePlusResistance(size_t cls, int res);
+	void ImpairPlusMaxHP(int hp, bool update = true);
+	void EnhancePlusMaxHP(int hp);
+
+
 	//属性的重新计算
 	void UpdateDefenseData();
 	void UpdateAttackData();
@@ -515,6 +544,10 @@ public:
 	void RequestPunish(const XID & target, int skillid, int skilllevel);
 	int	 ChangeVisibleTypeId(int tid);
 	bool ModifyFilter(int filterid, int ctrlname, void * ctrlval, size_t ctrllen);
+	void SetInfectSkill(int skill,int level);
+	void ClrInfectSkill(int skill);
+
+	void SetSoloChallengeFilterData(int filter_id, int num);
 
 public:
 	//lgc 小精灵相关
@@ -615,7 +648,7 @@ public:
 	{
 		int mine_id;		//模板ID是多少
 		int remain_time;	//0 表示永久 否则表示存留的秒数
-		bool band_target;
+		bool bind_target;
 	};
 
 	struct npc_param
@@ -632,6 +665,7 @@ public:
 	//以下函数成功返回0，失败返回-1
 	int CreateMine(const A3DVECTOR & pos , const mine_param & p, const XID & target = XID(-1,-1));	//在制定位置创建矿物
 	int CreateMine(const mine_param & p, const XID & target, float radius = 6.0f);	//在目标附近随机位置创建矿物
+	int CreateMine(const A3DVECTOR & pos , const mine_param & p, const int dir, const XID & target = XID(-1,-1));	//在制定位置创建矿物
 	int CreateNPC(const A3DVECTOR & pos , const npc_param & p);	//在制定位置召唤npc
 	int CreateNPC(const npc_param & p, const XID & target, float radius = 6.0f);	//在目标附近随机位置召唤npc
 	

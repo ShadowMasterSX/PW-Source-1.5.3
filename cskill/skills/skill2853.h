@@ -19,9 +19,9 @@ namespace GNET
         Skill2853Stub ():SkillStub (2853)
         {
             cls = 10;
-            name = L"åãÔÆºº¼¼ÄÜĞ§¹û2";
-            nativename = "åãÔÆºº¼¼ÄÜĞ§¹û2";
-            icon = "ÎŞÊ½.dds";
+            name = L"é‚ˆäº‘æ±‰æŠ€èƒ½æ•ˆæœ2";
+            nativename = "é‚ˆäº‘æ±‰æŠ€èƒ½æ•ˆæœ2";
+            icon = "æ— å¼.dds";
             max_level = 10;
             type = 2;
             apcost = 0;
@@ -42,7 +42,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 1;
-            effect = "2´çÁ¦.sgc";
+            effect = "2å¯¸åŠ›.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

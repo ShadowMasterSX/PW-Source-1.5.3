@@ -2,7 +2,7 @@
 #include "TaskTemplMan.h"
 
 /* Version Info */
-unsigned long _task_templ_cur_version = 121;
+unsigned long _task_templ_cur_version = 125;
 
 static const char _format_version[]			= "MOXTVersion: %u";
 static const char _format_task_count[]		= "TaskCount: %d";
@@ -72,6 +72,8 @@ static const char _format_deliveredSkillLevel[] = "Delivered Skill Level: %d";
 
 static const char _format_showGfxWhenFinished[] = "Show Gfx: %d"; // version 78
 static const char _format_changePQRanking[] = "Change PQ Ranking: %d"; // version 79
+
+static const char _format_towertask[] = "Tower Task: %d";	// version 123
 
 static const char _format_taskRegionCnt[] = "taskRegionCnt: %u"; // version 80
 
@@ -222,6 +224,11 @@ static const char _format_prem_cardcollection[] = "CardCollection Count: %d";
 static const char _format_prem_cardrank[] = "CardRank: %d";
 static const char _format_prem_cardrankcount[] = "CardRankCount: %u";
 static const char _format_by_historyStage[]			= "ShowByHistoryStage: %d";
+static const char _format_prem_iconstate_id[] = "PremiseIconStateID: %d";
+static const char _format_by_iconstate_id[]	= "ShowByIconStateID: %d";
+static const char _format_VIP_level_min[] = "VIPLevelMin: %d";
+static const char _format_VIP_level_max[] = "VIPLevelMax: %d";
+static const char _format_by_VIP_level[]	= "ShowByVIPLevel: %d";
 
 /* 任务完成的方式及条件 */
 static const char _format_transformed_mask[] = "TransformedMask: %c";
@@ -263,6 +270,7 @@ static const char _format_discharcnt[]= "DisplayTaskCharCnt: %d";
 static const char _format_reach_level[] = "ReachLevel: %u";
 static const char _format_reach_reincarnation_count[] = "ReachReincarnationCount: %u";
 static const char _format_reach_realm_level[] = "ReachRealmLevel: %u";
+static const char _format_tm_iconstate_id[] = "TMIconStateID: %u";
 
 /* 任务结束后的奖励 */
 static const char _format_award_faction_contrib[] = "FactionContrib: %d";
@@ -354,6 +362,8 @@ static const char _format_award_historychange_typ[]= "HistoryChangeType: %d";
 
 static const char _format_award_leadership[] = "LeaderShip: %d";
 static const char _format_award_worldcontrib[] = "AwardWorldContrib: %d";
+
+static const char _format_award_solotowerchallengescore[] = "AwardSoloTowerChallengeScore: %d";
 
 /* 层次关系 */
 static const char _format_parent[]			= "ParentId: %u";
@@ -1335,6 +1345,14 @@ inline bool LoadAwardData(FILE* fp, AWARD_DATA& ad, unsigned long ulVersion)
 		sscanf(line,_format_award_DeliverySkillLevel,&ad.m_iAwardSkillLevel);
 	}
 
+	if (ulVersion >= 124)
+	{
+		if (!ReadLine(fp, line)) {
+			return false;
+		}
+		sscanf(line,_format_award_solotowerchallengescore, &ad.m_iSoloTowerChallengeScore);
+	}
+
 	return true;
 }
 
@@ -2204,6 +2222,13 @@ bool ATaskTemplFixedData::LoadFixedDataFromTextFile(FILE* fp, unsigned long ulVe
 		sscanf(line,_format_needInventorySlotNum,&m_ulInventorySlotNum);
 	}
 
+	if (ulVersion >= 123)
+	{
+		if (!ReadLine(fp, line)) return false;
+		sscanf(line, _format_towertask, &nRead);
+		m_bTowerTask = (nRead != 0);
+	}
+
 	if (ulVersion >=83)
 	{
 		if(!ReadLine(fp,line)) return false;
@@ -2923,7 +2948,25 @@ bool ATaskTemplFixedData::LoadFixedDataFromTextFile(FILE* fp, unsigned long ulVe
 		sscanf(line, _format_by_generalcard_rankcnt, &nRead);
 		m_bShowByGeneralCardRank = (nRead != 0);
 	}
+	if (ulVersion >= 122){
+		if (!ReadLine(fp, line)) return false;
+		sscanf(line, _format_prem_iconstate_id, &m_ulPremIconStateID);
+		
+		if (!ReadLine(fp, line)) return false;
+		sscanf(line, _format_by_iconstate_id, &nRead);
+		m_bShowByIconStateID = (nRead != 0);
+	}
+	if (ulVersion >= 125){
+		if (!ReadLine(fp, line)) return false;
+		sscanf(line, _format_VIP_level_min, &m_iVIPLevelMin);
 
+		if (!ReadLine(fp, line)) return false;
+		sscanf(line, _format_VIP_level_max, &m_iVIPLevelMax);
+
+		if (!ReadLine(fp, line)) return false;
+		sscanf(line, _format_by_VIP_level, &nRead);
+		m_bShowByVIPLevel = (nRead != 0);
+	}
 	/* 任务完成的方式及条件 */
 
 	if (!ReadLine(fp, line)) return false;
@@ -3230,6 +3273,14 @@ bool ATaskTemplFixedData::LoadFixedDataFromTextFile(FILE* fp, unsigned long ulVe
 
 		if (!ReadLine(fp, line)) return false;
 		sscanf(line, _format_world_id, &m_ulLeaveSiteId);
+	}
+	else if (m_enumMethod == enumTMHasIconStateID)
+	{
+		if (ulVersion >= 122)
+		{
+			if (!ReadLine(fp, line)) return false;
+			sscanf(line, _format_tm_iconstate_id, &m_ulTMIconStateID);
+		}
 	}
 
 	if (ulVersion >= 58)
@@ -3687,6 +3738,9 @@ bool ATaskTemplFixedData::operator ==(const ATaskTemplFixedData& src) const
 				 m_bShowByRMB				== src.m_bShowByRMB						&&
 				 m_ulPremRMBMin				== src.m_ulPremRMBMin					&&
 				 m_ulPremRMBMax				== src.m_ulPremRMBMax					&&
+				 m_iVIPLevelMin				== src.m_iVIPLevelMin					&&
+				 m_iVIPLevelMax				== src.m_iVIPLevelMax					&&
+				 m_bShowByVIPLevel			== src.m_bShowByVIPLevel				&&
 				 m_bCharTime				== src.m_bCharTime						&&
 				 m_bShowByCharTime			== src.m_bShowByCharTime				&&
 				 m_iCharStartTime			== src.m_iCharStartTime					&&
@@ -3720,6 +3774,8 @@ bool ATaskTemplFixedData::operator ==(const ATaskTemplFixedData& src) const
 				 m_nPremExp1AndOrExp2		== src.m_nPremExp1AndOrExp2				&&
 				 m_Prem1KeyValue			== src.m_Prem1KeyValue					&&
 				 m_Prem2KeyValue			== src.m_Prem2KeyValue					&&
+				 m_ulPremIconStateID		== src.m_ulPremIconStateID				&&
+				 m_bShowByIconStateID		== src.m_bShowByIconStateID				&&
 				 m_enumMethod				== src.m_enumMethod						&&
 				 m_enumFinishType			== src.m_enumFinishType					&&
 				 m_ulGoldWanted				== src.m_ulGoldWanted					&&
@@ -3732,6 +3788,7 @@ bool ATaskTemplFixedData::operator ==(const ATaskTemplFixedData& src) const
 				 m_ulReachSiteId			== src.m_ulReachSiteId					&&
 				 m_ulWaitTime				== src.m_ulWaitTime						&&
 				 m_ulLeaveSiteId			== src.m_ulLeaveSiteId					&&
+				 m_ulTMIconStateID			== src.m_ulTMIconStateID				&&
 				 m_bFinNeedComp				== src.m_bFinNeedComp					&&
 				 m_nFinExp1AndOrExp2		== src.m_nFinExp1AndOrExp2				&&
 				 m_Fin1KeyValue				== src.m_Fin1KeyValue					&&
@@ -4952,7 +5009,7 @@ class CSafeString
 public:
 	CSafeString(LPCSTR lpsz, int nLen) : m_wszBuf(NULL)
 	{
-		ASSERT(lpsz);
+		assert(lpsz);
 		if (nLen < 0) nLen = strlen(lpsz);
 		m_szBuf = new char[nLen+1];
 		strncpy(m_szBuf, lpsz, nLen);
@@ -4961,7 +5018,7 @@ public:
 
 	CSafeString(LPCSTR lpsz) : m_wszBuf(NULL)
 	{
-		ASSERT(lpsz);
+		assert(lpsz);
 		int n = strlen(lpsz);
 		m_szBuf = new char[n+1];
 		strcpy(m_szBuf, lpsz);
@@ -4969,7 +5026,7 @@ public:
 	
 	CSafeString(LPCWSTR lpwsz, int nLen) : m_szBuf(NULL)
 	{
-		ASSERT(lpwsz);
+		assert(lpwsz);
 		if (nLen < 0) nLen = wcslen(lpwsz);
 		m_wszBuf = new wchar_t[nLen+1];
 		wcsncpy(m_wszBuf, lpwsz, nLen);
@@ -4978,7 +5035,7 @@ public:
 
 	CSafeString(LPCWSTR lpwsz) : m_szBuf(NULL)
 	{
-		ASSERT(lpwsz);
+		assert(lpwsz);
 		int n = wcslen(lpwsz);
 		m_wszBuf = new wchar_t[n+1];
 		wcscpy(m_wszBuf, lpwsz);
@@ -5012,7 +5069,7 @@ public:
 	LPCSTR GetAnsi()
 	{
 		if (m_szBuf) return m_szBuf;
-		ASSERT(m_wszBuf);
+		assert(m_wszBuf);
 		
 		int nCount = WideCharToMultiByte(
 			CODE_PAGE,
@@ -5041,7 +5098,7 @@ public:
 	LPCWSTR GetUnicode()
 	{
 		if (m_wszBuf) return m_wszBuf;
-		ASSERT(m_szBuf);
+		assert(m_szBuf);
 		
 		int nCount = MultiByteToWideChar(
 			CODE_PAGE,
@@ -5505,6 +5562,8 @@ inline void SaveAwardData(const AWARD_DATA& ad, FILE* fp)
 	fprintf(fp, _format_award_DeliverySkillLevel,ad.m_iAwardSkillLevel); // version 77.
 	fprintf(fp, "\r\n");
 
+	fprintf(fp, _format_award_solotowerchallengescore, ad.m_iSoloTowerChallengeScore); // version 124.
+	fprintf(fp, "\r\n");
 }
 
 inline void SaveAwardDataBin(const AWARD_DATA& ad, FILE* fp)
@@ -5658,8 +5717,60 @@ inline void SaveAwardDataByItem(const AWARD_ITEMS_SCALE& ad, FILE* fp)
 		SaveAwardDataBin(ad.m_Awards[i], fp);
 }
 
+// 清除爬塔任务奖励里的物品和新任务：爬塔任务的奖励里不能有物品或新任务，防止任务无法完成
+static void RemoveItemAndTaskAward(AWARD_DATA* pAward)
+{
+	pAward->m_ulCandItems = 0;
+	pAward->m_ulNewTask = 0;
+}
+static void CheckAndRemoveAwardOnTowerTask(ATaskTemplFixedData* pTempl)
+{
+	if (!pTempl->m_bTowerTask)
+	{
+		return;
+	}
+	if (pTempl->m_Award_S)
+	{
+		RemoveItemAndTaskAward(pTempl->m_Award_S);
+	}
+	if (pTempl->m_Award_F)
+	{
+		RemoveItemAndTaskAward(pTempl->m_Award_F);
+	}
+	if (pTempl->m_AwByRatio_S)
+	{
+		for (int i = 0; i < pTempl->m_AwByRatio_S->m_ulScales; i++)
+		{
+			RemoveItemAndTaskAward(&(pTempl->m_AwByRatio_S->m_Awards[i]));
+		}
+	}
+	if (pTempl->m_AwByRatio_F)
+	{
+		for (int i = 0; i < pTempl->m_AwByRatio_F->m_ulScales; i++)
+		{
+			RemoveItemAndTaskAward(&(pTempl->m_AwByRatio_F->m_Awards[i]));
+		}
+	}
+	if (pTempl->m_AwByItems_S)
+	{
+		for (int i = 0; i < pTempl->m_AwByItems_S->m_ulScales; i++)
+		{
+			RemoveItemAndTaskAward(&(pTempl->m_AwByItems_S->m_Awards[i]));
+		}
+	}
+	if (pTempl->m_AwByItems_F)
+	{
+		for (int i = 0; i < pTempl->m_AwByItems_F->m_ulScales; i++)
+		{
+			RemoveItemAndTaskAward(&(pTempl->m_AwByItems_F->m_Awards[i]));
+		}
+	}
+}
+
 void ATaskTemplFixedData::SaveFixedDataToTextFile(FILE* fp)
 {
+	CheckAndRemoveAwardOnTowerTask(this);
+
 	unsigned long i;
 
 	fprintf(fp, _format_id, m_ID);
@@ -6014,6 +6125,9 @@ void ATaskTemplFixedData::SaveFixedDataToTextFile(FILE* fp)
 
 	fprintf(fp,_format_needInventorySlotNum,m_ulInventorySlotNum);
 	fprintf(fp,"\r\n");
+
+	fprintf(fp, _format_towertask, m_bTowerTask);	// version 123
+	fprintf(fp, "\r\n");
 
 	fprintf(fp,_format_is_library_task,m_bIsLibraryTask); //version 83
 	fprintf(fp,"\r\n");
@@ -6464,6 +6578,22 @@ void ATaskTemplFixedData::SaveFixedDataToTextFile(FILE* fp)
 	
 	fprintf(fp, _format_by_generalcard_rankcnt, m_bShowByGeneralCardRank);
 	fprintf(fp, "\r\n");
+
+	fprintf(fp, _format_prem_iconstate_id, m_ulPremIconStateID);
+	fprintf(fp, "\r\n");
+	
+	fprintf(fp, _format_by_iconstate_id, m_bShowByIconStateID);
+	fprintf(fp, "\r\n");
+
+	fprintf(fp, _format_VIP_level_min, m_iVIPLevelMin);
+	fprintf(fp, "\r\n");
+
+	fprintf(fp, _format_VIP_level_max, m_iVIPLevelMax);
+	fprintf(fp, "\r\n");
+
+	fprintf(fp, _format_by_VIP_level, m_bShowByVIPLevel);
+	fprintf(fp, "\r\n");
+
 	/* 任务完成的方式及条件 */
 
 	if (m_ulFirstChild)
@@ -6680,6 +6810,11 @@ void ATaskTemplFixedData::SaveFixedDataToTextFile(FILE* fp)
 		fprintf(fp, _format_world_id, m_ulLeaveSiteId);
 		fprintf(fp, "\r\n");
 	}
+	else if (m_enumMethod == enumTMHasIconStateID)
+	{
+		fprintf(fp, _format_tm_iconstate_id, m_ulTMIconStateID);
+		fprintf(fp, "\r\n");
+	}
 
 	fprintf(fp, _format_need_comp, m_bFinNeedComp);
 	fprintf(fp, "\r\n");
@@ -6801,6 +6936,8 @@ void ATaskTemplFixedData::SaveFixedDataToTextFile(FILE* fp)
 
 void ATaskTemplFixedData::SaveFixedDataToBinFile(FILE* fp)
 {
+	CheckAndRemoveAwardOnTowerTask(this);
+
 	unsigned long i;
 
 	// 如果选择某个子任务，则不能顺序执行
@@ -7666,8 +7803,11 @@ int GetComboBoxFromTaskType(int nTaskType)
 	case enumTTFaction: 
 	case enumTTFunction:
 	case enumTTLegend:
+	case enumTTQuestion:
 		ret = nTaskType - 100; break;
-	default: break;
+	default:
+		assert(false && "unknown task type!");
+		break;
 	}
 	return ret;
 }

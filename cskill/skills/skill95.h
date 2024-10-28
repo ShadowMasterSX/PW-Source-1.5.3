@@ -133,9 +133,9 @@ namespace GNET
       Skill95Stub ():SkillStub (95)
         {
             cls = 1;
-            name = L"��";
-            nativename = "��";
-            icon = "ˮɷ.dds";
+            name = L"＊";
+            nativename = "＊";
+            icon = "水煞.dds";
             max_level = 10;
             type = 1;
             apcost = 0;
@@ -162,7 +162,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (292);
             }
-            effect = "ˮɷ.sgc";
+            effect = "水煞.sgc";
             range.type = 3;
             doenchant = false;
             dobless = false;

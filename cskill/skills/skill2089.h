@@ -132,9 +132,9 @@ namespace GNET
       Skill2089Stub ():SkillStub (2089)
         {
             cls = 127;
-            name = L"忠犬";
-            nativename = "忠犬";
-            icon = "宠物强化.dds";
+            name = L"蹇犵姮";
+            nativename = "蹇犵姮";
+            icon = "瀹犵墿寮哄寲.dds";
             max_level = 10;
             type = 3;
             apcost = 0;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "巫师_冥王乐土.sgc";
+            effect = "宸笀_鍐ョ帇涔愬湡.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

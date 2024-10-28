@@ -58,9 +58,9 @@ namespace GNET
       Skill917Stub ():SkillStub (917)
         {
             cls = 6;
-            name = L"元魂迸发";
-            nativename = "元魂迸发";
-            icon = "元魂迸发.dds";
+            name = L"鍏冮瓊杩稿彂";
+            nativename = "鍏冮瓊杩稿彂";
+            icon = "鍏冮瓊杩稿彂.dds";
             max_level = 1;
             type = 2;
             apcost = 0;
@@ -104,7 +104,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "元魂迸发.sgc";
+            effect = "鍏冮瓊杩稿彂.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

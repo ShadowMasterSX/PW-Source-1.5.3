@@ -59,9 +59,9 @@ namespace GNET
       Skill2816Stub ():SkillStub (2816)
         {
             cls = 11;
-            name = L"¿ñ¡¤ÄæÂÒÒõÑô";
-            nativename = "¿ñ¡¤ÄæÂÒÒõÑô";
-            icon = "Ä§ÄæÂÒÒõÑô.dds";
+            name = L"ç‹‚Â·é€†ä¹±é˜´é˜³";
+            nativename = "ç‹‚Â·é€†ä¹±é˜´é˜³";
+            icon = "é­”é€†ä¹±é˜´é˜³.dds";
             max_level = 1;
             type = 2;
             apcost = 30;

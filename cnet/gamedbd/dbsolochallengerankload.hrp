@@ -1,0 +1,88 @@
+
+#ifndef __GNET_DBSOLOCHALLENGERANKLOAD_HPP
+#define __GNET_DBSOLOCHALLENGERANKLOAD_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "gamedbmanager.h"
+
+#include "dbsolochallengerankloadarg"
+#include "dbsolochallengerankloadres"
+
+
+namespace GNET
+{
+
+class DBSoloChallengeRankLoad : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbsolochallengerankload"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+        DBSoloChallengeRankLoadArg* arg = (DBSoloChallengeRankLoadArg*)argument;
+        DBSoloChallengeRankLoadRes* res = (DBSoloChallengeRankLoadRes*)result;
+        Marshal::OctetsStream value;
+
+        try
+        {
+            StorageEnv::Storage* pdata = StorageEnv::GetStorage("solochallengerank");
+            StorageEnv::AtomTransaction txn;
+
+            try
+            {
+                if (!GameDBManager::GetInstance()->IsCentralDB())
+                {
+                    if (pdata->find((Marshal::OctetsStream() << 0), value, txn))
+                    {
+                        value >> (res->data_ext_local);
+                    }
+                }
+                else
+                {
+                    if (pdata->find((Marshal::OctetsStream() << 1), value, txn))
+                    {
+                        value >> (res->data_ext_global);
+                    }
+                }
+
+                res->retcode = ERR_SUCCESS;
+            }
+            catch (DbException e) { throw; }
+            catch (...)
+            {
+                DbException e(DB_OLD_VERSION);
+                txn.abort(e);
+                throw e;
+            }
+        }
+        catch (DbException e)
+        {
+            if (e.get_errno() == DB_LOCK_DEADLOCK)
+                res->retcode = ERR_AGAIN;
+            else
+                res->retcode = ERR_EXCEPTION;
+
+            Log::log(LOG_ERR, "DBSoloChallengeRankLoad, what=%s.", e.what());
+        }
+    }
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBSoloChallengeRankLoadArg *arg = (DBSoloChallengeRankLoadArg *)argument;
+		// DBSoloChallengeRankLoadRes *res = (DBSoloChallengeRankLoadRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

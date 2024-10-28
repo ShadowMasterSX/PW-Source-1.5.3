@@ -12,19 +12,21 @@ namespace GNET
 		int jointime;
 		int loyalty;
 		int logintime;
-		int reserved1;
+		Octets uniqueinfo;
+		char reserved1;
+		short reserved2;
 
 	public:
 		GFactionExtend (int l_jointime = 0,int l_loyalty = 0,int l_logintime = 0
-			,int l_reserved1 = 0)
+			,const Octets& l_uniqueinfo = Octets(),char l_reserved1 = 0,short l_reserved2 = 0)
 			: jointime(l_jointime),loyalty(l_loyalty),logintime(l_logintime)
-			,reserved1(l_reserved1)
+			,uniqueinfo(l_uniqueinfo),reserved1(l_reserved1),reserved2(l_reserved2)
 		{
 		}
 
 		GFactionExtend(const GFactionExtend &rhs)
 			: jointime(rhs.jointime),loyalty(rhs.loyalty),logintime(rhs.logintime),
-			reserved1(rhs.reserved1) { }
+			uniqueinfo(rhs.uniqueinfo),reserved1(rhs.reserved1),reserved2(rhs.reserved2) { }
 
 		Rpc::Data *Clone() const { return new GFactionExtend(*this); }
 
@@ -36,7 +38,9 @@ namespace GNET
 				jointime = r->jointime;
 				loyalty = r->loyalty;
 				logintime = r->logintime;
+				uniqueinfo = r->uniqueinfo;
 				reserved1 = r->reserved1;
+				reserved2 = r->reserved2;
 			}
 			return *this;
 		}
@@ -49,7 +53,9 @@ namespace GNET
 				jointime = r->jointime;
 				loyalty = r->loyalty;
 				logintime = r->logintime;
+				uniqueinfo = r->uniqueinfo;
 				reserved1 = r->reserved1;
+				reserved2 = r->reserved2;
 			}
 			return *this;
 		}
@@ -59,7 +65,9 @@ namespace GNET
 			os << jointime;
 			os << loyalty;
 			os << logintime;
+			os << uniqueinfo;
 			os << reserved1;
+			os << reserved2;
 			return os;
 		}
 
@@ -68,7 +76,9 @@ namespace GNET
 			os >> jointime;
 			os >> loyalty;
 			os >> logintime;
+			os >> uniqueinfo;
 			os >> reserved1;
+			os >> reserved2;
 			return os;
 		}
 

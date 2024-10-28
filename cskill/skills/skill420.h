@@ -137,9 +137,9 @@ namespace GNET
       Skill420Stub ():SkillStub (420)
         {
             cls = 0;
-            name = L"�桤�򽣾�";
-            nativename = "�桤�򽣾�";
-            icon = "�򽣾�1.dds";
+            name = L"真·万剑诀";
+            nativename = "真·万剑诀";
+            icon = "万剑诀1.dds";
             max_level = 1;
             type = 1;
             apcost = 100;
@@ -164,7 +164,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (1);
             }
-            effect = "1�򽣾�.sgc";
+            effect = "1万剑诀.sgc";
             range.type = 3;
             doenchant = true;
             dobless = true;

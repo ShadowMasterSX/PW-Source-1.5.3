@@ -19,8 +19,8 @@ namespace GNET
         Skill2599Stub ():SkillStub (2599)
         {
             cls = 10;
-            name = L"Ò¹èÉ¼¼ÄÜÐ§¹û";
-            nativename = "Ò¹èÉ¼¼ÄÜÐ§¹û";
+            name = L"å¤œæž­æŠ€èƒ½æ•ˆæžœ";
+            nativename = "å¤œæž­æŠ€èƒ½æ•ˆæžœ";
             icon = "";
             max_level = 10;
             type = 2;

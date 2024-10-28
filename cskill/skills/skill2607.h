@@ -136,9 +136,9 @@ namespace GNET
       Skill2607Stub ():SkillStub (2607)
         {
             cls = 10;
-            name = L"水月镜花·强冲刺杀";
-            nativename = "水月镜花·强冲刺杀";
-            icon = "致盲.dds";
+            name = L"姘存湀闀滆姳路寮哄啿鍒烘潃";
+            nativename = "姘存湀闀滆姳路寮哄啿鍒烘潃";
+            icon = "鑷寸洸.dds";
             max_level = 1;
             type = 1;
             apcost = 200;
@@ -162,7 +162,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (44878);
             }
-            effect = "刺客_强冲刺杀.sgc";
+            effect = "鍒哄_寮哄啿鍒烘潃.sgc";
             range.type = 0;
             doenchant = false;
             dobless = true;

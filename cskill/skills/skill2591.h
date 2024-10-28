@@ -305,9 +305,9 @@ namespace GNET
       Skill2591Stub ():SkillStub (2591)
         {
             cls = 11;
-            name = L"月华乱舞";
-            nativename = "月华乱舞";
-            icon = "月华乱舞.dds";
+            name = L"鏈堝崕涔辫垶";
+            nativename = "鏈堝崕涔辫垶";
+            icon = "鏈堝崕涔辫垶.dds";
             max_level = 10;
             type = 1;
             apcost = 50;
@@ -328,7 +328,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 3;
-            effect = "月仙_月华乱舞_击中.sgc";
+            effect = "鏈堜粰_鏈堝崕涔辫垶_鍑讳腑.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

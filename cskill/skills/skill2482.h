@@ -133,8 +133,8 @@ namespace GNET
       Skill2482Stub ():SkillStub (2482)
         {
             cls = 127;
-            name = L"随机副本-自爆光圈";
-            nativename = "随机副本-自爆光圈";
+            name = L"闅忔満鍓湰-鑷垎鍏夊湀";
+            nativename = "闅忔満鍓湰-鑷垎鍏夊湀";
             icon = "";
             max_level = 10;
             type = 3;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "怪物自爆.sgc";
+            effect = "鎬墿鑷垎.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

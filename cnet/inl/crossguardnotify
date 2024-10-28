@@ -1,0 +1,32 @@
+	public:
+		IntVector carnival;
+		enum { PROTOCOL_TYPE = PROTOCOL_CROSSGUARDNOTIFY };
+	public:
+		CrossGuardNotify() { type = PROTOCOL_CROSSGUARDNOTIFY; }
+		CrossGuardNotify(void*) : Protocol(PROTOCOL_CROSSGUARDNOTIFY) { }
+		CrossGuardNotify (IntVector l_carnival)
+			 : carnival(l_carnival)
+		{
+			type = PROTOCOL_CROSSGUARDNOTIFY;
+		}
+
+		CrossGuardNotify(const CrossGuardNotify &rhs)
+			: Protocol(rhs),carnival(rhs.carnival) { }
+
+		GNET::Protocol *Clone() const { return new CrossGuardNotify(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << carnival;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> carnival;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 512; }

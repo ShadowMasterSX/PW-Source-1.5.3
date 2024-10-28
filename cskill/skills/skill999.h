@@ -60,9 +60,9 @@ namespace GNET
       Skill999Stub ():SkillStub (999)
         {
             cls = 258;
-            name = L"ÌìÀ×ÆÆ";
-            nativename = "ÌìÀ×ÆÆ";
-            icon = "ÌìÀ×ÆÆ.dds";
+            name = L"å¤©é›·ç ´";
+            nativename = "å¤©é›·ç ´";
+            icon = "å¤©é›·ç ´.dds";
             max_level = 10;
             type = 1;
             apcost = 246099;
@@ -82,7 +82,7 @@ namespace GNET
             long_range = 2;
             restrict_corpse = 0;
             allow_forms = 1;
-            effect = "ÌìÀ×ÆÆ.sgc";
+            effect = "å¤©é›·ç ´.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

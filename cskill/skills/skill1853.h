@@ -134,9 +134,9 @@ namespace GNET
       Skill1853Stub ():SkillStub (1853)
         {
             cls = 9;
-            name = L"百花缭乱";
-            nativename = "百花缭乱";
-            icon = "迷色万花.dds";
+            name = L"鐧捐姳缂贡";
+            nativename = "鐧捐姳缂贡";
+            icon = "杩疯壊涓囪姳.dds";
             max_level = 1;
             type = 2;
             apcost = 0;

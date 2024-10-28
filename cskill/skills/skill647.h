@@ -137,9 +137,9 @@ namespace GNET
       Skill647Stub ():SkillStub (647)
         {
             cls = 3;
-            name = L"¿ñ¡¤Íò¹ÆÊ³Ìì";
-            nativename = "¿ñ¡¤Íò¹ÆÊ³Ìì";
-            icon = "Íò¹ÆÊ³Ìì2.dds";
+            name = L"ç‹‚Â·ä¸‡è›Šé£Ÿå¤©";
+            nativename = "ç‹‚Â·ä¸‡è›Šé£Ÿå¤©";
+            icon = "ä¸‡è›Šé£Ÿå¤©2.dds";
             max_level = 1;
             type = 1;
             apcost = 200;
@@ -167,7 +167,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (292);
             }
-            effect = "2Íò¹ÆÊ³Ìì.sgc";
+            effect = "2ä¸‡è›Šé£Ÿå¤©.sgc";
             range.type = 3;
             doenchant = true;
             dobless = false;

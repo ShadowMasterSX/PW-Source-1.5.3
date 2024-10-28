@@ -133,9 +133,9 @@ namespace GNET
       Skill1879Stub ():SkillStub (1879)
         {
             cls = 127;
-            name = L"Ìì¼«¾»»ğ";
-            nativename = "Ìì¼«¾»»ğ";
-            icon = "»Ø¹â¾÷.dds";
+            name = L"å¤©æå‡€ç«";
+            nativename = "å¤©æå‡€ç«";
+            icon = "å›å…‰è¯€.dds";
             max_level = 10;
             type = 1;
             apcost = 0;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "Ë«×ÓĞÇ_µØÁ³.sgc";
+            effect = "åŒå­æ˜Ÿ_åœ°è„¸.sgc";
             range.type = 3;
             doenchant = true;
             dobless = false;

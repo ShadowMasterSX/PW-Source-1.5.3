@@ -135,9 +135,9 @@ namespace GNET
       Skill932Stub ():SkillStub (932)
         {
             cls = 6;
-            name = L"Ѫʸ";
-            nativename = "Ѫʸ";
-            icon = "Ѫʸ.dds";
+            name = L"血矢";
+            nativename = "血矢";
+            icon = "血矢.dds";
             max_level = 1;
             type = 1;
             apcost = 100;
@@ -161,7 +161,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (13);
             }
-            effect = "Ѫ��.sgc";
+            effect = "血咒.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

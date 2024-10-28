@@ -1,4 +1,5 @@
 #include "world.h"
+#include "worldmanager.h"
 
 int extern_object_manager::GetWorldIndex() 
 { 

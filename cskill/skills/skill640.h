@@ -137,9 +137,9 @@ namespace GNET
       Skill640Stub ():SkillStub (640)
         {
             cls = 3;
-            name = L"Õæ¡¤ÁèËª¹Æ";
-            nativename = "Õæ¡¤ÁèËª¹Æ";
-            icon = "ÁèËª¹Æ1.dds";
+            name = L"çœŸÂ·å‡Œéœœè›Š";
+            nativename = "çœŸÂ·å‡Œéœœè›Š";
+            icon = "å‡Œéœœè›Š1.dds";
             max_level = 1;
             type = 1;
             apcost = 100;
@@ -167,7 +167,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (292);
             }
-            effect = "1ÁèËª¹Æ.sgc";
+            effect = "1å‡Œéœœè›Š.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

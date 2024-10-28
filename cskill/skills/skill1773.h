@@ -19,8 +19,8 @@ namespace GNET
         Skill1773Stub ():SkillStub (1773)
         {
             cls = 255;
-            name = L"定身2";
-            nativename = "定身2";
+            name = L"瀹氳韩2";
+            nativename = "瀹氳韩2";
             icon = "";
             max_level = 1;
             type = 6;

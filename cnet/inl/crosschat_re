@@ -1,0 +1,59 @@
+	public:
+		int sn;
+		int zoneid;
+		unsigned char channel;
+		unsigned char emotion;
+		int roleid;
+		Octets name;
+		Octets msg;
+		Octets data;
+		enum { PROTOCOL_TYPE = PROTOCOL_CROSSCHAT_RE };
+	public:
+		CrossChat_Re() { type = PROTOCOL_CROSSCHAT_RE; }
+		CrossChat_Re(void*) : Protocol(PROTOCOL_CROSSCHAT_RE) { }
+		CrossChat_Re (int l_sn,int l_zoneid,unsigned char l_channel,
+			unsigned char l_emotion,int l_roleid,const Octets& l_name,
+			const Octets& l_msg,const Octets& l_data)
+			 : sn(l_sn),zoneid(l_zoneid),channel(l_channel)
+			,emotion(l_emotion),roleid(l_roleid),name(l_name)
+			,msg(l_msg),data(l_data)
+		{
+			type = PROTOCOL_CROSSCHAT_RE;
+		}
+
+		CrossChat_Re(const CrossChat_Re &rhs)
+			: Protocol(rhs),sn(rhs.sn),zoneid(rhs.zoneid),channel(rhs.channel)
+			,emotion(rhs.emotion),roleid(rhs.roleid),name(rhs.name)
+			,msg(rhs.msg),data(rhs.data) { }
+
+		GNET::Protocol *Clone() const { return new CrossChat_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << sn;
+			os << zoneid;
+			os << channel;
+			os << emotion;
+			os << roleid;
+			os << name;
+			os << msg;
+			os << data;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> sn;
+			os >> zoneid;
+			os >> channel;
+			os >> emotion;
+			os >> roleid;
+			os >> name;
+			os >> msg;
+			os >> data;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 8192; }

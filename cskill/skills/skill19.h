@@ -133,9 +133,9 @@ namespace GNET
       Skill19Stub ():SkillStub (19)
         {
             cls = 7;
-            name = L"Óð¶Ü";
-            nativename = "Óð¶Ü";
-            icon = "Óð¶Ü.dds";
+            name = L"ç¾½ç›¾";
+            nativename = "ç¾½ç›¾";
+            icon = "ç¾½ç›¾.dds";
             max_level = 10;
             type = 2;
             apcost = 30;

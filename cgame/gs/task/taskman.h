@@ -147,6 +147,16 @@ public:
 	virtual void TakeAwayWorldContribution(int contribution);
 	virtual int GetWorldContributionSpend();
 	virtual bool PlayerCanSpendContributionAsWill();
+	//virtual void SoloChallengeTaskAward();
+	virtual bool HasIconStateID(unsigned long ulIconStateID);
+	 
+	// 爬塔任务相关
+	virtual void OnTowerTaskDeliver(bool bSuccess);		// 爬塔任务发放
+	virtual void OnTowerTaskComplete(bool bSuccess);	// 爬塔任务完成
+	virtual void DeliverSoloTowerChallengeScore(int score);	// 发放单人爬塔积分奖励(积分上限和当前积分都要增加)
+
+	// VIP
+	virtual int GetVIPLevel();
 public:
 	PlayerTaskInterface(gplayer_imp * imp):_imp(imp)
 	{}

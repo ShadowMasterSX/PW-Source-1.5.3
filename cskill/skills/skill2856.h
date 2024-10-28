@@ -19,8 +19,8 @@ namespace GNET
         Skill2856Stub ():SkillStub (2856)
         {
             cls = 10;
-            name = L"2759-�񳤷缼��Ч��";
-            nativename = "2759-�񳤷缼��Ч��";
+            name = L"2759-狂长风技能效果";
+            nativename = "2759-狂长风技能效果";
             icon = "";
             max_level = 10;
             type = 3;

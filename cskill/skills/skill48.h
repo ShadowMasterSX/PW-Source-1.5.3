@@ -132,8 +132,8 @@ namespace GNET
       Skill48Stub ():SkillStub (48)
         {
             cls = 127;
-            name = L"·ÅÑªÊõ";
-            nativename = "·ÅÑªÊõ";
+            name = L"æ”¾è¡€æœ¯";
+            nativename = "æ”¾è¡€æœ¯";
             icon = "";
             max_level = 10;
             type = 3;
@@ -153,7 +153,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "Á÷ĞÇ´¸.sgc";
+            effect = "æµæ˜Ÿé”¤.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

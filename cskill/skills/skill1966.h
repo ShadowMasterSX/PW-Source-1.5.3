@@ -57,8 +57,8 @@ namespace GNET
       Skill1966Stub ():SkillStub (1966)
         {
             cls = 127;
-            name = L"变身松鼠";
-            nativename = "变身松鼠";
+            name = L"鍙樿韩鏉鹃紶";
+            nativename = "鍙樿韩鏉鹃紶";
             icon = "";
             max_level = 10;
             type = 4;
@@ -80,7 +80,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 3;
-            effect = "怪物自爆.sgc";
+            effect = "鎬墿鑷垎.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

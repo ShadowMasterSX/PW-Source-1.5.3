@@ -132,9 +132,9 @@ namespace GNET
       Skill2606Stub ():SkillStub (2606)
         {
             cls = 10;
-            name = L"水月镜花·玄武附体";
-            nativename = "水月镜花·玄武附体";
-            icon = "玄武附体.dds";
+            name = L"姘存湀闀滆姳路鐜勬闄勪綋";
+            nativename = "姘存湀闀滆姳路鐜勬闄勪綋";
+            icon = "鐜勬闄勪綋.dds";
             max_level = 1;
             type = 2;
             apcost = 200;
@@ -158,7 +158,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (44878);
             }
-            effect = "玄武附体.sgc";
+            effect = "鐜勬闄勪綋.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

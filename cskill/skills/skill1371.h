@@ -19,9 +19,9 @@ namespace GNET
         Skill1371Stub ():SkillStub (1371)
         {
             cls = 8;
-            name = L"µ¶½£¾«Í¨";
-            nativename = "µ¶½£¾«Í¨";
-            icon = "½£Áéµ¶½£¾«Í¨.dds";
+            name = L"åˆ€å‰‘ç²¾é€š";
+            nativename = "åˆ€å‰‘ç²¾é€š";
+            icon = "å‰‘çµåˆ€å‰‘ç²¾é€š.dds";
             max_level = 10;
             type = 5;
             apcost = 0;

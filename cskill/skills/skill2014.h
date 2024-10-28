@@ -133,8 +133,8 @@ namespace GNET
       Skill2014Stub ():SkillStub (2014)
         {
             cls = 127;
-            name = L"法师石破天惊";
-            nativename = "法师石破天惊";
+            name = L"娉曞笀鐭崇牬澶╂儕";
+            nativename = "娉曞笀鐭崇牬澶╂儕";
             icon = "";
             max_level = 10;
             type = 3;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "1石破天惊.sgc";
+            effect = "1鐭崇牬澶╂儕.sgc";
             range.type = 3;
             doenchant = true;
             dobless = false;

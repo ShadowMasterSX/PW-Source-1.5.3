@@ -60,9 +60,9 @@ namespace GNET
       Skill967Stub ():SkillStub (967)
         {
             cls = 258;
-            name = L"电舞";
-            nativename = "电舞";
-            icon = "电舞.dds";
+            name = L"鐢佃垶";
+            nativename = "鐢佃垶";
+            icon = "鐢佃垶.dds";
             max_level = 10;
             type = 1;
             apcost = 216086;
@@ -82,7 +82,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 1;
-            effect = "电舞.sgc";
+            effect = "鐢佃垶.sgc";
             range.type = 3;
             doenchant = true;
             dobless = false;

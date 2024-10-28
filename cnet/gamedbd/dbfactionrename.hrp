@@ -10,6 +10,7 @@
 #include "dbfactionrenameres"
 #include "gfactioninfo"
 #include "utilfunction.h"
+#include "gfactionextenddata"
 
 namespace GNET
 {
@@ -36,6 +37,7 @@ class DBFactionRename : public Rpc
 			StorageEnv::Storage * pstorehouse = StorageEnv::GetStorage("storehouse");
 			StorageEnv::Storage * pinfo = StorageEnv::GetStorage("factioninfo");
 			StorageEnv::Storage * pname = StorageEnv::GetStorage("factionname");
+			StorageEnv::Storage * pmnfaction = StorageEnv::GetStorage("mnfactioninfo");
 			StorageEnv::Storage * plog = arg->syncdata.logs.size()?StorageEnv::GetStorage("shoplog"):NULL;
 			
 			StorageEnv::CommonTransaction txn;
@@ -93,8 +95,18 @@ class DBFactionRename : public Rpc
 				vinfo >> info;
 				res->oldname = info.name;
 				info.name = arg->newname;
+				
+				if(info.extenddata.size())
+				{
+					GFactionExtendData exdata;
+					Marshal::OctetsStream(info.extenddata) >> exdata;
+					int64_t unifid = exdata.unifid;
+					if(unifid)	IncMNFactionVersion(unifid,pmnfaction,txn);
+				}
+
 				pinfo->insert(kfaction,Marshal::OctetsStream()<<info,txn);
 				pname->insert(Marshal::OctetsStream()<< arg->newname, Marshal::OctetsStream()<<arg->fid,txn);
+				res->syncdata.inventory.money = orignal_money;
 				res->retcode = ERR_SUCCESS;
 				
 				Log::formatlog("dbfactionrename success", "factionid=%d roleid=%d itemid=%d item_pos=%d item_num=%d",

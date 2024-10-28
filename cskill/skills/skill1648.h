@@ -134,9 +134,9 @@ namespace GNET
       Skill1648Stub ():SkillStub (1648)
         {
             cls = 127;
-            name = L"¹ÄÎè";
-            nativename = "¹ÄÎè";
-            icon = "¹ÄÎè.dds";
+            name = L"é¼“èˆ";
+            nativename = "é¼“èˆ";
+            icon = "é¼“èˆ.dds";
             max_level = 1;
             type = 10;
             apcost = 0;
@@ -158,7 +158,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "¾ŞÁéÉñÁ¦.sgc";
+            effect = "å·¨çµç¥åŠ›.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

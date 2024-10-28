@@ -19,9 +19,9 @@ namespace GNET
         Skill679Stub ():SkillStub (679)
         {
             cls = 3;
-            name = L"¿ñ¡¤Èâ²«¾«Í¨";
-            nativename = "¿ñ¡¤Èâ²«¾«Í¨";
-            icon = "È­Êõ¾«Í¨2.dds";
+            name = L"ç‹‚Â·è‚‰æç²¾é€š";
+            nativename = "ç‹‚Â·è‚‰æç²¾é€š";
+            icon = "æ‹³æœ¯ç²¾é€š2.dds";
             max_level = 1;
             type = 5;
             apcost = 0;

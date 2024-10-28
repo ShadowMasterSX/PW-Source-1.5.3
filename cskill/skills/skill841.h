@@ -134,8 +134,8 @@ namespace GNET
       Skill841Stub ():SkillStub (841)
         {
             cls = 127;
-            name = L"物理单体物伤";
-            nativename = "物理单体物伤";
+            name = L"鐗╃悊鍗曚綋鐗╀激";
+            nativename = "鐗╃悊鍗曚綋鐗╀激";
             icon = "";
             max_level = 10;
             type = 3;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "巨型沙虫攻击.sgc";
+            effect = "宸ㄥ瀷娌欒櫕鏀诲嚮.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

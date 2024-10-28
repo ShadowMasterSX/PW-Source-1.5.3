@@ -134,9 +134,9 @@ namespace GNET
       Skill2570Stub ():SkillStub (2570)
         {
             cls = 11;
-            name = L"ëÊ";
-            nativename = "ëÊ";
-            icon = "ëÊÒ¹Ó°.dds";
+            name = L"èƒ§";
+            nativename = "èƒ§";
+            icon = "èƒ§å¤œå½±.dds";
             max_level = 5;
             type = 2;
             apcost = 30;

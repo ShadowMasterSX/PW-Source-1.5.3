@@ -134,9 +134,9 @@ namespace GNET
       Skill2590Stub ():SkillStub (2590)
         {
             cls = 11;
-            name = L"月神之体";
-            nativename = "月神之体";
-            icon = "月神之体.dds";
+            name = L"鏈堢涔嬩綋";
+            nativename = "鏈堢涔嬩綋";
+            icon = "鏈堢涔嬩綋.dds";
             max_level = 10;
             type = 2;
             apcost = 0;

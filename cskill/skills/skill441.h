@@ -137,9 +137,9 @@ namespace GNET
       Skill441Stub ():SkillStub (441)
         {
             cls = 1;
-            name = L"©Я║╓ар╩П╥Ш";
-            nativename = "©Я║╓ар╩П╥Ш";
-            icon = "ар╩П╥Ш2.dds";
+            name = L"Г▀┌б╥Г┐┬Г│╚Г╛╕";
+            nativename = "Г▀┌б╥Г┐┬Г│╚Г╛╕";
+            icon = "Г┐┬Г│╚Г╛╕2.dds";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -166,7 +166,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (292);
             }
-            effect = "2ар╩П╥Ш.sgc";
+            effect = "2Г┐┬Г│╚Г╛╕.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

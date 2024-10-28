@@ -1,0 +1,32 @@
+	public:
+		int zoneid;
+		enum { PROTOCOL_TYPE = PROTOCOL_MNFETCHTOPLIST };
+	public:
+		MNFetchTopList() { type = PROTOCOL_MNFETCHTOPLIST; }
+		MNFetchTopList(void*) : Protocol(PROTOCOL_MNFETCHTOPLIST) { }
+		MNFetchTopList (int l_zoneid)
+			 : zoneid(l_zoneid)
+		{
+			type = PROTOCOL_MNFETCHTOPLIST;
+		}
+
+		MNFetchTopList(const MNFetchTopList &rhs)
+			: Protocol(rhs),zoneid(rhs.zoneid) { }
+
+		GNET::Protocol *Clone() const { return new MNFetchTopList(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << zoneid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> zoneid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 8; }

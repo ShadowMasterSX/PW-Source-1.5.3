@@ -134,9 +134,9 @@ namespace GNET
       Skill1386Stub ():SkillStub (1386)
         {
             cls = 9;
-            name = L"魔神现世";
-            nativename = "魔神现世";
-            icon = "金光电母.dds";
+            name = L"榄旂鐜颁笘";
+            nativename = "榄旂鐜颁笘";
+            icon = "閲戝厜鐢垫瘝.dds";
             max_level = 10;
             type = 2;
             apcost = 0;

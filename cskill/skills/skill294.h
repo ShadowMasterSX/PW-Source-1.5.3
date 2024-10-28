@@ -134,8 +134,8 @@ namespace GNET
       Skill294Stub ():SkillStub (294)
         {
             cls = 127;
-            name = L"�¹�֮ˮɷ";
-            nativename = "�¹�֮ˮɷ";
+            name = L"新怪之水煞";
+            nativename = "新怪之水煞";
             icon = "";
             max_level = 10;
             type = 1;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "ˮɷ.sgc";
+            effect = "水煞.sgc";
             range.type = 3;
             doenchant = true;
             dobless = false;

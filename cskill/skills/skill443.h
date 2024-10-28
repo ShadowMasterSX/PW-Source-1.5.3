@@ -134,9 +134,9 @@ namespace GNET
       Skill443Stub ():SkillStub (443)
         {
             cls = 1;
-            name = L"¿ñ¡¤ÁÒÑæ»¤¼×";
-            nativename = "¿ñ¡¤ÁÒÑæ»¤¼×";
-            icon = "ÁÒÑæ»¤¼×2.dds";
+            name = L"ç‹‚Â·çƒˆç„°æŠ¤ç”²";
+            nativename = "ç‹‚Â·çƒˆç„°æŠ¤ç”²";
+            icon = "çƒˆç„°æŠ¤ç”²2.dds";
             max_level = 1;
             type = 2;
             apcost = 30;

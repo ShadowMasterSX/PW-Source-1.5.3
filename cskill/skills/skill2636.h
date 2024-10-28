@@ -132,8 +132,8 @@ namespace GNET
       Skill2636Stub ():SkillStub (2636)
         {
             cls = 127;
-            name = L"冰之结界";
-            nativename = "冰之结界";
+            name = L"鍐颁箣缁撶晫";
+            nativename = "鍐颁箣缁撶晫";
             icon = "";
             max_level = 10;
             type = 2;

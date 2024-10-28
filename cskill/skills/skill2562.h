@@ -134,9 +134,9 @@ namespace GNET
       Skill2562Stub ():SkillStub (2562)
         {
             cls = 10;
-            name = L"水月镜花";
-            nativename = "水月镜花";
-            icon = "水月镜花.dds";
+            name = L"姘存湀闀滆姳";
+            nativename = "姘存湀闀滆姳";
+            icon = "姘存湀闀滆姳.dds";
             max_level = 1;
             type = 12;
             apcost = 0;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "夜影_水月镜花_击中.sgc";
+            effect = "澶滃奖_姘存湀闀滆姳_鍑讳腑.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

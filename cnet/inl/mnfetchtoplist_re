@@ -1,0 +1,32 @@
+	public:
+		MNFactionBriefInfoVector toplist;
+		enum { PROTOCOL_TYPE = PROTOCOL_MNFETCHTOPLIST_RE };
+	public:
+		MNFetchTopList_Re() { type = PROTOCOL_MNFETCHTOPLIST_RE; }
+		MNFetchTopList_Re(void*) : Protocol(PROTOCOL_MNFETCHTOPLIST_RE) { }
+		MNFetchTopList_Re (MNFactionBriefInfoVector l_toplist)
+			 : toplist(l_toplist)
+		{
+			type = PROTOCOL_MNFETCHTOPLIST_RE;
+		}
+
+		MNFetchTopList_Re(const MNFetchTopList_Re &rhs)
+			: Protocol(rhs),toplist(rhs.toplist) { }
+
+		GNET::Protocol *Clone() const { return new MNFetchTopList_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << toplist;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> toplist;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1048576; }

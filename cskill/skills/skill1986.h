@@ -58,9 +58,9 @@ namespace GNET
       Skill1986Stub ():SkillStub (1986)
         {
             cls = 3;
-            name = L"真·蝶羽变";
-            nativename = "真·蝶羽变";
-            icon = "真蝶羽变.dds";
+            name = L"鐪熉疯澏缇藉彉";
+            nativename = "鐪熉疯澏缇藉彉";
+            icon = "鐪熻澏缇藉彉.dds";
             max_level = 1;
             type = 2;
             apcost = 0;
@@ -87,7 +87,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "1妖狐附体.sgc";
+            effect = "1濡栫嫄闄勪綋.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

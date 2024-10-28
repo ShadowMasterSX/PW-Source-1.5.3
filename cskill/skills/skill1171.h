@@ -19,8 +19,8 @@ namespace GNET
         Skill1171Stub ():SkillStub (1171)
         {
             cls = 255;
-            name = L"ÉúËÀÒâÄî";
-            nativename = "ÉúËÀÒâÄî";
+            name = L"ç”Ÿæ­»æ„å¿µ";
+            nativename = "ç”Ÿæ­»æ„å¿µ";
             icon = "";
             max_level = 1;
             type = 6;
@@ -42,7 +42,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "ÑªÖä.sgc";
+            effect = "è¡€å’’.sgc";
             range.type = 0;
             doenchant = true;
             dobless = true;

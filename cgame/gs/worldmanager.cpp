@@ -53,6 +53,7 @@ int 		world_manager::_npc_idle_heartbeat = NPC_IDLE_HEARTBEAT;
 int 		world_manager::_lua_data_version = 0;
 netgame::mall 	world_manager::_player_mall;
 netgame::mall 	world_manager::_player_mall2;
+netgame::mall 	world_manager::_player_mall3;
 netgame::touchshop world_manager::_touch_shop;
 abase::hash_map<int, int> world_manager::_expire_items;
 abase::hash_map<int, int> world_manager::_noputin_usertrash_items;
@@ -67,7 +68,7 @@ abase::hash_map<int, int> world_manager::_consumption_items_destroying; // ÏûºÄÊ
 unsigned int			world_manager::_world_team_uid = 0;
 int 		world_manager::_world_team_uid_lock = 0;
 GlobalController world_manager::_global_controller;
-abase::hash_map<int, A3DVECTOR> world_manager::_central_server_birth_pos_map;
+abase::hash_map<int, group_pos> world_manager::_central_server_birth_pos_map;
 title_manager world_manager::_title_man;
 history_manager world_manager::_history_man;
 UniqueDataClient world_manager::_unique_man;
@@ -76,6 +77,7 @@ fatering_manager world_manager::_fatering_man;
 world_config world_manager::_world_config;
 world_flags world_manager::_world_flags = {false,false};
 abase::hash_map< int, abase::vector<int> > world_manager::_region_waypoint_map;
+bool world_manager::is_solo_tower_challenge_instance = false;
 
 bool 
 world_manager::InitTagList()
@@ -203,6 +205,26 @@ world_manager::InitWorldLimit(const char * servername)
 		{
 			_world_limit.noauto_resurrect = true;
 		}
+		else if(strcmp(token,"need-visa") == 0)
+		{
+			_world_limit.need_visa = true;
+		}
+        else if (strcmp(token, "noauto-genhp") == 0)
+        {
+            _world_limit.noauto_genhp = true;
+        }
+        else if (strcmp(token, "noauto-genmp") == 0)
+        {
+            _world_limit.noauto_genmp = true;
+        }
+        else if (strcmp(token, "permit_fix_position_transmit") == 0)
+        {
+            _world_limit.permit_fix_position_transmit = true;
+        }
+        else if (strcmp(token, "nocash_resurrect") == 0)
+        {
+            _world_limit.nocash_resurrect = true;
+        }
 	}
 
 	return true;
@@ -417,16 +439,44 @@ bool world_manager::InitCentralServerBirthPos()
 	abase::strtok pos_tok(cross_zone_pos.c_str(),";,");
 	const char * zone_token; 
 	const char * pos_token;
-	while((zone_token = zone_tok.token()) && (pos_token = pos_tok.token()))
+
+	A3DVECTOR tmp_point[4];
+	for(int n = 0; n < 4; ++n)
+	{
+		pos_token = pos_tok.token();
+		if(!*pos_token)
+		{
+			GLog::log(GLOG_ERR,"InitCrossData,init cross_zone_pos[%d] miss token.",n);	
+			return false;
+		}
+		int npos = sscanf(pos_token, "%f:%f:%f", 
+			&tmp_point[n].x, &tmp_point[n].y, &tmp_point[n].z);
+		if(npos != 3) {
+			GLog::log(GLOG_ERR,"InitCrossData,init cross_zone_pos[%d] parse result error." ,n);
+			return false;
+		}
+
+	}
+
+	int group = 0;
+	while((zone_token = zone_tok.token()))
 	{
 		if(!*zone_token) break;
-		int zoneid = atoi(zone_token);
-		if(zoneid <= 0) break;
-		if(!*pos_token) break;
-		A3DVECTOR pos;
-		int n = sscanf(pos_token, "%f:%f:%f", &pos.x, &pos.y, &pos.z);
-		if(n != 3) break;
-		_central_server_birth_pos_map[zoneid] = pos;
+		int zone_group[4] = {0,0,0,0};	
+		int nzone = sscanf(zone_token,"%d:%d:%d:%d",
+			&zone_group[0],&zone_group[1],&zone_group[2],&zone_group[3]);
+		if(nzone < 2)
+		{
+			GLog::log( GLOG_WARNING, "InitCrossData, zone list count is invalid." );
+			return false;
+		}
+
+		for(int n = 0; n < nzone; ++n)
+		{
+			int zoneid = zone_group[n];
+			_central_server_birth_pos_map[zoneid] = group_pos(group,tmp_point[n]);
+		}
+		++group;
 	}
 	return true;
 }
@@ -679,13 +729,10 @@ world_manager::InitNPCTemplate()
 		return false;
 	}
 
-	__PRINTINFO("Before recipe_manager::loadtemplate\n");
 	if(!recipe_manager::LoadTemplate(GetDataMan()))
 	{
-		__PRINTINFO("recipe_manager::loadtemplate .... FAILED\n");
 		return false;
 	}
-	__PRINTINFO("After recipe_manager::loadtemplate\n");
 
 	if(!pet_dataman::LoadTemplate(GetDataMan()))
 	{
@@ -848,8 +895,10 @@ world_manager::FirstStepInit()
 	path1 = root + conf->find("Template","GlobalData");
 	path2 = root + conf->find("Template","MallData");
 	std::string path3 = conf->find("Template","Mall2Data");
+	std::string path4 = conf->find("Template","Mall3Data");
 	if(path3.length()!=0) path3 = root + path3;
-	if(!globaldata_loadserver(path1.c_str(),path2.c_str(),path3.c_str()))
+	if(path4.length()!=0) path4 = root + path4;
+	if(!globaldata_loadserver(path1.c_str(),path2.c_str(),path3.c_str(),path4.c_str()))
 	{
 		__PRINTINFO("¶ÁÈ¡È«¾ÖÊý¾Ý»ò¶ÁÈ¡°Ù±¦¸óÊý¾Ý»ò¶ÁÈ¡ºèÀûÉÌ³ÇÊ§°Ü:'%s' '%s' '%s'\n",path1.c_str(),path2.c_str(),path3.c_str());
 		return -18;
@@ -869,6 +918,13 @@ world_manager::FirstStepInit()
 		return -32;
 	}
 
+	//³õÊ¼»¯»ý·ÖÉÌ³Ç
+	if(!netgame::InitMall(_player_mall3, _dataman, globaldata_getmall3itemservice()))
+	{
+		__PRINTINFO("³õÊ¼»¯VIP»ý·ÖÉÌ³ÇÊý¾ÝÊ§°Ü\n");
+		return -32;
+	}
+	
 	//touch shop 
 	if(!netgame::InitTouchShop(_touch_shop, _dataman))
 	{
@@ -989,6 +1045,14 @@ world_manager::InitBase(const char * section)
 		_kickout_point.pos = pos;
 	}
 
+	str = conf->find(section,"solo_tower_challenge");
+	{
+		if(strcmp(str.c_str() , "true") == 0)
+		{
+			is_solo_tower_challenge_instance = true;
+		}
+	}
+	
 	time_t ct = time(NULL);
 	__PRINTINFO("%s\n",ctime(&ct));
 
@@ -1604,3 +1668,7 @@ bool world_manager::InitRegionWayPointMap()
     return true;
 }
 
+instance_hash_key world_manager::GetLogoutInstanceKey(gplayer_imp *pImp) const 
+{ 
+	return pImp->_plane->w_ins_key;
+}

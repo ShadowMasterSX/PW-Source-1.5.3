@@ -169,12 +169,12 @@ gplayer_factionfortress::PlayerEnterWorld()
 }
 
 void 
-gplayer_factionfortress::PlayerEnterServer()
+gplayer_factionfortress::PlayerEnterServer(int source_tag)
 {
 	//提前设置FACTION，因为playerenterserver函数会用到
 	SetBattleFaction();
 
-	gplayer_imp::PlayerEnterServer();
+	gplayer_imp::PlayerEnterServer(source_tag);
 	gplayer * pPlayer = GetParent();
 
 	faction_world_ctrl * pCtrl = (faction_world_ctrl *)_plane->w_ctrl;

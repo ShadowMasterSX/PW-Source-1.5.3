@@ -134,9 +134,9 @@ namespace GNET
       Skill2741Stub ():SkillStub (2741)
         {
             cls = 10;
-            name = L"狂·无情游";
-            nativename = "狂·无情游";
-            icon = "魔无情游.dds";
+            name = L"鐙偮锋棤鎯呮父";
+            nativename = "鐙偮锋棤鎯呮父";
+            icon = "榄旀棤鎯呮父.dds";
             max_level = 1;
             type = 8;
             apcost = 0;
@@ -161,7 +161,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (44878);
             }
-            effect = "夜影_无情游_击中.sgc";
+            effect = "澶滃奖_鏃犳儏娓竉鍑讳腑.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

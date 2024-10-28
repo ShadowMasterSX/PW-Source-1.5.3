@@ -83,9 +83,9 @@ int gplayer_trickbattle::MessageHandler(world * pPlane ,const MSG & msg)
 	return gplayer_battle_base::MessageHandler(pPlane, msg);
 }
 
-void gplayer_trickbattle::PlayerEnterServer()
+void gplayer_trickbattle::PlayerEnterServer(int source_tag)
 {
-	gplayer_battle_base::PlayerEnterServer();
+	gplayer_battle_base::PlayerEnterServer(source_tag);
 	
 	trickbattle_ctrl * pCtrl = (trickbattle_ctrl *)_plane->w_ctrl;
 	gplayer * pPlayer = GetParent();
@@ -198,9 +198,9 @@ bool gplayer_trickbattle::CanResurrect(int param)
 	return gplayer_battle_base::CanResurrect(param);
 }
 
-int gplayer_trickbattle::Resurrect(const A3DVECTOR & pos,bool nomove,float exp_reduce,int target_tag,float hp_factor, float mp_factor, int param)
+int gplayer_trickbattle::Resurrect(const A3DVECTOR & pos,bool nomove,float exp_reduce,int target_tag,float hp_factor, float mp_factor, int param, float ap_factor, int extra_invincible_time)
 {
-	gplayer_battle_base::Resurrect(pos,nomove,exp_reduce,target_tag,hp_factor,mp_factor,param);
+	gplayer_battle_base::Resurrect(pos,nomove,exp_reduce,target_tag,hp_factor,mp_factor,param,ap_factor,extra_invincible_time);
 	//…Ë÷√Œﬁµ–
 	_filters.AddFilter(new invincible_filter(this,FILTER_INVINCIBLE,5));
 	//

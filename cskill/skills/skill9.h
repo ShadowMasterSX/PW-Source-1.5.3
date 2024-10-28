@@ -19,9 +19,9 @@ namespace GNET
         Skill9Stub ():SkillStub (9)
         {
             cls = 1;
-            name = L"ˮ��ͨ";
-            nativename = "ˮ��ͨ";
-            icon = "ˮ��ͨ.dds";
+            name = L"水精通";
+            nativename = "水精通";
+            icon = "水精通.dds";
             max_level = 10;
             type = 5;
             apcost = 0;

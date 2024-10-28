@@ -137,9 +137,9 @@ namespace GNET
       Skill624Stub ():SkillStub (624)
         {
             cls = 6;
-            name = L"Õæ¡¤Òí»÷";
-            nativename = "Õæ¡¤Òí»÷";
-            icon = "Òí»÷1.dds";
+            name = L"çœŸÂ·ç¿¼å‡»";
+            nativename = "çœŸÂ·ç¿¼å‡»";
+            icon = "ç¿¼å‡»1.dds";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -184,7 +184,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "1Òí»÷.sgc";
+            effect = "1ç¿¼å‡».sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

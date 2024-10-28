@@ -132,8 +132,8 @@ namespace GNET
       Skill2008Stub ():SkillStub (2008)
         {
             cls = 127;
-            name = L"10ÈËÄ§99½ûïÀ´«ËÍ";
-            nativename = "10ÈËÄ§99½ûïÀ´«ËÍ";
+            name = L"10äººé­”99ç¦é”¢ä¼ é€";
+            nativename = "10äººé­”99ç¦é”¢ä¼ é€";
             icon = "";
             max_level = 10;
             type = 3;

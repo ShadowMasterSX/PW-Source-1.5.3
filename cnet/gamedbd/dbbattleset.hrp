@@ -71,8 +71,9 @@ class DBBattleSet : public Rpc
 								break;
 							}
 						}
+						
+						pcity->insert(Marshal::OctetsStream()<<0,Marshal::OctetsStream()<<store,txn);
 					}
-					pcity->insert(Marshal::OctetsStream()<<0,Marshal::OctetsStream()<<store,txn);
 				}
 				else if(arg->reason==_BATTLE_EXTEND)
 				{

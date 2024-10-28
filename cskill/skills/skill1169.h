@@ -19,8 +19,8 @@ namespace GNET
         Skill1169Stub ():SkillStub (1169)
         {
             cls = 255;
-            name = L"碎甲";
-            nativename = "碎甲";
+            name = L"纰庣敳";
+            nativename = "纰庣敳";
             icon = "";
             max_level = 1;
             type = 6;
@@ -42,7 +42,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "幽灵战士群体BUFF击中.sgc";
+            effect = "骞界伒鎴樺＋缇や綋BUFF鍑讳腑.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

@@ -133,8 +133,8 @@ namespace GNET
       Skill2181Stub ():SkillStub (2181)
         {
             cls = 127;
-            name = L"»ğÑæÏİÚåÁ¢¼´ÉúĞ§";
-            nativename = "»ğÑæÏİÚåÁ¢¼´ÉúĞ§";
+            name = L"ç«ç„°é™·é˜±ç«‹å³ç”Ÿæ•ˆ";
+            nativename = "ç«ç„°é™·é˜±ç«‹å³ç”Ÿæ•ˆ";
             icon = "";
             max_level = 10;
             type = 1;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "ÖËÑ×Õó.sgc";
+            effect = "ç‚™ç‚é˜µ.sgc";
             range.type = 2;
             doenchant = false;
             dobless = false;

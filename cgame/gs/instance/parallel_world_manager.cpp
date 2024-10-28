@@ -1,5 +1,6 @@
 #include "../world.h"
 #include "../player_imp.h"
+#include "../aei_filter.h"
 #include "parallel_world_manager.h"
 
 
@@ -98,6 +99,8 @@ void parallel_world_manager::Heartbeat()
 
 void parallel_world_manager::SetFilterWhenLogin(gplayer_imp * pImp, instance_key * ikey)
 {
+	if(world_manager::NeedVisa())
+		pImp->_filters.AddFilter(new aecv_filter(pImp,FILTER_INDEX_CHECK_VISA));
 }
 
 int parallel_world_manager::PlayerSwitchWorld(gplayer * pPlayer, const instance_hash_key & hkey)

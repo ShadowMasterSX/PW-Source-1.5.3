@@ -19,8 +19,8 @@ namespace GNET
         Skill2847Stub ():SkillStub (2847)
         {
             cls = 10;
-            name = L"¿ñ¡¤Ò¹èÉ¼¼ÄÜÐ§¹û";
-            nativename = "¿ñ¡¤Ò¹èÉ¼¼ÄÜÐ§¹û";
+            name = L"ç‹‚Â·å¤œæž­æŠ€èƒ½æ•ˆæžœ";
+            nativename = "ç‹‚Â·å¤œæž­æŠ€èƒ½æ•ˆæžœ";
             icon = "";
             max_level = 10;
             type = 2;

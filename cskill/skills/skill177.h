@@ -58,9 +58,9 @@ namespace GNET
       Skill177Stub ():SkillStub (177)
         {
             cls = 0;
-            name = L"�׽";
-            nativename = "�׽";
-            icon = "�׽.dds";
+            name = L"易筋经";
+            nativename = "易筋经";
+            icon = "易筋经.dds";
             max_level = 10;
             type = 2;
             apcost = 0;
@@ -99,7 +99,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (9);
             }
-            effect = "�׽.sgc";
+            effect = "易筋经.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

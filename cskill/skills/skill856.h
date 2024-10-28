@@ -132,8 +132,8 @@ namespace GNET
       Skill856Stub ():SkillStub (856)
         {
             cls = 127;
-            name = L"水系群体持续魔伤";
-            nativename = "水系群体持续魔伤";
+            name = L"姘寸郴缇や綋鎸佺画榄斾激";
+            nativename = "姘寸郴缇や綋鎸佺画榄斾激";
             icon = "";
             max_level = 10;
             type = 3;
@@ -153,7 +153,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "凌杀.sgc";
+            effect = "鍑屾潃.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

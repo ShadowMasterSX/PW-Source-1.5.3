@@ -173,9 +173,9 @@ namespace GNET
       Skill2627Stub ():SkillStub (2627)
         {
             cls = 11;
-            name = L"¼ÀÔÂÀñ";
-            nativename = "¼ÀÔÂÀñ";
-            icon = "¼ÀÔÂÀñ.dds";
+            name = L"ç¥­æœˆç¤¼";
+            nativename = "ç¥­æœˆç¤¼";
+            icon = "ç¥­æœˆç¤¼.dds";
             max_level = 1;
             type = 2;
             apcost = 100;

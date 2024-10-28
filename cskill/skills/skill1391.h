@@ -134,9 +134,9 @@ namespace GNET
       Skill1391Stub ():SkillStub (1391)
         {
             cls = 9;
-            name = L"�丿˿";
-            nativename = "�丿˿";
-            icon = "���Ѳ�˿.dds";
+            name = L"咒缚丝";
+            nativename = "咒缚丝";
+            icon = "百裂缠丝.dds";
             max_level = 10;
             type = 3;
             apcost = 30;

@@ -17,7 +17,7 @@ class CountryBattleGetMap : public GNET::Protocol
 
 	void Process(Manager *manager, Manager::Session::ID sid)
 	{
-		CountryBattleMan::GetInstance()->SendMap(roleid, sid, localsid);
+		CountryBattleMan::OnPlayerGetMap(roleid, sid, localsid);
 	}
 };
 

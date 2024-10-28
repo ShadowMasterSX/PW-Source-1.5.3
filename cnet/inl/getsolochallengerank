@@ -1,0 +1,38 @@
+	public:
+		int roleid;
+		char ranktype;
+		char cls;
+		enum { PROTOCOL_TYPE = PROTOCOL_GETSOLOCHALLENGERANK };
+	public:
+		GetSoloChallengeRank() { type = PROTOCOL_GETSOLOCHALLENGERANK; }
+		GetSoloChallengeRank(void*) : Protocol(PROTOCOL_GETSOLOCHALLENGERANK) { }
+		GetSoloChallengeRank (int l_roleid,char l_ranktype,char l_cls)
+			 : roleid(l_roleid),ranktype(l_ranktype),cls(l_cls)
+		{
+			type = PROTOCOL_GETSOLOCHALLENGERANK;
+		}
+
+		GetSoloChallengeRank(const GetSoloChallengeRank &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),ranktype(rhs.ranktype),cls(rhs.cls) { }
+
+		GNET::Protocol *Clone() const { return new GetSoloChallengeRank(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << ranktype;
+			os << cls;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> ranktype;
+			os >> cls;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

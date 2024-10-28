@@ -132,9 +132,9 @@ namespace GNET
       Skill2066Stub ():SkillStub (2066)
         {
             cls = 127;
-            name = L"ÎïÆ·Ê¹ÓÃÖĞ";
-            nativename = "ÎïÆ·Ê¹ÓÃÖĞ";
-            icon = "º®±ùÁìÓò.dds";
+            name = L"ç‰©å“ä½¿ç”¨ä¸­";
+            nativename = "ç‰©å“ä½¿ç”¨ä¸­";
+            icon = "å¯’å†°é¢†åŸŸ.dds";
             max_level = 10;
             type = 3;
             apcost = 0;

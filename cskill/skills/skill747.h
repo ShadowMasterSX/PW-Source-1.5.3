@@ -134,9 +134,9 @@ namespace GNET
       Skill747Stub ():SkillStub (747)
         {
             cls = 127;
-            name = L"˺ҧ";
-            nativename = "˺ҧ";
-            icon = "����˺ҧ.dds";
+            name = L"撕咬";
+            nativename = "撕咬";
+            icon = "宠物撕咬.dds";
             max_level = 5;
             type = 1;
             apcost = 0;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "���Ǵ�.sgc";
+            effect = "流星锤.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

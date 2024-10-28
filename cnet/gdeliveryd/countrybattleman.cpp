@@ -25,10 +25,17 @@
 #include "countrybattlegetbattlelimit_re.hpp"
 #include "countrybattlegetkingcommandpoint_re.hpp"
 #include "countrybattledestroyinstance.hpp"
-
+#include "countrybattlegetconfig_re.hpp"
+#include "crosssystem.h"
 #include "parsestring.h"
+#include "disabled_system.h"
 
-CountryBattleMan CountryBattleMan::_instance;
+CountryBattleMan CountryBattleMan::_instance[GROUP_MAX_CNT];
+int CountryBattleMan::_default_group;
+
+inline int GetGroupID(int uid) { return (uid >> 16) &0xffff; }
+inline int GetBaseID(int uid) { return uid & 0xffff; }
+inline int MakeUniqueID(int gid,int id) { return (gid << 16) + id; }
 
 void CountryBattleMan::CountryKing::Init(int roleid_)
 {
@@ -186,13 +193,21 @@ bool CountryBattleMan::InitDomainInfo(char domain2_type)
 	return true;
 }
 
-bool CountryBattleMan::Initialize(bool arrange_country_by_zoneid)
+bool CountryBattleMan::Initialize(int gid,bool arrange_country_by_zoneid)
 {
+	if(DisabledSystem::GetDisabled(SYS_COUNTRYBATTLE))
+		return true;
+	
 	char domain2_type = DOMAIN2_TYPE_SINGLE;
 	if(arrange_country_by_zoneid) domain2_type = DOMAIN2_TYPE_CROSS;
 
+	_group_index = gid;
 	//导入domain数据
-	if(!InitDomainInfo(domain2_type)) return false;
+	if(!InitDomainInfo(domain2_type)) 
+	{
+		Log::log( LOG_ERR, "InitCountryBattle[%d], int domain data error.", _group_index );
+		return false;
+	}
 	
 	//_status = ST_OPEN;
 	_servers.clear();	
@@ -212,7 +227,7 @@ bool CountryBattleMan::Initialize(bool arrange_country_by_zoneid)
 		int n = sscanf(value.c_str(), "%f;%f;%f;%f;%f;%f", 
 			&factor.win_fac, &factor.fail_fac, &factor.attend_time_fac, &factor.kill_cnt_fac, &factor.death_cnt_fac, &factor.combat_time_fac);
 		if(n != 6) {
-			Log::log( LOG_ERR, "InitCountryBattle, occupations factor error." );
+			Log::log( LOG_ERR, "InitCountryBattle[%d], occupations factor error.", _group_index );
 			return false;
 		}
 		
@@ -224,15 +239,29 @@ bool CountryBattleMan::Initialize(bool arrange_country_by_zoneid)
 	_bonus_limit.death_cnt_limit = atoi(conf->find(key, "death_count_limit").c_str());
 	_bonus_limit.combat_time_limit = atoi(conf->find(key, "combat_time_limit").c_str());
 	_bonus_limit.contribute_val_limit = atoi(conf->find(key, "contribute_val_limit").c_str());
-	_bonus_limit.total_bonus = atoi(conf->find(key, "total_bonus").c_str());
-	
+
+	{
+		std::string sbonus = conf->find(key, "total_bonus").c_str();
+		int vbonus[GROUP_MAX_CNT] = {0};
+		int nbonus = sscanf(sbonus.c_str(), "%d;%d;%d;%d;%d;%d;%d;%d;%d;%d", 
+				&vbonus[0],&vbonus[1],&vbonus[2],&vbonus[3],&vbonus[4],
+				&vbonus[5],&vbonus[6],&vbonus[7],&vbonus[8],&vbonus[9]);
+		if(_group_index > nbonus)
+			_bonus_limit.total_bonus = 0;
+		else 
+			_bonus_limit.total_bonus = vbonus[_group_index];
+
+		LOG_TRACE("CountryBattleMan[%d], total_bonus=%d.", _group_index,_bonus_limit.total_bonus);
+	}
+
 	if(arrange_country_by_zoneid) {
 		_arrange_country_type = ARRANGE_COUNTRY_BY_ZONEID;
 		std::vector<int> zone_list;
-		CentralDeliveryServer::GetInstance()->GetAcceptedZone(zone_list);
+		CentralDeliveryServer::GetInstance()->GetAcceptedZone(_group_index,zone_list);
 
 		//跨服国战，国家数量应该在[2, COUNTRY_MAX_CNT]之间
 		if(zone_list.size() < 2 || zone_list.size() > COUNTRY_MAX_CNT) {
+			Log::log( LOG_ERR, "InitCountryBattle[%d], zone list size=%d invalid.", _group_index,zone_list.size() );
 			return false;
 		}
 
@@ -247,21 +276,51 @@ bool CountryBattleMan::Initialize(bool arrange_country_by_zoneid)
 	std::string open_day_str = conf->find(key, "open_day");
 	std::vector<string> open_day_list;
 	if(!ParseStrings(open_day_str, open_day_list)) {
-		Log::log( LOG_ERR, "InitCountryBattle, open_day error." );
+		Log::log( LOG_ERR, "InitCountryBattle[%d], open_day error.", _group_index );
 		return false;
 	}
 	if(open_day_list.size() > WEEK_DAY_CNT) {
-		Log::log( LOG_ERR, "InitCountryBattle, open_day_list count is invalid." );		
+		Log::log( LOG_ERR, "InitCountryBattle[%d], open_day_list count is invalid.", _group_index );		
 		return false;
 	}
 	for(unsigned int i = 0; i < open_day_list.size(); ++i) {
-		int day = atoi(open_day_list[i].c_str());
-		if(day < 0 || day >= WEEK_DAY_CNT) {
-			Log::log( LOG_ERR, "InitCountryBattle, open_day is invalid." );		
+		int day = -1;
+		char  gr[128] = {0};
+		int npos = sscanf(open_day_list[i].c_str(),"%d->%127s",&day,gr);
+		
+		bool flag = false;
+		if(npos == 1 && day >=0 && day <= WEEK_DAY_CNT)	// 兼容老格式
+		{
+			flag = true;	
+		}
+		else if(npos == 2 && day >= 0 && day <= WEEK_DAY_CNT) 
+		{
+			char* token = strtok( gr, ":");	
+			while( NULL != token && !flag) {
+				if(atoi(token) == _group_index) 
+					flag = true;
+				token = strtok( NULL, ":");
+			}
+		}
+		else
+		{	
+			Log::log( LOG_ERR, "InitCountryBattle[%d], open_day is invalid.", _group_index );
 			return false;
 		}
 
-		_open_days[day] = 1;
+		if(flag) 
+		{
+			_open_days[day] = 1;
+			std::vector<int> zone_list;
+			CentralDeliveryServer::GetInstance()->GetAcceptedZone(_group_index,zone_list);
+			
+			if(!zone_list.empty())
+			{
+				CrossGuardServer::GetInstance()->Register(CT_COUNTRY_BATTLE,day,
+					COUNTRYBATTLE_START_TIME- 5*60,
+					COUNTRYBATTLE_CLEAR_TIME+ 15*60,&zone_list[0],zone_list.size());	
+			}
+		}
 	}
 	
 	IntervalTimer::Attach(this, 1000000/IntervalTimer::Resolution());
@@ -451,7 +510,7 @@ void CountryBattleMan::PlayerChangeState(PlayerEntry& player, char new_status, i
 		}
 		default:
 		{
-			Log::log( LOG_ERR, "CountryBattle Player state error, state=%d", new_status);
+			Log::log( LOG_ERR, "CountryBattle[%d] Player state error, state=%d", _group_index, new_status);
 			break;
 		}
 	}
@@ -479,7 +538,7 @@ void CountryBattleMan::DomainChangeState(DomainInfo& domain, char new_status, in
 			domain.time = DOMAIN_COLD_TIME;
 			break;
 		default:
-			Log::log( LOG_ERR, "CountryBattle Domain state error, state=%d", new_status);
+			Log::log( LOG_ERR, "CountryBattle[%d] Domain state error, state=%d", _group_index, new_status);
 			break;
 	}
 }
@@ -616,7 +675,7 @@ void CountryBattleMan::LeaveBattle(int roleid, int country_id, int major_strengt
 	}
 }
 
-void CountryBattleMan::OnPlayerLogin(int roleid, int country_id, int world_tag, int minor_str, char is_king)
+void CountryBattleMan::PlayerLogin(int roleid, int country_id, int world_tag, int minor_str, char is_king)
 {
 	PlayerJoinBattle(roleid, country_id, world_tag, minor_str);
 
@@ -626,12 +685,12 @@ void CountryBattleMan::OnPlayerLogin(int roleid, int country_id, int world_tag, 
 	}
 }
 
-void CountryBattleMan::OnPlayerLogout(int roleid, int country_id)
+void CountryBattleMan::PlayerLogout(int roleid, int country_id)
 {
 	PlayerLeaveBattle(roleid, country_id);
 }
 
-void CountryBattleMan::OnPlayerEnterMap(int roleid, int worldtag)
+void CountryBattleMan::PlayerEnterMap(int roleid, int worldtag)
 {
 	PLAYER_ENTRY_MAP::iterator it_player = _player_map.find(roleid);
 	if(it_player == _player_map.end()) return;
@@ -684,7 +743,7 @@ void CountryBattleMan::OnPlayerEnterMap(int roleid, int worldtag)
 			//从大世界进入国战战略场景的逻辑在JoinBattle函数
 			//目前除了正常的加入国战，不应该存在玩家能从外面跳转到国战战略场景的逻辑
 			HandlePlayerUnusualSwitchMap(player);
-			Log::log( LOG_ERR, "CountryBattle an unusual map switch occured, roleid=%d", roleid);
+			Log::log( LOG_ERR, "CountryBattle[%d] an unusual map switch occured, roleid=%d", _group_index, roleid);
 		}
 	}
 }
@@ -750,33 +809,33 @@ void CountryBattleMan::PlayerMove(int roleid, int from, int to, int time)
 	}
 }
 
-int CountryBattleMan::OnPlayerMove(int roleid, int dest)
+int CountryBattleMan::PlayerMove(int roleid, int dest)
 {
 	int ret = -1;
 	if(_status != ST_OPEN) {
-		Log::log( LOG_ERR, "CountryBattle move error, invalid state, state=", _status);
+		Log::log( LOG_ERR, "CountryBattle[%d] move error, invalid state, state=", _group_index, _status);
 		return ret;
 	}
 
 	PLAYER_ENTRY_MAP::iterator it_player = _player_map.find(roleid);
 	if(it_player == _player_map.end()) {
-		Log::log( LOG_ERR, "CountryBattle move error, can not find player");
+		Log::log( LOG_ERR, "CountryBattle[%d] move error, can not find player", _group_index);
 		return ret; //在国战中找不到该玩家
 	}
 	
 	PlayerEntry& player = it_player->second;
 	if(IsPlayerKing(player)) {
-		Log::log( LOG_ERR, "CountryBattle move error, king can not move");
+		Log::log( LOG_ERR, "CountryBattle[%d] move error, king can not move", _group_index);
 		return ret; //国王不可以移动
 	}
 	if(player.worldtag != _capital_worldtag) {
-		Log::log( LOG_ERR, "CountryBattle move error, not in capital");
+		Log::log( LOG_ERR, "CountryBattle[%d] move error, not in capital", _group_index);
 		return ret; //玩家只有处于国战战略场景，才可以移动
 	}
 	
 	DOMAIN_MAP::iterator it_src_domain = _domain_map.find(player.in_domain_id);
 	if(it_src_domain == _domain_map.end()) {
-		Log::log( LOG_ERR, "CountryBattle move error, invalid src domain, domain_id=%d", player.in_domain_id);
+		Log::log( LOG_ERR, "CountryBattle[%d] move error, invalid src domain, domain_id=%d", _group_index, player.in_domain_id);
 		return ret;
 	}
 
@@ -784,19 +843,19 @@ int CountryBattleMan::OnPlayerMove(int roleid, int dest)
 	//玩家处于非自己阵营的领土，不可以移动
 	//玩家处于自己阵营的领土，仅当领土处于正常状态，或冷却状态才可以移动，其他状态不能移动
 	if( (src_domain.owner != player.country_id) || ((src_domain.status != DOMAIN_STATUS_NORMAL) && (src_domain.status != DOMAIN_STATUS_COLD)) ) {
-		Log::log( LOG_ERR, "CountryBattle move error, invalid src domain status, domain_owner=%d, domain_status=%d", src_domain.owner, src_domain.status);
+		Log::log( LOG_ERR, "CountryBattle[%d] move error, invalid src domain status, domain_owner=%d, domain_status=%d", _group_index, src_domain.owner, src_domain.status);
 		return ret;
 	}
 	
 	int time_used = GetMoveUseTime(player.in_domain_id, dest); //取得移动到目标领地所需要的时间
 	if(time_used <= 0) {
-		Log::log( LOG_ERR, "CountryBattle move error, invalid dest, src_domain=%d, dest_domain=%d, time_used=%d", player.in_domain_id, dest, time_used);
+		Log::log( LOG_ERR, "CountryBattle[%d] move error, invalid dest, src_domain=%d, dest_domain=%d, time_used=%d", _group_index, player.in_domain_id, dest, time_used, _group_index);
 		return ret; //源领地与目标领地不相邻，不能移动
 	}
 
 	DOMAIN_MAP::iterator it_domain = _domain_map.find(dest);
 	if(it_domain == _domain_map.end()) {
-		Log::log( LOG_ERR, "CountryBattle move error, invalid dest, dest_domain=%d", dest);
+		Log::log( LOG_ERR, "CountryBattle[%d] move error, invalid dest, dest_domain=%d, group=%d", _group_index, dest);
 		return ret;
 	}
 	
@@ -831,13 +890,13 @@ int CountryBattleMan::OnPlayerMove(int roleid, int dest)
 	}
 
 	if(ret < 0) {
-		Log::log( LOG_ERR, "CountryBattle move error, invalid dest domain status, domain_owner=%d, domain_status=%d", domain.owner, domain.status);
+		Log::log( LOG_ERR, "CountryBattle[%d] move error, invalid dest domain status, domain_owner=%d, domain_status=%d", _group_index, domain.owner, domain.status);
 	}
 	
 	return ret;
 }
 
-int CountryBattleMan::OnPlayerStopMove(int roleid)
+int CountryBattleMan::PlayerStopMove(int roleid)
 {
 	if(_status != ST_OPEN) return -1;
 	PLAYER_ENTRY_MAP::iterator it_player = _player_map.find(roleid);
@@ -932,7 +991,7 @@ void CountryBattleMan::StartBattle(DomainInfo& domain, int challenger)
 	}
 	
 	//通知GS开启战场副本
-	CountryBattleStart proto(domain.id, domain.owner, domain.challenger, player_limit_cnt, Timer::GetTime() + SINGLE_BATTLE_END_TIME, defender_player_cnt, attacker_player_cnt, max_player_cnt);
+	CountryBattleStart proto(MakeUniqueID(_group_index,domain.id), domain.owner, domain.challenger, player_limit_cnt, Timer::GetTime() + SINGLE_BATTLE_END_TIME, defender_player_cnt, attacker_player_cnt, max_player_cnt);
 	
 	int server_id = GetServerIdByDomainId(domain.id);
 	if(server_id >= 0) {
@@ -1176,7 +1235,7 @@ void CountryBattleMan::SendBattleResult(int player_bonus, int country_bonus[COUN
 	GDeliveryServer::GetInstance()->Send(linksid, result);
 }
 
-void CountryBattleMan::DBSendBattleBonus(int roleid, int player_bonus)
+void CountryBattleMan::DBSendBattleBonus(int roleid, int player_bonus, int zoneid)
 {
 	GRoleInventory inv;
 	inv.id = BONUS_ITEM_ID;
@@ -1189,7 +1248,7 @@ void CountryBattleMan::DBSendBattleBonus(int roleid, int player_bonus)
 	arg.money = 0;
 	arg.item = inv;
 
-	Log::formatlog("countrybattlebonus","zoneid=%d:roleid=%d:amount=%d", GDeliveryServer::GetInstance()->GetZoneid(), roleid, player_bonus);
+	Log::formatlog("countrybattlebonus","zoneid=%d:roleid=%d:amount=%d:group=%d", zoneid, roleid, player_bonus, _group_index);
 	DBCountryBattleBonus* rpc = (DBCountryBattleBonus*) Rpc::Call( RPC_DBCOUNTRYBATTLEBONUS, arg);
 	GameDBClient::GetInstance()->SendProtocol( rpc );
 }
@@ -1247,8 +1306,8 @@ void CountryBattleMan::OutputZoneCountryScoreLog()
 		}
 	}
 	
-	Log::formatlog("countrybattlecountryscore","zone1=%d:score=%d:zone2=%d:score=%d:zone3=%d:score=%d:zone4=%d:score=%d", 
-			info[0].zoneid, info[0].score, info[1].zoneid, info[1].score, info[2].zoneid, info[2].score, info[3].zoneid, info[3].score);
+	Log::formatlog("countrybattlecountryscore","zone1=%d:score=%d:zone2=%d:score=%d:zone3=%d:score=%d:zone4=%d:score=%d:group=%d", 
+			info[0].zoneid, info[0].score, info[1].zoneid, info[1].score, info[2].zoneid, info[2].score, info[3].zoneid, info[3].score, _group_index);
 }
 
 void CountryBattleMan::CalcBonus()
@@ -1317,6 +1376,7 @@ void CountryBattleMan::CalcBonus()
 			PlayerBonus data;
 			data.roleid = king_roleid;
 			data.bonus = player_bonus;
+			data.zoneid = GetZoneIDByCountryID(i);
 			_player_bonus_list.push_back(data);
 		}
 	}
@@ -1330,6 +1390,7 @@ void CountryBattleMan::CalcBonus()
 		PlayerBonus data;
 		data.roleid = info.roleid;
 		data.bonus = player_bonus;
+		data.zoneid = GetZoneIDByCountryID(info.country_id);
 		_player_bonus_list.push_back(data);
 	}
 
@@ -1343,7 +1404,7 @@ void CountryBattleMan::SendBonus()
 
 		for(unsigned int i = 0; i < _db_send_bonus_per_sec; ++i) {
 			PlayerBonus& data = _player_bonus_list[i];
-			DBSendBattleBonus(data.roleid, data.bonus);
+			DBSendBattleBonus(data.roleid, data.bonus, data.zoneid);
 		}       
 
 		_player_bonus_list.erase(_player_bonus_list.begin(), _player_bonus_list.begin() + _db_send_bonus_per_sec);
@@ -1379,7 +1440,7 @@ void CountryBattleMan::UpdateDomains()
 				UpdateColdDomains(domain);
 				break;
 			default:
-				Log::log( LOG_ERR, "CountryBattle Domain state error, state=%d", domain.status);
+				Log::log( LOG_ERR, "CountryBattle[%d] Domain state error, state=%d", _group_index, domain.status);
 				break;
 		}
 	}
@@ -1443,7 +1504,7 @@ bool CountryBattleMan::Update()
 			LOG_TRACE( "CountryBattle System Change State %d---->%d.\n",  ST_BONUS, ST_CLOSE);
 
 			Clear();
-			Log::log( LOG_ERR, "countrybattle system didn't send all bonus in time" );
+			Log::log( LOG_ERR, "Countrybattle[%d] system didn't send all bonus in time", _group_index );
 		}
 	}
 
@@ -1546,6 +1607,20 @@ bool CountryBattleMan::SendMap(int roleid, unsigned int sid, unsigned int locals
 	return true;
 }
 
+bool CountryBattleMan::SendConfig(int roleid, unsigned int sid, unsigned int localsid)
+{
+	int start_time = GetCountryBattleStartTime();
+	int end_time = GetCountryBattleEndTime();
+	char is_open = IsBattleStart();
+	int total_bonus = GetTotalBonus();
+	char domain2_datatype = GetDomain2DataType();
+	unsigned int domain2_data_timestamp = get_domain2_data_timestamp();
+
+	CountryBattleGetConfig_Re re(start_time, end_time, total_bonus, is_open, domain2_datatype, domain2_data_timestamp, localsid);
+	GDeliveryServer::GetInstance()->Send(sid, re);
+	return true;
+}
+
 bool CountryBattleMan::SendCountryScore(int roleid, unsigned int sid, unsigned int localsid)
 {
 	CountryBattleGetScore_Re re;
@@ -1565,7 +1640,7 @@ bool CountryBattleMan::SendCountryScore(int roleid, unsigned int sid, unsigned i
 	return true;
 }
 
-bool CountryBattleMan::OnBattleStart(int battleid, int worldtag, int retcode, int defender, int attacker)
+bool CountryBattleMan::BattleStart(int battleid, int worldtag, int retcode, int defender, int attacker)
 {
 	//战斗开始
 	if(_status != ST_OPEN) return false;
@@ -1578,7 +1653,7 @@ bool CountryBattleMan::OnBattleStart(int battleid, int worldtag, int retcode, in
 	if(domain.status != DOMAIN_STATUS_WAIT_FIGHT || domain.owner != defender || domain.challenger != attacker) { //状态错误或攻守数据不一致
 		if(retcode == 0) { //gs战场开启成功
 			//通知gs销毁该战场
-			CountryBattleDestroyInstance proto(battleid, worldtag);
+			CountryBattleDestroyInstance proto(MakeUniqueID(_group_index,battleid), worldtag);
 			int server_id = GetServerIdByWorldTag(worldtag);
 			if(server_id >= 0) GProviderServer::GetInstance()->DispatchProtocol(server_id, proto);
 		} //gs战场开启失败时，直接忽略就好啦
@@ -1644,8 +1719,8 @@ bool CountryBattleMan::OnBattleStart(int battleid, int worldtag, int retcode, in
 		//BroadcastCountryBattleMsg(CMSG_COUNTRYBATTLE_ATTACK, domain.challenger, domain.owner, battleid);
 		//BroadcastCountryBattleMsg(CMSG_COUNTRYBATTLE_DEFEND, domain.owner, domain.challenger, battleid);
 
-		Log::formatlog("countrybattlestart","zoneid=%d:battleid=%d:time=%d:defender=%d:attacker=%d", 
-			GDeliveryServer::GetInstance()->zoneid, battleid, time(NULL)/*GetTime()*/, domain.owner, domain.challenger);
+		Log::formatlog("countrybattlestart","zoneid=%d:battleid=%d:time=%d:defender=%d:attacker=%d:group=%d", 
+			GDeliveryServer::GetInstance()->zoneid, battleid, time(NULL)/*GetTime()*/, domain.owner, domain.challenger, _group_index);
 	} else {
 		DomainChangeState(domain, DOMAIN_STATUS_NORMAL, REASON_DOMAIN_BATTLE_START_FAILED);
 
@@ -1884,7 +1959,7 @@ void CountryBattleMan::ClearBattleConfig(DomainInfo& domain)
 	}
 }
 
-bool CountryBattleMan::OnBattleEnd(int battleid, int result, int defender, int attacker, 
+bool CountryBattleMan::BattleEnd(int battleid, int result, int defender, int attacker, 
 	const std::vector<GCountryBattlePersonalScore>& defender_score, const std::vector<GCountryBattlePersonalScore>& attacker_score)
 {
 	//战场结束
@@ -1902,8 +1977,8 @@ bool CountryBattleMan::OnBattleEnd(int battleid, int result, int defender, int a
 	int battle_last_time = Timer::GetTime() - domain.time; //计算战争时间
 	if(battle_last_time <= 0) return false;
 		
-	Log::formatlog("countrybattleend","zoneid=%d:battleid=%d:time=%d:result=%d:defender=%d:attacker=%d", 
-		GDeliveryServer::GetInstance()->zoneid, battleid, time(NULL)/*GetTime()*/, result, defender, attacker);
+	Log::formatlog("countrybattleend","zoneid=%d:battleid=%d:time=%d:result=%d:defender=%d:attacker=%d:group=%d", 
+		GDeliveryServer::GetInstance()->zoneid, battleid, time(NULL)/*GetTime()*/, result, defender, attacker, _group_index);
 
 	
 	//计算胜利方
@@ -1950,12 +2025,12 @@ int CountryBattleMan::GetPlayerDomainId(int roleid)
 	return it_player->second.in_domain_id;
 }
 
-bool CountryBattleMan::OnPlayerPreEnter(int battle_id, int roleid)
+bool CountryBattleMan::PlayerPreEnter(int battle_id, int roleid)
 {
 	LOG_TRACE("countrybattlepreenter, battle_id=%d, roleid=%d", battle_id, roleid);
 
 	if(_status != ST_OPEN) return false;
-	DOMAIN_MAP::iterator it_domain = _domain_map.find(battle_id);
+	DOMAIN_MAP::iterator it_domain = _domain_map.find(GetBaseID(battle_id));
 	if(it_domain == _domain_map.end()) return false;
 		
 	DomainInfo& domain = it_domain->second;
@@ -1965,7 +2040,7 @@ bool CountryBattleMan::OnPlayerPreEnter(int battle_id, int roleid)
 	for(unsigned int i = 0; i < list.size(); ++i) {
 		if(list[i] == roleid) {
 			CountryBattleEnter proto;
-			proto.battle_id = domain.id;
+			proto.battle_id = MakeUniqueID(_group_index,domain.id);
 			proto.roleid = roleid;
 			proto.world_tag = GetWorldTagByDomainId(battle_id);
 			
@@ -1980,7 +2055,7 @@ bool CountryBattleMan::OnPlayerPreEnter(int battle_id, int roleid)
 	return true;
 }
 
-void CountryBattleMan::OnPlayerReturnCapital(int roleid)
+void CountryBattleMan::PlayerReturnCapital(int roleid)
 {
 	PLAYER_ENTRY_MAP::iterator it_player = _player_map.find(roleid);
 	if(it_player == _player_map.end()) return; //在国战中找不到该玩家
@@ -2039,7 +2114,7 @@ void CountryBattleMan::SendApplyResultToGs(int country_id, const std::vector<Cou
 	DEBUG_PRINT("countrybattleapply, country_id=%d, time=%d, country_id_invalid_timestamp=%d, apply_list_size=%d, apply_list=%s", 
 			country_id, Timer::GetTime(), country_id_invalid_timestamp, apply_list.size(), list_str.c_str());
 
-	CountryBattleApply_Re res(ERR_SUCCESS, country_id, country_id_invalid_timestamp, worldtag, posx, posy, posz, apply_list);
+	CountryBattleApply_Re res(ERR_SUCCESS, MakeUniqueID(_group_index,country_id), country_id_invalid_timestamp, worldtag, posx, posy, posz, apply_list);
 	GProviderServer::GetInstance()->Send(sid, res);
 }
 
@@ -2077,7 +2152,7 @@ void CountryBattleMan::PlayersApplyBattleRandom( std::vector<CountryBattleApplyE
 	SendApplyResultToGs(country_id, apply_list, sid);
 }
 
-void CountryBattleMan::OnPlayersApplyBattle( std::vector<CountryBattleApplyEntry>& apply_list, unsigned int sid)
+void CountryBattleMan::PlayersApplyBattle( std::vector<CountryBattleApplyEntry>& apply_list, unsigned int sid)
 {
 	if(_status != ST_OPEN) return;
 	if(_arrange_country_type == ARRANGE_COUNTRY_BY_ZONEID) {
@@ -2415,7 +2490,7 @@ void CountryBattleMan::SendBattleLimit(int roleid, int domain_id)
 		re.localsid = player.localsid;
 		GDeliveryServer::GetInstance()->Send(player.linksid, re);
 	} else {
-		Log::log( LOG_ERR, "CountryBattle SendCountryBattleLimit, limit data not match." );
+		Log::log( LOG_ERR, "CountryBattle[%d] SendCountryBattleLimit, limit data not match.", _group_index );
 	}
 }
 
@@ -2445,7 +2520,7 @@ bool CountryBattleMan::IsPlayerBeyondBattleLimit(const PlayerEntry& player, cons
 	}
 
 	if(!can_find) {
-		Log::log( LOG_ERR, "CountryBattle IsPlayerBeyondBattleLimit, limit data not match." );
+		Log::log( LOG_ERR, "CountryBattle[%d] IsPlayerBeyondBattleLimit, limit data not match.", _group_index );
 	}
 
 	return ret;
@@ -2492,5 +2567,251 @@ int CountryBattleMan::GetBattleCountryCnt(std::set<int>& country_set)
 	} 
 
 	return ret;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////
+// 跨唯一服国战新增接口
+/////////////////////////////////////////////////////////////////////////////////////
+int CountryBattleMan::GetGroupIdByRoleId(int rid)
+{
+	PlayerInfo * pinfo = UserContainer::GetInstance().FindRole( rid );
+	if(pinfo && pinfo->user)
+	{
+		if(GDeliveryServer::GetInstance()->IsCentralDS())
+			return CentralDeliveryServer::GetInstance()->GetGroupIdByZoneId(pinfo->user->src_zoneid);
+		else
+			return CountryBattleMan::_default_group; // 非调试 本服默认0号分组
+	}
+	return -1;	
+}
+
+CountryBattleMan* CountryBattleMan::GetActiveCountryBattle(int group)
+{
+	if(group >= 0 && group < GROUP_MAX_CNT && CountryBattleMan::_instance[group].IsActive())
+		return  &CountryBattleMan::_instance[group];
+	return NULL;
+}
+
+void CountryBattleMan::OnPlayersApplyBattle(std::vector<CountryBattleApplyEntry>& apply_list, unsigned int sid)
+{
+	typedef	std::map<int/*group_id*/ , std::vector<CountryBattleApplyEntry> > GROUP_APPLY_MAP;
+	GROUP_APPLY_MAP	group_apply;
+	for(size_t i = 0; i < apply_list.size(); ++i){
+		int gid = CountryBattleMan::GetGroupIdByRoleId(apply_list[i].roleid);
+		group_apply[gid].push_back(apply_list[i]);
+	}
+
+	GROUP_APPLY_MAP::iterator it = group_apply.begin();
+	while(it != group_apply.end()){
+		int gid = it->first;
+		CountryBattleMan* instance = CountryBattleMan::GetActiveCountryBattle(gid);
+		if(instance) instance->PlayersApplyBattle(it->second,sid);
+		++it;
+	}
+}
+
+#define ACTIVE_BAT_BEG CountryBattleMan* instance = CountryBattleMan::GetActiveCountryBattle(CountryBattleMan::GetGroupIdByRoleId(rid));\
+					  if(instance){							   
+#define ACTIVE_BAT_END }
+
+void CountryBattleMan::OnPlayerGetConfig(int rid,unsigned int sid, unsigned int localsid)
+{
+	if(DisabledSystem::GetDisabled(SYS_COUNTRYBATTLE))
+		return;
+
+	PlayerInfo * pinfo = UserContainer::GetInstance().FindRole( rid );
+	if(pinfo && pinfo->user)
+	{
+		int group = CountryBattleMan::_default_group;
+		if(GDeliveryServer::GetInstance()->IsCentralDS())
+			group = CentralDeliveryServer::GetInstance()->GetGroupIdByZoneId(pinfo->user->src_zoneid);
+		if(group < 0 || group > GROUP_MAX_CNT)
+			return;
+	
+		if(!CountryBattleMan::_instance[group].IsActive() && !pinfo->IsGM())		//只有 gm 能查询非活动期国战信息
+			return;
+
+		CountryBattleMan::_instance[group].SendConfig(rid,sid,localsid);
+	}
+}
+
+void CountryBattleMan::OnPlayerJoinBattle(int rid, int country_id, int world_tag, int major_strength, int minor_strength, char is_king)
+{
+	ACTIVE_BAT_BEG
+	instance->JoinBattle(rid, GetBaseID(country_id), world_tag, major_strength, minor_strength, is_king);
+	ACTIVE_BAT_END
+}
+
+void CountryBattleMan::OnPlayerLeaveBattle(int rid, int country_id, int major_strength, int minor_strength)
+{
+	ACTIVE_BAT_BEG
+	instance->LeaveBattle(rid, GetBaseID(country_id), major_strength, minor_strength);
+	ACTIVE_BAT_END
+}
+
+const std::map<int/*linksid*/, PlayerVector>* CountryBattleMan::OnGetCountryOnlinePlayers(int rid)
+{
+	ACTIVE_BAT_BEG
+	return instance->GetCountryOnlinePlayers(rid);	
+	ACTIVE_BAT_END
+	return NULL;	
+}
+
+int CountryBattleMan::OnPlayerMove(int rid, int dest)
+{
+	ACTIVE_BAT_BEG
+	return instance->PlayerMove(rid,dest);
+	ACTIVE_BAT_END
+	return -1;
+}
+
+int CountryBattleMan::OnPlayerStopMove(int rid)
+{
+	ACTIVE_BAT_BEG
+	return instance->PlayerStopMove(rid);
+	ACTIVE_BAT_END
+	return -1;
+}
+
+void CountryBattleMan::OnPlayerGetMap(int rid, unsigned int sid, unsigned int localsid)
+{
+	ACTIVE_BAT_BEG
+	instance->SendMap(rid,sid,localsid);
+	ACTIVE_BAT_END
+}
+
+int CountryBattleMan::OnPlayerGetDomainId(int rid)
+{
+	ACTIVE_BAT_BEG
+	return instance->GetPlayerDomainId(rid);
+	ACTIVE_BAT_END
+	return -1;
+}
+
+void CountryBattleMan::OnPlayerGetScore(int rid, unsigned int sid, unsigned int localsid)
+{
+	ACTIVE_BAT_BEG
+	instance->SendCountryScore(rid, sid, localsid);
+	ACTIVE_BAT_END
+}
+
+bool CountryBattleMan::OnPlayerPreEnter(int rid, int battle_id)
+{
+	ACTIVE_BAT_BEG
+	return instance->PlayerPreEnter(battle_id,rid);
+	ACTIVE_BAT_END
+	return false;	
+}
+
+void CountryBattleMan::OnPlayerReturnCapital(int rid)
+{
+	ACTIVE_BAT_BEG
+	instance->PlayerReturnCapital(rid);
+	ACTIVE_BAT_END
+}
+
+void CountryBattleMan::OnKingAssignAssault(int rid, int domain_id, char assault_type)
+{
+	ACTIVE_BAT_BEG
+	instance->KingAssignAssault(rid,domain_id,assault_type);
+	ACTIVE_BAT_END
+}
+
+void CountryBattleMan::OnKingResetBattleLimit(int rid, int domain_id, char op, const std::vector<GCountryBattleLimit>& limit)
+{
+	ACTIVE_BAT_BEG
+	instance->KingResetBattleLimit(rid,domain_id,op,limit);
+	ACTIVE_BAT_END
+}
+
+void CountryBattleMan::OnPlayerGetBattleLimit(int rid, int domain_id)
+{
+	ACTIVE_BAT_BEG
+	instance->SendBattleLimit(rid, domain_id);	
+	ACTIVE_BAT_END
+}
+
+void CountryBattleMan::OnKingGetCommandPoint(int rid)
+{
+	ACTIVE_BAT_BEG
+	instance->SendKingCmdPoint(rid);
+	ACTIVE_BAT_END
+}
+
+void CountryBattleMan::OnPlayerLogin(int rid, int country_id, int world_tag, int minor_str, char is_king)
+{
+	ACTIVE_BAT_BEG
+	instance->PlayerLogin(rid, GetBaseID(country_id), world_tag, minor_str, is_king);
+	ACTIVE_BAT_END
+}
+
+void CountryBattleMan::OnPlayerLogout(int rid, int country_id)
+{
+	ACTIVE_BAT_BEG
+	instance->PlayerLogout(rid, GetBaseID(country_id));	
+	ACTIVE_BAT_END
+}
+
+void CountryBattleMan::OnPlayerEnterMap(int rid, int worldtag)
+{
+	ACTIVE_BAT_BEG
+	instance->PlayerEnterMap(rid,worldtag);
+	ACTIVE_BAT_END
+}
+
+void CountryBattleMan::OnRegisterServer(int server_type, int war_type, int server_id, int worldtag)
+{
+	CountryBattleMan::_instance[0].RegisterServer(server_type, war_type, server_id, worldtag);
+	for(size_t i = 1; i < GROUP_MAX_CNT; ++i)
+		CountryBattleMan::_instance[i].CloneServerInfo(CountryBattleMan::_instance[0]);
+}
+
+bool CountryBattleMan::OnBattleStart(int battleid, int worldtag, int retcode, int defender, int attacker)
+{
+	int group = GetGroupID(battleid);
+	CountryBattleMan* instance = CountryBattleMan::GetActiveCountryBattle(group);
+	if(instance) return instance->BattleStart(GetBaseID(battleid), worldtag, retcode, defender, attacker);
+	return false;
+}
+
+bool CountryBattleMan::OnBattleEnd(int battleid, int result, int defender, int attacker, 
+		const std::vector<GCountryBattlePersonalScore>& defender_score, const std::vector<GCountryBattlePersonalScore>& attacker_score)
+{
+	int group = GetGroupID(battleid);
+	CountryBattleMan* instance = CountryBattleMan::GetActiveCountryBattle(group);
+	if(instance) return instance->BattleEnd(GetBaseID(battleid), result, defender, attacker, defender_score, attacker_score);
+	return false;
+}
+
+bool CountryBattleMan::OnInitialize(int cur_group, int group_count, bool arrange_country_by_zoneid)
+{
+	CountryBattleMan::_default_group = 0;
+	bool ret = true;
+	group_count = GDeliveryServer::GetInstance()->IsCentralDS() ?  group_count : 1; // 1 for local countrybattle
+	group_count = group_count < GROUP_MAX_CNT ? group_count : GROUP_MAX_CNT;
+	for(int i = 0; i < group_count; ++i){
+		ret &= CountryBattleMan::_instance[i].Initialize(i,arrange_country_by_zoneid);
+	}
+
+	return ret;
+}
+
+void CountryBattleMan::OnSetCountryIDCtrl(int id)
+{
+	 for(int i = 0; i < GROUP_MAX_CNT; ++i){	
+		 CountryBattleMan::_instance[i].SetCountryIDCtrl(id);
+	 }
+}
+
+void CountryBattleMan::OnSetAdjustTime(int t)
+{
+	 for(int i = 0; i < GROUP_MAX_CNT; ++i){	
+		 CountryBattleMan::_instance[i].SetAdjustTime(t);
+	 }
+}
+
+void  CountryBattleMan::OnSetDefaultGroup(int gid)
+{
+	CountryBattleMan::_default_group = gid;
 }
 

@@ -137,9 +137,9 @@ namespace GNET
       Skill99Stub ():SkillStub (99)
         {
             cls = 1;
-            name = L"̩ɽѹ��";
-            nativename = "̩ɽѹ��";
-            icon = "̩ɽѹ��.dds";
+            name = L"泰山压顶";
+            nativename = "泰山压顶";
+            icon = "泰山压顶.dds";
             max_level = 10;
             type = 1;
             apcost = 200;
@@ -165,7 +165,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (292);
             }
-            effect = "̩ɽѹ��.sgc";
+            effect = "泰山压顶.sgc";
             range.type = 3;
             doenchant = true;
             dobless = false;

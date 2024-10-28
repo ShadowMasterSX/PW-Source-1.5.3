@@ -5,63 +5,70 @@
 #include <vector>
 #include <set>
 #include "rpcdefs.h"
-#include "playerprofiledata"
-#include "gauctiondetail"
-#include "gfactioninfo"
-#include "grolepocket"
-#include "guserstorehouse"
-#include "gterritorydetail"
-#include "gfactionfortressinfo"
 #include "pshopdetail"
-#include "gglobalcontroldata"
-#include "ggroupinfo"
-#include "gfriendlist"
-#include "groletask"
+#include "guserstorehouse"
 #include "gfactionrelationapply"
-#include "gfactionfortressinfo2"
-#include "gmailheader"
-#include "groleinventory"
-#include "groletableclsconfig"
-#include "groleequipment"
-#include "user"
-#include "gtabledefinition"
-#include "message"
-#include "gfactionfortressdetail"
-#include "keking"
-#include "gfactionhostile"
-#include "stockorder"
-#include "guniquedataelem"
-#include "gfriendinfo"
-#include "grolestorehouse"
-#include "groleforbid"
-#include "mappasswordvalue"
-#include "gsendaumailrecord"
-#include "guserfaction"
-#include "gsyslog"
-#include "gpair"
-#include "gmailbox"
-#include "stocklog"
-#include "grolestatus"
-#include "gmember"
-#include "gwebtradedetail"
-#include "gfactionrelation"
-#include "kingelectiondetail"
-#include "gserverdata"
-#include "groledata"
-#include "gfactionalliance"
-#include "gfriendextra"
+#include "gterritorydetail"
+#include "gauctiondetail"
 #include "grolebase"
-#include "gwebtradeitem"
-#include "gauctionitem"
-#include "gforceglobaldatalist"
-#include "pshopitem"
-#include "weborderitemdetail"
+#include "gfactionhostile"
+#include "gmailheader"
+#include "gfactioninfo"
+#include "gwebtradedetail"
 #include "mappassworddata"
 #include "gfriendextinfo"
-#include "gforceglobaldata"
-#include "kecandidate"
-#include "gterritorystore"
+#include "kingelectiondetail"
+#include "gfriendinfo"
+#include "gsendaumailrecord"
+#include "playerprofiledata"
+#include "gfriendlist"
 #include "gmail"
+#include "mndomaininfo"
+#include "mappasswordvalue"
+#include "gfactionfortressdetail"
+#include "gwebtradeitem"
+#include "stocklog"
+#include "gfactionrelation"
+#include "pshopitem"
+#include "gforceglobaldatalist"
+#include "gforceglobaldata"
+#include "user"
+#include "grolestorehouse"
+#include "gmember"
+#include "guniquedataelem"
+#include "groletask"
+#include "mnfactioninfo"
+#include "kecandidate"
+#include "message"
+#include "gterritorystore"
+#include "gserverdata"
+#include "gfactionfortressinfo2"
+#include "gtabledefinition"
+#include "stockorder"
+#include "mndomainbonus"
+#include "grolepocket"
+#include "grolestatus"
+#include "gsyslog"
+#include "weborderitemdetail"
+#include "groledata"
+#include "solochallengerankdata"
+#include "solochallengerankdataext"
+#include "gglobalcontroldata"
+#include "gfactionfortressinfo"
+#include "groleequipment"
+#include "groleforbid"
+#include "gmailbox"
+#include "groleinventory"
+#include "groletableclsconfig"
+#include "ggroupinfo"
+#include "mndomainbonusrewarditem"
+#include "mnfactionapplyinfo"
+#include "keking"
+#include "gpair"
+#include "gauctionitem"
+#include "gfactionalliance"
+#include "gfriendextra"
+#include "guserfaction"
 
 namespace GNET
 {
@@ -175,6 +182,13 @@ public:
 			append(name, *i);
 	}
 	template<typename T>
+	void append(const char* name, const std::list<T> &x) 
+	{
+		typedef const std::list<T> LIST;
+		for( typename LIST::const_iterator i=x.begin(),e=x.end();i!=e;++i)
+			append(name, *i);
+	}
+	template<typename T>
 	void append(const char* name, const GNET::RpcDataVector<T> &x) 
 	{
 		typedef const GNET::RpcDataVector<T> VECTOR;
@@ -187,53 +201,23 @@ public:
 		for (typename std::set<T>::const_iterator i=x.begin(),e=x.end();i!=e;++i)
 			append(name, *i);
 	}
-	void append(const char* name, const PlayerProfileData& x)
+	void append(const char* name, const PShopDetail& x)
 	{
 		data = data + "<" + name + ">\n";
-		append("game_time_mask", (short) x.game_time_mask);
-		append("game_interest_mask", (short) x.game_interest_mask);
-		append("personal_interest_mask", (short) x.personal_interest_mask);
-		append("age", (char) x.age);
-		append("zodiac", (char) x.zodiac);
-		append("match_option_mask", (short) x.match_option_mask);
-		data = data + "</" + name + ">\n";
-	}
-	void append(const char* name, const GAuctionDetail& x)
-	{
-		data = data + "<" + name + ">\n";
-		append("info",  x.info);
-		append("category", (short) x.category);
-		append("baseprice", (int) x.baseprice);
-		append("deposit", (int) x.deposit);
-		append("elapse_time",  x.elapse_time);
-		append("prolong",  x.prolong);
+		append("roleid",  x.roleid);
+		append("shoptype",  x.shoptype);
+		append("status",  x.status);
+		append("createtime",  x.createtime);
+		append("expiretime",  x.expiretime);
+		append("money", (int) x.money);
+		append("yinpiao",  x.yinpiao);
+		append("blist",  x.blist);
+		append("slist",  x.slist);
+		append("store",  x.store);
 		append("reserved1",  x.reserved1);
 		append("reserved2",  x.reserved2);
 		append("reserved3",  x.reserved3);
-		append("item",  x.item);
-		data = data + "</" + name + ">\n";
-	}
-	void append(const char* name, const GFactionInfo& x)
-	{
-		data = data + "<" + name + ">\n";
-		append("fid", (int) x.fid);
-		append_string("name",  x.name);
-		append("level",  x.level);
-		append("master",  x.master);
-		append("member",  x.member);
-		append("announce",  x.announce);
-		append("sysinfo",  x.sysinfo);
-		data = data + "</" + name + ">\n";
-	}
-	void append(const char* name, const GRolePocket& x)
-	{
-		data = data + "<" + name + ">\n";
-		append("capacity", (int) x.capacity);
-		append("timestamp", (int) x.timestamp);
-		append("money", (int) x.money);
-		append("items",  x.items);
-		append("reserved1",  x.reserved1);
-		append("reserved2",  x.reserved2);
+		append("reserved4",  x.reserved4);
 		data = data + "</" + name + ">\n";
 	}
 	void append(const char* name, const GUserStorehouse& x)
@@ -246,6 +230,14 @@ public:
 		append("reserved2",  x.reserved2);
 		append("reserved3",  x.reserved3);
 		append("reserved4",  x.reserved4);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const GFactionRelationApply& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("type",  x.type);
+		append("fid",  x.fid);
+		append("end_time",  x.end_time);
 		data = data + "</" + name + ">\n";
 	}
 	void append(const char* name, const GTerritoryDetail& x)
@@ -271,109 +263,52 @@ public:
 		append("reserved3",  x.reserved3);
 		data = data + "</" + name + ">\n";
 	}
-	void append(const char* name, const GFactionFortressInfo& x)
+	void append(const char* name, const GAuctionDetail& x)
 	{
 		data = data + "<" + name + ">\n";
-		append("level",  x.level);
-		append("exp",  x.exp);
-		append("exp_today",  x.exp_today);
-		append("exp_today_time",  x.exp_today_time);
-		append("tech_point",  x.tech_point);
-		append("technology",  x.technology);
-		append("material",  x.material);
-		append("building",  x.building);
-		append("common_value",  x.common_value);
-		append("actived_spawner",  x.actived_spawner);
-		append("reserved11",  x.reserved11);
-		append("reserved12",  x.reserved12);
-		append("reserved2",  x.reserved2);
-		append("reserved3",  x.reserved3);
-		data = data + "</" + name + ">\n";
-	}
-	void append(const char* name, const PShopDetail& x)
-	{
-		data = data + "<" + name + ">\n";
-		append("roleid",  x.roleid);
-		append("shoptype",  x.shoptype);
-		append("status",  x.status);
-		append("createtime",  x.createtime);
-		append("expiretime",  x.expiretime);
-		append("money", (int) x.money);
-		append("yinpiao",  x.yinpiao);
-		append("blist",  x.blist);
-		append("slist",  x.slist);
-		append("store",  x.store);
+		append("info",  x.info);
+		append("category", (short) x.category);
+		append("baseprice", (int) x.baseprice);
+		append("deposit", (int) x.deposit);
+		append("elapse_time",  x.elapse_time);
+		append("prolong",  x.prolong);
 		append("reserved1",  x.reserved1);
 		append("reserved2",  x.reserved2);
 		append("reserved3",  x.reserved3);
-		append("reserved4",  x.reserved4);
+		append("item",  x.item);
 		data = data + "</" + name + ">\n";
 	}
-	void append(const char* name, const GGlobalControlData& x)
+	void append(const char* name, const GRoleBase& x)
 	{
 		data = data + "<" + name + ">\n";
-		append("cash_money_exchange_open",  x.cash_money_exchange_open);
-		append("cash_money_exchange_rate",  x.cash_money_exchange_rate);
-		append("forbid_ctrl_list",  x.forbid_ctrl_list);
-		append("forbid_item_list",  x.forbid_item_list);
-		append("forbid_service_list",  x.forbid_service_list);
-		append("forbid_task_list",  x.forbid_task_list);
-		append("forbid_skill_list",  x.forbid_skill_list);
-		append("trigger_ctrl_list",  x.trigger_ctrl_list);
-		append("forbid_shopitem_list",  x.forbid_shopitem_list);
-		append("forbid_recipe_list",  x.forbid_recipe_list);
-		append("reserved3",  x.reserved3);
-		append("reserved4",  x.reserved4);
-		append("reserved5",  x.reserved5);
-		append("reserved6",  x.reserved6);
-		append("reserved7",  x.reserved7);
-		append("reserved8",  x.reserved8);
-		append("reserved9",  x.reserved9);
-		append("reserved10",  x.reserved10);
-		data = data + "</" + name + ">\n";
-	}
-	void append(const char* name, const GGroupInfo& x)
-	{
-		data = data + "<" + name + ">\n";
-		append("gid",  x.gid);
+		append("version",  x.version);
+		append("id", (int) x.id);
 		append_string("name",  x.name);
+		append("race",  x.race);
+		append("cls",  x.cls);
+		append("gender", (char) x.gender);
+		append("custom_data",  x.custom_data);
+		append("config_data",  x.config_data);
+		append("custom_stamp", (int) x.custom_stamp);
+		append("status", (char) x.status);
+		append("delete_time",  x.delete_time);
+		append("create_time",  x.create_time);
+		append("lastlogin_time",  x.lastlogin_time);
+		append("forbid",  x.forbid);
+		append("help_states",  x.help_states);
+		append("spouse", (int) x.spouse);
+		append("userid", (int) x.userid);
+		append("cross_data",  x.cross_data);
+		append("reserved2", (char) x.reserved2);
+		append("reserved3", (char) x.reserved3);
+		append("reserved4", (char) x.reserved4);
 		data = data + "</" + name + ">\n";
 	}
-	void append(const char* name, const GFriendList& x)
+	void append(const char* name, const GFactionHostile& x)
 	{
 		data = data + "<" + name + ">\n";
-		append("groups",  x.groups);
-		append("friends",  x.friends);
-		data = data + "</" + name + ">\n";
-	}
-	void append(const char* name, const GRoleTask& x)
-	{
-		data = data + "<" + name + ">\n";
-		append("task_data",  x.task_data);
-		append("task_complete",  x.task_complete);
-		append("task_finishtime",  x.task_finishtime);
-		append("task_inventory",  x.task_inventory);
-		data = data + "</" + name + ">\n";
-	}
-	void append(const char* name, const GFactionRelationApply& x)
-	{
-		data = data + "<" + name + ">\n";
-		append("type",  x.type);
 		append("fid",  x.fid);
 		append("end_time",  x.end_time);
-		data = data + "</" + name + ">\n";
-	}
-	void append(const char* name, const GFactionFortressInfo2& x)
-	{
-		data = data + "<" + name + ">\n";
-		append("health",  x.health);
-		append("offense_faction",  x.offense_faction);
-		append("offense_starttime",  x.offense_starttime);
-		append("offense_endtime",  x.offense_endtime);
-		append("challenge_list",  x.challenge_list);
-		append("reserved1",  x.reserved1);
-		append("reserved2",  x.reserved2);
-		append("reserved3",  x.reserved3);
 		data = data + "</" + name + ">\n";
 	}
 	void append(const char* name, const GMailHeader& x)
@@ -389,36 +324,236 @@ public:
 		append("sender_name",  x.sender_name);
 		data = data + "</" + name + ">\n";
 	}
-	void append(const char* name, const GRoleInventory& x)
+	void append(const char* name, const GFactionInfo& x)
 	{
 		data = data + "<" + name + ">\n";
-		append("id", (int) x.id);
-		append("pos",  x.pos);
-		append("count",  x.count);
-		append("max_count",  x.max_count);
-		append("data",  x.data);
-		append("proctype",  x.proctype);
-		append("expire_date",  x.expire_date);
-		append("guid1",  x.guid1);
-		append("guid2",  x.guid2);
-		append("mask",  x.mask);
+		append("fid", (int) x.fid);
+		append_string("name",  x.name);
+		append("level",  x.level);
+		append("master",  x.master);
+		append("member",  x.member);
+		append("announce",  x.announce);
+		append("extenddata",  x.extenddata);
 		data = data + "</" + name + ">\n";
 	}
-	void append(const char* name, const GRoleTableClsconfig& x)
+	void append(const char* name, const GWebTradeDetail& x)
 	{
 		data = data + "<" + name + ">\n";
-		append("version",  x.version);
-		append("base",  x.base);
-		append("status",  x.status);
-		append("inventory",  x.inventory);
-		append("equipment",  x.equipment);
-		append("storehouse",  x.storehouse);
+		append("info",  x.info);
+		append("item",  x.item);
+		append("post_time",  x.post_time);
+		append("deposit", (int) x.deposit);
+		append("loginip",  x.loginip);
+		append("rolebrief",  x.rolebrief);
+		append("reserved10",  x.reserved10);
+		append("reserved11",  x.reserved11);
+		append("reserved2",  x.reserved2);
+		append("reserved3",  x.reserved3);
+		append("reserved4",  x.reserved4);
+		append("reserved5",  x.reserved5);
 		data = data + "</" + name + ">\n";
 	}
-	void append(const char* name, const GRoleEquipment& x)
+	void append(const char* name, const MapPasswordData& x)
 	{
 		data = data + "<" + name + ">\n";
-		append("inv",  x.inv);
+		append("username",  x.username);
+		append("value",  x.value);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const GFriendExtInfo& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("uid",  x.uid);
+		append("rid",  x.rid);
+		append("level",  x.level);
+		append("last_logintime",  x.last_logintime);
+		append("update_time",  x.update_time);
+		append("reincarnation_times", (char) x.reincarnation_times);
+		append("remarks",  x.remarks);
+		append("reserved1",  x.reserved1);
+		append("reserved2",  x.reserved2);
+		append("reserved3",  x.reserved3);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const KingElectionDetail& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("king",  x.king);
+		append("candidate_list",  x.candidate_list);
+		append("reserved1",  x.reserved1);
+		append("reserved2",  x.reserved2);
+		append("reserved3",  x.reserved3);
+		append("reserved4",  x.reserved4);
+		append("reserved5",  x.reserved5);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const GFriendInfo& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("rid",  x.rid);
+		append("cls",  x.cls);
+		append("gid",  x.gid);
+		append_string("name",  x.name);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const GSendAUMailRecord& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("rid",  x.rid);
+		append("sendmail_time",  x.sendmail_time);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const PlayerProfileData& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("game_time_mask", (short) x.game_time_mask);
+		append("game_interest_mask", (short) x.game_interest_mask);
+		append("personal_interest_mask", (short) x.personal_interest_mask);
+		append("age", (char) x.age);
+		append("zodiac", (char) x.zodiac);
+		append("match_option_mask", (short) x.match_option_mask);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const GFriendList& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("groups",  x.groups);
+		append("friends",  x.friends);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const GMail& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("header",  x.header);
+		append("context",  x.context);
+		append("attach_obj",  x.attach_obj);
+		append("attach_money", (int) x.attach_money);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const MNDomainInfo& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("domain_id",  x.domain_id);
+		append("domain_type", (char) x.domain_type);
+		append("owner_unifid",  x.owner_unifid);
+		append("attacker_unifid",  x.attacker_unifid);
+		append("defender_unifid",  x.defender_unifid);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const MapPasswordValue& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("userid",  x.userid);
+		append("algorithm",  x.algorithm);
+		append("password",  x.password);
+		append("matrix",  x.matrix);
+		append("seed",  x.seed);
+		append("pin",  x.pin);
+		append("rtime",  x.rtime);
+		append("refreshtime",  x.refreshtime);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const GFactionFortressDetail& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("factionid",  x.factionid);
+		append("info",  x.info);
+		append("info2",  x.info2);
+		append("reserved1",  x.reserved1);
+		append("reserved2",  x.reserved2);
+		append("reserved3",  x.reserved3);
+		append("reserved4",  x.reserved4);
+		append("reserved5",  x.reserved5);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const GWebTradeItem& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("sn",  x.sn);
+		append("seller_roleid",  x.seller_roleid);
+		append("seller_userid",  x.seller_userid);
+		append("seller_name",  x.seller_name);
+		append("posttype",  x.posttype);
+		append("money", (int) x.money);
+		append("item_id", (int) x.item_id);
+		append("item_count",  x.item_count);
+		append("state",  x.state);
+		append("post_endtime",  x.post_endtime);
+		append("show_endtime",  x.show_endtime);
+		append("price",  x.price);
+		append("sell_endtime",  x.sell_endtime);
+		append("buyer_roleid",  x.buyer_roleid);
+		append("buyer_userid",  x.buyer_userid);
+		append("buyer_name",  x.buyer_name);
+		append("commodity_id",  x.commodity_id);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const StockLog& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("tid", (int) x.tid);
+		append("time",  x.time);
+		append("result",  x.result);
+		append("volume",  x.volume);
+		append("cost",  x.cost);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const GFactionRelation& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("fid",  x.fid);
+		append("last_op_time",  x.last_op_time);
+		append("alliance",  x.alliance);
+		append("hostile",  x.hostile);
+		append("apply",  x.apply);
+		append("reserved1",  x.reserved1);
+		append("reserved2",  x.reserved2);
+		append("reserved3",  x.reserved3);
+		append("reserved4",  x.reserved4);
+		append("reserved5",  x.reserved5);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const PShopItem& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("item",  x.item);
+		append("price", (int) x.price);
+		append("reserved1",  x.reserved1);
+		append("reserved2",  x.reserved2);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const GForceGlobalDataList& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("list",  x.list);
+		append("update_time",  x.update_time);
+		append("reserved1",  x.reserved1);
+		append("reserved2",  x.reserved2);
+		append("reserved3",  x.reserved3);
+		append("reserved4",  x.reserved4);
+		append("reserved5",  x.reserved5);
+		append("reserved6",  x.reserved6);
+		append("reserved7",  x.reserved7);
+		append("reserved8",  x.reserved8);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const GForceGlobalData& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("force_id",  x.force_id);
+		append("player_count",  x.player_count);
+		append("development",  x.development);
+		append("construction",  x.construction);
+		append("activity",  x.activity);
+		append("activity_level",  x.activity_level);
+		append("reserved1",  x.reserved1);
+		append("reserved2",  x.reserved2);
+		append("reserved3",  x.reserved3);
+		append("reserved4",  x.reserved4);
+		append("reserved5",  x.reserved5);
+		append("reserved6",  x.reserved6);
+		append("reserved7",  x.reserved7);
+		append("reserved8",  x.reserved8);
 		data = data + "</" + name + ">\n";
 	}
 	void append(const char* name, const User& x)
@@ -447,6 +582,125 @@ public:
 		append("login_record",  x.login_record);
 		append("mall_consumption",  x.mall_consumption);
 		append("reserved32",  x.reserved32);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const GRoleStorehouse& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("capacity", (int) x.capacity);
+		append("money", (int) x.money);
+		append("items",  x.items);
+		append("size1", (char) x.size1);
+		append("size2", (char) x.size2);
+		append("dress",  x.dress);
+		append("material",  x.material);
+		append("size3", (char) x.size3);
+		append("generalcard",  x.generalcard);
+		append("reserved",  x.reserved);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const GMember& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("rid", (int) x.rid);
+		append("role",  x.role);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const GUniqueDataElem& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("vtype",  x.vtype);
+		append("value",  x.value);
+		append("version",  x.version);
+		append("reserved",  x.reserved);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const GRoleTask& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("task_data",  x.task_data);
+		append("task_complete",  x.task_complete);
+		append("task_finishtime",  x.task_finishtime);
+		append("task_inventory",  x.task_inventory);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const MNFactionInfo& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("unifid",  x.unifid);
+		append("fid", (int) x.fid);
+		append("faction_name",  x.faction_name);
+		append("master_name",  x.master_name);
+		append("zoneid",  x.zoneid);
+		append("domain_num",  x.domain_num);
+		append("credit",  x.credit);
+		append("credit_this_week",  x.credit_this_week);
+		append("credit_get_time",  x.credit_get_time);
+		append("invite_count", (int) x.invite_count);
+		append("accept_sn", (int) x.accept_sn);
+		append("bonus_sn", (int) x.bonus_sn);
+		append("version", (int) x.version);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const KECandidate& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("roleid",  x.roleid);
+		append("serial_num",  x.serial_num);
+		append("deposit",  x.deposit);
+		append("votes",  x.votes);
+		append("reserved1",  x.reserved1);
+		append("reserved2",  x.reserved2);
+		append("reserved3",  x.reserved3);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const Message& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("channel", (char) x.channel);
+		append("src_name",  x.src_name);
+		append("srcroleid",  x.srcroleid);
+		append("dst_name",  x.dst_name);
+		append("dstroleid",  x.dstroleid);
+		append("msg",  x.msg);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const GTerritoryStore& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("cities",  x.cities);
+		append("status",  x.status);
+		append("special_time",  x.special_time);
+		append("reserved2",  x.reserved2);
+		append("reserved3",  x.reserved3);
+		append("reserved4",  x.reserved4);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const GServerData& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("world_tag",  x.world_tag);
+		append("wedding_data",  x.wedding_data);
+		append("dpsrank_data",  x.dpsrank_data);
+		append("reserved11",  x.reserved11);
+		append("reserved12",  x.reserved12);
+		append("reserved2",  x.reserved2);
+		append("reserved3",  x.reserved3);
+		append("reserved4",  x.reserved4);
+		append("reserved5",  x.reserved5);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const GFactionFortressInfo2& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("health",  x.health);
+		append("offense_faction",  x.offense_faction);
+		append("offense_starttime",  x.offense_starttime);
+		append("offense_endtime",  x.offense_endtime);
+		append("challenge_list",  x.challenge_list);
+		append("reserved1",  x.reserved1);
+		append("reserved2",  x.reserved2);
+		append("reserved3",  x.reserved3);
 		data = data + "</" + name + ">\n";
 	}
 	void append(const char* name, const GTableDefinition& x)
@@ -494,47 +748,11 @@ public:
 		append("uniquedata",  x.uniquedata);
 		append("recalluser",  x.recalluser);
 		append("mappassword",  x.mappassword);
-		data = data + "</" + name + ">\n";
-	}
-	void append(const char* name, const Message& x)
-	{
-		data = data + "<" + name + ">\n";
-		append("channel", (char) x.channel);
-		append("src_name",  x.src_name);
-		append("srcroleid",  x.srcroleid);
-		append("dst_name",  x.dst_name);
-		append("dstroleid",  x.dstroleid);
-		append("msg",  x.msg);
-		data = data + "</" + name + ">\n";
-	}
-	void append(const char* name, const GFactionFortressDetail& x)
-	{
-		data = data + "<" + name + ">\n";
-		append("factionid",  x.factionid);
-		append("info",  x.info);
-		append("info2",  x.info2);
-		append("reserved1",  x.reserved1);
-		append("reserved2",  x.reserved2);
-		append("reserved3",  x.reserved3);
-		append("reserved4",  x.reserved4);
-		append("reserved5",  x.reserved5);
-		data = data + "</" + name + ">\n";
-	}
-	void append(const char* name, const KEKing& x)
-	{
-		data = data + "<" + name + ">\n";
-		append("roleid",  x.roleid);
-		append("end_time",  x.end_time);
-		append("reserved1",  x.reserved1);
-		append("reserved2",  x.reserved2);
-		append("reserved3",  x.reserved3);
-		data = data + "</" + name + ">\n";
-	}
-	void append(const char* name, const GFactionHostile& x)
-	{
-		data = data + "<" + name + ">\n";
-		append("fid",  x.fid);
-		append("end_time",  x.end_time);
+		append("solochallengerank",  x.solochallengerank);
+		append("mnfactioninfo",  x.mnfactioninfo);
+		append("mnfactionapplyinfo",  x.mnfactionapplyinfo);
+		append("mndomaininfo",  x.mndomaininfo);
+		append("mndomainbonus",  x.mndomainbonus);
 		data = data + "</" + name + ">\n";
 	}
 	void append(const char* name, const StockOrder& x)
@@ -548,119 +766,25 @@ public:
 		append("status",  x.status);
 		data = data + "</" + name + ">\n";
 	}
-	void append(const char* name, const GUniqueDataElem& x)
+	void append(const char* name, const MNDomainBonus& x)
 	{
 		data = data + "<" + name + ">\n";
-		append("vtype",  x.vtype);
-		append("value",  x.value);
-		append("version",  x.version);
-		append("reserved",  x.reserved);
+		append("unifid",  x.unifid);
+		append("bonus_sn", (int) x.bonus_sn);
+		append("reward_list",  x.reward_list);
+		append("master_reward",  x.master_reward);
+		append("rolelist",  x.rolelist);
 		data = data + "</" + name + ">\n";
 	}
-	void append(const char* name, const GFriendInfo& x)
-	{
-		data = data + "<" + name + ">\n";
-		append("rid",  x.rid);
-		append("cls",  x.cls);
-		append("gid",  x.gid);
-		append_string("name",  x.name);
-		data = data + "</" + name + ">\n";
-	}
-	void append(const char* name, const GRoleStorehouse& x)
+	void append(const char* name, const GRolePocket& x)
 	{
 		data = data + "<" + name + ">\n";
 		append("capacity", (int) x.capacity);
+		append("timestamp", (int) x.timestamp);
 		append("money", (int) x.money);
-		append("items",  x.items);
-		append("size1", (char) x.size1);
-		append("size2", (char) x.size2);
-		append("dress",  x.dress);
-		append("material",  x.material);
-		append("size3", (char) x.size3);
-		append("generalcard",  x.generalcard);
-		append("reserved",  x.reserved);
-		data = data + "</" + name + ">\n";
-	}
-	void append(const char* name, const GRoleForbid& x)
-	{
-		data = data + "<" + name + ">\n";
-		append("type", (char) x.type);
-		append("time",  x.time);
-		append("createtime",  x.createtime);
-		append("reason",  x.reason);
-		data = data + "</" + name + ">\n";
-	}
-	void append(const char* name, const MapPasswordValue& x)
-	{
-		data = data + "<" + name + ">\n";
-		append("userid",  x.userid);
-		append("algorithm",  x.algorithm);
-		append("password",  x.password);
-		append("matrix",  x.matrix);
-		append("seed",  x.seed);
-		append("pin",  x.pin);
-		append("rtime",  x.rtime);
-		append("refreshtime",  x.refreshtime);
-		data = data + "</" + name + ">\n";
-	}
-	void append(const char* name, const GSendAUMailRecord& x)
-	{
-		data = data + "<" + name + ">\n";
-		append("rid",  x.rid);
-		append("sendmail_time",  x.sendmail_time);
-		data = data + "</" + name + ">\n";
-	}
-	void append(const char* name, const GUserFaction& x)
-	{
-		data = data + "<" + name + ">\n";
-		append("rid", (int) x.rid);
-		append_string("name",  x.name);
-		append("fid", (int) x.fid);
-		append("cls",  x.cls);
-		append("role",  x.role);
-		append("delayexpel",  x.delayexpel);
-		append("extend",  x.extend);
-		append("nickname",  x.nickname);
-		data = data + "</" + name + ">\n";
-	}
-	void append(const char* name, const GSysLog& x)
-	{
-		data = data + "<" + name + ">\n";
-		append("roleid",  x.roleid);
-		append("time",  x.time);
-		append("ip",  x.ip);
-		append("source",  x.source);
-		append("money",  x.money);
 		append("items",  x.items);
 		append("reserved1",  x.reserved1);
 		append("reserved2",  x.reserved2);
-		append("reserved3",  x.reserved3);
-		append("reserved4",  x.reserved4);
-		data = data + "</" + name + ">\n";
-	}
-	void append(const char* name, const GPair& x)
-	{
-		data = data + "<" + name + ">\n";
-		append("key",  x.key);
-		append("value",  x.value);
-		data = data + "</" + name + ">\n";
-	}
-	void append(const char* name, const GMailBox& x)
-	{
-		data = data + "<" + name + ">\n";
-		append("timestamp", (int) x.timestamp);
-		append("status", (int) x.status);
-		append("mails",  x.mails);
-		data = data + "</" + name + ">\n";
-	}
-	void append(const char* name, const StockLog& x)
-	{
-		data = data + "<" + name + ">\n";
-		append("tid", (int) x.tid);
-		append("time",  x.time);
-		append("result",  x.result);
-		append("volume",  x.volume);
-		append("cost",  x.cost);
 		data = data + "</" + name + ">\n";
 	}
 	void append(const char* name, const GRoleStatus& x)
@@ -715,188 +839,23 @@ public:
 		append("title_data",  x.title_data);
 		append("reincarnation_data",  x.reincarnation_data);
 		append("realm_data",  x.realm_data);
-		append("reserved2",  x.reserved2);
+		append("rank",  x.rank);
 		append("reserved3",  x.reserved3);
 		data = data + "</" + name + ">\n";
 	}
-	void append(const char* name, const GMember& x)
+	void append(const char* name, const GSysLog& x)
 	{
 		data = data + "<" + name + ">\n";
-		append("rid", (int) x.rid);
-		append("role",  x.role);
-		data = data + "</" + name + ">\n";
-	}
-	void append(const char* name, const GWebTradeDetail& x)
-	{
-		data = data + "<" + name + ">\n";
-		append("info",  x.info);
-		append("item",  x.item);
-		append("post_time",  x.post_time);
-		append("deposit", (int) x.deposit);
-		append("loginip",  x.loginip);
-		append("rolebrief",  x.rolebrief);
-		append("reserved10",  x.reserved10);
-		append("reserved11",  x.reserved11);
-		append("reserved2",  x.reserved2);
-		append("reserved3",  x.reserved3);
-		append("reserved4",  x.reserved4);
-		append("reserved5",  x.reserved5);
-		data = data + "</" + name + ">\n";
-	}
-	void append(const char* name, const GFactionRelation& x)
-	{
-		data = data + "<" + name + ">\n";
-		append("fid",  x.fid);
-		append("last_op_time",  x.last_op_time);
-		append("alliance",  x.alliance);
-		append("hostile",  x.hostile);
-		append("apply",  x.apply);
+		append("roleid",  x.roleid);
+		append("time",  x.time);
+		append("ip",  x.ip);
+		append("source",  x.source);
+		append("money",  x.money);
+		append("items",  x.items);
 		append("reserved1",  x.reserved1);
 		append("reserved2",  x.reserved2);
 		append("reserved3",  x.reserved3);
 		append("reserved4",  x.reserved4);
-		append("reserved5",  x.reserved5);
-		data = data + "</" + name + ">\n";
-	}
-	void append(const char* name, const KingElectionDetail& x)
-	{
-		data = data + "<" + name + ">\n";
-		append("king",  x.king);
-		append("candidate_list",  x.candidate_list);
-		append("reserved1",  x.reserved1);
-		append("reserved2",  x.reserved2);
-		append("reserved3",  x.reserved3);
-		append("reserved4",  x.reserved4);
-		append("reserved5",  x.reserved5);
-		data = data + "</" + name + ">\n";
-	}
-	void append(const char* name, const GServerData& x)
-	{
-		data = data + "<" + name + ">\n";
-		append("world_tag",  x.world_tag);
-		append("wedding_data",  x.wedding_data);
-		append("dpsrank_data",  x.dpsrank_data);
-		append("reserved11",  x.reserved11);
-		append("reserved12",  x.reserved12);
-		append("reserved2",  x.reserved2);
-		append("reserved3",  x.reserved3);
-		append("reserved4",  x.reserved4);
-		append("reserved5",  x.reserved5);
-		data = data + "</" + name + ">\n";
-	}
-	void append(const char* name, const GRoleData& x)
-	{
-		data = data + "<" + name + ">\n";
-		append("base",  x.base);
-		append("status",  x.status);
-		append("pocket",  x.pocket);
-		append("equipment",  x.equipment);
-		append("storehouse",  x.storehouse);
-		append("task",  x.task);
-		data = data + "</" + name + ">\n";
-	}
-	void append(const char* name, const GFactionAlliance& x)
-	{
-		data = data + "<" + name + ">\n";
-		append("fid",  x.fid);
-		append("end_time",  x.end_time);
-		data = data + "</" + name + ">\n";
-	}
-	void append(const char* name, const GFriendExtra& x)
-	{
-		data = data + "<" + name + ">\n";
-		append("friendExtInfo",  x.friendExtInfo);
-		append("sendaumailinfo",  x.sendaumailinfo);
-		append("reserved1",  x.reserved1);
-		append("reserved2",  x.reserved2);
-		append("reserved3",  x.reserved3);
-		append("reserved4",  x.reserved4);
-		append("reserved5",  x.reserved5);
-		data = data + "</" + name + ">\n";
-	}
-	void append(const char* name, const GRoleBase& x)
-	{
-		data = data + "<" + name + ">\n";
-		append("version",  x.version);
-		append("id", (int) x.id);
-		append_string("name",  x.name);
-		append("race",  x.race);
-		append("cls",  x.cls);
-		append("gender", (char) x.gender);
-		append("custom_data",  x.custom_data);
-		append("config_data",  x.config_data);
-		append("custom_stamp", (int) x.custom_stamp);
-		append("status", (char) x.status);
-		append("delete_time",  x.delete_time);
-		append("create_time",  x.create_time);
-		append("lastlogin_time",  x.lastlogin_time);
-		append("forbid",  x.forbid);
-		append("help_states",  x.help_states);
-		append("spouse", (int) x.spouse);
-		append("userid", (int) x.userid);
-		append("cross_data",  x.cross_data);
-		append("reserved2", (char) x.reserved2);
-		append("reserved3", (char) x.reserved3);
-		append("reserved4", (char) x.reserved4);
-		data = data + "</" + name + ">\n";
-	}
-	void append(const char* name, const GWebTradeItem& x)
-	{
-		data = data + "<" + name + ">\n";
-		append("sn",  x.sn);
-		append("seller_roleid",  x.seller_roleid);
-		append("seller_userid",  x.seller_userid);
-		append("seller_name",  x.seller_name);
-		append("posttype",  x.posttype);
-		append("money", (int) x.money);
-		append("item_id", (int) x.item_id);
-		append("item_count",  x.item_count);
-		append("state",  x.state);
-		append("post_endtime",  x.post_endtime);
-		append("show_endtime",  x.show_endtime);
-		append("price",  x.price);
-		append("sell_endtime",  x.sell_endtime);
-		append("buyer_roleid",  x.buyer_roleid);
-		append("buyer_userid",  x.buyer_userid);
-		append("buyer_name",  x.buyer_name);
-		append("commodity_id",  x.commodity_id);
-		data = data + "</" + name + ">\n";
-	}
-	void append(const char* name, const GAuctionItem& x)
-	{
-		data = data + "<" + name + ">\n";
-		append("auctionid", (int) x.auctionid);
-		append("bidprice", (int) x.bidprice);
-		append("binprice", (int) x.binprice);
-		append("end_time", (int) x.end_time);
-		append("itemid", (int) x.itemid);
-		append("count", (short) x.count);
-		append("seller", (int) x.seller);
-		append("bidder", (int) x.bidder);
-		data = data + "</" + name + ">\n";
-	}
-	void append(const char* name, const GForceGlobalDataList& x)
-	{
-		data = data + "<" + name + ">\n";
-		append("list",  x.list);
-		append("update_time",  x.update_time);
-		append("reserved1",  x.reserved1);
-		append("reserved2",  x.reserved2);
-		append("reserved3",  x.reserved3);
-		append("reserved4",  x.reserved4);
-		append("reserved5",  x.reserved5);
-		append("reserved6",  x.reserved6);
-		append("reserved7",  x.reserved7);
-		append("reserved8",  x.reserved8);
-		data = data + "</" + name + ">\n";
-	}
-	void append(const char* name, const PShopItem& x)
-	{
-		data = data + "<" + name + ">\n";
-		append("item",  x.item);
-		append("price", (int) x.price);
-		append("reserved1",  x.reserved1);
-		append("reserved2",  x.reserved2);
 		data = data + "</" + name + ">\n";
 	}
 	void append(const char* name, const WebOrderItemDetail& x)
@@ -918,77 +877,222 @@ public:
 		append("reserved3",  x.reserved3);
 		data = data + "</" + name + ">\n";
 	}
-	void append(const char* name, const MapPasswordData& x)
+	void append(const char* name, const GRoleData& x)
 	{
 		data = data + "<" + name + ">\n";
-		append("username",  x.username);
-		append("value",  x.value);
+		append("base",  x.base);
+		append("status",  x.status);
+		append("pocket",  x.pocket);
+		append("equipment",  x.equipment);
+		append("storehouse",  x.storehouse);
+		append("task",  x.task);
 		data = data + "</" + name + ">\n";
 	}
-	void append(const char* name, const GFriendExtInfo& x)
+	void append(const char* name, const SoloChallengeRankData& x)
 	{
 		data = data + "<" + name + ">\n";
-		append("uid",  x.uid);
-		append("rid",  x.rid);
+		append("roleid",  x.roleid);
 		append("level",  x.level);
-		append("last_logintime",  x.last_logintime);
+		append("cls",  x.cls);
+		append("total_time",  x.total_time);
+		append_string("name",  x.name);
+		append("type",  x.type);
+		append("zoneid", (char) x.zoneid);
 		append("update_time",  x.update_time);
-		append("reincarnation_times", (char) x.reincarnation_times);
-		append("remarks",  x.remarks);
 		append("reserved1",  x.reserved1);
 		append("reserved2",  x.reserved2);
 		append("reserved3",  x.reserved3);
 		data = data + "</" + name + ">\n";
 	}
-	void append(const char* name, const GForceGlobalData& x)
+	void append(const char* name, const SoloChallengeRankDataExt& x)
 	{
 		data = data + "<" + name + ">\n";
-		append("force_id",  x.force_id);
-		append("player_count",  x.player_count);
-		append("development",  x.development);
-		append("construction",  x.construction);
-		append("activity",  x.activity);
-		append("activity_level",  x.activity_level);
+		append("update_time",  x.update_time);
+		append("data",  x.data);
+		append("zoneid",  x.zoneid);
 		append("reserved1",  x.reserved1);
 		append("reserved2",  x.reserved2);
+		append("reserved3",  x.reserved3);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const GGlobalControlData& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("cash_money_exchange_open",  x.cash_money_exchange_open);
+		append("cash_money_exchange_rate",  x.cash_money_exchange_rate);
+		append("forbid_ctrl_list",  x.forbid_ctrl_list);
+		append("forbid_item_list",  x.forbid_item_list);
+		append("forbid_service_list",  x.forbid_service_list);
+		append("forbid_task_list",  x.forbid_task_list);
+		append("forbid_skill_list",  x.forbid_skill_list);
+		append("trigger_ctrl_list",  x.trigger_ctrl_list);
+		append("forbid_shopitem_list",  x.forbid_shopitem_list);
+		append("forbid_recipe_list",  x.forbid_recipe_list);
 		append("reserved3",  x.reserved3);
 		append("reserved4",  x.reserved4);
 		append("reserved5",  x.reserved5);
 		append("reserved6",  x.reserved6);
 		append("reserved7",  x.reserved7);
 		append("reserved8",  x.reserved8);
+		append("reserved9",  x.reserved9);
+		append("reserved10",  x.reserved10);
 		data = data + "</" + name + ">\n";
 	}
-	void append(const char* name, const KECandidate& x)
+	void append(const char* name, const GFactionFortressInfo& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("level",  x.level);
+		append("exp",  x.exp);
+		append("exp_today",  x.exp_today);
+		append("exp_today_time",  x.exp_today_time);
+		append("tech_point",  x.tech_point);
+		append("technology",  x.technology);
+		append("material",  x.material);
+		append("building",  x.building);
+		append("common_value",  x.common_value);
+		append("actived_spawner",  x.actived_spawner);
+		append("reserved11",  x.reserved11);
+		append("reserved12",  x.reserved12);
+		append("reserved2",  x.reserved2);
+		append("reserved3",  x.reserved3);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const GRoleEquipment& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("inv",  x.inv);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const GRoleForbid& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("type", (char) x.type);
+		append("time",  x.time);
+		append("createtime",  x.createtime);
+		append("reason",  x.reason);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const GMailBox& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("timestamp", (int) x.timestamp);
+		append("status", (int) x.status);
+		append("mails",  x.mails);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const GRoleInventory& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("id", (int) x.id);
+		append("pos",  x.pos);
+		append("count",  x.count);
+		append("max_count",  x.max_count);
+		append("data",  x.data);
+		append("proctype",  x.proctype);
+		append("expire_date",  x.expire_date);
+		append("guid1",  x.guid1);
+		append("guid2",  x.guid2);
+		append("mask",  x.mask);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const GRoleTableClsconfig& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("version",  x.version);
+		append("base",  x.base);
+		append("status",  x.status);
+		append("inventory",  x.inventory);
+		append("equipment",  x.equipment);
+		append("storehouse",  x.storehouse);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const GGroupInfo& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("gid",  x.gid);
+		append_string("name",  x.name);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const MNDomainBonusRewardItem& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("item_id",  x.item_id);
+		append("item_num", (int) x.item_num);
+		append("proc_type",  x.proc_type);
+		append("max_count",  x.max_count);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const MNFactionApplyInfo& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("unifid",  x.unifid);
+		append("applicant_id",  x.applicant_id);
+		append("dest", (char) x.dest);
+		append("cost", (int) x.cost);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const KEKing& x)
 	{
 		data = data + "<" + name + ">\n";
 		append("roleid",  x.roleid);
-		append("serial_num",  x.serial_num);
-		append("deposit",  x.deposit);
-		append("votes",  x.votes);
+		append("end_time",  x.end_time);
 		append("reserved1",  x.reserved1);
 		append("reserved2",  x.reserved2);
 		append("reserved3",  x.reserved3);
 		data = data + "</" + name + ">\n";
 	}
-	void append(const char* name, const GTerritoryStore& x)
+	void append(const char* name, const GPair& x)
 	{
 		data = data + "<" + name + ">\n";
-		append("cities",  x.cities);
-		append("status",  x.status);
-		append("special_time",  x.special_time);
+		append("key",  x.key);
+		append("value",  x.value);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const GAuctionItem& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("auctionid", (int) x.auctionid);
+		append("bidprice", (int) x.bidprice);
+		append("binprice", (int) x.binprice);
+		append("end_time", (int) x.end_time);
+		append("itemid", (int) x.itemid);
+		append("count", (short) x.count);
+		append("seller", (int) x.seller);
+		append("bidder", (int) x.bidder);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const GFactionAlliance& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("fid",  x.fid);
+		append("end_time",  x.end_time);
+		data = data + "</" + name + ">\n";
+	}
+	void append(const char* name, const GFriendExtra& x)
+	{
+		data = data + "<" + name + ">\n";
+		append("friendExtInfo",  x.friendExtInfo);
+		append("sendaumailinfo",  x.sendaumailinfo);
+		append("enemylistinfo",  x.enemylistinfo);
+		append("reserved11",  x.reserved11);
+		append("reserved12",  x.reserved12);
 		append("reserved2",  x.reserved2);
 		append("reserved3",  x.reserved3);
 		append("reserved4",  x.reserved4);
+		append("reserved5",  x.reserved5);
 		data = data + "</" + name + ">\n";
 	}
-	void append(const char* name, const GMail& x)
+	void append(const char* name, const GUserFaction& x)
 	{
 		data = data + "<" + name + ">\n";
-		append("header",  x.header);
-		append("context",  x.context);
-		append("attach_obj",  x.attach_obj);
-		append("attach_money", (int) x.attach_money);
+		append("rid", (int) x.rid);
+		append_string("name",  x.name);
+		append("fid", (int) x.fid);
+		append("cls",  x.cls);
+		append("role",  x.role);
+		append("delayexpel",  x.delayexpel);
+		append("extend",  x.extend);
+		append("nickname",  x.nickname);
 		data = data + "</" + name + ">\n";
 	}
 

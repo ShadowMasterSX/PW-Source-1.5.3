@@ -20,8 +20,8 @@ class CreateFactionFortress : public GNET::Protocol
 		// TODO
 		FactionBriefInfo info(factionid);
 		Factiondb::GetInstance()->FindFactionInCache(info);
-		if(info.level < 2) return;	//３级帮才可以．让ｇｓ超时
-		GFactionServer::GetInstance()->DispatchProtocol(0, this);
+		if(factionid > 0)//３级帮才可以．让ｇｓ超时
+			GFactionServer::GetInstance()->DispatchProtocol(0, this);
 	}
 };
 

@@ -134,9 +134,9 @@ namespace GNET
       Skill321Stub ():SkillStub (321)
         {
             cls = 3;
-            name = L"»ıªÍ÷‰";
-            nativename = "»ıªÍ÷‰";
-            icon = "»ıªÍ÷‰.dds";
+            name = L"Âº±È≠ÇÂíí";
+            nativename = "Âº±È≠ÇÂíí";
+            icon = "Âº±È≠ÇÂíí.dds";
             max_level = 10;
             type = 3;
             apcost = 0;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "»ıªÍ÷‰.sgc";
+            effect = "Âº±È≠ÇÂíí.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

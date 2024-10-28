@@ -58,9 +58,9 @@ namespace GNET
       Skill1120Stub ():SkillStub (1120)
         {
             cls = 5;
-            name = L"��ˮһս";
-            nativename = "��ˮһս";
-            icon = "����.dds";
+            name = L"背水一战";
+            nativename = "背水一战";
+            icon = "定身.dds";
             max_level = 10;
             type = 2;
             apcost = 0;
@@ -84,7 +84,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (23749);
             }
-            effect = "�̿�_��ˮһս.sgc";
+            effect = "刺客_背水一战.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

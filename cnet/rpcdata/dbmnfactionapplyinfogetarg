@@ -1,0 +1,59 @@
+#ifndef __GNET_DBMNFACTIONAPPLYINFOGETARG_RPCDATA
+#define __GNET_DBMNFACTIONAPPLYINFOGETARG_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBMNFactionApplyInfoGetArg : public GNET::Rpc::Data
+	{
+	public:
+		Octets handle;
+
+	public:
+		DBMNFactionApplyInfoGetArg (const Octets& l_handle = Octets())
+			: handle(l_handle)
+		{
+		}
+
+		DBMNFactionApplyInfoGetArg(const DBMNFactionApplyInfoGetArg &rhs)
+			: handle(rhs.handle) { }
+
+		Rpc::Data *Clone() const { return new DBMNFactionApplyInfoGetArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBMNFactionApplyInfoGetArg *r = dynamic_cast<const DBMNFactionApplyInfoGetArg *>(&rhs);
+			if (r && r != this)
+			{
+				handle = r->handle;
+			}
+			return *this;
+		}
+
+		DBMNFactionApplyInfoGetArg& operator = (const DBMNFactionApplyInfoGetArg &rhs)
+		{
+			const DBMNFactionApplyInfoGetArg *r = &rhs;
+			if (r && r != this)
+			{
+				handle = r->handle;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << handle;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> handle;
+			return os;
+		}
+
+	};
+};
+#endif

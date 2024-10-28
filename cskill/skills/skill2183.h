@@ -132,8 +132,8 @@ namespace GNET
       Skill2183Stub ():SkillStub (2183)
         {
             cls = 127;
-            name = L"水之壁障";
-            nativename = "水之壁障";
+            name = L"姘翠箣澹侀殰";
+            nativename = "姘翠箣澹侀殰";
             icon = "";
             max_level = 10;
             type = 3;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "极度乾坤.sgc";
+            effect = "鏋佸害涔惧潳.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

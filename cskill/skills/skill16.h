@@ -172,9 +172,9 @@ namespace GNET
       Skill16Stub ():SkillStub (16)
         {
             cls = 7;
-            name = L"极度乾坤";
-            nativename = "极度乾坤";
-            icon = "极度乾坤.dds";
+            name = L"鏋佸害涔惧潳";
+            nativename = "鏋佸害涔惧潳";
+            icon = "鏋佸害涔惧潳.dds";
             max_level = 1;
             type = 2;
             apcost = 200;
@@ -201,7 +201,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "极度乾坤.sgc";
+            effect = "鏋佸害涔惧潳.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

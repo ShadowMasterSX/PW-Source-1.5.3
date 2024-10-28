@@ -36,6 +36,7 @@ static GNET::Protocol::Type _state_GFactionServer[] =
 	PROTOCOL_NOTIFYFACTIONPLAYERRENAME,
 	RPC_DBFACTIONRENAME,
 	PROTOCOL_FACTIONRESOURCEBATTLELIMITNOTICE,
+	PROTOCOL_FACTIONUNIQUEIDANNOUNCE,
 };
 
 GNET::Protocol::Manager::Session::State state_GFactionServer(_state_GFactionServer,

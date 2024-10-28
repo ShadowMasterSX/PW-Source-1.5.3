@@ -33,6 +33,8 @@ bool ImportCsvRole( const char * filename );
 bool ImportCsvFaction( const char * filename );
 bool ImportCsvFamily( const char * filename );
 
+bool ImportRoleList(unsigned int userid, unsigned int rolelist);
+
 void MergeDB( const char * srcpath, const char * srcdbname, const char * destdbname );
 void MergeDBAll( const char * srcpath );
 

@@ -132,9 +132,9 @@ namespace GNET
       Skill2120Stub ():SkillStub (2120)
         {
             cls = 127;
-            name = L"精准";
-            nativename = "精准";
-            icon = "百步穿杨.dds";
+            name = L"绮惧噯";
+            nativename = "绮惧噯";
+            icon = "鐧炬绌挎潹.dds";
             max_level = 10;
             type = 10;
             apcost = 0;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "巨灵神力.sgc";
+            effect = "宸ㄧ伒绁炲姏.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

@@ -146,8 +146,45 @@ world::InitNPCGenerator(CNPCGenMan & ctrldata, npcgen_data_list& npcgen_list)
 	for(; ibeg != iend; ++ibeg)
 	{
 		npcgen_data_node_t& gen_data = *ibeg;
-		if(!gen_data.npcgen || !w_npc_gen.AddSpawnData(this, ctrldata, *gen_data.npcgen,gen_data.blockid,gen_data.offset))
+		if(!gen_data.npcgen || !w_npc_gen.AddSpawnData(this, ctrldata, *gen_data.npcgen,gen_data.blockid,gen_data.offset,true,false))
 			   return false;
+	}
+	__PRINTF("npc/dyn/mine collision count = %d, world_tag = %d\n",GetTraceMan()->GetElementCount(),world_manager::GetWorldTag());
+	
+	ASSERT(w_collision_flags.size() == 0);
+	
+	w_collision_flags.insert(w_collision_flags.begin(), GetTraceMan()->GetElementCount()+1, 0);
+	w_npc_gen.InitIncubator(this);
+	w_npc_gen.StartHeartbeat();
+	if(!w_npc_gen.BeginSpawn()) return false;
+	return true;
+}
+
+bool 
+world::InitNPCGeneratorByClone(CNPCGenMan & ctrldata, npcgen_data_list& npcgen_list)
+{
+    if(!npcgen_list.size())
+        return false; 
+	
+	//加入一个默认的控制器
+	w_npc_gen.InsertSpawnControl(0, 0, true,0,0,0);
+
+    npcgen_data_list::iterator ibeg = npcgen_list.begin();
+    npcgen_data_list::iterator iend = npcgen_list.end();
+ 
+	for(; ibeg != iend; ++ibeg)
+	{
+		npcgen_data_node_t& gen_data = *ibeg;
+		if(ibeg == npcgen_list.begin())
+		{
+			if(!gen_data.npcgen || !w_npc_gen.AddSpawnData(this, ctrldata, *gen_data.npcgen,gen_data.blockid,gen_data.offset,true,true))
+			   return false;
+		}
+		else
+		{
+			if(!gen_data.npcgen || !w_npc_gen.AddSpawnData(this, ctrldata, *gen_data.npcgen,gen_data.blockid,gen_data.offset,false,true))
+			   return false;
+		}
 	}
 	__PRINTF("npc/dyn/mine collision count = %d, world_tag = %d\n",GetTraceMan()->GetElementCount(),world_manager::GetWorldTag());
 	
@@ -1150,6 +1187,7 @@ void MakeObjectInfo(gnpc* pNpc, world::object_info & info)
 {
 	MakeObjectInfo((gactive_object*) pNpc, info);
 	info.mafia_id = pNpc->mafia_id;
+	info.master_id = pNpc->master_id;
 }
 void MakeObjectInfo(gplayer* pPlayer, world::object_info & info)
 {
@@ -1203,7 +1241,7 @@ world::QueryObject(const XID & id,object_info & info)
 				}
 
 				//在外部列表中查询
-				return w_ext_man.QueryObjecta(id.id,info);
+				return w_ext_man.QueryObject(id.id,info);
 			}
 			//现在也没有检测外面服务器的npc 
 		}
@@ -1225,7 +1263,7 @@ world::QueryObject(const XID & id,object_info & info)
 			else
 			{
 				//在外部列表中查询
-				return w_ext_man.QueryObjecta(id.id,info);
+				return w_ext_man.QueryObject(id.id,info);
 			}
 		}
 		return false;
@@ -1251,7 +1289,7 @@ world::QueryObject(const XID & id,object_info & info)
 			{
 				//事实上，如果是本地能够查询的物品，必然在边界处，所以本地应该可以知道
 				//在外部列表中查询
-				return w_ext_man.QueryObjecta(id.id,info);
+				return w_ext_man.QueryObject(id.id,info);
 			}
 		}
 		return false;
@@ -1545,6 +1583,9 @@ world::RebuildMapRes()
 		case MAPRES_TYPE_SEQUENCE:
 			w_map_generator = new sequence_map_generator;
 			break;
+		case MAPRES_TYPE_SOLO_CHALLENGE:
+			w_map_generator = new solo_challenge_map_generator;
+			return 0;
 		default:
 			return -1;
 	}

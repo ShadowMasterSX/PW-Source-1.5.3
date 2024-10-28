@@ -17,9 +17,8 @@ class CountryBattleOfflineNotice : public GNET::Protocol
 	void Process(Manager *manager, Manager::Session::ID sid)
 	{
 		DEBUG_PRINT("countrybattleofflinenotice, roleid=%d, country_id=%d", roleid, country_id);
-		CountryBattleMan* pMan = CountryBattleMan::GetInstance();
 		
-		pMan->OnPlayerLogout(roleid, country_id);
+		CountryBattleMan::OnPlayerLogout(roleid, country_id);
 	}
 };
 

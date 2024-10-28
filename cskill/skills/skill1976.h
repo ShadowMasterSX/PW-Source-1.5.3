@@ -57,8 +57,8 @@ namespace GNET
       Skill1976Stub ():SkillStub (1976)
         {
             cls = 127;
-            name = L"ÎïÆ·¼¼ÄÜ-Îå·½ÑáÊ¤";
-            nativename = "ÎïÆ·¼¼ÄÜ-Îå·½ÑáÊ¤";
+            name = L"ç‰©å“æŠ€èƒ½-äº”æ–¹åŒèƒœ";
+            nativename = "ç‰©å“æŠ€èƒ½-äº”æ–¹åŒèƒœ";
             icon = "";
             max_level = 10;
             type = 4;
@@ -79,7 +79,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "Ä§.sgc";
+            effect = "é­”.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

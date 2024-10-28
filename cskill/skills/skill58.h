@@ -132,9 +132,9 @@ namespace GNET
       Skill58Stub ():SkillStub (58)
         {
             cls = 0;
-            name = L"ÁúÌÚ";
-            nativename = "ÁúÌÚ";
-            icon = "ÁúÌÚ.dds";
+            name = L"é¾™è…¾";
+            nativename = "é¾™è…¾";
+            icon = "é¾™è…¾.dds";
             max_level = 10;
             type = 8;
             apcost = 10;
@@ -173,7 +173,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (9);
             }
-            effect = "ÁúÌÚ.sgc";
+            effect = "é¾™è…¾.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

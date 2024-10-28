@@ -42,7 +42,7 @@ class DBFactionUpgrade : public Rpc
 				info.level++;
 				res->level = info.level;
 				res->money = arg->money;
-				if(info.level!=arg->level || arg->level>2 || (int)info.master.rid != arg->roleid)
+				if(info.level!=arg->level || arg->level>10 || (int)info.master.rid != arg->roleid)
 				{
 					res->master = info.master.rid;
 					res->retcode = ERR_OUTOFSYNC;

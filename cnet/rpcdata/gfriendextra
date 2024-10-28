@@ -13,24 +13,28 @@ namespace GNET
 	public:
 		GFriendExtInfoVector friendExtInfo;
 		GSendAUMailRecordVector sendaumailinfo;
-		int reserved1;
+		Octets enemylistinfo;
+		char reserved11;
+		short reserved12;
 		int reserved2;
 		int reserved3;
 		int reserved4;
 		int reserved5;
 
 	public:
-		GFriendExtra (int l_reserved1 = 0,int l_reserved2 = 0,int l_reserved3 = 0
-			,int l_reserved4 = 0,int l_reserved5 = 0)
-			: reserved1(l_reserved1),reserved2(l_reserved2),reserved3(l_reserved3)
-			,reserved4(l_reserved4),reserved5(l_reserved5)
+		GFriendExtra (Octets l_enemylistinfo = Octets(),char l_reserved11 = 0,short l_reserved12 = 0
+			,int l_reserved2 = 0,int l_reserved3 = 0,int l_reserved4 = 0
+			,int l_reserved5 = 0)
+			: enemylistinfo(l_enemylistinfo),reserved11(l_reserved11),reserved12(l_reserved12)
+			,reserved2(l_reserved2),reserved3(l_reserved3),reserved4(l_reserved4)
+			,reserved5(l_reserved5)
 		{
 		}
 
 		GFriendExtra(const GFriendExtra &rhs)
-			: friendExtInfo(rhs.friendExtInfo),sendaumailinfo(rhs.sendaumailinfo),reserved1(rhs.reserved1),
-			reserved2(rhs.reserved2),reserved3(rhs.reserved3),reserved4(rhs.reserved4),
-			reserved5(rhs.reserved5) { }
+			: friendExtInfo(rhs.friendExtInfo),sendaumailinfo(rhs.sendaumailinfo),enemylistinfo(rhs.enemylistinfo),
+			reserved11(rhs.reserved11),reserved12(rhs.reserved12),reserved2(rhs.reserved2),
+			reserved3(rhs.reserved3),reserved4(rhs.reserved4),reserved5(rhs.reserved5) { }
 
 		Rpc::Data *Clone() const { return new GFriendExtra(*this); }
 
@@ -41,7 +45,9 @@ namespace GNET
 			{
 				friendExtInfo = r->friendExtInfo;
 				sendaumailinfo = r->sendaumailinfo;
-				reserved1 = r->reserved1;
+				enemylistinfo = r->enemylistinfo;
+				reserved11 = r->reserved11;
+				reserved12 = r->reserved12;
 				reserved2 = r->reserved2;
 				reserved3 = r->reserved3;
 				reserved4 = r->reserved4;
@@ -57,7 +63,9 @@ namespace GNET
 			{
 				friendExtInfo = r->friendExtInfo;
 				sendaumailinfo = r->sendaumailinfo;
-				reserved1 = r->reserved1;
+				enemylistinfo = r->enemylistinfo;
+				reserved11 = r->reserved11;
+				reserved12 = r->reserved12;
 				reserved2 = r->reserved2;
 				reserved3 = r->reserved3;
 				reserved4 = r->reserved4;
@@ -70,7 +78,9 @@ namespace GNET
 		{
 			os << friendExtInfo;
 			os << sendaumailinfo;
-			os << reserved1;
+			os << enemylistinfo;
+			os << reserved11;
+			os << reserved12;
 			os << reserved2;
 			os << reserved3;
 			os << reserved4;
@@ -82,7 +92,9 @@ namespace GNET
 		{
 			os >> friendExtInfo;
 			os >> sendaumailinfo;
-			os >> reserved1;
+			os >> enemylistinfo;
+			os >> reserved11;
+			os >> reserved12;
 			os >> reserved2;
 			os >> reserved3;
 			os >> reserved4;

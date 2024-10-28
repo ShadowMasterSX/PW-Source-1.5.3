@@ -9,6 +9,8 @@
 #include "item_addon.h"
 #include <crc.h>
 
+#include "../worldmanager.h"
+
 class stone_item : public item_body
 {
 private:
@@ -18,6 +20,7 @@ public:
 	abase::octets _raw_data;	//保存原始对象数据
 	ADDON_LIST _weapon_addon;	//保存加入到武器上的addon
 	ADDON_LIST _armor_addon;	//保存加入到防具上的addon
+    ADDON_LIST _decoration_addon; //保存加入到饰品上的addon
 
 public:
 	DECLARE_SUBSTANCE(stone_item);
@@ -56,10 +59,15 @@ private:
 		{
 			return body->InsertChip(self_type,_armor_addon.begin(), _armor_addon.size());
 		}
+        else if (type == ITEM_TYPE_DECORATION)
+        {
+            return body->InsertChip(self_type, _decoration_addon.begin(), _decoration_addon.size());
+        }
 		return false;
 	}
 
 protected:
+    void UpdateEssence();
 
 	void LoadAddOn(archive &ar,ADDON_LIST & list)
 	{
@@ -68,6 +76,8 @@ protected:
 		int argcount;
 		ar >> count;
 		if(count <0 || count > 128) throw -100; 
+        if (count == 0) return;
+
 		list.reserve(count);
 		for(size_t i = 0; i < count ; i++)
 		{

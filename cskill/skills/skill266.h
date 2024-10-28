@@ -133,8 +133,8 @@ namespace GNET
       Skill266Stub ():SkillStub (266)
         {
             cls = 127;
-            name = L"怪物无头将军攻击";
-            nativename = "怪物无头将军攻击";
+            name = L"鎬墿鏃犲ご灏嗗啗鏀诲嚮";
+            nativename = "鎬墿鏃犲ご灏嗗啗鏀诲嚮";
             icon = "";
             max_level = 10;
             type = 1;
@@ -154,7 +154,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "怪物无头将军攻击.sgc";
+            effect = "鎬墿鏃犲ご灏嗗啗鏀诲嚮.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

@@ -22,7 +22,8 @@ struct addon_entry
 {
 	int id;
 	addon_handler * handler;
-	addon_entry():id(-1),handler(NULL)
+	int ratio_calc;
+	addon_entry():id(-1),handler(NULL),ratio_calc(0)
 	{}
 };
 
@@ -100,21 +101,44 @@ private:
 		return 0;
 	}
 
-	int __Activate(const addon_data & data, equip_item *item, gactive_imp * imp)
+	inline addon_data __CalcRatio(const addon_data& data, int type, float ratio)
+	{
+		if(!type) return data;
+		addon_data res = data;
+		switch(type)
+		{
+			case ADDON_PARAM_RATIO_ALL_INT:
+				for(int n = 0; n < 3; ++n) 
+					res.arg[n] = (int)(res.arg[n] * ratio);
+				break;
+			case ADDON_PARAM_RATIO_ALL_FLOAT:	
+				for(int n = 0; n < 3; ++n)
+				{
+					float fv = (*(float*)&(res.arg[n]) ) * ratio;
+					memcpy(&(res.arg[n]),&fv,sizeof(res.arg[n]));
+				}
+				break;
+		}
+		return res;
+	}
+
+	int __Activate(const addon_data & data, equip_item *item, gactive_imp * imp, float ratio)
 	{
 		int id = data.id & ADDON_PURE_TYPE_MASK;	//清除可能的嵌入对象标志再进行
 		ADDON_MAP::iterator it = _map.find(id);
 		if(it == _map.end()) return ADDON_MASK_INVALID;
-		it->handler->Activate(data,item,imp);
+		addon_data rdata = __CalcRatio(data,it->ratio_calc,ratio);
+		it->handler->Activate(rdata,item,imp);
 		return 0;
 	}
 
-	int __Deactivate(const addon_data & data, equip_item *item, gactive_imp * imp)
+	int __Deactivate(const addon_data & data, equip_item *item, gactive_imp * imp, float ratio)
 	{
 		int id = data.id & ADDON_PURE_TYPE_MASK;	//清除可能的嵌入对象标志再进行
 		ADDON_MAP::iterator it = _map.find(id);
 		if(it == _map.end()) return ADDON_MASK_INVALID;
-		it->handler->Deactivate(data,item,imp);
+		addon_data rdata = __CalcRatio(data,it->ratio_calc,ratio);
+		it->handler->Deactivate(rdata,item,imp);
 		return 0;
 	}
 	
@@ -198,6 +222,14 @@ public:
 		ADDON_MASK_USE		= 4,		//物品可以使用，在使用的时候调用，同时只能有一个
 		ADDON_MASK_ESSENCE	= 8,		//本体属性，在物品生成时作用于ESSENCE
 	};
+//附加属性参数百分比计算方式	
+	enum
+	{
+		ADDON_PARAM_RATIO_NO = 0,		//默认 不受百分比影响
+		ADDON_PARAM_RATIO_ALL_INT,		//所有参数均为int
+		ADDON_PARAM_RATIO_ALL_FLOAT,	//所有参数均为float
+	};
+
 /**
  *		这个函数负责检查addon的起作用方式，如果是静态方式的话,
  *		此函数会将数据更新的物品的基础属性和增强属性之中
@@ -234,17 +266,17 @@ public:
 /*
  *	这个函数负责激活类型的addon，当物品被装备时，这个函数会被调用到
  */
-	static int Activate(const addon_data & data, equip_item *item, gactive_imp * imp)
+	static int Activate(const addon_data & data, equip_item *item, gactive_imp * imp, float ratio=1.0f)
 	{
-		return GetInstance().__Activate(data,item,imp);
+		return GetInstance().__Activate(data,item,imp,ratio);
 	}
 
 /*
  *	这个函数是激活函数的反函数，当物品被卸下时，这个函数会被调用到
  */
-	static int Deactivate(const addon_data & data, equip_item *item, gactive_imp *imp)
+	static int Deactivate(const addon_data & data, equip_item *item, gactive_imp *imp, float ratio=1.0f)
 	{
-		return GetInstance().__Deactivate(data,item,imp);
+		return GetInstance().__Deactivate(data,item,imp,ratio);
 	}
 	
 	static int GenerateAddonArg(DATA_TYPE type,addon_data & data,int arg_num)
@@ -348,11 +380,12 @@ public:
 //	sample:
 //	addon_inserter foo(0,100,(test_addon_handler*)NULL);
 	template <typename T>
-	addon_inserter(int id,T * )
+	addon_inserter(int id,T * ,int rt = 0)
 	{
 		addon_entry entry;
 		entry.id = id;
 		entry.handler = new T;
+		entry.ratio_calc = rt;
 		addon_manager::GetInstance().__Insert(entry);
 	}
 	
@@ -364,6 +397,7 @@ public:
 };
 
 #define INSERT_ADDON(id,T) addon_inserter::foo(addon_inserter(id, (T*)NULL))
+#define INSERT_ADDON_RATIO(id,T,rt) addon_inserter::foo(addon_inserter(id, (T*)NULL, rt))
 
 bool InitAllAddon();
 

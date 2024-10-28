@@ -134,9 +134,9 @@ namespace GNET
       Skill1873Stub ():SkillStub (1873)
         {
             cls = 1;
-            name = L"Äæ¿Õ¾÷";
-            nativename = "Äæ¿Õ¾÷";
-            icon = "¾²Ú×Ö®Êõ.dds";
+            name = L"é€†ç©ºè¯€";
+            nativename = "é€†ç©ºè¯€";
+            icon = "é™è°§ä¹‹æœ¯.dds";
             max_level = 1;
             type = 3;
             apcost = 50;
@@ -163,14 +163,13 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "·¨Ê¦_¾²Ú×Ö®Êõ.sgc";
+            effect = "æ³•å¸ˆ_é™è°§ä¹‹æœ¯.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;
             commoncooldown = 0;
             commoncooldowntime = 0;
-            //pre_skills.push_back (std::pair < ID, int >(0, 1));
-            pre_skills.push_back (std::pair < ID, int >(1807, 1));
+            pre_skills.push_back (std::pair < ID, int >(0, 1));
 #ifdef _SKILL_SERVER
             statestub.push_back (new State1 ());
             statestub.push_back (new State2 ());

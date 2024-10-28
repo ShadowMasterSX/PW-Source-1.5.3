@@ -60,9 +60,9 @@ namespace GNET
       Skill990Stub ():SkillStub (990)
         {
             cls = 258;
-            name = L"Õ½¶·²¨ÎÆ.ÃüÔË";
-            nativename = "Õ½¶·²¨ÎÆ.ÃüÔË";
-            icon = "Õ½¶·²¨ÎÆÃüÔË.dds";
+            name = L"æˆ˜æ–—æ³¢çº¹.å‘½è¿";
+            nativename = "æˆ˜æ–—æ³¢çº¹.å‘½è¿";
+            icon = "æˆ˜æ–—æ³¢çº¹å‘½è¿.dds";
             max_level = 10;
             type = 1;
             apcost = 88057;
@@ -82,7 +82,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 1;
-            effect = "Õ½¶·²¨ÎÆÃüÔË.sgc";
+            effect = "æˆ˜æ–—æ³¢çº¹å‘½è¿.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

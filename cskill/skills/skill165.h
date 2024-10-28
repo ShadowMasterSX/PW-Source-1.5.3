@@ -19,9 +19,9 @@ namespace GNET
         Skill165Stub ():SkillStub (165)
         {
             cls = 255;
-            name = L"ʱװ��ͨ";
-            nativename = "ʱװ��ͨ";
-            icon = "ʱװ��ͨ.dds";
+            name = L"时装精通";
+            nativename = "时装精通";
+            icon = "时装精通.dds";
             max_level = 5;
             type = 7;
             apcost = 0;

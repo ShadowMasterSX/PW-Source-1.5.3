@@ -137,9 +137,9 @@ namespace GNET
       Skill1111Stub ():SkillStub (1111)
         {
             cls = 5;
-            name = L"连击";
-            nativename = "连击";
-            icon = "连击.dds";
+            name = L"杩炲嚮";
+            nativename = "杩炲嚮";
+            icon = "杩炲嚮.dds";
             max_level = 10;
             type = 1;
             apcost = 0;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (23749);
             }
-            effect = "刺客_先发制人.sgc";
+            effect = "鍒哄_鍏堝彂鍒朵汉.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

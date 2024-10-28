@@ -57,8 +57,8 @@ namespace GNET
       Skill2430Stub ():SkillStub (2430)
         {
             cls = 127;
-            name = L"变忧郁男";
-            nativename = "变忧郁男";
+            name = L"鍙樺咖閮佺敺";
+            nativename = "鍙樺咖閮佺敺";
             icon = "";
             max_level = 10;
             type = 4;
@@ -80,7 +80,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 3;
-            effect = "怪物自爆.sgc";
+            effect = "鎬墿鑷垎.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

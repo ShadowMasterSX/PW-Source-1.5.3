@@ -133,9 +133,9 @@ namespace GNET
       Skill2133Stub ():SkillStub (2133)
         {
             cls = 127;
-            name = L"终结";
-            nativename = "终结";
-            icon = "天师护法.dds";
+            name = L"缁堢粨";
+            nativename = "缁堢粨";
+            icon = "澶╁笀鎶ゆ硶.dds";
             max_level = 10;
             type = 1;
             apcost = 0;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "巫师_冥王乐土.sgc";
+            effect = "宸笀_鍐ョ帇涔愬湡.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

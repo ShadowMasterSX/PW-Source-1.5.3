@@ -58,9 +58,9 @@ namespace GNET
       Skill764Stub ():SkillStub (764)
         {
             cls = 3;
-            name = L"¿ñ¡¤·É»¨¶İÓ°";
-            nativename = "¿ñ¡¤·É»¨¶İÓ°";
-            icon = "Ñıºü¸½Ìå2.dds";
+            name = L"ç‹‚Â·é£èŠ±éå½±";
+            nativename = "ç‹‚Â·é£èŠ±éå½±";
+            icon = "å¦–ç‹é™„ä½“2.dds";
             max_level = 1;
             type = 2;
             apcost = 0;

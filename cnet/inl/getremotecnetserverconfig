@@ -2,18 +2,22 @@
 		IntVector keys;
 		unsigned int linksid;
 		unsigned int localsid;
+		int zoneid;
 		enum { PROTOCOL_TYPE = PROTOCOL_GETREMOTECNETSERVERCONFIG };
 	public:
 		GetRemoteCNetServerConfig() { type = PROTOCOL_GETREMOTECNETSERVERCONFIG; }
 		GetRemoteCNetServerConfig(void*) : Protocol(PROTOCOL_GETREMOTECNETSERVERCONFIG) { }
-		GetRemoteCNetServerConfig (const IntVector& l_keys,unsigned int l_linksid,unsigned int l_localsid)
+		GetRemoteCNetServerConfig (const IntVector& l_keys,unsigned int l_linksid,unsigned int l_localsid,
+			int l_zoneid)
 			 : keys(l_keys),linksid(l_linksid),localsid(l_localsid)
+			,zoneid(l_zoneid)
 		{
 			type = PROTOCOL_GETREMOTECNETSERVERCONFIG;
 		}
 
 		GetRemoteCNetServerConfig(const GetRemoteCNetServerConfig &rhs)
-			: Protocol(rhs),keys(rhs.keys),linksid(rhs.linksid),localsid(rhs.localsid) { }
+			: Protocol(rhs),keys(rhs.keys),linksid(rhs.linksid),localsid(rhs.localsid)
+			,zoneid(rhs.zoneid) { }
 
 		GNET::Protocol *Clone() const { return new GetRemoteCNetServerConfig(*this); }
 
@@ -22,6 +26,7 @@
 			os << keys;
 			os << linksid;
 			os << localsid;
+			os << zoneid;
 			return os;
 		}
 
@@ -30,6 +35,7 @@
 			os >> keys;
 			os >> linksid;
 			os >> localsid;
+			os >> zoneid;
 			return os;
 		}
 

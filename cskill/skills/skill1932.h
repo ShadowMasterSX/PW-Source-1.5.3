@@ -96,8 +96,8 @@ namespace GNET
       Skill1932Stub ():SkillStub (1932)
         {
             cls = 127;
-            name = L"Â¥³½»ğÓê";
-            nativename = "Â¥³½»ğÓê";
+            name = L"æ¥¼è¾°ç«é›¨";
+            nativename = "æ¥¼è¾°ç«é›¨";
             icon = "";
             max_level = 10;
             type = 1;
@@ -119,7 +119,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "Ë«×ÓĞÇ_µØÁ³.sgc";
+            effect = "åŒå­æ˜Ÿ_åœ°è„¸.sgc";
             range.type = 3;
             doenchant = true;
             dobless = false;

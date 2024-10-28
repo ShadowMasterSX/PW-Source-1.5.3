@@ -1,0 +1,35 @@
+	public:
+		int zoneid;
+		MNFactionInfoVector factioninfo_list;
+		enum { PROTOCOL_TYPE = PROTOCOL_MNFACTIONINFOUPDATE };
+	public:
+		MNFactionInfoUpdate() { type = PROTOCOL_MNFACTIONINFOUPDATE; }
+		MNFactionInfoUpdate(void*) : Protocol(PROTOCOL_MNFACTIONINFOUPDATE) { }
+		MNFactionInfoUpdate (int l_zoneid,const MNFactionInfoVector& l_factioninfo_list)
+			 : zoneid(l_zoneid),factioninfo_list(l_factioninfo_list)
+		{
+			type = PROTOCOL_MNFACTIONINFOUPDATE;
+		}
+
+		MNFactionInfoUpdate(const MNFactionInfoUpdate &rhs)
+			: Protocol(rhs),zoneid(rhs.zoneid),factioninfo_list(rhs.factioninfo_list) { }
+
+		GNET::Protocol *Clone() const { return new MNFactionInfoUpdate(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << zoneid;
+			os << factioninfo_list;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> zoneid;
+			os >> factioninfo_list;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1048576; }

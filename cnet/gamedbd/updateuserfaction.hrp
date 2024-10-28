@@ -8,6 +8,7 @@
 
 #include "updateuserfactionarg"
 #include "userfactionres"
+#include "gfactionextenddata"
 
 namespace GNET
 {
@@ -31,6 +32,7 @@ class UpdateUserFaction : public Rpc
 			GFactionInfo info;
 			StorageEnv::Storage * puser = StorageEnv::GetStorage("userfaction");
 			StorageEnv::Storage * pinfo = StorageEnv::GetStorage("factioninfo");
+			StorageEnv::Storage * pmnfaction = StorageEnv::GetStorage("mnfactioninfo");
 			StorageEnv::CommonTransaction txn;
 			try{
 				key << arg->rid;
@@ -111,6 +113,14 @@ class UpdateUserFaction : public Rpc
 						Marshal::OctetsStream(puser->find(Marshal::OctetsStream()<<old, txn)) >> master;
 						master.role = _R_MEMBER;
 						puser->insert(key, Marshal::OctetsStream()<<master, txn);
+						
+						if(info.extenddata.size())
+						{
+							GFactionExtendData exdata;
+							Marshal::OctetsStream(info.extenddata) >> exdata;
+							int64_t unifid = exdata.unifid;
+							if(unifid)	IncMNFactionVersion(unifid,pmnfaction,txn);
+						}
 					}
 					pinfo->insert(Marshal::OctetsStream()<<arg->fid, Marshal::OctetsStream()<<info, txn);
 				}

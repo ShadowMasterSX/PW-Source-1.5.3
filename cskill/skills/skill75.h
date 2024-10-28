@@ -137,9 +137,9 @@ namespace GNET
       Skill75Stub ():SkillStub (75)
         {
             cls = 0;
-            name = L"�򽣾�";
-            nativename = "�򽣾�";
-            icon = "�򽣾�.dds";
+            name = L"万剑诀";
+            nativename = "万剑诀";
+            icon = "万剑诀.dds";
             max_level = 10;
             type = 1;
             apcost = 200;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (1);
             }
-            effect = "�򽣾�.sgc";
+            effect = "万剑诀.sgc";
             range.type = 3;
             doenchant = true;
             dobless = false;

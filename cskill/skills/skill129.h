@@ -137,9 +137,9 @@ namespace GNET
       Skill129Stub ():SkillStub (129)
         {
             cls = 7;
-            name = L"和风拂面";
-            nativename = "和风拂面";
-            icon = "和风拂面.dds";
+            name = L"鍜岄鎷傞潰";
+            nativename = "鍜岄鎷傞潰";
+            icon = "鍜岄鎷傞潰.dds";
             max_level = 10;
             type = 1;
             apcost = 100;
@@ -166,7 +166,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "和风拂面.sgc";
+            effect = "鍜岄鎷傞潰.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

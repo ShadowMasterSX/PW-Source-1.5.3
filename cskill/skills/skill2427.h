@@ -133,8 +133,8 @@ namespace GNET
       Skill2427Stub ():SkillStub (2427)
         {
             cls = 127;
-            name = L"能量觉醒";
-            nativename = "能量觉醒";
+            name = L"鑳介噺瑙夐啋";
+            nativename = "鑳介噺瑙夐啋";
             icon = "";
             max_level = 10;
             type = 3;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "般若心经.sgc";
+            effect = "鑸嫢蹇冪粡.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

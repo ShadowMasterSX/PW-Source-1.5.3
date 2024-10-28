@@ -134,9 +134,9 @@ namespace GNET
       Skill613Stub ():SkillStub (613)
         {
             cls = 6;
-            name = L"¿ñ¡¤ÁÒÑæÖ®Ê¸";
-            nativename = "¿ñ¡¤ÁÒÑæÖ®Ê¸";
-            icon = "ÁÒÑæÖ®Ê¸2.dds";
+            name = L"ç‹‚Â·çƒˆç„°ä¹‹çŸ¢";
+            nativename = "ç‹‚Â·çƒˆç„°ä¹‹çŸ¢";
+            icon = "çƒˆç„°ä¹‹çŸ¢2.dds";
             max_level = 1;
             type = 2;
             apcost = 0;

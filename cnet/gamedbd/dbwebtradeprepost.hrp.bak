@@ -1,0 +1,301 @@
+
+#ifndef __GNET_DBWEBTRADEPREPOST_HPP
+#define __GNET_DBWEBTRADEPREPOST_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbwebtradeprepostarg"
+#include "dbwebtradeprepostres"
+#include "gwebtraderolebrief"
+#include "greincarnationdata"
+#include "gwebtraderolebriefextend"
+#include "grolestatusextraprop"
+
+namespace GNET
+{
+
+#define ITEM_DAMAGED 0x2000		//物品损毁
+#define ITEM_CANWEBTRADE 0x10000 //物品可以寻宝网交易
+
+class DBWebTradePrePost : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbwebtradeprepost"
+#undef	RPC_BASECLASS
+
+	int GetRoleReincarnationTimes(const Octets & odata)
+	{
+		if(!odata.size()) return 0;
+		GReincarnationData data;
+		try{
+			Marshal::OctetsStream(odata) >> data;
+			return data.records.size();
+		}
+		catch(Marshal::Exception)
+		{
+			return 0;
+		}
+	}
+
+	void GetRoleBriefExtendData(GWebTradeRoleBriefExtend& extend_data, const GRoleStatus& status)
+	{
+		enum		//原始定义在../gdbclient/db_if.h 请保持一致
+		{
+			GROLE_STATUS_EXTRAPROP_TOUCH_HALF_TRADE = 0, // Touch
+			GROLE_STATUS_EXTRAPROP_DAILY_SIGN_IN,
+			GROLE_STATUS_EXTRAPROP_GIFTCARD_HALF_REDEEM, // 礼品码兑换
+			GROLE_STATUS_EXTRAPROP_LEADERSHIP,
+			GROLE_STATUS_EXTRAPROP_GENERALCARD_COLLECTION,
+			GROLE_STATUS_EXTRAPROP_FATERING,
+			GROLE_STATUS_EXTRAPROP_CLOCK_DATA,
+			GROLE_STATUS_EXTRAPROP_RAND_MALL_DATA,
+			GROLE_STATUS_EXTRAPROP_WORLD_CONTRIBUTION,
+
+			GROLE_STATUS_EXTRAPROP_COUNT, // 总数，请放最后
+		};
+
+		GRoleStatusExtraProp extraprop;
+		if(status.extraprop.size()) {
+			Marshal::OctetsStream(status.extraprop) >> extraprop;
+			
+			std::map<int, Octets>::iterator it = extraprop.data.find(GROLE_STATUS_EXTRAPROP_LEADERSHIP);
+			if(it != extraprop.data.end()) extend_data.card_leadership = it->second;
+		
+			it = extraprop.data.find(GROLE_STATUS_EXTRAPROP_FATERING);
+			if(it != extraprop.data.end()) extend_data.fate_ring_data = it->second;
+		}
+	
+		extend_data.meridian_data = status.meridian_data;
+		extend_data.title_data = status.title_data;
+	}
+	
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBWebTradePrePostArg *arg = (DBWebTradePrePostArg *)argument;
+		DBWebTradePrePostRes *res = (DBWebTradePrePostRes *)result;
+		unsigned int orignal_money = arg->syncdata.inventory.money;
+
+		Marshal::OctetsStream krole;
+		try
+		{
+			StorageEnv::Storage * pwebtrade = StorageEnv::GetStorage("webtrade");
+			StorageEnv::Storage * pinventory = StorageEnv::GetStorage("inventory");
+			StorageEnv::Storage * pequipment = StorageEnv::GetStorage("equipment");
+			StorageEnv::Storage * pstorehouse = StorageEnv::GetStorage("storehouse");
+			StorageEnv::Storage * plog = arg->syncdata.logs.size()?StorageEnv::GetStorage("shoplog"):NULL;
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::Storage * pstatus = StorageEnv::GetStorage("status");
+			StorageEnv::Storage * ptask = StorageEnv::GetStorage("task");
+			StorageEnv::CommonTransaction txn;
+		
+			try
+			{
+				if(arg->sn == 0) 
+					throw DbException(DB_VERIFY_BAD); 
+
+				krole << arg->roleid;
+				GRoleData data;
+				GRoleInventoryVector& v = arg->syncdata.inventory.items;
+				GRoleInventoryVector::iterator it,ie;
+				if(arg->posttype == 1)	//寄售游戏币
+				{
+					if(arg->deposit > arg->syncdata.inventory.money - arg->money)
+						throw DbException(DB_VERIFY_BAD);
+				}
+				else if(arg->posttype == 2)	//寄售物品
+				{
+					for(it=v.begin(),ie=v.end();it!=ie;it++)
+					{
+						if(it->pos == arg->item_pos)
+						{
+							if(it->id != arg->item_id || it->count < arg->item_num)
+								it = ie;
+							break;
+						}
+					}
+					if(it == ie || (it->proctype & ITEM_DAMAGED)
+							|| (it->proctype & ITEM_NONTRADABLE) && !(it->proctype & ITEM_CANWEBTRADE)
+							|| arg->deposit > arg->syncdata.inventory.money) 
+						throw DbException(DB_VERIFY_BAD);
+				}
+				else if(arg->posttype == 4) //寄售角色
+				{
+					//角色能否交易检查在这里
+					//保证角色数据有效
+					Marshal::OctetsStream(pbase->find(krole,txn)) >> data.base;
+					Marshal::OctetsStream(pstatus->find(krole,txn)) >> data.status;
+					Marshal::OctetsStream(pinventory->find(krole,txn)) >> data.pocket;
+					Marshal::OctetsStream(pequipment->find(krole,txn)) >> data.equipment;
+					Marshal::OctetsStream(pstorehouse->find(krole,txn)) >> data.storehouse;
+					Marshal::OctetsStream(ptask->find(krole,txn)) >> data.task;
+					//角色状态
+					if(data.base.status != _ROLE_STATUS_NORMAL)
+						throw DbException(DB_VERIFY_BAD);
+					//95级以上才能寄售
+					if(data.status.level < 95 && GetRoleReincarnationTimes(data.status.reincarnation_data) == 0)
+						throw DbException(DB_VERIFY_BAD);
+					//保证金
+					if(data.pocket.money < arg->deposit)
+						throw DbException(DB_VERIFY_BAD);
+					
+					//寄售角色时arg->name为空，需要设置一下
+					arg->name = data.base.name;
+				}
+				else
+					throw DbException(DB_VERIFY_BAD);
+				Log::formatlog("webtradeprepost","role=%d:sn=%lld:type=%d:itemid=%d:item_count=%d:money=%d:role=%d:petid=%d:pet_count=%d",
+						arg->roleid,arg->sn,arg->posttype,arg->item_id,arg->item_num,arg->money,arg->roleid,0,0);
+			
+				//组织GWebTradeDetail
+				GWebTradeDetail detail;
+				detail.info.sn = arg->sn;
+				detail.info.seller_roleid = arg->roleid;
+				detail.info.seller_userid = arg->userid;
+				detail.info.seller_name = arg->name;
+				detail.info.posttype = arg->posttype;
+				detail.info.money = arg->money;
+				detail.info.item_id = arg->item_id;
+				detail.info.item_count = arg->item_num;
+				detail.info.state = arg->state;
+				detail.info.post_endtime = 0;
+				detail.info.show_endtime = 0;
+				detail.info.price = arg->price;//在寄售的同时上架，则把价格时间买家保存下来
+				detail.info.sell_endtime = arg->sellperiod;
+				detail.info.buyer_roleid = arg->buyer_roleid;
+				if(arg->buyer_roleid > 0)
+				{
+					GRoleBase buyer_base;
+					Marshal::OctetsStream(pbase->find(Marshal::OctetsStream()<<arg->buyer_roleid, txn)) >> buyer_base;
+					if(buyer_base.status != _ROLE_STATUS_NORMAL)
+						throw DbException(DB_VERIFY_BAD);
+					if(buyer_base.userid)
+						detail.info.buyer_userid = buyer_base.userid;
+					else
+						detail.info.buyer_userid = LOGICUID(arg->buyer_roleid);
+					detail.info.buyer_name = buyer_base.name;
+					res->buyer_userid = detail.info.buyer_userid;
+					res->buyer_name = detail.info.buyer_name;
+				}
+				if(arg->posttype == 2)
+				{
+					detail.item = *it;
+					detail.item.count = arg->item_num;
+				}
+				else if(arg->posttype == 4)
+				{
+					//放入角色简单信息	
+					GWebTradeRoleBrief brief;
+					brief.cls 		= data.base.cls;
+					brief.gender 	= data.base.gender;
+					brief.level 	= data.status.level;
+					brief.level2 	= data.status.level2;
+					brief.exp 		= data.status.exp;
+					brief.sp 		= data.status.sp;
+					brief.pp 		= data.status.pp;
+					brief.reputation = data.status.reputation;
+					brief.petcorral = data.status.petcorral;
+					brief.property 	= data.status.property;
+					brief.skills 	= data.status.skills;
+					brief.inventory = data.pocket;
+					brief.inventory.money -= arg->deposit;
+					brief.equipment = data.equipment;
+					brief.storehouse = data.storehouse;
+					brief.force_data = data.status.force_data;
+					brief.reincarnation_data = data.status.reincarnation_data;
+					brief.realm_data = data.status.realm_data;
+					
+					GWebTradeRoleBriefExtend extend_data;
+					GetRoleBriefExtendData(extend_data, data.status);
+					brief.extend_data = Marshal::OctetsStream() << extend_data;
+
+					detail.rolebrief = Marshal::OctetsStream()<<brief;
+					res->rolebrief = detail.rolebrief;
+				}
+				detail.post_time = arg->post_time;
+				detail.deposit = arg->deposit;
+				detail.loginip = arg->loginip;
+				res->name = arg->name;
+				if(arg->posttype == 1 || arg->posttype == 2)
+				{
+				//检查inventory时戳，计算金钱变化
+				GRolePocket pocket;
+				Marshal::OctetsStream(pinventory->find(krole, txn)) >> pocket;
+				if(arg->syncdata.inventory.timestamp <= pocket.timestamp)
+				{
+					Log::log(LOG_ERR,"DBWebTrade, timestamp mismatch. %d<%d",
+						arg->syncdata.inventory.timestamp, pocket.timestamp);
+					throw DbException(DB_VERIFY_BAD);
+				}
+				int delta = arg->syncdata.inventory.money - pocket.money;
+				//减少包裹金钱和物品，生成syncdata
+				arg->syncdata.inventory.money -= arg->deposit;
+				if(arg->posttype == 1)
+					arg->syncdata.inventory.money -= arg->money;
+				res->syncdata.inventory.money = arg->syncdata.inventory.money;
+				if(arg->posttype == 2)
+				{
+					it->count -= arg->item_num;
+					res->syncdata.inventory.items.push_back(*it);
+					if(it->count==0)
+						v.erase(it);
+				}
+				//存盘
+				//webtrade表 key=0保存的是最近一次申请的sn
+				pwebtrade->insert(Marshal::OctetsStream()<<(int64_t)0, Marshal::OctetsStream()<<arg->sn, txn);
+				pwebtrade->insert(Marshal::OctetsStream()<<arg->sn, Marshal::OctetsStream()<<detail, txn, DB_NOOVERWRITE);
+				pinventory->insert(krole, Marshal::OctetsStream()<<arg->syncdata.inventory, txn);
+				pequipment->insert(krole, Marshal::OctetsStream()<<arg->syncdata.equipment, txn);
+				WriteRestSyncData(pstorehouse, plog, arg->roleid, arg->syncdata, delta, txn);
+				res->syncdata.data_mask = arg->syncdata.data_mask;
+				res->retcode = ERR_SUCCESS;
+				}
+				else if(arg->posttype == 4)
+				{
+					//锁定角色状态
+					data.base.status = _ROLE_STATUS_FROZEN; 	
+					//扣保证金
+					data.pocket.money -= arg->deposit;	
+					//存盘
+					//webtrade表 key=0保存的是最近一次申请的sn
+					pwebtrade->insert(Marshal::OctetsStream()<<(int64_t)0, Marshal::OctetsStream()<<arg->sn, txn);
+					pwebtrade->insert(Marshal::OctetsStream()<<arg->sn, Marshal::OctetsStream()<<detail, txn, DB_NOOVERWRITE);
+					pbase->insert(krole, Marshal::OctetsStream()<<data.base, txn);
+					pinventory->insert(krole, Marshal::OctetsStream()<<data.pocket, txn);
+					res->retcode = ERR_SUCCESS;
+				}
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException e( DB_OLD_VERSION );
+				txn.abort( e );
+				throw e;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log(LOG_ERR, "DBWebTradePrePost, roleid=%d, sn=%lld, posttype=%d, money=%d, item_id=%d, what=%s.", arg->roleid, arg->sn, arg->posttype, arg->money, arg->item_id, e.what());
+			res->retcode = ERR_EXCEPTION;
+			res->syncdata.inventory.money = orignal_money;
+			res->syncdata.inventory.items.clear();
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBWebTradePrePostArg *arg = (DBWebTradePrePostArg *)argument;
+		// DBWebTradePrePostRes *res = (DBWebTradePrePostRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

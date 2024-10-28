@@ -58,9 +58,9 @@ namespace GNET
       Skill2612Stub ():SkillStub (2612)
         {
             cls = 10;
-            name = L"水月镜花·月食";
-            nativename = "水月镜花·月食";
-            icon = "月食.dds";
+            name = L"姘存湀闀滆姳路鏈堥";
+            nativename = "姘存湀闀滆姳路鏈堥";
+            icon = "鏈堥.dds";
             max_level = 1;
             type = 2;
             apcost = 100;
@@ -84,7 +84,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (44878);
             }
-            effect = "2寸力.sgc";
+            effect = "2瀵稿姏.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

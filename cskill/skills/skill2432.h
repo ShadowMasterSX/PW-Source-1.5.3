@@ -134,9 +134,9 @@ namespace GNET
       Skill2432Stub ():SkillStub (2432)
         {
             cls = 6;
-            name = L"Ðþ¡¤Òí¶Ü";
-            nativename = "Ðþ¡¤Òí¶Ü";
-            icon = "Òí¶Ü1.dds";
+            name = L"çŽ„Â·ç¿¼ç›¾";
+            nativename = "çŽ„Â·ç¿¼ç›¾";
+            icon = "ç¿¼ç›¾1.dds";
             max_level = 1;
             type = 2;
             apcost = 45;

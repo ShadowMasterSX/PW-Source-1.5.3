@@ -1,0 +1,44 @@
+	public:
+		int retcode;
+		int domain_id;
+		unsigned char domain_type;
+		unsigned int localsid;
+		enum { PROTOCOL_TYPE = PROTOCOL_MNGETPLAYERLASTENTERINFO_RE };
+	public:
+		MNGetPlayerLastEnterInfo_Re() { type = PROTOCOL_MNGETPLAYERLASTENTERINFO_RE; }
+		MNGetPlayerLastEnterInfo_Re(void*) : Protocol(PROTOCOL_MNGETPLAYERLASTENTERINFO_RE) { }
+		MNGetPlayerLastEnterInfo_Re (int l_retcode,int l_domain_id,unsigned char l_domain_type,
+			unsigned int l_localsid)
+			 : retcode(l_retcode),domain_id(l_domain_id),domain_type(l_domain_type)
+			,localsid(l_localsid)
+		{
+			type = PROTOCOL_MNGETPLAYERLASTENTERINFO_RE;
+		}
+
+		MNGetPlayerLastEnterInfo_Re(const MNGetPlayerLastEnterInfo_Re &rhs)
+			: Protocol(rhs),retcode(rhs.retcode),domain_id(rhs.domain_id),domain_type(rhs.domain_type)
+			,localsid(rhs.localsid) { }
+
+		GNET::Protocol *Clone() const { return new MNGetPlayerLastEnterInfo_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << domain_id;
+			os << domain_type;
+			os << localsid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> domain_id;
+			os >> domain_type;
+			os >> localsid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

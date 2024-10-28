@@ -1,0 +1,102 @@
+
+#ifndef __GNET_DBMNFACTIONAPPLYINFOGET_HPP
+#define __GNET_DBMNFACTIONAPPLYINFOGET_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbmnfactionapplyinfogetarg"
+#include "dbmnfactionapplyinfogetres"
+
+
+namespace GNET
+{
+
+class QueryMNFactionApplyInfo : public StorageEnv::IQuery
+{
+public:
+    QueryMNFactionApplyInfo(MNFactionApplyInfoVector& data) : _data(data) {}
+
+    bool Update(StorageEnv::Transaction& txn, Octets& key, Octets& value)
+    {
+        try
+        {
+            MNFactionApplyInfo info;
+            Marshal::OctetsStream(value) >> info;
+            _data.push_back(info);
+        }
+        catch (Marshal::Exception&)
+        {
+            Log::log(LOG_ERR, "QueryMNFactionApplyInfo, unmarshal error.");
+        }
+
+        return true;
+    }
+
+private:
+    MNFactionApplyInfoVector& _data;
+
+};
+
+
+class DBMNFactionApplyInfoGet : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbmnfactionapplyinfoget"
+#undef	RPC_BASECLASS
+
+    void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+    {
+        DBMNFactionApplyInfoGetArg *arg = (DBMNFactionApplyInfoGetArg *)argument;
+        DBMNFactionApplyInfoGetRes *res = (DBMNFactionApplyInfoGetRes *)result;
+
+        QueryMNFactionApplyInfo q(res->applyinfo_list);
+
+        try
+        {
+            StorageEnv::Storage* pappinfo = StorageEnv::GetStorage("mnfactionapplyinfo");
+            StorageEnv::AtomTransaction txn;
+
+            try
+            {
+                StorageEnv::Storage::Cursor cursor = pappinfo->cursor(txn);
+                cursor.walk(q);
+
+                res->retcode = ERR_SUCCESS;
+            }
+            catch (DbException e) {throw;}
+            catch (...)
+            {
+                DbException e(DB_OLD_VERSION);
+                txn.abort(e);
+                throw e;
+            }
+        }
+        catch (DbException e)
+        {
+            if (e.get_errno() == DB_LOCK_DEADLOCK)
+                res->retcode = ERR_AGAIN;
+            else
+                res->retcode = ERR_EXCEPTION;
+
+            Log::log(LOG_ERR, "DBMNFactionApplyInfoGet, what=%s.\n", e.what());
+        }
+    }
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBMNFactionApplyInfoGetArg *arg = (DBMNFactionApplyInfoGetArg *)argument;
+		// DBMNFactionApplyInfoGetRes *res = (DBMNFactionApplyInfoGetRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

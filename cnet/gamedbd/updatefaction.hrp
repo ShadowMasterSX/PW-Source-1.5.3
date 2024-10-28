@@ -42,7 +42,7 @@ class UpdateFaction : public Rpc
 				if(arg->type==1)
 				{
 					info.level++;
-					if(info.level>1)
+					if(info.level>9)
 					{
 						res->retcode = ERR_FC_DATAERROR;
 						return;

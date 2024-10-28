@@ -1,0 +1,45 @@
+
+#ifndef __GNET_DBMNSENDBONUSNOTIFY_HPP
+#define __GNET_DBMNSENDBONUSNOTIFY_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbmnsendbonusnotifyarg"
+#include "dbmnsendbonusnotifyres"
+
+#include "cdsmnfbattleman.h"
+namespace GNET
+{
+
+class DBMNSendBonusNotify : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbmnsendbonusnotify"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBMNSendBonusNotifyArg *arg = (DBMNSendBonusNotifyArg *)argument;
+		// DBMNSendBonusNotifyRes *res = (DBMNSendBonusNotifyRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DEBUG_PRINT("file=%s\tfunc=%s\tline=%d\n", __FILE__, __FUNCTION__, __LINE__);
+		DBMNSendBonusNotifyArg *arg = (DBMNSendBonusNotifyArg *)argument;
+		//DBMNSendBonusNotifyRes *res = (DBMNSendBonusNotifyRes *)result;
+
+		CDS_MNFactionBattleMan::GetInstance()->OnSendBonusSuccess(arg->unifid);
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

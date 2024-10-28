@@ -16,7 +16,7 @@ player_bind::PlayerLinkRequest(gplayer_imp * pImp, const XID & target)
 	
 	//检测自己的状态
 	//能够发起请求的条件是 1:不在马上 2:不在别人身上 3:没有在要求中 4:不在水中 5:其他...
-	if(_mode || !pImp->CheckPlayerBindRequest() || !target.IsPlayer() )
+	if(_mode || !pImp->CheckPlayerBindRequest() || !target.IsPlayer())
 	{
 		pImp->_runner->error_message(S2C::ERR_INVALID_BIND_REQUEST);
 		return;
@@ -41,6 +41,9 @@ player_bind::PlayerLinkRequest(gplayer_imp * pImp, const XID & target)
 void
 player_bind::PlayerLinkInvite(gplayer_imp * pImp, const XID & target)
 {
+	if(pImp->GetPlayerLimit(PLAYER_LIMIT_NOBIND))//禁止相依相偎
+		return;
+	
 	if(pImp->IsPlayerFemale())
 	{
 		pImp->_runner->error_message(S2C::ERR_INVALID_GENDER);
@@ -81,7 +84,7 @@ player_bind::PlayerLinkReqReply(gplayer_imp * pImp, const XID & target,int param
 
 	//检测自己的状态
 	//能够回应请求的条件和能够邀请的条件类似
-	if((_mode && _mode != MODE_INVITE ) || !pImp->CheckPlayerBindInvite() || !target.IsPlayer() )
+	if((_mode && _mode != MODE_INVITE ) || !pImp->CheckPlayerBindInvite() || !target.IsPlayer() || pImp->GetPlayerLimit(PLAYER_LIMIT_NOBIND))
 	{
 		pImp->_runner->error_message(S2C::ERR_INVALID_BIND_REQUEST);
 		return;
@@ -113,7 +116,7 @@ player_bind::PlayerLinkInvReply(gplayer_imp * pImp, const XID & target,int param
 
 	//检测自己的状态
 	//能够回应请求的条件和能够请求的条件类似
-	if((_mode && _mode != MODE_REQUEST) || !pImp->CheckPlayerBindRequest() || !target.IsPlayer() )
+	if((_mode && _mode != MODE_REQUEST) || !pImp->CheckPlayerBindRequest() || !target.IsPlayer() || pImp->GetPlayerLimit(PLAYER_LIMIT_NOBIND))
 	{
 		pImp->_runner->error_message(S2C::ERR_INVALID_BIND_REQUEST);
 		return;
@@ -188,7 +191,7 @@ player_bind::MsgRequestReply(gplayer_imp * pImp, const XID & target, int param)
 	//女
 	//收到请求的回应，能够处理的前提是自己的请求对象是当前对象
 	//且当前处于请求状态
-	if(target != _request_target || _mode != MODE_REQUEST)
+	if(target != _request_target || _mode != MODE_REQUEST || pImp->GetPlayerLimit(PLAYER_LIMIT_NOBIND))
 	{
 		//回馈一个消息 让对方脱离等待状态
 		if(!param) pImp->SendTo<0>(GM_MSG_PLAYER_BIND_STOP,target, 0);
@@ -221,7 +224,7 @@ player_bind::MsgInviteReply(gplayer_imp * pImp, const XID & target, int param)
 	//男
 	//收到邀请的回应,处理的条件是邀请的人和返回对应
 	//且当前处于请求状态
-	if(target != _invite_target || _mode != MODE_INVITE || !pImp->CheckPlayerBindRequest())
+	if(target != _invite_target || _mode != MODE_INVITE || !pImp->CheckPlayerBindRequest() || pImp->GetPlayerLimit(PLAYER_LIMIT_NOBIND))
 	{
 		//回馈一个消息 让对方脱离等待状态
 		if(!param) pImp->SendTo<0>(GM_MSG_PLAYER_BIND_STOP,target, 0);
@@ -258,7 +261,7 @@ void
 player_bind::MsgPrepare(gplayer_imp *pImp, const XID & target)
 {
 	//能收到此消息的必然是男性, 同时必然处于等待玩家的状态 MODE_PREPARE
-	if(_mode != MODE_PREPARE || target != _bind_target || !pImp->CheckPlayerBindRequest())
+	if(_mode != MODE_PREPARE || target != _bind_target || !pImp->CheckPlayerBindRequest() || pImp->GetPlayerLimit(PLAYER_LIMIT_NOBIND))
 	{
 		//状态不匹配或者目标不匹配则忽略
 		return;
@@ -281,7 +284,7 @@ player_bind::MsgPrepare(gplayer_imp *pImp, const XID & target)
 void 
 player_bind::MsgBeLinked(gplayer_imp * pImp, const XID & target,const A3DVECTOR & pos)
 {
-	if(_mode != MODE_PREPARE || _bind_target != target || !pImp->CheckPlayerBindRequest())
+	if(_mode != MODE_PREPARE || _bind_target != target || !pImp->CheckPlayerBindRequest() || pImp->GetPlayerLimit(PLAYER_LIMIT_NOBIND))
 	{
 		//若是非预期的状态则不处理
 		//考虑一下自己的状态是否符合 (是否处于可以进行移动的状态,这个状态和请求的状态一致)

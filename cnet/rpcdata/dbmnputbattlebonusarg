@@ -1,0 +1,65 @@
+#ifndef __GNET_DBMNPUTBATTLEBONUSARG_RPCDATA
+#define __GNET_DBMNPUTBATTLEBONUSARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "mndomainbonus"
+
+namespace GNET
+{
+	class DBMNPutBattleBonusArg : public GNET::Rpc::Data
+	{
+	public:
+		unsigned int sn;
+		MNDomainBonusVector bonus_list;
+
+	public:
+		DBMNPutBattleBonusArg (unsigned int l_sn = 0,MNDomainBonusVector l_bonus_list = MNDomainBonusVector())
+			: sn(l_sn),bonus_list(l_bonus_list)
+		{
+		}
+
+		DBMNPutBattleBonusArg(const DBMNPutBattleBonusArg &rhs)
+			: sn(rhs.sn),bonus_list(rhs.bonus_list) { }
+
+		Rpc::Data *Clone() const { return new DBMNPutBattleBonusArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBMNPutBattleBonusArg *r = dynamic_cast<const DBMNPutBattleBonusArg *>(&rhs);
+			if (r && r != this)
+			{
+				sn = r->sn;
+				bonus_list = r->bonus_list;
+			}
+			return *this;
+		}
+
+		DBMNPutBattleBonusArg& operator = (const DBMNPutBattleBonusArg &rhs)
+		{
+			const DBMNPutBattleBonusArg *r = &rhs;
+			if (r && r != this)
+			{
+				sn = r->sn;
+				bonus_list = r->bonus_list;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << sn;
+			os << bonus_list;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> sn;
+			os >> bonus_list;
+			return os;
+		}
+
+	};
+};
+#endif

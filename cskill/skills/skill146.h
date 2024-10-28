@@ -19,8 +19,8 @@ namespace GNET
         Skill146Stub ():SkillStub (146)
         {
             cls = 255;
-            name = L"¿ñÕ½Ê¿";
-            nativename = "¿ñÕ½Ê¿";
+            name = L"ç‹‚æˆ˜å£«";
+            nativename = "ç‹‚æˆ˜å£«";
             icon = "";
             max_level = 1;
             type = 6;
@@ -41,7 +41,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "¹ÖÎïÅç»ğÊõ.sgc";
+            effect = "æ€ªç‰©å–·ç«æœ¯.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

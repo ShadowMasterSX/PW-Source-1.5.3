@@ -53,6 +53,16 @@ namespace GNET
 		GFactionHostileVector factionhostile;
 		int mall_consumption;
 		int src_zoneid;
+		int64_t unifid;
+		int vip_level;
+		int score_add;
+		int score_cost;
+		int score_consume;
+		int day_clear_stamp;
+		int week_clear_stamp;
+		int month_clear_stamp;
+		int year_clear_stamp;
+		Octets purchase_limit_data;
 
 	public:
 		GRoleDetail (char l_version = 1,unsigned int l_id = 0,unsigned int l_userid = 0
@@ -62,7 +72,10 @@ namespace GNET
 			,int l_cash_used = 0,int l_cash_serial = 0,unsigned int l_factionid = 0
 			,int l_factionrole = 0,unsigned int l_custom_stamp = 0,int l_bonus_add = 0
 			,int l_bonus_reward = 0,int l_bonus_used = 0,int l_referrer = 0
-			,int l_mall_consumption = 0,int l_src_zoneid = 0)
+			,int l_mall_consumption = 0,int l_src_zoneid = 0,int64_t l_unifid = 0
+			,int l_vip_level = 0,int l_score_add = 0,int l_score_cost = 0
+			,int l_score_consume = 0,int l_day_clear_stamp = 0,int l_week_clear_stamp = 0
+			,int l_month_clear_stamp = 0,int l_year_clear_stamp = 0,const Octets& l_purchase_limit_data = Octets(0))
 			: version(l_version),id(l_id),userid(l_userid)
 			,name(l_name),race(l_race),cls(l_cls)
 			,spouse(l_spouse),gender(l_gender),create_time(l_create_time)
@@ -70,7 +83,10 @@ namespace GNET
 			,cash_used(l_cash_used),cash_serial(l_cash_serial),factionid(l_factionid)
 			,factionrole(l_factionrole),custom_stamp(l_custom_stamp),bonus_add(l_bonus_add)
 			,bonus_reward(l_bonus_reward),bonus_used(l_bonus_used),referrer(l_referrer)
-			,mall_consumption(l_mall_consumption),src_zoneid(l_src_zoneid)
+			,mall_consumption(l_mall_consumption),src_zoneid(l_src_zoneid),unifid(l_unifid)
+			,vip_level(l_vip_level),score_add(l_score_add),score_cost(l_score_cost)
+			,score_consume(l_score_consume),day_clear_stamp(l_day_clear_stamp),week_clear_stamp(l_week_clear_stamp)
+			,month_clear_stamp(l_month_clear_stamp),year_clear_stamp(l_year_clear_stamp),purchase_limit_data(l_purchase_limit_data)
 		{
 		}
 
@@ -86,7 +102,10 @@ namespace GNET
 			logs(rhs.logs),bonus_add(rhs.bonus_add),bonus_reward(rhs.bonus_reward),
 			bonus_used(rhs.bonus_used),referrer(rhs.referrer),userstorehouse(rhs.userstorehouse),
 			taskcounter(rhs.taskcounter),factionalliance(rhs.factionalliance),factionhostile(rhs.factionhostile),
-			mall_consumption(rhs.mall_consumption),src_zoneid(rhs.src_zoneid) { }
+			mall_consumption(rhs.mall_consumption),src_zoneid(rhs.src_zoneid),unifid(rhs.unifid),
+			vip_level(rhs.vip_level),score_add(rhs.score_add),score_cost(rhs.score_cost),
+			score_consume(rhs.score_consume),day_clear_stamp(rhs.day_clear_stamp),week_clear_stamp(rhs.week_clear_stamp),
+			month_clear_stamp(rhs.month_clear_stamp),year_clear_stamp(rhs.year_clear_stamp),purchase_limit_data(rhs.purchase_limit_data) { }
 
 		Rpc::Data *Clone() const { return new GRoleDetail(*this); }
 
@@ -130,6 +149,16 @@ namespace GNET
 				factionhostile = r->factionhostile;
 				mall_consumption = r->mall_consumption;
 				src_zoneid = r->src_zoneid;
+				unifid = r->unifid;
+				vip_level = r->vip_level;
+				score_add = r->score_add;
+				score_cost = r->score_cost;
+				score_consume = r->score_consume;
+				day_clear_stamp = r->day_clear_stamp;
+				week_clear_stamp = r->week_clear_stamp;
+				month_clear_stamp = r->month_clear_stamp;
+				year_clear_stamp = r->year_clear_stamp;
+				purchase_limit_data = r->purchase_limit_data;
 			}
 			return *this;
 		}
@@ -174,6 +203,16 @@ namespace GNET
 				factionhostile = r->factionhostile;
 				mall_consumption = r->mall_consumption;
 				src_zoneid = r->src_zoneid;
+				unifid = r->unifid;
+				vip_level = r->vip_level;
+				score_add = r->score_add;
+				score_cost = r->score_cost;
+				score_consume = r->score_consume;
+				day_clear_stamp = r->day_clear_stamp;
+				week_clear_stamp = r->week_clear_stamp;
+				month_clear_stamp = r->month_clear_stamp;
+				year_clear_stamp = r->year_clear_stamp;
+				purchase_limit_data = r->purchase_limit_data;
 			}
 			return *this;
 		}
@@ -215,6 +254,16 @@ namespace GNET
 			os << factionhostile;
 			os << mall_consumption;
 			os << src_zoneid;
+			os << unifid;
+			os << vip_level;
+			os << score_add;
+			os << score_cost;
+			os << score_consume;
+			os << day_clear_stamp;
+			os << week_clear_stamp;
+			os << month_clear_stamp;
+			os << year_clear_stamp;
+			os << purchase_limit_data;
 			return os;
 		}
 
@@ -255,6 +304,16 @@ namespace GNET
 			os >> factionhostile;
 			os >> mall_consumption;
 			os >> src_zoneid;
+			os >> unifid;
+			os >> vip_level;
+			os >> score_add;
+			os >> score_cost;
+			os >> score_consume;
+			os >> day_clear_stamp;
+			os >> week_clear_stamp;
+			os >> month_clear_stamp;
+			os >> year_clear_stamp;
+			os >> purchase_limit_data;
 			return os;
 		}
 

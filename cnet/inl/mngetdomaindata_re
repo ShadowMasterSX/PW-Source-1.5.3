@@ -1,0 +1,44 @@
+	public:
+		int retcode;
+		MNDomainDataVector domain_data;
+		MNFactionApplyDataVector apply_data;
+		unsigned int localsid;
+		enum { PROTOCOL_TYPE = PROTOCOL_MNGETDOMAINDATA_RE };
+	public:
+		MNGetDomainData_Re() { type = PROTOCOL_MNGETDOMAINDATA_RE; }
+		MNGetDomainData_Re(void*) : Protocol(PROTOCOL_MNGETDOMAINDATA_RE) { }
+		MNGetDomainData_Re (int l_retcode,MNDomainDataVector l_domain_data,MNFactionApplyDataVector l_apply_data,
+			unsigned int l_localsid)
+			 : retcode(l_retcode),domain_data(l_domain_data),apply_data(l_apply_data)
+			,localsid(l_localsid)
+		{
+			type = PROTOCOL_MNGETDOMAINDATA_RE;
+		}
+
+		MNGetDomainData_Re(const MNGetDomainData_Re &rhs)
+			: Protocol(rhs),retcode(rhs.retcode),domain_data(rhs.domain_data),apply_data(rhs.apply_data)
+			,localsid(rhs.localsid) { }
+
+		GNET::Protocol *Clone() const { return new MNGetDomainData_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << domain_data;
+			os << apply_data;
+			os << localsid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> domain_data;
+			os >> apply_data;
+			os >> localsid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1048576; }

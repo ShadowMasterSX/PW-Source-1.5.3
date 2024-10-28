@@ -50,9 +50,15 @@ public:
 
 	virtual bool Load(archive & ar)
 	{
+		if(ar.size() != 0)
 		ar >> _ess; 
+		else
+			_ess.task_id = generate_task_id(); // todo ddr
 		return true;
 	}
+
+	int generate_task_id();
+
 	virtual void GetItemData(const void ** data, size_t &len)
 	{
 		*data = &_ess;

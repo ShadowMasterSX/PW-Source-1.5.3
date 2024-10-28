@@ -58,9 +58,9 @@ namespace GNET
       Skill762Stub ():SkillStub (762)
         {
             cls = 3;
-            name = L"飞花遁影";
-            nativename = "飞花遁影";
-            icon = "妖狐附体.dds";
+            name = L"椋炶姳閬佸奖";
+            nativename = "椋炶姳閬佸奖";
+            icon = "濡栫嫄闄勪綋.dds";
             max_level = 3;
             type = 2;
             apcost = 0;

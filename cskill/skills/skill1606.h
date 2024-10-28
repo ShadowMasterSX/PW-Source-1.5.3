@@ -133,8 +133,8 @@ namespace GNET
       Skill1606Stub ():SkillStub (1606)
         {
             cls = 127;
-            name = L"四神兽台青龙";
-            nativename = "四神兽台青龙";
+            name = L"鍥涚鍏藉彴闈掗緳";
+            nativename = "鍥涚鍏藉彴闈掗緳";
             icon = "";
             max_level = 10;
             type = 1;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "四神兽台青龙_击中.sgc";
+            effect = "鍥涚鍏藉彴闈掗緳_鍑讳腑.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

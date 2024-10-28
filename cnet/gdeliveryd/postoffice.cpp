@@ -70,6 +70,11 @@ bool PostOffice::DeleteMail(int roleid,unsigned char mail_id)
 	FIND_ROLE_OR_RETURN(false);
 	return mailbox->DeleteMail( mail_id );
 }
+bool PostOffice::DeleteMail(int roleid,const IntVector& maillist)
+{
+	FIND_ROLE_OR_RETURN(false);
+	return mailbox->DeleteMail( maillist );
+}
 bool PostOffice::GetMail( int roleid,unsigned char mail_id, GMailHeader& mail )
 {
 	FIND_ROLE_OR_RETURN(false);
@@ -111,6 +116,19 @@ bool PostOffice::CheckExpireMail( int roleid,GMailIDVector& maillist )
 	FIND_ROLE_OR_RETURN(false);
 	mailbox->CheckExpireMail( maillist );
 	return true;
+}
+
+bool PostOffice::FindMail(int roleid, IntVector& maillist ,int type,int special_sender, int except_sender)
+{
+	FIND_ROLE_OR_RETURN(false);
+	mailbox->FindMail(maillist,type,special_sender,except_sender);
+	return true;
+}
+		
+bool PostOffice::CheckSpecialTitle(int roleid,const IntVector& maillist, int arg)
+{
+	FIND_ROLE_OR_RETURN(false);
+	return mailbox->CheckSpecialTitle(maillist,arg);
 }
 /////////////////////////////////////////////////////
 ///                                               ///

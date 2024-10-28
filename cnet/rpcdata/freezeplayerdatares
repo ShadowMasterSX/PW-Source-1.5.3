@@ -10,15 +10,17 @@ namespace GNET
 	{
 	public:
 		int retcode;
+		short cross_type;
+		int64_t unifid;
 
 	public:
-		FreezePlayerDataRes (int l_retcode = 0)
-			: retcode(l_retcode)
+		FreezePlayerDataRes (int l_retcode = 0,short l_cross_type = -1)
+			: retcode(l_retcode),cross_type(l_cross_type)
 		{
 		}
 
 		FreezePlayerDataRes(const FreezePlayerDataRes &rhs)
-			: retcode(rhs.retcode) { }
+			: retcode(rhs.retcode),cross_type(rhs.cross_type),unifid(rhs.unifid) { }
 
 		Rpc::Data *Clone() const { return new FreezePlayerDataRes(*this); }
 
@@ -28,6 +30,8 @@ namespace GNET
 			if (r && r != this)
 			{
 				retcode = r->retcode;
+				cross_type = r->cross_type;
+				unifid = r->unifid;
 			}
 			return *this;
 		}
@@ -38,6 +42,8 @@ namespace GNET
 			if (r && r != this)
 			{
 				retcode = r->retcode;
+				cross_type = r->cross_type;
+				unifid = r->unifid;
 			}
 			return *this;
 		}
@@ -45,12 +51,16 @@ namespace GNET
 		OctetsStream& marshal(OctetsStream & os) const
 		{
 			os << retcode;
+			os << cross_type;
+			os << unifid;
 			return os;
 		}
 
 		const OctetsStream& unmarshal(const OctetsStream &os)
 		{
 			os >> retcode;
+			os >> cross_type;
+			os >> unifid;
 			return os;
 		}
 

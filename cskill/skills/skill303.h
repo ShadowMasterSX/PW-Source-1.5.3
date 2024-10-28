@@ -137,9 +137,9 @@ namespace GNET
       Skill303Stub ():SkillStub (303)
         {
             cls = 3;
-            name = L"ǧ�Ϲ�";
-            nativename = "ǧ�Ϲ�";
-            icon = "ǧ�Ϲ�.dds";
+            name = L"千蚁蛊";
+            nativename = "千蚁蛊";
+            icon = "千蚁蛊.dds";
             max_level = 10;
             type = 1;
             apcost = 0;
@@ -166,7 +166,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (292);
             }
-            effect = "ǧ�Ϲ�.sgc";
+            effect = "千蚁蛊.sgc";
             range.type = 3;
             doenchant = true;
             dobless = false;

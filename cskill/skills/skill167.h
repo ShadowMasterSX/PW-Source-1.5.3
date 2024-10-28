@@ -133,9 +133,9 @@ namespace GNET
       Skill167Stub ():SkillStub (167)
         {
             cls = 255;
-            name = L"»Ø³ÇÊõ";
-            nativename = "»Ø³ÇÊõ";
-            icon = "Ë®É·.dds";
+            name = L"å›žåŸŽæœ¯";
+            nativename = "å›žåŸŽæœ¯";
+            icon = "æ°´ç…ž.dds";
             max_level = 2;
             type = 2;
             apcost = 0;
@@ -145,7 +145,7 @@ namespace GNET
             rank = 0;
             eventflag = 0;
             clslimit = 0;
-            time_type = 0;
+            time_type = 3;
             showorder = 7001;
             allow_land = 1;
             allow_air = 1;
@@ -217,7 +217,7 @@ namespace GNET
         }
         int GetCoolingtime (Skill * skill) const
         {
-            return 3600000 * (23 * skill->GetLevel () - 22);
+            return 30000;//return 3600000 * (23 * skill->GetLevel () - 22);
         }
         int GetRequiredLevel (Skill * skill) const
         {

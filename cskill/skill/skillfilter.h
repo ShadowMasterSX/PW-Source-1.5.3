@@ -1,16 +1,15 @@
 #ifndef __SKILL_FILTER_H__
 #define __SKILL_FILTER_H__
 
-#include <limits.h>
-#include <string.h>
 #include <common/types.h>
 #include <obj_interface.h>
 #include <filter.h>
 #include "sfilterdef.h"
 #include "skillwrapper.h"
-#include "playerwrapper.h"
 #include "statedef.h"
 #include <ctime>
+#include <climits>
+
 using namespace GNET;
 //lgc
 enum	//seal/idle mode 在_idle_seal_mode_counter中计数的索引
@@ -138,7 +137,7 @@ public:
 	
 	void Merge(filter *f)
 	{
-		assert(dynamic_cast<filter_Incdefence*>(f));
+		ASSERT(dynamic_cast<filter_Incdefence*>(f));
 		filter_Incdefence* nf = (filter_Incdefence*) f;
 		_timeout = GetTimeOut(nf);
 		if(_ratio!=nf->GetRatio())
@@ -206,7 +205,7 @@ public:
 	}
 	void Merge(filter *f)
 	{
-		assert(dynamic_cast<filter_Incattack*>(f));
+		ASSERT(dynamic_cast<filter_Incattack*>(f));
 		filter_Incattack* nf = (filter_Incattack*) f;
 		_timeout = GetTimeOut(nf);
 		if(_ratio!=nf->GetRatio())
@@ -329,7 +328,7 @@ public:
 	}
 	void Merge(filter *f)
 	{
-		assert(dynamic_cast<filter_Incmagic*>(f));
+		ASSERT(dynamic_cast<filter_Incmagic*>(f));
 		filter_Incmagic* nf = (filter_Incmagic*) f;
 		_timeout = GetTimeOut(nf);
 		if(_ratio!=nf->GetRatio())
@@ -395,7 +394,7 @@ public:
 	}
 	void Merge(filter *f)
 	{
-		assert(dynamic_cast<filter_Speedup*>(f));
+		ASSERT(dynamic_cast<filter_Speedup*>(f));
 		filter_Speedup* nf = (filter_Speedup*) f;
 		_timeout = GetTimeOut(nf);
 		if(_ratio!=nf->GetRatio())
@@ -473,7 +472,7 @@ public:
 
 	void Merge(filter *f)
 	{
-		assert(dynamic_cast<filter_Inchp*>(f));
+		ASSERT(dynamic_cast<filter_Inchp*>(f));
 		filter_Inchp* nf = (filter_Inchp*) f;
 		_timeout = GetTimeOut(nf);
 		if(_ratio!=nf->GetRatio())
@@ -537,7 +536,7 @@ public:
 	}
 	void Merge(filter *f)
 	{
-		assert(dynamic_cast<filter_Incmp*>(f));
+		ASSERT(dynamic_cast<filter_Incmp*>(f));
 		filter_Incmp* nf = (filter_Incmp*) f;
 		_timeout = GetTimeOut(nf);
 		if(_ratio!=nf->GetRatio())
@@ -602,7 +601,7 @@ public:
 	}
 	void Merge(filter *f)
 	{
-		assert(dynamic_cast<filter_Fastmpgen*>(f));
+		ASSERT(dynamic_cast<filter_Fastmpgen*>(f));
 		filter_Fastmpgen* nf = (filter_Fastmpgen*) f;
 		_timeout = GetTimeOut(nf);
 		if(_point!=nf->GetPoint())
@@ -668,7 +667,7 @@ public:
 	}
 	void Merge(filter *f)
 	{
-		assert(dynamic_cast<filter_Fasthpgen*>(f));
+		ASSERT(dynamic_cast<filter_Fasthpgen*>(f));
 		filter_Fasthpgen* nf = (filter_Fasthpgen*) f;
 		_timeout = GetTimeOut(nf);
 		if(_point!=nf->GetPoint())
@@ -733,7 +732,7 @@ public:
 	}
 	void Merge(filter *f)
 	{
-		assert(dynamic_cast<filter_Incdodge*>(f));
+		ASSERT(dynamic_cast<filter_Incdodge*>(f));
 		filter_Incdodge* nf = (filter_Incdodge*) f;
 		_timeout = GetTimeOut(nf);
 		if(_ratio!=nf->GetRatio())
@@ -1620,7 +1619,7 @@ public:
 	}
 	void Merge(filter *f)
 	{
-		assert(dynamic_cast<filter_Crazy*>(f));
+		ASSERT(dynamic_cast<filter_Crazy*>(f));
 		filter_Crazy* nf = (filter_Crazy*) f;
 		_timeout = GetTimeOut(nf);
 		if(_ratio!=nf->GetRatio())
@@ -1870,7 +1869,7 @@ public:
 	}
 	void Merge(filter *f)
 	{
-		assert(dynamic_cast<filter_Iceblade*>(f));
+		ASSERT(dynamic_cast<filter_Iceblade*>(f));
 		filter_Iceblade* nf = (filter_Iceblade*) f;
 		_timeout = GetTimeOut(nf);
 		if(_ratio!=nf->GetRatio())
@@ -1923,10 +1922,18 @@ public:
 			:timeout_filter(object,period,mask)
 	{
 		_counter = 0;
-		_damage = damage/period;
-		if(_damage<1)
-			_damage = 1;
-		_timeout = damage/_damage;
+		if(period == 0)
+		{
+			_damage  = 0;
+			_timeout = 0;
+		}
+		else
+		{
+			_damage = damage/period;
+			if(_damage<1)
+				_damage = 1;
+			_timeout = damage/_damage;
+		}
 	}
 
 	void SetUp(const XID& player, const attacker_info_t& info, char mode, bool invader)
@@ -1950,7 +1957,7 @@ public:
 
 	void Merge(filter *f)
 	{
-		assert(dynamic_cast<filter_Wounded*>(f));
+		ASSERT(dynamic_cast<filter_Wounded*>(f));
 		filter_Wounded* nf = (filter_Wounded*) f;
 
 		int tmp = _damage * _timeout;
@@ -2370,7 +2377,7 @@ public:
 
 	void Merge(filter *f)
 	{
-		assert(dynamic_cast<filter_Toxicblade*>(f));
+		ASSERT(dynamic_cast<filter_Toxicblade*>(f));
 		filter_Toxicblade* nf = (filter_Toxicblade*) f;
 		_timeout = GetTimeOut(nf);
 		if(_ratio!=nf->GetRatio())
@@ -3023,7 +3030,7 @@ public:
 	}
 	void Merge(filter *f)
 	{
-		assert(dynamic_cast<filter_Fireblade*>(f));
+		ASSERT(dynamic_cast<filter_Fireblade*>(f));
 		filter_Fireblade* nf = (filter_Fireblade*) f;
 		_timeout = GetTimeOut(nf);
 		if(_ratio!=nf->GetRatio())
@@ -3608,12 +3615,12 @@ public:
 	}
 };
 
-class filter_Tigerform : public filter
+class filter_Tigerform : public timeout_filter
 {
 protected:
 	enum 
 	{
-		FILTER_MASK = FILTER_MASK_WEAK
+		FILTER_MASK = FILTER_MASK_WEAK | FILTER_MASK_HEARTBEAT
 	};
 
 	int _shape;
@@ -3623,7 +3630,7 @@ protected:
 
 	virtual bool Save(archive & ar)
 	{
-		filter::Save(ar);
+		timeout_filter::Save(ar);
 		ar << _shape;
 		ar << _inchp;
 		ar << _incspeed;
@@ -3633,7 +3640,7 @@ protected:
 
 	virtual bool Load(archive & ar)
 	{
-		filter::Load(ar);
+		timeout_filter::Load(ar);
 		ar >> _shape;
 		ar >> _inchp;
 		ar >> _incspeed;
@@ -3644,7 +3651,7 @@ protected:
 public:
 	DECLARE_SUBSTANCE(filter_Tigerform); 
 	filter_Tigerform(object_interface  object, int shape, int inchp, int incspeed, int decattack)
-			:filter(object,FILTER_MASK),_shape(shape), _inchp(inchp),_incspeed(incspeed),_decattack(decattack)
+			:timeout_filter(object,18000,FILTER_MASK),_shape(shape), _inchp(inchp),_incspeed(incspeed),_decattack(decattack)
 	{
 		_filter_id = FILTER_TIGERFORM;
 	}
@@ -3652,6 +3659,16 @@ public:
 	void OnAttach();
 
 	void OnRelease();
+
+	void Heartbeat(int tick)
+	{
+		const item_prop & weapon = _parent.GetCurWeapon();
+		if(weapon.weapon_class == WEAPONCLASS_BOXING)
+		{
+			_parent.RemoveFilter(FILTER_TIGERFORM);	
+		}
+		timeout_filter::Heartbeat(tick);
+	}
 };
 
 class filter_Antiwater : public timeout_filter
@@ -4240,7 +4257,7 @@ public:
 
 	void Merge(filter *f)
 	{
-		assert(dynamic_cast<filter_Eaglecurse*>(f));
+		ASSERT(dynamic_cast<filter_Eaglecurse*>(f));
 		filter_Eaglecurse* nf = (filter_Eaglecurse*) f;
 
 		int tmp = _damage * _timeout;
@@ -4853,7 +4870,7 @@ public:
 	
 	void Merge(filter *f)
 	{
-		assert(dynamic_cast<filter_Addattackdegree*>(f));
+		ASSERT(dynamic_cast<filter_Addattackdegree*>(f));
 		filter_Addattackdegree* nf = (filter_Addattackdegree*) f;
 		_timeout = GetTimeOut(nf);
 		if(_add!=nf->GetValue())
@@ -5029,7 +5046,7 @@ public:
 	
 	void Merge(filter *f)
 	{
-		assert(dynamic_cast<filter_Adddefencedegree*>(f));
+		ASSERT(dynamic_cast<filter_Adddefencedegree*>(f));
 		filter_Adddefencedegree* nf = (filter_Adddefencedegree*) f;
 		_timeout = GetTimeOut(nf);
 		if(_value!=nf->GetValue())
@@ -5893,7 +5910,7 @@ public:
 	
 	void Merge(filter *f)
 	{
-		assert(dynamic_cast<filter_Incdefence2*>(f));
+		ASSERT(dynamic_cast<filter_Incdefence2*>(f));
 		filter_Incdefence2* nf = (filter_Incdefence2*) f;
 		_timeout = GetTimeOut(nf);
 		if(_ratio!=nf->GetRatio())
@@ -6932,7 +6949,7 @@ public:
 	}
 	void Merge(filter *f)
 	{
-		assert(dynamic_cast<filter_Leafdance*>(f));
+		ASSERT(dynamic_cast<filter_Leafdance*>(f));
 		filter_Leafdance* nf = (filter_Leafdance*) f;
 		
 		int tmp = _damage * _timeout;
@@ -7439,7 +7456,7 @@ public:
 	filter_Airstreamlock(object_interface  object,int rootperiod, float sealprob, int sealperiod, bool insertvstate=true)
 				        :timeout_filter(object,rootperiod,FILTER_MASK), _insertvstate(insertvstate)
 	{
-		assert(rootperiod > 0 && sealperiod > 0);
+		ASSERT(rootperiod > 0 && sealperiod > 0);
 		_filter_id = FILTER_AIRSTREAMLOCK;
 		//确定timeout
 		if((rand()%100) >= sealprob)
@@ -7554,7 +7571,7 @@ public:
 	filter_Insertvstate(object_interface  object,int period, int vstate, int hstate=0, int mask=0)
 				        :timeout_filter(object,period,FILTER_MASK|mask),_vstate(vstate),_hstate(hstate)
 	{
-		assert(_vstate >= 0 && _vstate < VSTATE_MAX);
+		ASSERT(_vstate >= 0 && _vstate < VSTATE_MAX);
 		_filter_id = FILTER_INSERTVSTATE;
 	}
 
@@ -7957,7 +7974,7 @@ public:
 
 	void Merge(filter *f)
 	{
-		assert(dynamic_cast<filter_Inchp2*>(f));
+		ASSERT(dynamic_cast<filter_Inchp2*>(f));
 		filter_Inchp2* nf = (filter_Inchp2*) f;
 		_timeout = GetTimeOut(nf);
 		if(_ratio!=nf->GetRatio())
@@ -8016,7 +8033,7 @@ public:
 	}
 	void Merge(filter *f)
 	{
-		assert(dynamic_cast<filter_Incattack2*>(f));
+		ASSERT(dynamic_cast<filter_Incattack2*>(f));
 		filter_Incattack2* nf = (filter_Incattack2*) f;
 		_timeout = GetTimeOut(nf);
 		if(_ratio!=nf->GetRatio())
@@ -8085,7 +8102,7 @@ public:
 	}
 	void Merge(filter *f)
 	{
-		assert(dynamic_cast<filter_Incmagic2*>(f));
+		ASSERT(dynamic_cast<filter_Incmagic2*>(f));
 		filter_Incmagic2* nf = (filter_Incmagic2*) f;
 		_timeout = GetTimeOut(nf);
 		if(_ratio!=nf->GetRatio())
@@ -8202,7 +8219,7 @@ public:
 	}
 	void Merge(filter *f)
 	{
-		assert(dynamic_cast<filter_Speedup2*>(f));
+		ASSERT(dynamic_cast<filter_Speedup2*>(f));
 		filter_Speedup2* nf = (filter_Speedup2*) f;
 		_timeout = GetTimeOut(nf);
 		if(_ratio!=nf->GetRatio())
@@ -8283,7 +8300,7 @@ public:
 
 	virtual void DoAura()
 	{
-		assert(false);
+		ASSERT(false);
 	}
 
 	void SetTalent(int t0, int t1, int t2){ _t0 = t0; _t1 = t1; _t2 = t2;}
@@ -8362,26 +8379,27 @@ protected:
 	float _range;
 	int _skill;
 	int _level;
+	bool _except_self;
 	
 	virtual bool Save(archive & ar)
 	{
 		filter_Aurabase::Save(ar);
-		ar << _range << _skill << _level;
+		ar << _range << _skill << _level << _except_self;
 		return true;
 	}
 
 	virtual bool Load(archive & ar)
 	{
 		filter_Aurabase::Load(ar);
-		ar >> _range >> _skill >> _level;
+		ar >> _range >> _skill >> _level >> _except_self;
 		return true;
 	}
 	
 	filter_Aurabless(){}
 public:
 	DECLARE_SUBSTANCE(filter_Aurabless);
-	filter_Aurabless(object_interface object, int period, float range, int skill, int level, int step = 3)
-			:filter_Aurabase(object, period, FILTER_MASK, step),_range(range),_skill(skill),_level(level)
+	filter_Aurabless(object_interface object, int period, float range, int skill, int level, int step = 3,bool ex = false)
+			:filter_Aurabase(object, period, FILTER_MASK, step),_range(range),_skill(skill),_level(level),_except_self(ex)
 	{
 		_filter_id = FILTER_AURABLESS;					
 	}
@@ -8401,9 +8419,9 @@ public:
 		_parent.SetAuraAttackState();
 		if(_parent.IsInTeam())
 		{
-			_parent.TeamEnchant(msg,false);	
+			_parent.TeamEnchant(msg,_except_self);	
 		}
-		else
+		else if(!_except_self)
 		{
 			_parent.Enchant(_parent.GetSelfID(), msg);	
 		}
@@ -8567,7 +8585,7 @@ public:
 	
     void Merge(filter *f)
 	{
-		assert(dynamic_cast<filter_Inchpsteal*>(f));
+		ASSERT(dynamic_cast<filter_Inchpsteal*>(f));
 		filter_Inchpsteal* nf = (filter_Inchpsteal*)f;
 		if(nf->GetInc() == _inc)
 		{
@@ -8826,7 +8844,7 @@ public:
 	filter_Soulbase(object_interface object, int period, int mask, int trigger_prob, int mp_cost_per_trigger, char del_on_trigger)
 			:timeout_filter(object, period, mask),_trigger_prob(trigger_prob),_mp_cost_per_trigger(mp_cost_per_trigger),_del_on_trigger(del_on_trigger)
 	{
-		assert(mask & (FILTER_MASK_MERGE|FILTER_MASK_ADJUST_DAMAGE));
+		ASSERT(mask & (FILTER_MASK_MERGE|FILTER_MASK_ADJUST_DAMAGE));
 	}
 
 	void AdjustDamage(damage_entry & ent, const XID & attacker, const attack_msg & msg, float damage_adjust)
@@ -8841,12 +8859,12 @@ public:
 	
 	void Merge(filter *f)
 	{
-		assert(false);	
+		ASSERT(false);	
 	}
 
 	virtual bool DoSoulAdjustDamage(damage_entry & ent, const XID & attacker, const attack_msg & msg, float damage_adjust)
 	{
-		assert(false);	
+		ASSERT(false);	
 		return false;
 	}
 
@@ -8899,7 +8917,7 @@ public:
 
 	void Merge(filter* f)
 	{
-		assert(dynamic_cast<filter_Soulretort*>(f));	
+		ASSERT(dynamic_cast<filter_Soulretort*>(f));	
 		filter_Soulretort* nf = (filter_Soulretort*) f;
 		if(nf->GetValue() == _retort_damage)
 		{
@@ -8998,7 +9016,7 @@ public:
 	
 	void Merge(filter* f)
 	{
-		assert(dynamic_cast<filter_Soulsealed*>(f));	
+		ASSERT(dynamic_cast<filter_Soulsealed*>(f));	
 		filter_Soulsealed* nf = (filter_Soulsealed*) f;
 		if(nf->GetValue() == _level)
 		{
@@ -9081,7 +9099,7 @@ public:
 	
 	void Merge(filter* f)
 	{
-		assert(dynamic_cast<filter_Soulbeatback*>(f));	
+		ASSERT(dynamic_cast<filter_Soulbeatback*>(f));	
 		filter_Soulbeatback* nf = (filter_Soulbeatback*) f;
 		if(nf->GetValue() == _retort_damage)
 		{
@@ -9188,7 +9206,7 @@ public:
 	
 	void Merge(filter* f)
 	{
-		assert(dynamic_cast<filter_Soulstun*>(f));	
+		ASSERT(dynamic_cast<filter_Soulstun*>(f));	
 		filter_Soulstun* nf = (filter_Soulstun*) f;
 		if(nf->GetValue() == _level)
 		{
@@ -9795,7 +9813,7 @@ public:
 		_parent.SetNoFly(true);
 		_parent.SetNoMount(true);
 		_parent.SetNoBind(true);
-		_parent.ChangeShape(_shape&((~FROM_MASK_HIGH)|(FORM_BEASTIE<<6)));
+		_parent.ChangeShape(_shape&(~FROM_MASK_HIGH)|(FORM_BEASTIE<<6));
 		
 		_parent.EnhanceSpeed(_ratio);
 		_parent.UpdateSpeedData();
@@ -11259,7 +11277,7 @@ public:
 	}
 	void Merge(filter *f)
 	{
-		assert(dynamic_cast<filter_Fastmpgen2*>(f));
+		ASSERT(dynamic_cast<filter_Fastmpgen2*>(f));
 		filter_Fastmpgen2* nf = (filter_Fastmpgen2*) f;
 		_timeout = GetTimeOut(nf);
 		if(_point!=nf->GetPoint())
@@ -11547,7 +11565,7 @@ public:
 
 	void Merge(filter *f)
 	{
-		assert(dynamic_cast<filter_Healabsorb*>(f));
+		ASSERT(dynamic_cast<filter_Healabsorb*>(f));
 		filter_Healabsorb* nf = (filter_Healabsorb*) f;
 		if(_point_max < nf->_point_max) _point_max = nf->_point_max;
 		if(_point < _point_max)
@@ -12297,7 +12315,7 @@ public:
 
 	void Merge(filter* f)
 	{
-		assert(dynamic_cast<filter_Soulretort2*>(f));	
+		ASSERT(dynamic_cast<filter_Soulretort2*>(f));	
 		filter_Soulretort2* nf = (filter_Soulretort2*) f;
 		if(nf->GetValue() == _ratio)
 		{
@@ -12496,7 +12514,7 @@ public:
 		if(_cur_merge < _merge_max)
 		{
 			_cur_merge ++;
-			assert(dynamic_cast<filter_Incattack3*>(f));
+			ASSERT(dynamic_cast<filter_Incattack3*>(f));
 			filter_Incattack3* nf = (filter_Incattack3*) f;
 			_parent.ImpairScaleDamage(_ratio);
 			_ratio += nf->GetRatio();
@@ -12796,7 +12814,7 @@ public:
 	}
 	void Merge(filter *f)
 	{
-		assert(dynamic_cast<filter_Incattackrange*>(f));
+		ASSERT(dynamic_cast<filter_Incattackrange*>(f));
 		filter_Incattackrange* nf = (filter_Incattackrange*) f;
 		_timeout = GetTimeOut(nf);
 		if(_range!=nf->GetValue())
@@ -13371,7 +13389,7 @@ public:
 
 	void Merge(filter *f)
 	{
-		assert(dynamic_cast<filter_Inchurt3 *>(f));
+		ASSERT(dynamic_cast<filter_Inchurt3 *>(f));
 		filter_Inchurt3 * filter = (filter_Inchurt3 *)f;
 		if(_pile_times < filter->_pile_limit)
 		{
@@ -13482,7 +13500,7 @@ public:
 	DECLARE_SUBSTANCE(filter_Flager); 
 	filter_Flager(object_interface & player, float hurt_ratio, float hurt_ratio2, float speed_adjust_ratio, float max_hp_adjust_ratio): filter(player, FILTER_MASK)
 	{
-		assert(hurt_ratio >= -0.9f && hurt_ratio2 >= -0.9f && max_hp_adjust_ratio >= -0.9f);
+		ASSERT(hurt_ratio >= -0.9f && hurt_ratio2 >= -0.9f && max_hp_adjust_ratio >= -0.9f);
 		_filter_id = FILTER_FLAGER;
 		_ratio.hurt = hurt_ratio + 1.0f;
 		_ratio.hurt2 = hurt_ratio2 + 1.0f;
@@ -13540,6 +13558,81 @@ public:
 		_parent.AllowElfSkillCmd();
 	}
 };
+
+/*
+ *押镖活动状态包
+ *状态包功能
+ *1. 禁用飞行器
+ *2. 禁用坐骑
+ *3. 禁止使用回城香、回城术
+ *4. 禁止接受队伍（ 帮派）集结令和巫师的召唤 
+ *5. 禁止各种百分比加速效果，人物移动速度固定为 人物初始速度+装备加成
+ *
+ *EDIT BY LJJ
+ */
+class filter_Detaindart : public timeout_filter
+{
+protected:
+	enum
+	{
+		FILTER_MASK=FILTER_MASK_REMOVE_ON_DEATH | FILTER_MASK_NOSAVE | FILTER_MASK_UNIQUE | FILTER_MASK_HEARTBEAT,
+	};
+	
+	bool _show_icon;//是否显示状态图标 0 显示 1 不显示
+	bool _show_lighting_effect;//是否显示状态光效 0 显示 1 不显示
+	//int _probability;//状态包击中概率，100表示100%
+
+	virtual bool Save(archive &ar)
+	{
+		timeout_filter::Save(ar);
+		ar << _show_icon << _show_lighting_effect;
+		return true;
+	}
+	virtual bool Load(archive & ar)
+	{
+		timeout_filter::Load(ar);
+		ar >> _show_icon >> _show_lighting_effect;
+		return true;
+	}
+	filter_Detaindart(){}
+public:
+	DECLARE_SUBSTANCE(filter_Detaindart);
+	filter_Detaindart(object_interface &object, int duration,bool show_icon,bool show_lighting_effect):timeout_filter(object,duration,FILTER_MASK),_show_icon(show_icon),_show_lighting_effect(show_lighting_effect)
+	{
+		_filter_id = FILTER_DETAINDART;
+	}
+
+	virtual void OnAttach()
+	{
+		if(_show_icon)
+			_parent.InsertTeamVisibleState(HSTATE_DETAINDART);
+		if(_show_lighting_effect)
+			_parent.IncVisibleState(VSTATE_DETAINDART);
+		_parent.SetNoFly(true);
+		_parent.SetNoMount(true);
+		_parent.SetNoLongJump(true);
+		_parent.SetNoSpeedUp(true);
+		_parent.SetNoInvisible(true);
+		_parent.SetNoBind(true);
+
+        _parent.UpdateSpeedData();
+        _parent.SendClientCurSpeed();
+	}
+	virtual void OnRelease()
+	{
+		if(_show_icon)
+			_parent.RemoveTeamVisibleState(HSTATE_DETAINDART);
+		if(_show_lighting_effect)
+			_parent.DecVisibleState(VSTATE_DETAINDART);
+		_parent.SetNoFly(false);
+		_parent.SetNoMount(false);
+		_parent.SetNoLongJump(false);
+		_parent.SetNoSpeedUp(false);
+		_parent.SetNoInvisible(false);
+		_parent.SetNoBind(false);
+	}
+};
+
 
 class filter_Subdefencedegree2 : public timeout_filter
 {
@@ -14466,7 +14559,7 @@ public:
 
 	void Merge(filter *f)
 	{
-		assert(dynamic_cast<filter_Inchurtfromskill *>(f));
+		ASSERT(dynamic_cast<filter_Inchurtfromskill *>(f));
 		filter_Inchurtfromskill * filter = (filter_Inchurtfromskill *)f;
 		if(_pile_times < filter->_pile_limit)
 		{
@@ -14633,7 +14726,7 @@ public:
     void Merge(filter *f) // 接受新加入条件 for 仙魔技能
 	{
        	filter_Incspecskilldamage* nf = dynamic_cast<filter_Incspecskilldamage*>(f);
-		assert(nf);
+		ASSERT(nf);
 		if(!_conds.empty() && !nf->_conds.empty())	MergeCond(nf->_conds);
 		_timeout = nf->_timeout;
 		_count = nf->_count;
@@ -14961,7 +15054,7 @@ public:
 	}
 	void Merge(filter *f)
 	{
-		assert(dynamic_cast<filter_Incflyspeed*>(f));
+		ASSERT(dynamic_cast<filter_Incflyspeed*>(f));
 		filter_Incflyspeed* nf = (filter_Incflyspeed*) f;
 		if(_pile_times < nf->_pile_limit)
 		{
@@ -15747,7 +15840,7 @@ public:
     void Merge(filter *f) // 接受新加入条件 for 仙魔技能
 	{
        	filter_Appendenchant* nf = dynamic_cast<filter_Appendenchant*>(f);
-		assert(nf);
+		ASSERT(nf);
 		MergeCond(nf->_conds);	
 		_timeout = nf->_timeout;
 		_count = nf->_count;
@@ -15916,7 +16009,7 @@ public:
     void Merge(filter *f) // 接受新加入条件 for 仙魔技能
 	{
        	filter_Cooldownaward* nf = dynamic_cast<filter_Cooldownaward*>(f);
-		assert(nf);
+		ASSERT(nf);
 		MergeCond(nf->_conds);	
 		_timeout = nf->_timeout;
 		_count = nf->_count;
@@ -15958,7 +16051,7 @@ class filter_Huntersoul : public timeout_filter, public delayhurt_stub
 protected:
 	enum
 	{
-		FILTER_MASK = FILTER_MASK_UNIQUE | FILTER_MASK_HEARTBEAT | FILTER_MASK_NOSAVE | FILTER_MASK_REMOVE_ON_DEATH | FILTER_MASK_TRANSLATE_SEND_MSG | FILTER_MASK_TRANSLATE_SEND_ENCHANT
+		FILTER_MASK = FILTER_MASK_UNIQUE | FILTER_MASK_HEARTBEAT | FILTER_MASK_NOSAVE | FILTER_MASK_REMOVE_ON_DEATH | FILTER_MASK_TRANSLATE_SEND_MSG // | FILTER_MASK_TRANSLATE_SEND_ENCHANT
 	};
 
 	int _damage;
@@ -16004,11 +16097,20 @@ public:
 	}
 	void TranslateSendAttack(const XID & target, attack_msg & msg)
 	{
-		_is_deleted = true;
+		if(msg.skill_id)
+		{
+			const Skill * sk = Skill::GetStub(msg.skill_id);
+			if(!sk || sk->IsElfSkill()) return;
+		}
+		
+		if(target != _parent.GetSelfID() && 
+		  (msg.physic_damage || msg.magic_damage[0] || msg.magic_damage[1] || msg.magic_damage[2] || msg.magic_damage[3] || msg.magic_damage[4]))
+			_is_deleted = true;
 	}
 	void TranslateSendEnchant(const XID & target,enchant_msg & msg)
 	{
-		_is_deleted = true;
+//		if(target != _parent.GetSelfID())
+//			_is_deleted = true;
 	}
 	void Heartbeat(int tick)
 	{
@@ -16135,7 +16237,7 @@ public:
     void Merge(filter *f)
     {
         filter_Changemodel* nf = dynamic_cast<filter_Changemodel*>(f);
-		assert(nf);
+		ASSERT(nf);
 
 		_parent.ChangeVisibleTypeId(nf->_vtid);
 		_timeout = GetTimeOut(nf);
@@ -16365,18 +16467,21 @@ public:
 
     void Merge(filter *f)
     {
-        assert(dynamic_cast<filter_Addfrosteffect*>(f));
+        ASSERT(dynamic_cast<filter_Addfrosteffect*>(f));
         filter_Addfrosteffect* nf = (filter_Addfrosteffect*)f;
 
-        ++_stacks;
-        if(_stacks > MAX_STACK) _stacks = MAX_STACK;
+		if(nf->_timeout)
+		{
+			++_stacks;
+			if(_stacks > MAX_STACK) _stacks = MAX_STACK;
 
-        int total_dmg = nf->_dmg_per_stack * _stacks;
-        _timeout = GetTimeOut(nf);
-        _damage = total_dmg / _timeout;
-        if(_damage < 1) _damage = 1;
+			int total_dmg = nf->_dmg_per_stack * _stacks;
+			_timeout = GetTimeOut(nf);
+			_damage = total_dmg / _timeout;
+			if(_damage < 1) _damage = 1;
 
-        _parent.ModifyTeamVisibleState(HSTATE_ADDFROSTEFFECT, _stacks);
+			_parent.ModifyTeamVisibleState(HSTATE_ADDFROSTEFFECT, _stacks);
+		}
     }
 
     int OnQuery(int index)
@@ -16440,7 +16545,7 @@ public:
     void Merge(filter *f) // 接受新加入条件 for 仙魔技能
 	{
        	filter_Incspecskillcrit* nf = dynamic_cast<filter_Incspecskillcrit*>(f);
-		assert(nf);
+		ASSERT(nf);
 		if(!_conds.empty() && !nf->_conds.empty())	MergeCond(nf->_conds);
 		_timeout = nf->_timeout;
 		_count = nf->_count;
@@ -17209,6 +17314,900 @@ public:
 
 };
 
+
+class filter_Extraexpfactor : public timeout_filter
+{
+protected:
+    enum
+    {
+        FILTER_MASK = FILTER_MASK_MERGE | FILTER_MASK_HEARTBEAT | FILTER_MASK_SAVE_DB_DATA
+    };
+
+    float _exp_sp_factor;
+    float _realm_exp_factor;
+
+    virtual bool Save(archive& ar)
+    {
+        int tmp = _timeout;
+        _timeout += time(NULL);
+
+        timeout_filter::Save(ar);
+        ar << _exp_sp_factor << _realm_exp_factor;
+
+        _timeout = tmp;
+        return true;
+    }
+
+    virtual bool Load(archive& ar)
+    {
+        timeout_filter::Load(ar);
+        ar >> _exp_sp_factor >> _realm_exp_factor;
+
+        _timeout -= time(NULL);
+        if (_timeout <= 0) _timeout = 1;
+
+        return true;
+    }
+
+    filter_Extraexpfactor() {}
+
+public:
+    DECLARE_SUBSTANCE(filter_Extraexpfactor);
+    filter_Extraexpfactor(object_interface object, int period, float exp_sp_factor, float realm_exp_factor) : timeout_filter(object, period, FILTER_MASK)
+    {
+        _filter_id = FILTER_EXTRAEXPFACTOR;
+        _exp_sp_factor = exp_sp_factor;
+        _realm_exp_factor = realm_exp_factor;
+    }
+
+	void Merge(filter *f)
+	{
+		ASSERT(dynamic_cast<filter_Extraexpfactor*>(f));
+		filter_Extraexpfactor* nf = (filter_Extraexpfactor*) f;
+		if(nf->_exp_sp_factor > _exp_sp_factor)
+		{
+			_parent.ImpairScaleExp(_exp_sp_factor, _realm_exp_factor);
+			_exp_sp_factor = nf->_exp_sp_factor;
+			_realm_exp_factor = nf->_realm_exp_factor;
+			_parent.EnhanceScaleExp(_exp_sp_factor, _realm_exp_factor);
+		}
+		else if(_exp_sp_factor - nf->_exp_sp_factor < 1e-5)
+		{
+			_timeout = nf->_timeout;
+		}
+	}
+
+    void OnAttach()
+    {
+        _parent.IncVisibleState(VSTATE_EXTRAEXPFACTOR);
+        _parent.InsertTeamVisibleState(HSTATE_EXTRAEXPFACTOR);
+        _parent.EnhanceScaleExp(_exp_sp_factor, _realm_exp_factor);
+    }
+
+    void OnRelease()
+    {
+        _parent.DecVisibleState(VSTATE_EXTRAEXPFACTOR);
+        _parent.RemoveTeamVisibleState(HSTATE_EXTRAEXPFACTOR);
+        _parent.ImpairScaleExp(_exp_sp_factor, _realm_exp_factor);
+    }
+
+};
+
+class filter_Weakenbless2 : public timeout_filter
+{
+protected:
+	enum 
+	{
+		FILTER_MASK = FILTER_MASK_MERGE | FILTER_MASK_HEARTBEAT | FILTER_MASK_REMOVE_ON_DEATH
+	};
+
+	int _inc_heal_cool_time;
+
+	virtual bool Save(archive & ar)
+	{
+		timeout_filter::Save(ar);
+		ar << _inc_heal_cool_time;
+		return true;
+	}
+
+	virtual bool Load(archive & ar)
+	{
+		timeout_filter::Load(ar);
+		ar >> _inc_heal_cool_time;
+		return true;
+	}
+
+	filter_Weakenbless2(){}
+public:
+	DECLARE_SUBSTANCE(filter_Weakenbless2); 
+	filter_Weakenbless2(object_interface  object,int period, int inc_heal_cool_time)
+				        :timeout_filter(object,period,FILTER_MASK),_inc_heal_cool_time(inc_heal_cool_time)
+	{
+		_filter_id = FILTER_WEAKENBLESS2;
+	}
+
+	void Merge(filter *f)
+	{
+		ASSERT(dynamic_cast<filter_Weakenbless2*>(f));
+		filter_Weakenbless2* nf = (filter_Weakenbless2*) f;
+		if(_inc_heal_cool_time < nf->_inc_heal_cool_time)
+		{
+			_parent.DecHealCoolTime(_inc_heal_cool_time);
+			_inc_heal_cool_time = nf->_inc_heal_cool_time;
+			_parent.IncHealCoolTime(_inc_heal_cool_time);
+			_timeout = nf->_timeout;
+		}
+		else if(_inc_heal_cool_time == nf->_inc_heal_cool_time)
+			_timeout = nf->_timeout;
+	}
+
+	void OnAttach()
+	{
+//        _parent.IncVisibleState(VSTATE_WEAKENBLESS2);
+		_parent.InsertTeamVisibleState(HSTATE_WEAKENBLESS2);
+		_parent.IncHealCoolTime(_inc_heal_cool_time);
+	}
+
+	void OnRelease()
+	{
+//		_parent.DecVisibleState(VSTATE_WEAKENBLESS2);
+		_parent.RemoveTeamVisibleState(HSTATE_WEAKENBLESS2);
+		_parent.DecHealCoolTime(_inc_heal_cool_time);
+	}
+};
+
+///////////////////////////////////////////////////////////////////
+//单人副本状态包
+//////////////////////////////////////////////////////////////////
+
+class filter_solo_IncAttackAndMagic : public timeout_filter
+{
+protected:
+	enum 
+	{
+		FILTER_MASK = FILTER_MASK_MERGE | FILTER_MASK_BUFF | FILTER_MASK_HEARTBEAT | FILTER_MASK_NOSAVE,
+		MAX_STACK = 20,
+	};
+	int _attack_point;
+	int _magic_point;
+	int _stacks;
+	virtual bool Save(archive & ar)
+	{
+		timeout_filter::Save(ar); 
+		ar << _attack_point << _magic_point << _stacks;
+		return true;
+	}
+
+	virtual bool Load(archive & ar)
+	{
+		timeout_filter::Save(ar); 
+		ar >> _attack_point >> _magic_point >> _stacks;
+		return true;
+	}
+	filter_solo_IncAttackAndMagic(){}
+public:
+	DECLARE_SUBSTANCE(filter_solo_IncAttackAndMagic);
+	filter_solo_IncAttackAndMagic(object_interface object, int attack_point, int magic_point, int period):timeout_filter(object, period, FILTER_MASK),_attack_point(attack_point),_magic_point(magic_point),_stacks(1)
+	{
+		_filter_id = FILTER_SOLO_INCATTACKANDMAGIC; 
+	}
+	
+	void Merge(filter *f)
+	{
+		ASSERT(dynamic_cast<filter_solo_IncAttackAndMagic*>(f));
+		filter_solo_IncAttackAndMagic* nf = (filter_solo_IncAttackAndMagic*)f;
+
+		if(nf->_timeout)
+		{
+			++_stacks;
+			if(_stacks > MAX_STACK)
+			  _stacks = MAX_STACK;
+			_timeout = GetTimeOut(nf);
+			_parent.ImpairDamage(_attack_point);
+			_parent.ImpairMagicDamage(_magic_point);
+			_attack_point += nf->GetAttackPoint();
+			_magic_point  += nf->GetMagicPoint();
+			_parent.EnhanceDamage(_attack_point);
+			_parent.EnhanceMagicDamage(_magic_point);
+			_parent.ModifyTeamVisibleState(HSTATE_SOLO_INCATTACKANDMAGIC, _stacks);
+			_parent.UpdateAttackData();
+			_parent.SetSoloChallengeFilterData(_filter_id, _stacks);
+		}
+	}
+	void OnAttach()
+	{
+		_parent.InsertTeamVisibleState(HSTATE_SOLO_INCATTACKANDMAGIC, _stacks);	
+		_parent.EnhanceDamage(_attack_point);
+		_parent.EnhanceMagicDamage(_magic_point);
+		_parent.UpdateAttackData(); 
+		_parent.SetSoloChallengeFilterData(_filter_id, _stacks);
+	}
+	void OnRelease()
+	{
+		_parent.RemoveTeamVisibleState(HSTATE_SOLO_INCATTACKANDMAGIC);
+		_parent.ImpairDamage(_attack_point);
+		_parent.ImpairMagicDamage(_magic_point);
+		_parent.UpdateAttackData();
+		_parent.SetSoloChallengeFilterData(_filter_id, 0);
+	}
+	int GetAttackPoint()
+	{
+		return _attack_point;
+	}
+	int GetMagicPoint()
+	{
+		return _magic_point;
+	}
+};
+
+class filter_solo_Incdefence : public timeout_filter
+{
+protected:
+	enum 
+	{
+		FILTER_MASK = FILTER_MASK_MERGE | FILTER_MASK_BUFF | FILTER_MASK_HEARTBEAT | FILTER_MASK_NOSAVE,
+		MAX_STACK = 20,
+	};
+
+	int _defence_point;
+	int _stacks;
+	virtual bool Save(archive & ar)
+	{
+		timeout_filter::Save(ar);
+		ar << _defence_point << _stacks;
+		return true;
+	}
+
+	virtual bool Load(archive & ar)
+	{
+		timeout_filter::Load(ar);
+		ar >> _defence_point >> _stacks;
+		return true;
+	}
+	filter_solo_Incdefence(){}
+public:
+	DECLARE_SUBSTANCE(filter_solo_Incdefence); 
+	filter_solo_Incdefence(object_interface  object,int defence_point,int period):timeout_filter(object,period,FILTER_MASK),_defence_point(defence_point),_stacks(1)
+	{
+		_filter_id = FILTER_SOLO_INCDEFENCE;
+	}
+	
+	void Merge(filter *f)
+	{
+		ASSERT(dynamic_cast<filter_solo_Incdefence*>(f));
+		filter_solo_Incdefence* nf = (filter_solo_Incdefence*) f;
+		if(nf->_timeout)
+		{
+			++_stacks;
+			if(_stacks > MAX_STACK)
+			  _stacks = MAX_STACK;
+			_timeout = GetTimeOut(nf);
+			_parent.ImpairDefense(_defence_point);
+			_defence_point += nf->GetDefencePoint();
+			_parent.EnhanceDefense(_defence_point);
+			_parent.ModifyTeamVisibleState(HSTATE_SOLO_INCDEFENCE, _stacks);
+			_parent.UpdateDefenseData();
+			_parent.SetSoloChallengeFilterData(_filter_id, _stacks);
+		}
+	}
+
+	void OnAttach()
+	{
+		_parent.InsertTeamVisibleState(HSTATE_SOLO_INCDEFENCE, _stacks);
+		_parent.EnhanceDefense(_defence_point);
+		_parent.UpdateDefenseData();
+		_parent.SetSoloChallengeFilterData(_filter_id, _stacks);
+	}
+
+	void OnRelease()
+	{
+		_parent.RemoveTeamVisibleState(HSTATE_SOLO_INCDEFENCE);
+		_parent.ImpairDefense(_defence_point);
+		_parent.UpdateDefenseData();
+		_parent.SetSoloChallengeFilterData(_filter_id, 0);
+	}
+
+	int GetDefencePoint()
+	{
+		return _defence_point;
+	}
+};
+
+class filter_solo_Enhanceresist : public timeout_filter
+{
+protected:
+	enum 
+	{
+		FILTER_MASK = FILTER_MASK_UNIQUE | FILTER_MASK_BUFF | FILTER_MASK_HEARTBEAT | FILTER_MASK_NOSAVE,
+		MAX_STACK = 20,
+	};
+
+	int _enhance_point;
+	int _stacks;
+
+	virtual bool Save(archive & ar)
+	{
+		timeout_filter::Save(ar);
+		ar << _enhance_point << _stacks;
+		return true;
+	}
+
+	virtual bool Load(archive & ar)
+	{
+		timeout_filter::Load(ar);
+		ar >> _enhance_point >> _stacks;
+		return true;
+	}
+	filter_solo_Enhanceresist(){}
+public:
+	DECLARE_SUBSTANCE(filter_solo_Enhanceresist); 
+	filter_solo_Enhanceresist(object_interface  object,int enhance_point,int period)
+				        :timeout_filter(object,period,FILTER_MASK),_enhance_point(enhance_point),_stacks(1)
+	{
+		_filter_id = FILTER_SOLO_ENHANCERESIST;
+	}
+	void Merge(filter *f)
+	{
+		ASSERT(dynamic_cast<filter_solo_Enhanceresist*>(f));
+		filter_solo_Enhanceresist* nf = (filter_solo_Enhanceresist*) f;
+		if(nf->_timeout)
+		{
+			++_stacks;
+			if(_stacks > MAX_STACK)
+			  _stacks = MAX_STACK;
+			_timeout = GetTimeOut(nf);
+			_parent.ImpairResistance(0, _enhance_point);
+			_parent.ImpairResistance(1, _enhance_point);
+			_parent.ImpairResistance(2, _enhance_point);
+			_parent.ImpairResistance(3, _enhance_point);
+			_parent.ImpairResistance(4, _enhance_point);
+			_enhance_point += nf->GetResistEnhancePoint();
+			_parent.EnhanceResistance(0, _enhance_point);
+			_parent.EnhanceResistance(1, _enhance_point);
+			_parent.EnhanceResistance(2, _enhance_point);
+			_parent.EnhanceResistance(3, _enhance_point);
+			_parent.EnhanceResistance(4, _enhance_point);
+			_parent.ModifyTeamVisibleState(HSTATE_SOLO_ENHANCERESIST, _stacks);
+			_parent.UpdateMagicData();
+			_parent.SetSoloChallengeFilterData(_filter_id, _stacks);
+		}
+	}
+	void OnAttach()
+	{
+		_parent.InsertTeamVisibleState(HSTATE_SOLO_ENHANCERESIST, _stacks);
+		_parent.EnhanceResistance(0, _enhance_point);
+		_parent.EnhanceResistance(1, _enhance_point);
+		_parent.EnhanceResistance(2, _enhance_point);
+		_parent.EnhanceResistance(3, _enhance_point);
+		_parent.EnhanceResistance(4, _enhance_point);
+		_parent.UpdateMagicData();
+		_parent.SetSoloChallengeFilterData(_filter_id, _stacks);
+	}
+	void OnRelease()
+	{
+		_parent.RemoveTeamVisibleState(HSTATE_SOLO_ENHANCERESIST);
+		_parent.ImpairResistance(0, _enhance_point);
+		_parent.ImpairResistance(1, _enhance_point);
+		_parent.ImpairResistance(2, _enhance_point);
+		_parent.ImpairResistance(3, _enhance_point);
+		_parent.ImpairResistance(4, _enhance_point);
+		_parent.UpdateMagicData();
+		_parent.SetSoloChallengeFilterData(_filter_id, 0);
+	}
+	int GetResistEnhancePoint()
+	{
+		return _enhance_point;
+	}
+};
+
+class filter_solo_IncMaxhp : public timeout_filter
+{
+protected:
+	enum 
+	{
+		FILTER_MASK = FILTER_MASK_MERGE | FILTER_MASK_BUFF | FILTER_MASK_HEARTBEAT | FILTER_MASK_NOSAVE,
+		MAX_STACK = 20,
+	};
+
+	int _inc_maxhp_value;
+	int _stacks;
+
+	virtual bool Save(archive & ar)
+	{
+		timeout_filter::Save(ar);
+		ar << _inc_maxhp_value << _stacks;
+		return true;
+	}
+
+	virtual bool Load(archive & ar)
+	{
+		timeout_filter::Load(ar);
+		ar >> _inc_maxhp_value >> _stacks;
+		return true;
+	}
+	filter_solo_IncMaxhp(){}
+public:
+	DECLARE_SUBSTANCE(filter_solo_IncMaxhp); 
+	filter_solo_IncMaxhp(object_interface  object,int inc_maxhp_value,int period)
+				        :timeout_filter(object,period,FILTER_MASK),_inc_maxhp_value(inc_maxhp_value),_stacks(1)
+	{
+		_filter_id = FILTER_SOLO_INCMAXHP;
+	}
+	void Merge(filter *f)
+	{
+		ASSERT(dynamic_cast<filter_solo_IncMaxhp*>(f));
+		filter_solo_IncMaxhp* nf = (filter_solo_IncMaxhp*) f;
+		if(nf->_timeout)
+		{
+			++_stacks;
+			if(_stacks > MAX_STACK)
+			  _stacks = MAX_STACK;
+			_timeout = GetTimeOut(nf);
+			_parent.ImpairMaxHP(_inc_maxhp_value);
+			_inc_maxhp_value += nf->GetMaxHpValue();
+			_parent.EnhanceMaxHP(_inc_maxhp_value);
+			_parent.ModifyTeamVisibleState(HSTATE_SOLO_INCMAXHP, _stacks);
+			_parent.SetSoloChallengeFilterData(_filter_id, _stacks);
+		}
+	}
+	void OnAttach()
+	{
+		_parent.InsertTeamVisibleState(HSTATE_SOLO_INCMAXHP, _stacks);
+		_parent.EnhanceMaxHP(_inc_maxhp_value);
+		_parent.SetSoloChallengeFilterData(_filter_id, _stacks);
+	}
+	void OnRelease()
+	{
+		_parent.RemoveTeamVisibleState(HSTATE_SOLO_INCMAXHP);
+		_parent.ImpairMaxHP(_inc_maxhp_value);
+		_parent.SetSoloChallengeFilterData(_filter_id, 0);
+	}
+	int GetMaxHpValue()
+	{
+		return _inc_maxhp_value;
+	}
+};
+
+class filter_solo_invincible : public filter
+{
+protected:
+	short _timeout;
+	enum 
+	{
+		FILTER_MASK = FILTER_MASK_HEARTBEAT | FILTER_MASK_TRANSLATE_RECV_MSG | FILTER_MASK_TRANSLATE_ENCHANT
+			| FILTER_MASK_UNIQUE | FILTER_MASK_NOSAVE 
+	};
+public:
+	DECLARE_SUBSTANCE(filter_solo_invincible);
+	filter_solo_invincible(object_interface  object,short timeout = -1)
+		:filter(object, FILTER_MASK),_timeout(timeout)
+	{
+		_filter_id = FILTER_SOLO_INVINCIBLE;
+	}
+
+protected:
+	virtual bool Save(archive & ar)
+	{
+		filter::Save(ar);
+		ar << _timeout;
+		return true;
+	}
+
+	virtual bool Load(archive & ar)
+	{
+		filter::Load(ar);
+		ar >> _timeout;
+		return true;
+	}
+	
+	filter_solo_invincible() {}
+
+	void OnAttach()
+	{
+		_parent.SetSoloChallengeFilterData(_filter_id, 1);
+		_parent.InsertTeamVisibleState(HSTATE_SOLO_INVINCIBLE);
+	}
+
+	void OnRelease()
+	{
+		_parent.SetSoloChallengeFilterData(_filter_id, 0);
+		_parent.RemoveTeamVisibleState(HSTATE_SOLO_INVINCIBLE);
+	}
+
+	void TranslateRecvAttack(const XID & attacker,attack_msg & msg)
+	{
+		msg.target_faction = 0;
+		msg._attack_state |= 0x0080;//gactive_imp::AT_STATE_IMMUNE;
+	}       
+
+	void TranslateEnchant(const XID & attacker,enchant_msg & msg)
+	{
+		if(!msg.helpful)
+		{
+			msg.target_faction = 0;
+			msg._attack_state |= 0x0080;//gactive_imp::AT_STATE_IMMUNE;
+		}
+	}       
+
+	void Heartbeat(int tick)
+	{
+		if(_timeout < 0) return;
+		if(--_timeout <= 0) 
+		{
+			_is_deleted = true;
+		}
+	}
+};
+
+class filter_solo_Hpgen : public timeout_filter
+{
+protected:
+	enum 
+	{
+		FILTER_MASK = FILTER_MASK_BUFF | FILTER_MASK_HEARTBEAT | FILTER_MASK_UNIQUE | FILTER_MASK_NOSAVE,
+	};
+	int _health;
+	char _counter;
+
+	virtual bool Save(archive & ar)
+	{
+		timeout_filter::Save(ar);
+		ar << _health;
+		ar << _counter;
+		return true;
+	}
+
+	virtual bool Load(archive & ar)
+	{
+		timeout_filter::Load(ar);
+		ar >> _health;
+		ar >> _counter;
+		return true;
+	}
+	filter_solo_Hpgen(){}
+public:
+	DECLARE_SUBSTANCE(filter_solo_Hpgen); 
+	filter_solo_Hpgen(object_interface  object,int health, int period)
+			:timeout_filter(object,period,FILTER_MASK)
+	{
+		_filter_id = FILTER_SOLO_HPGEN;
+		_counter = 0;
+		_health = health/period;
+	}
+	void OnAttach() 
+	{
+		_parent.InsertTeamVisibleState(HSTATE_SOLO_HPGEN);
+		_parent.SetSoloChallengeFilterData(_filter_id, 1);
+	}
+	void OnRelease()
+	{
+		_parent.RemoveTeamVisibleState(HSTATE_SOLO_HPGEN);
+		_parent.SetSoloChallengeFilterData(_filter_id, 0);
+	}
+	virtual void Heartbeat(int tick)
+	{
+		_counter += tick;
+		if(_counter>=3 || tick>=_timeout)
+		{
+			_parent.HealBySkill(_health*_counter);	
+			_counter -= 3;
+		}
+		timeout_filter::Heartbeat(tick);
+	}
+};
+
+class filter_solo_Dechurt : public timeout_filter	//mask参数用于设置BUFF/DEBUFF(可被驱散)、/0(不可)
+{
+protected:
+	enum 
+	{
+		FILTER_MASK = FILTER_MASK_UNIQUE | FILTER_MASK_HEARTBEAT | FILTER_MASK_ADJUST_DAMAGE | FILTER_MASK_NOSAVE | FILTER_MASK_BUFF, 
+	};
+
+	float _ratio;
+
+	virtual bool Save(archive & ar)
+	{
+		timeout_filter::Save(ar);
+		ar << _ratio;
+		return true;
+	}
+
+	virtual bool Load(archive & ar)
+	{
+		timeout_filter::Load(ar);
+		ar >> _ratio;
+		return true;
+	}
+
+	void AdjustDamage(damage_entry & dmg,const XID & attacker, const attack_msg & msg, float damage_adjust)
+	{
+		dmg.physic_damage *= _ratio;
+		dmg.magic_damage[0] *= _ratio;
+		dmg.magic_damage[1] *= _ratio;
+		dmg.magic_damage[2] *= _ratio;
+		dmg.magic_damage[3] *= _ratio;
+		dmg.magic_damage[4] *= _ratio;
+	}
+
+	filter_solo_Dechurt(){}
+public:
+	DECLARE_SUBSTANCE(filter_solo_Dechurt); 
+	filter_solo_Dechurt(object_interface  object,float ratio, int period)
+				        :timeout_filter(object,period,FILTER_MASK)
+	{
+		_filter_id = FILTER_SOLO_DECHURT;
+		_ratio = 1.0-ratio;
+	}
+
+	void OnAttach()
+	{
+		_parent.InsertTeamVisibleState(HSTATE_SOLO_DECHURT);
+		_parent.SetSoloChallengeFilterData(_filter_id, 1);
+	}
+
+	void OnRelease()
+	{
+		_parent.RemoveTeamVisibleState(HSTATE_SOLO_DECHURT);
+		_parent.SetSoloChallengeFilterData(_filter_id, 0);
+	}
+};
+
+class filter_solo_Addattackrange : public timeout_filter
+{
+protected:
+	enum 
+	{
+		FILTER_MASK = FILTER_MASK_UNIQUE | FILTER_MASK_HEARTBEAT | FILTER_MASK_NOSAVE | FILTER_MASK_BUFF, 
+	};
+	int _add_range;
+	virtual bool Save(archive & ar)
+	{
+		timeout_filter::Save(ar);
+		ar << _add_range;
+		return true;
+	}
+	virtual bool Load(archive & ar)
+	{
+		timeout_filter::Load(ar);
+		ar >> _add_range;
+		return true;
+	}
+	filter_solo_Addattackrange(){}
+public:
+	DECLARE_SUBSTANCE(filter_solo_Addattackrange);
+	filter_solo_Addattackrange(object_interface  object, int add_range, int period):timeout_filter(object,period,FILTER_MASK),_add_range(add_range)
+	{
+		_filter_id = FILTER_SOLO_ADDATTACKRANGE; 
+	}
+	void OnAttach()
+	{
+		_parent.EnhanceAttackRange(_add_range); 
+		_parent.InsertTeamVisibleState(HSTATE_SOLO_ADDATTACKRANGE);
+		_parent.UpdateAttackData();
+		_parent.SetSoloChallengeFilterData(_filter_id, 1);
+	}
+	void OnRelease()
+	{
+		_parent.ImpairAttackRange(_add_range);
+		_parent.RemoveTeamVisibleState(HSTATE_SOLO_ADDATTACKRANGE);
+		_parent.UpdateAttackData();
+		_parent.SetSoloChallengeFilterData(_filter_id, 0);
+	}
+};
+								
+class filter_Thunder3 : public filter_Wounded
+{
+protected:
+	enum 
+	{
+		FILTER_MASK = FILTER_MASK_REMOVE_ON_DEATH | FILTER_MASK_HEARTBEAT | FILTER_MASK_UNIQUE 
+	};
+	filter_Thunder3(){}
+public:
+	DECLARE_SUBSTANCE(filter_Thunder3); 
+	filter_Thunder3(object_interface  object,int period, int damage,int mask=0)
+			:filter_Wounded(object,period,damage,FILTER_MASK|mask)
+	{
+		_filter_id = FILTER_THUNDER3;
+	}
+
+	void OnAttach() 
+	{
+		_parent.InsertTeamVisibleState(HSTATE_THUNDER3);
+	}
+	void OnRelease()
+	{
+		_parent.RemoveTeamVisibleState(HSTATE_THUNDER3);
+	}
+};
+
+class filter_Toxic3 : public filter_Wounded
+{
+protected:
+	enum 
+	{
+		FILTER_MASK = FILTER_MASK_REMOVE_ON_DEATH | FILTER_MASK_HEARTBEAT | FILTER_MASK_UNIQUE
+	};
+	filter_Toxic3(){}
+public:
+	DECLARE_SUBSTANCE(filter_Toxic3); 
+	filter_Toxic3(object_interface  object,int period, int damage,int mask=0)
+			:filter_Wounded(object,period,damage,FILTER_MASK|mask)
+	{
+		_filter_id = FILTER_TOXIC3;
+	}
+
+	void OnAttach() 
+	{
+		_parent.InsertTeamVisibleState(HSTATE_TOXIC3);
+	}
+	void OnRelease()
+	{
+		_parent.RemoveTeamVisibleState(HSTATE_TOXIC3);
+	}
+};
+
+class filter_Flood3 : public filter_Wounded
+{
+protected:
+	enum 
+	{
+		FILTER_MASK = FILTER_MASK_REMOVE_ON_DEATH | FILTER_MASK_HEARTBEAT | FILTER_MASK_UNIQUE
+	};
+	filter_Flood3(){}
+public:
+	DECLARE_SUBSTANCE(filter_Flood3); 
+	filter_Flood3(object_interface  object,int period, int damage,int mask=0)
+			:filter_Wounded(object,period,damage,FILTER_MASK|mask)
+	{
+		_filter_id = FILTER_FLOOD3;
+	}
+
+	void OnAttach() 
+	{
+		_parent.InsertTeamVisibleState(HSTATE_FLOOD3);
+	}
+	void OnRelease()
+	{
+		_parent.RemoveTeamVisibleState(HSTATE_FLOOD3);
+	}
+};
+class filter_Burning3 : public filter_Wounded
+{
+protected:
+	enum 
+	{
+		FILTER_MASK = FILTER_MASK_REMOVE_ON_DEATH | FILTER_MASK_HEARTBEAT | FILTER_MASK_UNIQUE
+	};
+	filter_Burning3(){}
+public:
+	DECLARE_SUBSTANCE(filter_Burning3); 
+	filter_Burning3(object_interface  object,int period, int damage,int mask=0)
+			:filter_Wounded(object,period,damage,FILTER_MASK|mask)
+	{
+		_filter_id = FILTER_BURNING3;
+	}
+
+	void OnAttach() 
+	{
+		_parent.InsertTeamVisibleState(HSTATE_BURNING3);
+	}
+	void OnRelease()
+	{
+		_parent.RemoveTeamVisibleState(HSTATE_BURNING3);
+	}
+};
+
+class filter_Fallen3 : public filter_Wounded
+{
+protected:
+	enum 
+	{
+		FILTER_MASK = FILTER_MASK_REMOVE_ON_DEATH | FILTER_MASK_HEARTBEAT | FILTER_MASK_UNIQUE 
+	};
+	filter_Fallen3(){}
+public:
+	DECLARE_SUBSTANCE(filter_Fallen3); 
+	filter_Fallen3(object_interface  object,int period, int damage,int mask=0)
+			:filter_Wounded(object,period,damage,FILTER_MASK|mask)
+	{
+		_filter_id = FILTER_FALLEN3;
+	}
+
+	void OnAttach() 
+	{
+		_parent.InsertTeamVisibleState(HSTATE_FALLEN3);
+	}
+	void OnRelease()
+	{
+		_parent.RemoveTeamVisibleState(HSTATE_FALLEN3);
+	}
+};
+
+class filter_NewBuffSpeed : public timeout_filter
+{
+protected:
+	enum 
+	{
+		FILTER_MASK = FILTER_MASK_MERGE | FILTER_MASK_BUFF | FILTER_MASK_REMOVE_ON_DEATH | FILTER_MASK_HEARTBEAT
+			| FILTER_MASK_TRANSFERABLE_BUFF
+	};
+
+	int _ratio;
+
+	virtual bool Save(archive & ar)
+	{
+		timeout_filter::Save(ar);
+		ar << _ratio;
+		return true;
+	}
+
+	virtual bool Load(archive & ar)
+	{
+		timeout_filter::Load(ar);
+		ar >> _ratio;
+		return true;
+	}
+	filter_NewBuffSpeed(){}
+public:
+	DECLARE_SUBSTANCE(filter_NewBuffSpeed); 
+	filter_NewBuffSpeed(object_interface  object,int r,int period)
+				        :timeout_filter(object,period,FILTER_MASK),_ratio(r)
+	{
+		_filter_id = FILTER_NEWSPEEDBUFF;
+	}
+	void Merge(filter *f)
+	{
+		ASSERT(dynamic_cast<filter_NewBuffSpeed*>(f));
+		filter_NewBuffSpeed* nf = (filter_NewBuffSpeed*) f;
+		_timeout = GetTimeOut(nf);
+		if(_ratio!=nf->GetRatio())
+		{
+			_parent.ImpairSpeed(_ratio);
+			_parent.ImpairSwimSpeed(_ratio);
+			_parent.ImpairFlySpeed(_ratio * 0.5f);
+			_ratio = nf->GetRatio();
+			_parent.EnhanceSpeed(_ratio);
+			_parent.EnhanceSwimSpeed(_ratio);
+			_parent.EnhanceFlySpeed(_ratio * 0.5f);
+			_parent.UpdateSpeedData();
+			_parent.SendClientCurSpeed();
+		}
+		
+		if (_timeout > 0 )
+		{
+			_parent.RemoveTeamVisibleState(HSTATE_NEWBUFFSPEED);
+			_parent.InsertTeamVisibleState(HSTATE_NEWBUFFSPEED, _timeout);
+		}
+		
+		
+	}
+
+	void OnAttach()
+	{
+		_parent.InsertTeamVisibleState(HSTATE_NEWBUFFSPEED, _timeout);
+		_parent.EnhanceSpeed(_ratio);
+		_parent.EnhanceSwimSpeed(_ratio);
+		_parent.EnhanceFlySpeed(_ratio);
+		_parent.UpdateSpeedData();
+		_parent.SendClientCurSpeed();
+	}
+
+	void OnRelease()
+	{
+		_parent.RemoveTeamVisibleState(HSTATE_NEWBUFFSPEED);
+		_parent.ImpairSpeed(_ratio);
+		_parent.ImpairSwimSpeed(_ratio);
+		_parent.ImpairFlySpeed(_ratio * 0.5f);
+		_parent.UpdateSpeedData();
+		_parent.SendClientCurSpeed();
+	}
+	int GetRatio()
+	{
+		return _ratio;
+	}
+};
 
 #undef IS_PHYSIC_ATTACK
 #endif

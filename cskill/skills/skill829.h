@@ -132,8 +132,8 @@ namespace GNET
       Skill829Stub ():SkillStub (829)
         {
             cls = 127;
-            name = L"黄昏新加群体眩晕";
-            nativename = "黄昏新加群体眩晕";
+            name = L"榛勬槒鏂板姞缇や綋鐪╂檿";
+            nativename = "榛勬槒鏂板姞缇や綋鐪╂檿";
             icon = "";
             max_level = 10;
             type = 3;
@@ -153,7 +153,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "城战boss近身击晕.sgc";
+            effect = "鍩庢垬boss杩戣韩鍑绘檿.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

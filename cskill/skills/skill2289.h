@@ -134,9 +134,9 @@ namespace GNET
       Skill2289Stub ():SkillStub (2289)
         {
             cls = 255;
-            name = L"³Í·£´Ì";
-            nativename = "³Í·£´Ì";
-            icon = "Á«×ÓÖ¹»ê.dds";
+            name = L"æƒ©ç½šåˆº";
+            nativename = "æƒ©ç½šåˆº";
+            icon = "è²å­æ­¢é­‚.dds";
             max_level = 1;
             type = 3;
             apcost = 0;

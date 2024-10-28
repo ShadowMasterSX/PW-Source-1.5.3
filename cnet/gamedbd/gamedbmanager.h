@@ -89,6 +89,13 @@ namespace GNET
 		point_t() { }
 		point_t(float _x,float _y,float _z) : x(_x),y(_y),z(_z) { }
 	};
+	struct zone_t
+	{
+		int group_id;
+		point_t pos;
+		zone_t():group_id(-1) {}
+		zone_t(int gid,point_t& p):group_id(gid),pos(p) {}
+	};
 	struct region_t
 	{
 		int		id;
@@ -207,8 +214,9 @@ namespace GNET
 		typedef std::map<int/*zoneid*/, Octets> ZoneNameMap;
 		ZoneNameMap zone_name_map;
 	
-		typedef std::map<int, point_t> ZONE_POS_MAP;
-		ZONE_POS_MAP zone_pos_map;
+		typedef std::map<int, zone_t> ZONE_INFO_MAP;
+		ZONE_INFO_MAP zone_pos_map;
+		int zone_group_count;
 
 		GameDBManager() 
 		{
@@ -223,6 +231,7 @@ namespace GNET
 			is_recall_server = false;
 			japan_version = false;
 			zone_name_max_len = ZONE_NAME_MAX_LEN_DEFAULT;
+			zone_group_count = 0;
 		}
 	public:
 		~GameDBManager() { }
@@ -330,12 +339,22 @@ namespace GNET
 
 			return true;
 		}
+		void GetAcceptedZoneList(std::map<int,int>& zones,int& count)
+		{
+			ZONE_INFO_MAP::iterator it = zone_pos_map.begin();
+			ZONE_INFO_MAP::iterator ie = zone_pos_map.end();
+			for(; it != ie; ++it)
+			{
+				zones[it->first] = it->second.group_id;
+			}
+			count = zone_group_count;
+		}
 		
 		bool GetZonePos(int zoneid, point_t& pos)
 		{
-			ZONE_POS_MAP::iterator it = zone_pos_map.find(zoneid);
+			ZONE_INFO_MAP::iterator it = zone_pos_map.find(zoneid);
 			if(it != zone_pos_map.end()) {
-				pos = it->second;
+				pos = it->second.pos;
 				return true;
 			} else {
 				return false;
@@ -346,6 +365,7 @@ namespace GNET
 
 	void GRoleBaseToDetail( const GRoleBase & base, GRoleDetail & detail );
 	void GRoleDetailToBase( const GRoleDetail & detail, GRoleBase & base );
+    unsigned int GetDataRoleId(unsigned int cls);
 };
 #endif
 

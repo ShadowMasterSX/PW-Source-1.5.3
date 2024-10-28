@@ -137,9 +137,9 @@ namespace GNET
       Skill495Stub ():SkillStub (495)
         {
             cls = 4;
-            name = L"�񡤽�ɱ";
-            nativename = "�񡤽�ɱ";
-            icon = "��ɱ2.dds";
+            name = L"狂·绞杀";
+            nativename = "狂·绞杀";
+            icon = "绞杀2.dds";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -164,7 +164,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (9);
             }
-            effect = "2��ɱ.sgc";
+            effect = "2绞杀.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

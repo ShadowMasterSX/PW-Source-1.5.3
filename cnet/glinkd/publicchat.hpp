@@ -55,6 +55,7 @@ class PublicChat : public GNET::Protocol
 			case GN_CHAT_CHANNEL_SUPERFARCRY:
 			case GN_CHAT_CHANNEL_BATTLE:
 			case GN_CHAT_CHANNEL_COUNTRY:
+			case GN_CHAT_CHANNEL_GLOBAL:	
 				GProviderServer::GetInstance()->DispatchProtocol(sinfo->gsid,this);
 				break;
 			case GN_CHAT_CHANNEL_BROADCAST:	

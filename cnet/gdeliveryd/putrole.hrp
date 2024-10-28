@@ -14,6 +14,7 @@
 #include "createrole_re.hpp"
 #include "gdeliveryserver.hpp"
 #include "gamedbclient.hpp"
+#include "putroleres"
 namespace GNET
 {
 
@@ -28,7 +29,7 @@ class PutRole : public Rpc
 	{
 #ifdef USE_BDB
 		RolePair *arg = (RolePair *)argument;
-		RpcRetcode *res = (RpcRetcode *)result;
+		PutRoleRes *res = (PutRoleRes *)result;
 		Marshal::OctetsStream key, value;
 		key << arg->key;
 		value << arg->value;

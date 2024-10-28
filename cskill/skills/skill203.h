@@ -19,8 +19,8 @@ namespace GNET
         Skill203Stub ():SkillStub (203)
         {
             cls = 255;
-            name = L"¼áÈÍ";
-            nativename = "¼áÈÍ";
+            name = L"åšéŸ§";
+            nativename = "åšéŸ§";
             icon = "";
             max_level = 1;
             type = 6;

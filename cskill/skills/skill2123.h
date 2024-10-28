@@ -132,9 +132,9 @@ namespace GNET
       Skill2123Stub ():SkillStub (2123)
         {
             cls = 127;
-            name = L"再生";
-            nativename = "再生";
-            icon = "和风拂面.dds";
+            name = L"鍐嶇敓";
+            nativename = "鍐嶇敓";
+            icon = "鍜岄鎷傞潰.dds";
             max_level = 10;
             type = 10;
             apcost = 0;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "极度乾坤.sgc";
+            effect = "鏋佸害涔惧潳.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

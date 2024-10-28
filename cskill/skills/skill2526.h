@@ -19,8 +19,8 @@ namespace GNET
         Skill2526Stub ():SkillStub (2526)
         {
             cls = 127;
-            name = L"»ğÈ¦×¨ÓÃĞ§¹û";
-            nativename = "»ğÈ¦×¨ÓÃĞ§¹û";
+            name = L"ç«åœˆä¸“ç”¨æ•ˆæœ";
+            nativename = "ç«åœˆä¸“ç”¨æ•ˆæœ";
             icon = "";
             max_level = 10;
             type = 3;
@@ -42,7 +42,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "1°ÔÍõ±©Å­.sgc";
+            effect = "1éœ¸ç‹æš´æ€’.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

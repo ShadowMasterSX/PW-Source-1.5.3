@@ -132,8 +132,8 @@ namespace GNET
       Skill2154Stub ():SkillStub (2154)
         {
             cls = 127;
-            name = L"企之告白";
-            nativename = "企之告白";
+            name = L"浼佷箣鍛婄櫧";
+            nativename = "浼佷箣鍛婄櫧";
             icon = "";
             max_level = 10;
             type = 3;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 3;
-            effect = "真灵护体.sgc";
+            effect = "鐪熺伒鎶や綋.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

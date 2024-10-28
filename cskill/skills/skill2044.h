@@ -134,8 +134,8 @@ namespace GNET
       Skill2044Stub ():SkillStub (2044)
         {
             cls = 127;
-            name = L"Ä¾ÌÙ²øÉí";
-            nativename = "Ä¾ÌÙ²øÉí";
+            name = L"æœ¨è—¤ç¼ èº«";
+            nativename = "æœ¨è—¤ç¼ èº«";
             icon = "";
             max_level = 10;
             type = 1;
@@ -157,7 +157,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "¹ÖÎïÅçÒÏËá.sgc";
+            effect = "æ€ªç‰©å–·èšé…¸.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

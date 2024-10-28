@@ -1,0 +1,35 @@
+	public:
+		int roleid;
+		int total_time;
+		enum { PROTOCOL_TYPE = PROTOCOL_UPDATESOLOCHALLENGERANK };
+	public:
+		UpdateSoloChallengeRank() { type = PROTOCOL_UPDATESOLOCHALLENGERANK; }
+		UpdateSoloChallengeRank(void*) : Protocol(PROTOCOL_UPDATESOLOCHALLENGERANK) { }
+		UpdateSoloChallengeRank (int l_roleid,int l_total_time)
+			 : roleid(l_roleid),total_time(l_total_time)
+		{
+			type = PROTOCOL_UPDATESOLOCHALLENGERANK;
+		}
+
+		UpdateSoloChallengeRank(const UpdateSoloChallengeRank &rhs)
+			: Protocol(rhs),roleid(rhs.roleid),total_time(rhs.total_time) { }
+
+		GNET::Protocol *Clone() const { return new UpdateSoloChallengeRank(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << total_time;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> total_time;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

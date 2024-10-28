@@ -58,9 +58,9 @@ namespace GNET
       Skill1726Stub ():SkillStub (1726)
         {
             cls = 9;
-            name = L"Áé»ú";
-            nativename = "Áé»ú";
-            icon = "Áé»ú.dds";
+            name = L"çµæœº";
+            nativename = "çµæœº";
+            icon = "çµæœº.dds";
             max_level = 1;
             type = 2;
             apcost = 50;
@@ -87,7 +87,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "÷ÈÁé_Áé»ú.sgc";
+            effect = "é­…çµ_çµæœº.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

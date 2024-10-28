@@ -57,8 +57,8 @@ namespace GNET
       Skill1583Stub ():SkillStub (1583)
         {
             cls = 127;
-            name = L"ÎïÆ·¼¼ÄÜ-»ùµØÒ×ËèÍè";
-            nativename = "ÎïÆ·¼¼ÄÜ-»ùµØÒ×ËèÍè";
+            name = L"ç‰©å“æŠ€èƒ½-åŸºåœ°æ˜“é«“ä¸¸";
+            nativename = "ç‰©å“æŠ€èƒ½-åŸºåœ°æ˜“é«“ä¸¸";
             icon = "";
             max_level = 1;
             type = 4;
@@ -79,7 +79,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "Ò×Ëè¾­.sgc";
+            effect = "æ˜“é«“ç».sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

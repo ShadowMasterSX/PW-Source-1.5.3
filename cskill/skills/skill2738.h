@@ -136,9 +136,9 @@ namespace GNET
       Skill2738Stub ():SkillStub (2738)
         {
             cls = 10;
-            name = L"Õæ¡¤°ÁÕ¶";
-            nativename = "Õæ¡¤°ÁÕ¶";
-            icon = "ÏÉ°ÁÕ¶.dds";
+            name = L"çœŸÂ·å‚²æ–©";
+            nativename = "çœŸÂ·å‚²æ–©";
+            icon = "ä»™å‚²æ–©.dds";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (44878);
             }
-            effect = "Ò¹Ó°_°ÁÕ¶_»÷ÖÐ.sgc";
+            effect = "å¤œå½±_å‚²æ–©_å‡»ä¸­.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

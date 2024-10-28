@@ -22,6 +22,9 @@
 #include "gsysauctioncash"
 #include "gfactionrelation"
 #include "gconsumptionrecord"
+#include "guniqueinfo"
+#include "gfactionextend"
+#include "gcashvipinfo"
 
 namespace GNET
 {
@@ -95,6 +98,30 @@ class GetRole : public Rpc
 					GRewardStore reward_store;
 					os_reward >> reward_store;
 					res->value.bonus_reward = reward_store.bonus_reward;
+
+					GCashVipInfo vipinfo;
+					if(0 != reward_store.cash_vip_info.size())
+					{
+						Marshal::OctetsStream os_vip_info(reward_store.cash_vip_info);
+						try
+						{
+							os_vip_info >> vipinfo;
+						}
+						catch( ... )
+						{
+							vipinfo.purchase_limit_items_info = Octets(0);
+						}
+					}
+					res->value.vip_level = vipinfo.cash_vip_level;
+					res->value.score_add = vipinfo.score_add;
+					res->value.score_cost = vipinfo.score_cost;
+					res->value.score_consume = vipinfo.score_consume;
+					res->value.day_clear_stamp = vipinfo.day_clear_stamp;
+					res->value.week_clear_stamp = vipinfo.week_clear_stamp;
+					res->value.month_clear_stamp = vipinfo.month_clear_stamp;
+					res->value.year_clear_stamp = vipinfo.year_clear_stamp;
+					if(0 != vipinfo.purchase_limit_items_info.size())
+						Marshal::OctetsStream(vipinfo.purchase_limit_items_info) >> res->value.purchase_limit_data;
 				}
 				if (u.mall_consumption.size() > 0) {
 					Marshal::OctetsStream os_consumption(u.mall_consumption);
@@ -164,6 +191,7 @@ class GetRole : public Rpc
 
 				res->value.factionid = 0;
 				res->value.factionrole = 0;
+				res->value.unifid = 0;
 
 				if( arg->data_mask & GET_USERFACTION )
 				{
@@ -174,6 +202,17 @@ class GetRole : public Rpc
 						value_faction >> user;
 						res->value.factionid = user.fid;
 						res->value.factionrole = user.role;
+						if(user.extend.size())
+						{
+							GFactionExtend extend;
+							Marshal::OctetsStream(user.extend) >> extend;
+							if(extend.uniqueinfo.size())
+							{
+								GUniqueInfo uninfo;
+								Marshal::OctetsStream(extend.uniqueinfo) >> uninfo;
+								res->value.unifid = uninfo.unifid;
+							}
+						}
 						//读取帮派外交数据
 						Marshal::OctetsStream value_relation;
 						if(prelation->find(Marshal::OctetsStream()<<user.fid, value_relation, txn))

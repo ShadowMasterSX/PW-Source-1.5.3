@@ -1,0 +1,183 @@
+
+#ifndef __GNET_DBMNFACTIONINFOGET_HPP
+#define __GNET_DBMNFACTIONINFOGET_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "gamedbmanager.h"
+
+#include "dbmnfactioninfogetarg"
+#include "dbmnfactioninfogetres"
+
+
+namespace GNET
+{
+
+class QueryMNDomainInfo : public StorageEnv::IQuery
+{
+public:
+    QueryMNDomainInfo(MNDomainInfoVector& data) : _data(data) {}
+
+    bool Update(StorageEnv::Transaction& txn, Octets& key, Octets& value)
+    {
+        try
+        {
+            MNDomainInfo info;
+            Marshal::OctetsStream(value) >> info;
+            _data.push_back(info);
+        }
+        catch (Marshal::Exception&)
+        {
+            Log::log(LOG_ERR, "QueryMNDomainInfo, unmarshal error.");
+        }
+
+        return true;
+    }
+
+private:
+    MNDomainInfoVector& _data;
+
+};
+
+
+class QueryMNFactionInfo : public StorageEnv::IQuery
+{
+public:
+    QueryMNFactionInfo(MNFactionInfoVector& data) : _data(data), _size(0), _total(0) {}
+
+    bool Update(StorageEnv::Transaction& txn, Octets& key, Octets& value)
+    {
+        try
+        {
+            if ((_total >= 1024) || (_size >= 1048576))
+            {
+                _last = key;
+                return false;
+            }
+
+            int64_t unifid = 0;
+            Marshal::OctetsStream(key) >> unifid;
+            if (unifid != 0)
+            {
+                MNFactionInfo info;
+                Marshal::OctetsStream(value) >> info;
+                _data.push_back(info);
+
+                _size += value.size();
+                ++_total;
+            }
+        }
+        catch (Marshal::Exception&)
+        {
+            Log::log(LOG_ERR, "QueryMNFactionInfo, unmarshal error.");
+        }
+
+        return true;
+    }
+
+    const Octets& GetHandle() const
+    {
+        return _last;
+    }
+
+private:
+    MNFactionInfoVector& _data;
+
+    Octets _last;
+    int _size;
+    int _total;
+
+};
+
+
+class DBMNFactionInfoGet : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbmnfactioninfoget"
+#undef	RPC_BASECLASS
+
+    void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+    {
+        DBMNFactionInfoGetArg *arg = (DBMNFactionInfoGetArg *)argument;
+        DBMNFactionInfoGetRes *res = (DBMNFactionInfoGetRes *)result;
+
+        // only on central db
+        if (!GameDBManager::GetInstance()->IsCentralDB()) return;
+
+        QueryMNDomainInfo q1(res->domaininfo_list);
+        QueryMNFactionInfo q2(res->factioninfo_list);
+
+        try
+        {
+            StorageEnv::Storage* pdomain = StorageEnv::GetStorage("mndomaininfo");
+            StorageEnv::Storage* pmnfaction = StorageEnv::GetStorage("mnfactioninfo");
+            StorageEnv::AtomTransaction txn;
+
+            try
+            {
+                StorageEnv::Storage::Cursor cursor1 = pdomain->cursor(txn);
+                cursor1.walk(q1);
+
+                StorageEnv::Storage::Cursor cursor2 = pmnfaction->cursor(txn);
+                cursor2.walk(arg->handle, q2);
+
+                Marshal::OctetsStream spec_key, spec_value;
+                spec_key << (int64_t)0;
+
+                unsigned int sn = 0;
+                unsigned char state = 0;
+                if (pmnfaction->find(spec_key, spec_value, txn))
+                {
+                    spec_value >> sn >> state;
+                    res->sn = sn;
+                    res->state = state;
+                }
+                else
+                {
+                    res->sn = 1;
+                    res->state = 0;
+
+                    spec_value = (Marshal::OctetsStream() << (res->sn) << (res->state));
+                    pmnfaction->insert(spec_key, spec_value, txn);
+                }
+
+                res->handle = q2.GetHandle();
+                res->retcode = ERR_SUCCESS;
+            }
+            catch (DbException e) {throw;}
+            catch (...)
+            {
+                DbException e(DB_OLD_VERSION);
+                txn.abort(e);
+                throw e;
+            }
+        }
+        catch (DbException e)
+        {
+            if (e.get_errno() == DB_LOCK_DEADLOCK)
+                res->retcode = ERR_AGAIN;
+            else
+                res->retcode = ERR_EXCEPTION;
+
+            Log::log(LOG_ERR, "DBMNFactionInfoGet, what=%s.\n", e.what());
+        }
+    }
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBMNFactionInfoGetArg *arg = (DBMNFactionInfoGetArg *)argument;
+		// DBMNFactionInfoGetRes *res = (DBMNFactionInfoGetRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

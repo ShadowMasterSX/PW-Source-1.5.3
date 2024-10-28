@@ -22,6 +22,8 @@ class PlayerLogin_Re : public GNET::Protocol
 		else if (result==2) result=ERR_EXCEED_MAXNUM;
 		else if (result==3 || result==4) result=ERR_IN_WORLD;
 		else if (result==5) result=ERR_INSTANCE_OVERFLOW;
+		else if (result==6) result=ERR_INVALID_LINEID;
+		else if (result==ERR_SERVEROVERLOAD) result=ERR_SERVEROVERLOAD;
 		else result=ERR_ENTERWORLD_FAIL;
 	}
 	void Process(Manager *manager, Manager::Session::ID sid)

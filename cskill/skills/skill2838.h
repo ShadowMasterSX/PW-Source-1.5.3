@@ -135,8 +135,8 @@ namespace GNET
       Skill2838Stub ():SkillStub (2838)
         {
             cls = 127;
-            name = L"魔崩雷祭祀光环";
-            nativename = "魔崩雷祭祀光环";
+            name = L"榄斿穿闆风キ绁�鍏夌幆";
+            nativename = "榄斿穿闆风キ绁�鍏夌幆";
             icon = "";
             max_level = 1;
             type = 1;

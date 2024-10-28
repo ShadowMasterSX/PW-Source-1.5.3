@@ -133,8 +133,8 @@ namespace GNET
       Skill1476Stub ():SkillStub (1476)
         {
             cls = 127;
-            name = L"雪地巨型山羊攻击";
-            nativename = "雪地巨型山羊攻击";
+            name = L"闆湴宸ㄥ瀷灞辩緤鏀诲嚮";
+            nativename = "闆湴宸ㄥ瀷灞辩緤鏀诲嚮";
             icon = "";
             max_level = 10;
             type = 1;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "能量结晶体冰击中.sgc";
+            effect = "鑳介噺缁撴櫠浣撳啺鍑讳腑.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

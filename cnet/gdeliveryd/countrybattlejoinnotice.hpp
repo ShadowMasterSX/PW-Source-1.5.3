@@ -19,8 +19,7 @@ class CountryBattleJoinNotice : public GNET::Protocol
 		DEBUG_PRINT("countrybattlejoinnotice, roleid=%d, country_id=%d, worldtag=%d, major_strength=%d, minor_strength=%d, is_king=%d", 
 			roleid, country_id, worldtag, major_strength, minor_strength, is_king);
 		
-		CountryBattleMan* pMan = CountryBattleMan::GetInstance();
-		pMan->JoinBattle(roleid, country_id, worldtag, major_strength, minor_strength, is_king);
+		CountryBattleMan::OnPlayerJoinBattle(roleid, country_id, worldtag, major_strength, minor_strength, is_king);
 	}
 };
 

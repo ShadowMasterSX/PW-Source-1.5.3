@@ -94,8 +94,8 @@ namespace GNET
       Skill1928Stub ():SkillStub (1928)
         {
             cls = 127;
-            name = L"无定B路线增加血上限";
-            nativename = "无定B路线增加血上限";
+            name = L"鏃犲畾B璺嚎澧炲姞琛�涓婇檺";
+            nativename = "鏃犲畾B璺嚎澧炲姞琛�涓婇檺";
             icon = "";
             max_level = 10;
             type = 2;

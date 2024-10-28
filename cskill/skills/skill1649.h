@@ -134,9 +134,9 @@ namespace GNET
       Skill1649Stub ():SkillStub (1649)
         {
             cls = 127;
-            name = L"闭月";
-            nativename = "闭月";
-            icon = "闭月.dds";
+            name = L"闂湀";
+            nativename = "闂湀";
+            icon = "闂湀.dds";
             max_level = 10;
             type = 3;
             apcost = 0;
@@ -157,7 +157,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 1;
-            effect = "电媚_闭月.sgc";
+            effect = "鐢靛獨_闂湀.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

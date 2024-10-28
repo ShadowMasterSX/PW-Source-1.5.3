@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBMNFACTIONAPPLYRESNOTIFY_HPP
+#define __GNET_DBMNFACTIONAPPLYRESNOTIFY_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbmnfactionapplyresnotifyarg"
+#include "dbmnfactionapplyresnotifyres"
+
+namespace GNET
+{
+
+class DBMNFactionApplyResNotify : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbmnfactionapplyresnotify"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBMNFactionApplyResNotifyArg *arg = (DBMNFactionApplyResNotifyArg *)argument;
+		// DBMNFactionApplyResNotifyRes *res = (DBMNFactionApplyResNotifyRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBMNFactionApplyResNotifyArg *arg = (DBMNFactionApplyResNotifyArg *)argument;
+		// DBMNFactionApplyResNotifyRes *res = (DBMNFactionApplyResNotifyRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

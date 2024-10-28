@@ -134,9 +134,9 @@ namespace GNET
       Skill118Stub ():SkillStub (118)
         {
             cls = 7;
-            name = L"ÎåÒô·û";
-            nativename = "ÎåÒô·û";
-            icon = "ÎåÒô·û.dds";
+            name = L"äº”éŸ³ç¬¦";
+            nativename = "äº”éŸ³ç¬¦";
+            icon = "äº”éŸ³ç¬¦.dds";
             max_level = 10;
             type = 3;
             apcost = 20;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "ÎåÒô·û.sgc";
+            effect = "äº”éŸ³ç¬¦.sgc";
             range.type = 0;
             doenchant = true;
             dobless = true;

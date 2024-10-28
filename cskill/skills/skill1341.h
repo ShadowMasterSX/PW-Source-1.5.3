@@ -58,9 +58,9 @@ namespace GNET
       Skill1341Stub ():SkillStub (1341)
         {
             cls = 8;
-            name = L"剑心通明";
-            nativename = "剑心通明";
-            icon = "剑心通明.dds";
+            name = L"鍓戝績閫氭槑";
+            nativename = "鍓戝績閫氭槑";
+            icon = "鍓戝績閫氭槑.dds";
             max_level = 10;
             type = 2;
             apcost = 0;
@@ -84,7 +84,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (1);
             }
-            effect = "剑灵_剑心通明.sgc";
+            effect = "鍓戠伒_鍓戝績閫氭槑.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

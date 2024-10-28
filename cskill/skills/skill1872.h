@@ -42,7 +42,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "ÎäÏÀ_¿ñ·ç.sgc";
+            effect = "æ­¦ä¾ _ç‹‚é£Ž.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

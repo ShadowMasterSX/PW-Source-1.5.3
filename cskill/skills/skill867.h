@@ -132,8 +132,8 @@ namespace GNET
       Skill867Stub ():SkillStub (867)
         {
             cls = 127;
-            name = L"自身圆心魔攻群加血";
-            nativename = "自身圆心魔攻群加血";
+            name = L"鑷韩鍦嗗績榄旀敾缇ゅ姞琛�";
+            nativename = "鑷韩鍦嗗績榄旀敾缇ゅ姞琛�";
             icon = "";
             max_level = 10;
             type = 3;
@@ -153,7 +153,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "五气朝元.sgc";
+            effect = "浜旀皵鏈濆厓.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

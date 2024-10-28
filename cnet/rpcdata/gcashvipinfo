@@ -1,0 +1,136 @@
+#ifndef __GNET_GCASHVIPINFO_RPCDATA
+#define __GNET_GCASHVIPINFO_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class GCashVipInfo : public GNET::Rpc::Data
+	{
+	public:
+		int cash_vip_level;
+		unsigned int score_add;
+		unsigned int score_cost;
+		unsigned int score_consume;
+		int score_cost_stamp;
+		Octets purchase_limit_items_info;
+		int day_clear_stamp;
+		int week_clear_stamp;
+		int month_clear_stamp;
+		int year_clear_stamp;
+		int reserved0;
+		int reserved1;
+		int reserved2;
+		int reserved3;
+
+	public:
+		GCashVipInfo (int l_cash_vip_level = 0,unsigned int l_score_add = 0,unsigned int l_score_cost = 0
+			,unsigned int l_score_consume = 0,int l_score_cost_stamp = 0,const Octets& l_purchase_limit_items_info = Octets(0)
+			,int l_day_clear_stamp = 0,int l_week_clear_stamp = 0,int l_month_clear_stamp = 0
+			,int l_year_clear_stamp = 0,int l_reserved0 = 0,int l_reserved1 = 0
+			,int l_reserved2 = 0,int l_reserved3 = 0)
+			: cash_vip_level(l_cash_vip_level),score_add(l_score_add),score_cost(l_score_cost)
+			,score_consume(l_score_consume),score_cost_stamp(l_score_cost_stamp),purchase_limit_items_info(l_purchase_limit_items_info)
+			,day_clear_stamp(l_day_clear_stamp),week_clear_stamp(l_week_clear_stamp),month_clear_stamp(l_month_clear_stamp)
+			,year_clear_stamp(l_year_clear_stamp),reserved0(l_reserved0),reserved1(l_reserved1)
+			,reserved2(l_reserved2),reserved3(l_reserved3)
+		{
+		}
+
+		GCashVipInfo(const GCashVipInfo &rhs)
+			: cash_vip_level(rhs.cash_vip_level),score_add(rhs.score_add),score_cost(rhs.score_cost),
+			score_consume(rhs.score_consume),score_cost_stamp(rhs.score_cost_stamp),purchase_limit_items_info(rhs.purchase_limit_items_info),
+			day_clear_stamp(rhs.day_clear_stamp),week_clear_stamp(rhs.week_clear_stamp),month_clear_stamp(rhs.month_clear_stamp),
+			year_clear_stamp(rhs.year_clear_stamp),reserved0(rhs.reserved0),reserved1(rhs.reserved1),
+			reserved2(rhs.reserved2),reserved3(rhs.reserved3) { }
+
+		Rpc::Data *Clone() const { return new GCashVipInfo(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const GCashVipInfo *r = dynamic_cast<const GCashVipInfo *>(&rhs);
+			if (r && r != this)
+			{
+				cash_vip_level = r->cash_vip_level;
+				score_add = r->score_add;
+				score_cost = r->score_cost;
+				score_consume = r->score_consume;
+				score_cost_stamp = r->score_cost_stamp;
+				purchase_limit_items_info = r->purchase_limit_items_info;
+				day_clear_stamp = r->day_clear_stamp;
+				week_clear_stamp = r->week_clear_stamp;
+				month_clear_stamp = r->month_clear_stamp;
+				year_clear_stamp = r->year_clear_stamp;
+				reserved0 = r->reserved0;
+				reserved1 = r->reserved1;
+				reserved2 = r->reserved2;
+				reserved3 = r->reserved3;
+			}
+			return *this;
+		}
+
+		GCashVipInfo& operator = (const GCashVipInfo &rhs)
+		{
+			const GCashVipInfo *r = &rhs;
+			if (r && r != this)
+			{
+				cash_vip_level = r->cash_vip_level;
+				score_add = r->score_add;
+				score_cost = r->score_cost;
+				score_consume = r->score_consume;
+				score_cost_stamp = r->score_cost_stamp;
+				purchase_limit_items_info = r->purchase_limit_items_info;
+				day_clear_stamp = r->day_clear_stamp;
+				week_clear_stamp = r->week_clear_stamp;
+				month_clear_stamp = r->month_clear_stamp;
+				year_clear_stamp = r->year_clear_stamp;
+				reserved0 = r->reserved0;
+				reserved1 = r->reserved1;
+				reserved2 = r->reserved2;
+				reserved3 = r->reserved3;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << cash_vip_level;
+			os << score_add;
+			os << score_cost;
+			os << score_consume;
+			os << score_cost_stamp;
+			os << purchase_limit_items_info;
+			os << day_clear_stamp;
+			os << week_clear_stamp;
+			os << month_clear_stamp;
+			os << year_clear_stamp;
+			os << reserved0;
+			os << reserved1;
+			os << reserved2;
+			os << reserved3;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> cash_vip_level;
+			os >> score_add;
+			os >> score_cost;
+			os >> score_consume;
+			os >> score_cost_stamp;
+			os >> purchase_limit_items_info;
+			os >> day_clear_stamp;
+			os >> week_clear_stamp;
+			os >> month_clear_stamp;
+			os >> year_clear_stamp;
+			os >> reserved0;
+			os >> reserved1;
+			os >> reserved2;
+			os >> reserved3;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -137,9 +137,9 @@ namespace GNET
       Skill2420Stub ():SkillStub (2420)
         {
             cls = 4;
-            name = L"Ðþ¡¤ÊÞÍõÎÞµÐ";
-            nativename = "Ðþ¡¤ÊÞÍõÎÞµÐ";
-            icon = "ÊÞÍõÎÞµÐ1.dds";
+            name = L"çŽ„Â·å…½çŽ‹æ— æ•Œ";
+            nativename = "çŽ„Â·å…½çŽ‹æ— æ•Œ";
+            icon = "å…½çŽ‹æ— æ•Œ1.dds";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -164,7 +164,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (9);
             }
-            effect = "1ÊÞÍõÎÞµÐ.sgc";
+            effect = "1å…½çŽ‹æ— æ•Œ.sgc";
             range.type = 0;
             doenchant = true;
             dobless = true;

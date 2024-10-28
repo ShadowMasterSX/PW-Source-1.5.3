@@ -137,9 +137,9 @@ namespace GNET
       Skill484Stub ():SkillStub (484)
         {
             cls = 1;
-            name = L"�桤̩ɽѹ��";
-            nativename = "�桤̩ɽѹ��";
-            icon = "̩ɽѹ��1.dds";
+            name = L"真·泰山压顶";
+            nativename = "真·泰山压顶";
+            icon = "泰山压顶1.dds";
             max_level = 1;
             type = 1;
             apcost = 200;
@@ -166,7 +166,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (292);
             }
-            effect = "1̩ɽѹ��.sgc";
+            effect = "1泰山压顶.sgc";
             range.type = 3;
             doenchant = true;
             dobless = true;

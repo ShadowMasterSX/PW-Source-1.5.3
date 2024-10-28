@@ -1,0 +1,59 @@
+	public:
+		unsigned int sn;
+		int apply_begin_time;
+		int apply_end_time;
+		int cross_begin_time;
+		int battle_begin_time;
+		int battle_end_time;
+		MNDomainInfoVector domaininfo_list;
+		MNFactionInfoVector factioninfo_list;
+		enum { PROTOCOL_TYPE = PROTOCOL_MNFACTIONCACHEGET_RE };
+	public:
+		MNFactionCacheGet_Re() { type = PROTOCOL_MNFACTIONCACHEGET_RE; }
+		MNFactionCacheGet_Re(void*) : Protocol(PROTOCOL_MNFACTIONCACHEGET_RE) { }
+		MNFactionCacheGet_Re (unsigned int l_sn,int l_apply_begin_time,int l_apply_end_time,
+			int l_cross_begin_time,int l_battle_begin_time,int l_battle_end_time,
+			const MNDomainInfoVector& l_domaininfo_list,const MNFactionInfoVector& l_factioninfo_list)
+			 : sn(l_sn),apply_begin_time(l_apply_begin_time),apply_end_time(l_apply_end_time)
+			,cross_begin_time(l_cross_begin_time),battle_begin_time(l_battle_begin_time),battle_end_time(l_battle_end_time)
+			,domaininfo_list(l_domaininfo_list),factioninfo_list(l_factioninfo_list)
+		{
+			type = PROTOCOL_MNFACTIONCACHEGET_RE;
+		}
+
+		MNFactionCacheGet_Re(const MNFactionCacheGet_Re &rhs)
+			: Protocol(rhs),sn(rhs.sn),apply_begin_time(rhs.apply_begin_time),apply_end_time(rhs.apply_end_time)
+			,cross_begin_time(rhs.cross_begin_time),battle_begin_time(rhs.battle_begin_time),battle_end_time(rhs.battle_end_time)
+			,domaininfo_list(rhs.domaininfo_list),factioninfo_list(rhs.factioninfo_list) { }
+
+		GNET::Protocol *Clone() const { return new MNFactionCacheGet_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << sn;
+			os << apply_begin_time;
+			os << apply_end_time;
+			os << cross_begin_time;
+			os << battle_begin_time;
+			os << battle_end_time;
+			os << domaininfo_list;
+			os << factioninfo_list;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> sn;
+			os >> apply_begin_time;
+			os >> apply_end_time;
+			os >> cross_begin_time;
+			os >> battle_begin_time;
+			os >> battle_end_time;
+			os >> domaininfo_list;
+			os >> factioninfo_list;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 1048576; }

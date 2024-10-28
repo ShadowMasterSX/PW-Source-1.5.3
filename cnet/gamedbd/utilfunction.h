@@ -769,6 +769,102 @@ private:
 void GetRoleRealmDetail(const Octets & odata,int& level);
 int  GetRoleReincarnationTimes(const Octets & odata);
 void GetRoleReincarnationDetail(const Octets & odata,int& times,int& maxlevel,GReincarnationData& data);
+void GetRoleVisaDetail(const Octets & odata, short& type,int64_t& ufid);
+void IncMNFactionVersion(int64_t ufid,StorageEnv::Storage* pmnfaction,StorageEnv::Transaction& txn);
 
+
+class CashVip
+{
+	public:
+	enum
+	{
+		EVERY_DAY_SECOND = 86400, //3600 * 24
+		CASH_VIP_MAX_LEVEL = 6,
+	};
+
+	static int cash_vip_score[CASH_VIP_MAX_LEVEL];
+	static int cash_vip_reduce_score[CASH_VIP_MAX_LEVEL+1];
+	
+	static int LoadVipConfig(std::string upgrade_str, std::string reduce_str)
+	{
+		memset(cash_vip_score, 0, sizeof(cash_vip_score));
+		memset(cash_vip_reduce_score, 0, sizeof(cash_vip_reduce_score));
+		
+		int up_num = sscanf(upgrade_str.c_str(), "(%d,%d,%d,%d,%d,%d)", &cash_vip_score[0], &cash_vip_score[1], &cash_vip_score[2], &cash_vip_score[3], &cash_vip_score[4], &cash_vip_score[5]);
+		if(up_num != CASH_VIP_MAX_LEVEL)
+			return false;
+
+		int reduce_num = sscanf(reduce_str.c_str(), "(%d,%d,%d,%d,%d,%d,%d)", &cash_vip_reduce_score[0], &cash_vip_reduce_score[1], &cash_vip_reduce_score[2], &cash_vip_reduce_score[3], &cash_vip_reduce_score[4], &cash_vip_reduce_score[5], &cash_vip_reduce_score[6]);
+		if(reduce_num != CASH_VIP_MAX_LEVEL+1)
+			return false;
+
+		return true;
+	}
+	
+	static int GetCashVipScore(int level)
+	{
+		if(level < 0 || level >= CASH_VIP_MAX_LEVEL)
+			return 0;
+		//static int cash_vip_score[CASH_VIP_MAX_LEVEL] = { 30, 150, 300, 750, 1800, 4500 };
+		return cash_vip_score[level];
+	}
+
+	static int GetCashVipReduceScore(int level)
+	{
+		if(level < 0 || level > CASH_VIP_MAX_LEVEL)
+			return 0;
+		//static int cash_vip_reduce_score[CASH_VIP_MAX_LEVEL+1] = {0, 1, 5, 10, 25, 60, 150};
+		return cash_vip_reduce_score[level];
+	}
+	
+	static int CalCashVipLevel(int &cur_vip_level, int cur_score)
+	{
+		if(cur_vip_level < 0)
+		{
+			cur_vip_level = 0;
+			return cur_vip_level;
+		}
+		if(cur_score <= 0)
+		{
+			cur_vip_level = 0;
+			return cur_vip_level;
+		}
+		if(cur_vip_level >= CASH_VIP_MAX_LEVEL)
+		{
+			cur_vip_level = CASH_VIP_MAX_LEVEL;
+			return cur_vip_level;
+		}
+
+		while(cur_score >= GetCashVipScore(cur_vip_level))
+		{
+			++cur_vip_level;
+			if(cur_vip_level >= CASH_VIP_MAX_LEVEL)
+			{
+				cur_vip_level = CASH_VIP_MAX_LEVEL;
+				break;
+			}
+		}
+		return cur_vip_level;
+	}
+
+	static int GetCurTimeStamp()
+	{	
+		time_t rawtime;
+		time(&rawtime);
+		return rawtime;
+	}
+
+	static int GetTodayReduceScoreStamp()
+	{
+		struct tm tt;
+		time_t cut_time;
+		cut_time = time(NULL);
+		localtime_r(&cut_time, &tt);
+		tt.tm_hour = 0;
+		tt.tm_min  = 0;
+		tt.tm_sec  = 0;
+		return mktime(&tt);
+	}
+};
 };
 #endif

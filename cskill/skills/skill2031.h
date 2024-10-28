@@ -133,8 +133,8 @@ namespace GNET
       Skill2031Stub ():SkillStub (2031)
         {
             cls = 127;
-            name = L"剑灵万象";
-            nativename = "剑灵万象";
+            name = L"鍓戠伒涓囪薄";
+            nativename = "鍓戠伒涓囪薄";
             icon = "";
             max_level = 10;
             type = 1;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "剑灵_万象剑劲.sgc";
+            effect = "鍓戠伒_涓囪薄鍓戝姴.sgc";
             range.type = 3;
             doenchant = true;
             dobless = false;

@@ -133,8 +133,8 @@ namespace GNET
       Skill2511Stub ():SkillStub (2511)
         {
             cls = 127;
-            name = L"ͻϮ";
-            nativename = "ͻϮ";
+            name = L"突袭";
+            nativename = "突袭";
             icon = "";
             max_level = 10;
             type = 1;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 1;
-            effect = "�̿�_˺���˿�.sgc";
+            effect = "刺客_撕裂伤口.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

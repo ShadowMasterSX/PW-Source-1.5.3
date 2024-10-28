@@ -137,9 +137,9 @@ namespace GNET
       Skill597Stub ():SkillStub (597)
         {
             cls = 6;
-            name = L"¿ñ¡¤À§¸¿Ê¸";
-            nativename = "¿ñ¡¤À§¸¿Ê¸";
-            icon = "À§¸¿Ê¸2.dds";
+            name = L"ç‹‚Â·å›°ç¼šçŸ¢";
+            nativename = "ç‹‚Â·å›°ç¼šçŸ¢";
+            icon = "å›°ç¼šçŸ¢2.dds";
             max_level = 1;
             type = 1;
             apcost = 100;
@@ -164,7 +164,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (13);
             }
-            effect = "2ÐéÈõÊ¸.sgc";
+            effect = "2è™šå¼±çŸ¢.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

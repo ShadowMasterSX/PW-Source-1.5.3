@@ -136,7 +136,7 @@ namespace GNET
             cls = 8;
             name = L"1678181";
             nativename = "1678181";
-            icon = "идифѕч.dds";
+            icon = "жЎЋжўЏиЇЂ.dds";
             max_level = 1;
             type = 2;
             apcost = 0;

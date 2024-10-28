@@ -59,9 +59,9 @@ namespace GNET
       Skill977Stub ():SkillStub (977)
         {
             cls = 258;
-            name = L"神定真言";
-            nativename = "神定真言";
-            icon = "神定真言.dds";
+            name = L"绁炲畾鐪熻█";
+            nativename = "绁炲畾鐪熻█";
+            icon = "绁炲畾鐪熻█.dds";
             max_level = 10;
             type = 2;
             apcost = 500000;
@@ -80,7 +80,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 1;
-            effect = "神定真言.sgc";
+            effect = "绁炲畾鐪熻█.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

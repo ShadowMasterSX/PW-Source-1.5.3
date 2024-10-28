@@ -19,8 +19,8 @@ namespace GNET
         Skill1574Stub ():SkillStub (1574)
         {
             cls = 255;
-            name = L"Ììî¸Õó";
-            nativename = "Ììî¸Õó";
+            name = L"å¤©ç½¡é˜µ";
+            nativename = "å¤©ç½¡é˜µ";
             icon = "";
             max_level = 1;
             type = 6;
@@ -42,7 +42,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "¹ÖÎï»÷ÔÎÊõ.sgc";
+            effect = "æ€ªç‰©å‡»æ™•æœ¯.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

@@ -413,6 +413,61 @@ namespace GDB
 									Marshal::OctetsStream(it->second) >> info.world_contribution.contrib >> info.world_contribution.cost;
 								}
 								break;
+							case GROLE_STATUS_EXTRAPROP_ASTROLABE_EXTERN:
+								{
+									Marshal::OctetsStream(it->second) >> info.astrolabe_extern.level >> info.astrolabe_extern.exp;
+								}
+								break;
+                            case GROLE_STATUS_EXTRAPROP_SOLO_CHALLENGE_INFO:
+                                {
+                                    Octets award_info;
+                                    Marshal::OctetsStream(it->second)
+                                        >> info.solo_challenge_info.max_stage_level
+                                        >> info.solo_challenge_info.max_stage_cost_time
+                                        >> info.solo_challenge_info.total_score
+                                        >> info.solo_challenge_info.total_time
+                                        >> info.solo_challenge_info.left_draw_award_times
+                                        >> info.solo_challenge_info.playmodes
+                                        >> award_info;
+
+                                    if (award_info.size() != sizeof(info.solo_challenge_info.award_info)) throw Marshal::Exception();
+                                    memcpy(info.solo_challenge_info.award_info, award_info.begin(), award_info.size());
+                                }
+                                break;
+                            case GROLE_STATUS_EXTRAPROP_MNFACTION_INFO:
+                                {
+                                    // 跨服情况下以extraprop的数据初始化，本服以userfaction数据初始化
+									if(info.mnfaction_info.unifid == 0) 
+									{	
+										Marshal::OctetsStream(it->second)
+                                        	>> info.mnfaction_info.unifid;
+									}
+                                }
+                                break;
+                            case GROLE_STATUS_EXTRAPROP_VISA_INFO:
+                                {
+                                    Marshal::OctetsStream(it->second)
+                                        >> info.visa_info.type
+                                        >> info.visa_info.stay_timestamp
+										>> info.visa_info.cost_item
+										>> info.visa_info.cost_item_count;
+                                }
+                                break;
+							case GROLE_STATUS_EXTRAPROP_FIX_POSITION_TRANSMIT_INFO:
+								{
+									const Octets & fixpositiontransmitdata = it->second;
+									get_buf(fixpositiontransmitdata, data.fix_position_transmit_data);
+								}
+								break;
+                            case GROLE_STATUS_EXTRAPROP_CASH_RESURRECT_INFO:
+                                {
+                                    Marshal::OctetsStream(it->second)
+                                        >> info.cash_resurrect_info.times;
+                                }
+                                break;
+
+                            default:
+                                break;
 						}
 					}
 					catch(Marshal::Exception)
@@ -478,6 +533,51 @@ namespace GDB
 									info.world_contribution.cost = 0;
 								}
 								break;
+							case GROLE_STATUS_EXTRAPROP_ASTROLABE_EXTERN:
+								{
+									info.astrolabe_extern.level = 0;
+									info.astrolabe_extern.exp = 0;
+								}
+                                break;
+                            case GROLE_STATUS_EXTRAPROP_SOLO_CHALLENGE_INFO:
+                                {
+                                    info.solo_challenge_info.max_stage_level = 0;
+                                    info.solo_challenge_info.max_stage_cost_time = 0;
+                                    info.solo_challenge_info.total_score = 0;
+                                    info.solo_challenge_info.total_time = 0;
+                                    info.solo_challenge_info.left_draw_award_times = 0;
+                                    info.solo_challenge_info.playmodes = 0;
+
+                                    memset(info.solo_challenge_info.award_info, 0, sizeof(info.solo_challenge_info.award_info));
+                                }
+                                break;
+                            case GROLE_STATUS_EXTRAPROP_MNFACTION_INFO:
+                                {
+                                    info.mnfaction_info.unifid = 0;
+                                }
+                                break;
+                            case GROLE_STATUS_EXTRAPROP_VISA_INFO:
+                                {
+                                    info.visa_info.type = 0;
+                                    info.visa_info.stay_timestamp = 0;
+									info.visa_info.cost_item = 0;
+									info.visa_info.cost_item_count = 0;
+                                }
+                                break;
+							case GROLE_STATUS_EXTRAPROP_FIX_POSITION_TRANSMIT_INFO:
+								{
+									data.fix_position_transmit_data.data = NULL;
+									data.fix_position_transmit_data.size = 0;
+								}
+								break;
+                            case GROLE_STATUS_EXTRAPROP_CASH_RESURRECT_INFO:
+                                {
+                                    info.cash_resurrect_info.times = 0;
+                                }
+                                break;
+
+                            default:
+                                break;
 						}
 
 						Log::log(LOG_ERR,"unmarshal extraprop[%d] failed for %d.",it->first, info.id);
@@ -550,6 +650,54 @@ namespace GDB
 
 			extraprop.data[GROLE_STATUS_EXTRAPROP_WORLD_CONTRIBUTION]
 				= Marshal::OctetsStream() << info.world_contribution.contrib << info.world_contribution.cost;
+
+			if(info.astrolabe_extern.level || info.astrolabe_extern.exp)
+			{
+				extraprop.data[GROLE_STATUS_EXTRAPROP_ASTROLABE_EXTERN]
+					= Marshal::OctetsStream() << info.astrolabe_extern.level << info.astrolabe_extern.exp;
+			}
+
+            if (info.solo_challenge_info.max_stage_level != 0)
+            {
+                extraprop.data[GROLE_STATUS_EXTRAPROP_SOLO_CHALLENGE_INFO]
+                    = (Marshal::OctetsStream()
+                        << info.solo_challenge_info.max_stage_level
+                        << info.solo_challenge_info.max_stage_cost_time
+                        << info.solo_challenge_info.total_score
+                        << info.solo_challenge_info.total_time
+                        << info.solo_challenge_info.left_draw_award_times
+                        << info.solo_challenge_info.playmodes
+                        << Octets(info.solo_challenge_info.award_info, sizeof(info.solo_challenge_info.award_info)));
+            }
+
+            if (info.mnfaction_info.unifid != 0)
+            {
+                extraprop.data[GROLE_STATUS_EXTRAPROP_MNFACTION_INFO]
+                    = (Marshal::OctetsStream()
+                        << info.mnfaction_info.unifid);
+            }
+
+            if (info.visa_info.stay_timestamp != 0)
+            {
+                extraprop.data[GROLE_STATUS_EXTRAPROP_VISA_INFO]
+                    = (Marshal::OctetsStream()
+                        << info.visa_info.type
+                        << info.visa_info.stay_timestamp
+						<< info.visa_info.cost_item
+						<< info.visa_info.cost_item_count);
+            }
+
+			if(data.fix_position_transmit_data.size)
+			{
+				extraprop.data[GROLE_STATUS_EXTRAPROP_FIX_POSITION_TRANSMIT_INFO] = Octets(data.fix_position_transmit_data.data, data.fix_position_transmit_data.size);
+			}
+
+            if (info.cash_resurrect_info.times >= 0)
+            {
+                extraprop.data[GROLE_STATUS_EXTRAPROP_CASH_RESURRECT_INFO]
+                    = (Marshal::OctetsStream()
+                        << info.cash_resurrect_info.times);
+            }
 
 			odata = Marshal::OctetsStream() << extraprop;
 		}
@@ -631,6 +779,29 @@ namespace GDB
 				memset(&realm,0,sizeof(GDB::realm_data));
 			}
 		}
+
+		inline void set_rankdata(GNET::Octets &data,const GDB::rank_data &rank)
+		{
+			data = Marshal::OctetsStream() << rank.point << rank.kill << rank.dead;
+		}
+
+		inline void get_rankdata(const GNET::Octets &data, GDB::rank_data &rank)
+		{
+			if(data.size())
+			{
+				try
+				{
+					Marshal::OctetsStream(data) >> rank.point >> rank.kill >> rank.dead;
+				}catch(Marshal::Exception)
+				{
+					memset(&rank,0,sizeof(GDB::rank_data));
+				}
+			}
+			else
+			{
+				memset(&rank,0,sizeof(GDB::rank_data));
+			}
+		}
 };
 
 	bool Role2Info(GNET::GRoleDetail * pRole,base_info& info,vecdata& data,int data_mask,
@@ -692,7 +863,16 @@ namespace GDB
 		info.referrer = pRole->referrer;
 		info.mall_consumption = pRole->mall_consumption;
 		info.src_zoneid = pRole->src_zoneid;
-		
+		info.mnfaction_info.unifid = pRole->unifid;
+		info.vip_level = pRole->vip_level;
+		info.score_add = pRole->score_add;
+		info.score_cost = pRole->score_cost;
+		info.score_consume = pRole->score_consume;
+		info.next_day_item_clear_timestamp    = pRole->day_clear_stamp;
+		info.next_week_item_clear_timestamp   = pRole->week_clear_stamp;
+		info.next_month_item_clear_timestamp  = pRole->month_clear_stamp;
+		info.next_year_item_clear_timestamp   = pRole->year_clear_stamp;
+
 		get_buf(pRole->name,data.user_name);
 		get_buf(pRole->status.custom_status,data.custom_status);
 		get_buf(pRole->status.filter_data,data.filter_data);
@@ -742,7 +922,9 @@ namespace GDB
 		get_extraprop(extraprop, info, data);
 		get_reincarnationdata(pRole->status.reincarnation_data, data.reincarnation);
 		get_realmdata(pRole->status.realm_data, data.realm);
-
+		get_rankdata(pRole->status.rank, data.rank);
+	
+		get_buf(pRole->purchase_limit_data, data.purchase_limit_data);
 		return true;
 	}
 
@@ -815,6 +997,14 @@ namespace GDB
 		pRole->bonus_used = info.bonus_used;
 		pRole->mall_consumption = info.mall_consumption;
 		pRole->src_zoneid = info.src_zoneid;
+		pRole->vip_level         = info.vip_level;
+		pRole->score_add         = info.score_add;
+		pRole->score_cost        = info.score_cost;
+		pRole->score_consume	 = info.score_consume;
+		pRole->day_clear_stamp   = info.next_day_item_clear_timestamp;
+		pRole->week_clear_stamp  = info.next_week_item_clear_timestamp;
+		pRole->month_clear_stamp = info.next_month_item_clear_timestamp;
+		pRole->year_clear_stamp  = info.next_year_item_clear_timestamp;
 		
 		push_back(pRole->status.custom_status,data.custom_status);
 		push_back(pRole->status.filter_data,data.filter_data);
@@ -866,7 +1056,9 @@ namespace GDB
 		set_extraprop(pRole->status.extraprop, info, data);
 		set_reincarnationdata(pRole->status.reincarnation_data, data.reincarnation);
 		set_realmdata(pRole->status.realm_data, data.realm);
+		set_rankdata(pRole->status.rank, data.rank);
 
+		push_back(pRole->purchase_limit_data, data.purchase_limit_data);
 	}
 
 	size_t

@@ -59,9 +59,9 @@ namespace GNET
       Skill1026Stub ():SkillStub (1026)
         {
             cls = 258;
-            name = L"∆∆∑®æ≠";
-            nativename = "∆∆∑®æ≠";
-            icon = "∆∆∑®æ≠.dds";
+            name = L"Á†¥Ê≥ïÁªè";
+            nativename = "Á†¥Ê≥ïÁªè";
+            icon = "Á†¥Ê≥ïÁªè.dds";
             max_level = 10;
             type = 2;
             apcost = 500000;
@@ -80,7 +80,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 1;
-            effect = "∆∆∑®æ≠.sgc";
+            effect = "Á†¥Ê≥ïÁªè.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

@@ -133,8 +133,8 @@ namespace GNET
       Skill28Stub ():SkillStub (28)
         {
             cls = 127;
-            name = L"Ë®äöÎÐ";
-            nativename = "Ë®äöÎÐ";
+            name = L"æ°´æ¼©æ¶¡";
+            nativename = "æ°´æ¼©æ¶¡";
             icon = "";
             max_level = 10;
             type = 1;
@@ -154,7 +154,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "¹ÖÎïË®äöÎÐ.sgc";
+            effect = "æ€ªç‰©æ°´æ¼©æ¶¡.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

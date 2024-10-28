@@ -137,9 +137,9 @@ namespace GNET
       Skill642Stub ():SkillStub (642)
         {
             cls = 3;
-            name = L"�桤ǧ�Ϲ�";
-            nativename = "�桤ǧ�Ϲ�";
-            icon = "ǧ�Ϲ�1.dds";
+            name = L"真·千蚁蛊";
+            nativename = "真·千蚁蛊";
+            icon = "千蚁蛊1.dds";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -167,7 +167,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (292);
             }
-            effect = "1ǧ�Ϲ�.sgc";
+            effect = "1千蚁蛊.sgc";
             range.type = 3;
             doenchant = true;
             dobless = false;

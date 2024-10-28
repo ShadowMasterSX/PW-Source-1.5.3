@@ -132,9 +132,9 @@ namespace GNET
       Skill803Stub ():SkillStub (803)
         {
             cls = 127;
-            name = L"ÇıÄ§";
-            nativename = "ÇıÄ§";
-            icon = "³èÎïÇıÄ§.dds";
+            name = L"é©±é­”";
+            nativename = "é©±é­”";
+            icon = "å® ç‰©é©±é­”.dds";
             max_level = 5;
             type = 10;
             apcost = 0;
@@ -154,7 +154,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "ÁéÖú·û.sgc";
+            effect = "çµåŠ©ç¬¦.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

@@ -1,0 +1,95 @@
+
+#ifndef __GNET_DBMNPUTBATTLEBONUS_HPP
+#define __GNET_DBMNPUTBATTLEBONUS_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "gamedbmanager.h"
+
+#include "dbmnputbattlebonusarg"
+#include "dbmnputbattlebonusres"
+
+
+namespace GNET
+{
+
+class DBMNPutBattleBonus : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbmnputbattlebonus"
+#undef	RPC_BASECLASS
+
+    void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+    {
+        DBMNPutBattleBonusArg *arg = (DBMNPutBattleBonusArg *)argument;
+        DBMNPutBattleBonusRes *res = (DBMNPutBattleBonusRes *)result;
+
+        // only on central db
+        if (!GameDBManager::GetInstance()->IsCentralDB()) return;
+
+        try
+        {
+            StorageEnv::Storage* pmnfaction = StorageEnv::GetStorage("mnfactioninfo");
+            StorageEnv::Storage* pbonus = StorageEnv::GetStorage("mndomainbonus");
+            StorageEnv::AtomTransaction txn;
+
+            try
+            {
+                unsigned int sn = 0;
+                unsigned char state = 0;
+                Marshal::OctetsStream spec_key, spec_value;
+                spec_key << (int64_t)0;
+
+                if (pmnfaction->find(spec_key, spec_value, txn))
+                    spec_value >> sn >> state;
+
+                spec_value = (Marshal::OctetsStream() << (arg->sn) << state);
+                pmnfaction->insert(spec_key, spec_value, txn);
+
+                MNDomainBonusVector::const_iterator iter = arg->bonus_list.begin(), iter_end = arg->bonus_list.end();
+                for (; iter != iter_end; ++iter)
+                {
+                    pbonus->insert((Marshal::OctetsStream() << (iter->unifid)),
+                                   (Marshal::OctetsStream() << (*iter)),
+                                   txn);
+                }
+
+                res->retcode = ERR_SUCCESS;
+            }
+            catch (DbException e) {throw;}
+            catch (...)
+            {
+                DbException e(DB_OLD_VERSION);
+                txn.abort(e);
+                throw e;
+            }
+        }
+        catch (DbException e)
+        {
+            if (e.get_errno() == DB_LOCK_DEADLOCK)
+                res->retcode = ERR_AGAIN;
+            else
+                res->retcode = ERR_EXCEPTION;
+
+            Log::log(LOG_ERR, "DBMNPutBattleBonus, what=%s.\n", e.what());
+        }
+    }
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBMNPutBattleBonusArg *arg = (DBMNPutBattleBonusArg *)argument;
+		// DBMNPutBattleBonusRes *res = (DBMNPutBattleBonusRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

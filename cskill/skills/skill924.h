@@ -134,9 +134,9 @@ namespace GNET
       Skill924Stub ():SkillStub (924)
         {
             cls = 0;
-            name = L"½ğ¸ÕÆø";
-            nativename = "½ğ¸ÕÆø";
-            icon = "½ğ¸ÕÆø.dds";
+            name = L"é‡‘åˆšæ°”";
+            nativename = "é‡‘åˆšæ°”";
+            icon = "é‡‘åˆšæ°”.dds";
             max_level = 1;
             type = 2;
             apcost = 0;
@@ -174,7 +174,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (9);
             }
-            effect = "1·ç¾í²ĞÔÆ.sgc";
+            effect = "1é£å·æ®‹äº‘.sgc";
             range.type = 2;
             doenchant = true;
             dobless = true;

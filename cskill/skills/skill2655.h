@@ -132,8 +132,8 @@ namespace GNET
       Skill2655Stub ():SkillStub (2655)
         {
             cls = 127;
-            name = L"¼Ó¹¥ËÙ";
-            nativename = "¼Ó¹¥ËÙ";
+            name = L"åŠ æ”»é€Ÿ";
+            nativename = "åŠ æ”»é€Ÿ";
             icon = "";
             max_level = 10;
             type = 2;

@@ -57,6 +57,8 @@ class RemoteLoginQuery_Re : public GNET::Protocol
 			re.localsid = pinfo->localsid;
 			re.flag = flag;
 			
+			unsigned int linksid = pinfo->linksid;	
+	
 			if (retcode == ERR_SUCCESS) {
 
 				PlayerLogin_Re::RealLogin(roleid, pinfo);
@@ -67,7 +69,7 @@ class RemoteLoginQuery_Re : public GNET::Protocol
 			}
 			
 			GDeliveryServer* dsm = GDeliveryServer::GetInstance();
-			dsm->Send(pinfo->linksid, re);
+			dsm->Send(linksid, re);
 			dsm->BroadcastStatus();
 			
 			LOG_TRACE("CrossRelated Send PlayerLogin_Re to glink, userid %d roleid %d ret %d", userid, roleid, re.result);

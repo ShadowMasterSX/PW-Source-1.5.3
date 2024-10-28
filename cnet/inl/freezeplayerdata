@@ -5,5 +5,5 @@
 			: RPC_BASECLASS(type, argument, result ) { }
 		FreezePlayerData(const FreezePlayerData &rhs) : RPC_BASECLASS(rhs) { }
 		int  PriorPolicy( ) const { return 1; }
-		bool SizePolicy(size_t size) const { return size <= 32; }
+		bool SizePolicy(size_t size) const { return size <= 64; }
 		bool TimePolicy(int timeout) const { return timeout <= 30; }

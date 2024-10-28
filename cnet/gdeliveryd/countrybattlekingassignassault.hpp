@@ -17,7 +17,7 @@ class CountryBattleKingAssignAssault : public GNET::Protocol
 
 	void Process(Manager *manager, Manager::Session::ID sid)
 	{
-		CountryBattleMan::GetInstance()->KingAssignAssault(king_roleid, domain_id, assault_type);
+		CountryBattleMan::OnKingAssignAssault(king_roleid, domain_id, assault_type);
 	}
 };
 

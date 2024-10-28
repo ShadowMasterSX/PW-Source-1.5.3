@@ -19,8 +19,8 @@ namespace GNET
         Skill811Stub ():SkillStub (811)
         {
             cls = 255;
-            name = L"»÷ÍË";
-            nativename = "»÷ÍË";
+            name = L"å‡»é€€";
+            nativename = "å‡»é€€";
             icon = "";
             max_level = 1;
             type = 6;
@@ -41,7 +41,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "´çÁ¦.sgc";
+            effect = "å¯¸åŠ›.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

@@ -132,8 +132,8 @@ namespace GNET
       Skill2200Stub ():SkillStub (2200)
         {
             cls = 127;
-            name = L"魔幻天传送球";
-            nativename = "魔幻天传送球";
+            name = L"榄斿够澶╀紶閫佺悆";
+            nativename = "榄斿够澶╀紶閫佺悆";
             icon = "";
             max_level = 10;
             type = 3;

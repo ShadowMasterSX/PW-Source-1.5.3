@@ -132,8 +132,8 @@ namespace GNET
       Skill696Stub ():SkillStub (696)
         {
             cls = 127;
-            name = L"2级城战BOSS给玩家加元气";
-            nativename = "2级城战BOSS给玩家加元气";
+            name = L"2绾у煄鎴楤OSS缁欑帺瀹跺姞鍏冩皵";
+            nativename = "2绾у煄鎴楤OSS缁欑帺瀹跺姞鍏冩皵";
             icon = "";
             max_level = 5;
             type = 3;
@@ -153,7 +153,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "蓄气.sgc";
+            effect = "钃勬皵.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

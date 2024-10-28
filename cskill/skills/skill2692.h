@@ -133,8 +133,8 @@ namespace GNET
       Skill2692Stub ():SkillStub (2692)
         {
             cls = 127;
-            name = L"´¹Ö±»÷·É";
-            nativename = "´¹Ö±»÷·É";
+            name = L"åž‚ç›´å‡»é£ž";
+            nativename = "åž‚ç›´å‡»é£ž";
             icon = "";
             max_level = 10;
             type = 1;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "1°ÔÍõ±©Å­.sgc";
+            effect = "1éœ¸çŽ‹æš´æ€’.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

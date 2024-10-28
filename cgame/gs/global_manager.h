@@ -90,7 +90,7 @@ public:
 	virtual int HandleMessage(world * pPlane, const MSG& msg);
 	virtual int RecvExternMessage(int msg_tag,const MSG & msg);
 };
-
+/*
 class countryterritory_world_manager : public global_world_manager
 {
 	//首都所在地图及坐标用于玩家下线存盘使用,由delivery通过协议初始化
@@ -161,6 +161,6 @@ public:
 	countryterritory_world_message_handler(global_world_manager * pManager, world * plane):global_world_message_handler(pManager, plane){}
 	virtual ~countryterritory_world_message_handler(){}
 };
-
+*/
 #endif
 

@@ -10,7 +10,7 @@
 #endif
 #include "rolepair"
 #include "db_if.h"
-
+#include "putroleres"
 
 namespace GNET
 {
@@ -29,7 +29,7 @@ class PutRole : public Rpc
 	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
 	{
 		// RolePair2 *arg = (RolePair2 *)argument;
-		RpcRetcode *res = (RpcRetcode *)result;
+		PutRoleRes *res = (PutRoleRes *)result;
 		if(_callback) 
 		{
 			if(res->retcode)
@@ -38,7 +38,12 @@ class PutRole : public Rpc
 			}
 			else
 			{
-				_callback->OnPutRole(0);
+				GDB::PutRoleResData data;
+				data.cash_vip_level    = res->cash_vip_level;
+				data.score_add         = res->score_add;
+				data.score_cost        = res->score_cost;
+				data.score_consume     = res->score_consume;
+				_callback->OnPutRole(0, &data);
 			}
 		}
 	}

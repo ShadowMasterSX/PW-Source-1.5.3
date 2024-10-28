@@ -134,9 +134,9 @@ namespace GNET
       Skill323Stub ():SkillStub (323)
         {
             cls = 3;
-            name = L"ˮ�Ծ�ͨ";
-            nativename = "ˮ�Ծ�ͨ";
-            icon = "ˮ�Ծ�ͨ.dds";
+            name = L"水性精通";
+            nativename = "水性精通";
+            icon = "水性精通.dds";
             max_level = 1;
             type = 5;
             apcost = 0;

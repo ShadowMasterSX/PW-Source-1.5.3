@@ -134,8 +134,8 @@ namespace GNET
       Skill845Stub ():SkillStub (845)
         {
             cls = 127;
-            name = L"木系群体魔伤";
-            nativename = "木系群体魔伤";
+            name = L"鏈ㄧ郴缇や綋榄斾激";
+            nativename = "鏈ㄧ郴缇や綋榄斾激";
             icon = "";
             max_level = 10;
             type = 3;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "万蛊食天.sgc";
+            effect = "涓囪泭椋熷ぉ.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

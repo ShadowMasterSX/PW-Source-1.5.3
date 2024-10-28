@@ -133,9 +133,9 @@ namespace GNET
       Skill194Stub ():SkillStub (194)
         {
             cls = 7;
-            name = L"奇门护甲";
-            nativename = "奇门护甲";
-            icon = "天师护体.dds";
+            name = L"濂囬棬鎶ょ敳";
+            nativename = "濂囬棬鎶ょ敳";
+            icon = "澶╁笀鎶や綋.dds";
             max_level = 1;
             type = 2;
             apcost = 0;
@@ -162,7 +162,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "奇门护甲.sgc";
+            effect = "濂囬棬鎶ょ敳.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

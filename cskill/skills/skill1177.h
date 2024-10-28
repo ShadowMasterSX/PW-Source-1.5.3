@@ -132,8 +132,8 @@ namespace GNET
       Skill1177Stub ():SkillStub (1177)
         {
             cls = 127;
-            name = L"神威狱BOSS自己补血";
-            nativename = "神威狱BOSS自己补血";
+            name = L"绁炲▉鐙盉OSS鑷繁琛ヨ";
+            nativename = "绁炲▉鐙盉OSS鑷繁琛ヨ";
             icon = "";
             max_level = 10;
             type = 2;
@@ -154,7 +154,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "宠物治疗.sgc";
+            effect = "瀹犵墿娌荤枟.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

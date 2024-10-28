@@ -132,8 +132,8 @@ namespace GNET
       Skill2186Stub ():SkillStub (2186)
         {
             cls = 127;
-            name = L" 光之迅捷";
-            nativename = " 光之迅捷";
+            name = L" 鍏変箣杩呮嵎";
+            nativename = " 鍏変箣杩呮嵎";
             icon = "";
             max_level = 10;
             type = 3;

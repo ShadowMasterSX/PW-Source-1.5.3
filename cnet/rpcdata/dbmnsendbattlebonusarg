@@ -1,0 +1,60 @@
+#ifndef __GNET_DBMNSENDBATTLEBONUSARG_RPCDATA
+#define __GNET_DBMNSENDBATTLEBONUSARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "mndomainbonus"
+
+namespace GNET
+{
+	class DBMNSendBattleBonusArg : public GNET::Rpc::Data
+	{
+	public:
+		MNDomainBonus bonus;
+
+	public:
+		DBMNSendBattleBonusArg (const MNDomainBonus& l_bonus = MNDomainBonus())
+			: bonus(l_bonus)
+		{
+		}
+
+		DBMNSendBattleBonusArg(const DBMNSendBattleBonusArg &rhs)
+			: bonus(rhs.bonus) { }
+
+		Rpc::Data *Clone() const { return new DBMNSendBattleBonusArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBMNSendBattleBonusArg *r = dynamic_cast<const DBMNSendBattleBonusArg *>(&rhs);
+			if (r && r != this)
+			{
+				bonus = r->bonus;
+			}
+			return *this;
+		}
+
+		DBMNSendBattleBonusArg& operator = (const DBMNSendBattleBonusArg &rhs)
+		{
+			const DBMNSendBattleBonusArg *r = &rhs;
+			if (r && r != this)
+			{
+				bonus = r->bonus;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << bonus;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> bonus;
+			return os;
+		}
+
+	};
+};
+#endif

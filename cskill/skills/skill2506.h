@@ -133,8 +133,8 @@ namespace GNET
       Skill2506Stub ():SkillStub (2506)
         {
             cls = 127;
-            name = L"’ŸªΩ";
-            nativename = "’ŸªΩ";
+            name = L"Âè¨Âî§";
+            nativename = "Âè¨Âî§";
             icon = "";
             max_level = 10;
             type = 2;

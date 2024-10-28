@@ -132,8 +132,8 @@ namespace GNET
       Skill2431Stub ():SkillStub (2431)
         {
             cls = 127;
-            name = L"强化";
-            nativename = "强化";
+            name = L"寮哄寲";
+            nativename = "寮哄寲";
             icon = "";
             max_level = 10;
             type = 2;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "1宠物治疗.sgc";
+            effect = "1瀹犵墿娌荤枟.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

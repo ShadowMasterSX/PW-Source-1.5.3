@@ -8,6 +8,7 @@
 #include "localmacro.h"
 
 #include "log.h"
+#include "utilfunction.h"
 
 #include "roleid"
 #include "crossinfodata"
@@ -80,7 +81,7 @@ namespace GNET
 		
 		std::string accepted_zones = conf->find("GameDBServer", "accepted_zone_list");
 		std::string cross_zone_pos = conf->find("GameDBServer", "cross_zone_pos");
-		if(IsCentralDB() && !InitAcceptedZoneCrossPos(accepted_zones, cross_zone_pos)) return false;
+		if(/*IsCentralDB() && */!InitAcceptedZoneCrossPos(accepted_zones, cross_zone_pos)) return false;
 		
 		//get occupation information
 		GRoleDetail role;
@@ -183,6 +184,14 @@ namespace GNET
 			gameserver_region.push_back(region);
 		}
 
+		std::string upgrade_str = conf->find("CASHVIP","cash_vip_upgrade_score");
+		std::string reduce_str = conf->find("CASHVIP", "cash_vip_reduce_score");
+		if(0==upgrade_str.size() || 0==reduce_str.size() || !CashVip::LoadVipConfig(upgrade_str, reduce_str))
+		{
+			Log::log( LOG_ERR, "InitGameDB, no cash_vip find in configure file." );
+			return false;
+		}
+		
 		return true;
 	}
 
@@ -669,26 +678,56 @@ namespace GNET
 			return false;
 		}
 
-		if( (zone_list.size() < 2) || (zone_list.size() > 4) )
+		if( (zone_list.size() < 1) ) //|| (zone_list.size() > 4) )
 		{
 			Log::log( LOG_ERR, "InitGameDB, zone list count is invalid." );
 			return false;
 		}
 
-		for(unsigned int i = 0; i < zone_list.size(); ++i)
+		if(zone_pos_list.size() != 4)
 		{
-			int zoneid = atoi(zone_list[i].c_str());
-			point_t tmp_point;
-			int n = sscanf(zone_pos_list[i].c_str(), "%f:%f:%f", 
-				&tmp_point.x, &tmp_point.y, &tmp_point.z);
-			if(n != 3) {
-				Log::log( LOG_ERR, "InitGameDB, cross_zone_pos parse result error." );
+			Log::log( LOG_ERR, "InitGameDB, cross_zone_pos size%d invalid.", zone_pos_list.size());
+			return false;
+		}
+		
+		point_t tmp_point[4];
+		for(int n = 0; n < 4; ++n)
+		{
+			int npos = sscanf(zone_pos_list[n].c_str(), "%f:%f:%f", 
+				&tmp_point[n].x, &tmp_point[n].y, &tmp_point[n].z);
+			if(npos != 3) {
+				Log::log( LOG_ERR, "InitGameDB, cross_zone_pos[%d] parse result error." ,n);
 				return false;
 			}
 
-			zone_pos_map[zoneid] = tmp_point;
 		}
 
+		for(unsigned int i = 0; i < zone_list.size(); ++i)
+		{
+			int zone_group[4] = {0,0,0,0};	
+			int nzone = sscanf(zone_list[i].c_str(),"%d:%d:%d:%d",
+				&zone_group[0],&zone_group[1],&zone_group[2],&zone_group[3]);
+			if(nzone < 2)
+			{
+				if(zone_list.size() == 1) // ¼æÈÝÀÏÅäÖÃ
+				{
+					nzone = 1;
+					zone_group[0] = zoneid;
+				}
+				else
+				{	
+					Log::log( LOG_ERR, "InitGameDB, zone list-%d count is invalid.",i );
+					return false;
+				}
+			}
+
+			for(int n = 0; n < nzone; ++n)
+			{
+				zone_pos_map.insert(std::make_pair(zone_group[n],zone_t(i,tmp_point[n])));
+			}
+		}
+
+		zone_group_count = zone_list.size();
 		return true;
 	}
 };

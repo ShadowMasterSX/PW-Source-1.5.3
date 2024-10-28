@@ -138,9 +138,9 @@ namespace GNET
       Skill2796Stub ():SkillStub (2796)
         {
             cls = 11;
-            name = L"¿ñ¡¤ÍòÀàËªÌì";
-            nativename = "¿ñ¡¤ÍòÀàËªÌì";
-            icon = "Ä§ÍòÀàËªÌì.dds";
+            name = L"ç‹‚Â·ä¸‡ç±»éœœå¤©";
+            nativename = "ç‹‚Â·ä¸‡ç±»éœœå¤©";
+            icon = "é­”ä¸‡ç±»éœœå¤©.dds";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -168,7 +168,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "ÔÂÏÉ_ÍòÀàËªÌì_»÷ÖĞ.sgc";
+            effect = "æœˆä»™_ä¸‡ç±»éœœå¤©_å‡»ä¸­.sgc";
             range.type = 3;
             doenchant = true;
             dobless = false;

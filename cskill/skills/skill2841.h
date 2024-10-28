@@ -19,9 +19,9 @@ namespace GNET
         Skill2841Stub ():SkillStub (2841)
         {
             cls = 11;
-            name = L"�ɵ��µӻ꼼��Ч��";
-            nativename = "�ɵ��µӻ꼼��Ч��";
-            icon = "˷��ӽ.dds";
+            name = L"仙荡月涤魂技能效果";
+            nativename = "仙荡月涤魂技能效果";
+            icon = "朔光咏.dds";
             max_level = 1;
             type = 2;
             apcost = 0;

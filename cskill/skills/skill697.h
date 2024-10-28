@@ -135,8 +135,8 @@ namespace GNET
       Skill697Stub ():SkillStub (697)
         {
             cls = 127;
-            name = L"2¼¶³ÇÕ½BOSS³¬Ç¿Èº¹¥";
-            nativename = "2¼¶³ÇÕ½BOSS³¬Ç¿Èº¹¥";
+            name = L"2çº§åŸæˆ˜BOSSè¶…å¼ºç¾¤æ”»";
+            nativename = "2çº§åŸæˆ˜BOSSè¶…å¼ºç¾¤æ”»";
             icon = "";
             max_level = 5;
             type = 1;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "ºÚ°µÔ¹ÁéÊŞ¼¼ÄÜ.sgc";
+            effect = "é»‘æš—æ€¨çµå…½æŠ€èƒ½.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

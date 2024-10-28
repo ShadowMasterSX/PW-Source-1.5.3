@@ -132,8 +132,8 @@ namespace GNET
       Skill2018Stub ():SkillStub (2018)
         {
             cls = 127;
-            name = L"ÑýÊÞÐþÎä";
-            nativename = "ÑýÊÞÐþÎä";
+            name = L"å¦–å…½çŽ„æ­¦";
+            nativename = "å¦–å…½çŽ„æ­¦";
             icon = "";
             max_level = 10;
             type = 2;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "ÐþÎä¸½Ìå.sgc";
+            effect = "çŽ„æ­¦é™„ä½“.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

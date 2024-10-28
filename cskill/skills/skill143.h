@@ -19,8 +19,8 @@ namespace GNET
         Skill143Stub ():SkillStub (143)
         {
             cls = 255;
-            name = L"定身";
-            nativename = "定身";
+            name = L"瀹氳韩";
+            nativename = "瀹氳韩";
             icon = "";
             max_level = 1;
             type = 6;

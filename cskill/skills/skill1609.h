@@ -133,8 +133,8 @@ namespace GNET
       Skill1609Stub ():SkillStub (1609)
         {
             cls = 127;
-            name = L"ËÄÊÞÒ»¼¶Ëþ°×»¢";
-            nativename = "ËÄÊÞÒ»¼¶Ëþ°×»¢";
+            name = L"å››å…½ä¸€çº§å¡”ç™½è™Ž";
+            nativename = "å››å…½ä¸€çº§å¡”ç™½è™Ž";
             icon = "";
             max_level = 10;
             type = 1;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "ËÄÊÞÒ»¼¶Ëþ°×»¢.sgc";
+            effect = "å››å…½ä¸€çº§å¡”ç™½è™Ž.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

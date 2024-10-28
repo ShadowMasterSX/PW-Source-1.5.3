@@ -134,9 +134,9 @@ namespace GNET
       Skill1809Stub ():SkillStub (1809)
         {
             cls = 1;
-            name = L"ɳ֮�ػ�";
-            nativename = "ɳ֮�ػ�";
-            icon = "ɳ��.dds";
+            name = L"沙之守护";
+            nativename = "沙之守护";
+            icon = "沙暴.dds";
             max_level = 1;
             type = 2;
             apcost = 0;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "��ʦ_ɳ��.sgc";
+            effect = "法师_沙暴.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

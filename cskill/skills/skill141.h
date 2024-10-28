@@ -19,8 +19,8 @@ namespace GNET
         Skill141Stub ():SkillStub (141)
         {
             cls = 255;
-            name = L"ÆÆ¼×";
-            nativename = "ÆÆ¼×";
+            name = L"ç ´ç”²";
+            nativename = "ç ´ç”²";
             icon = "";
             max_level = 1;
             type = 6;
@@ -41,7 +41,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "ÆÆ¼×Ò»»÷.sgc";
+            effect = "ç ´ç”²ä¸€å‡».sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

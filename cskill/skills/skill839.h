@@ -134,8 +134,8 @@ namespace GNET
       Skill839Stub ():SkillStub (839)
         {
             cls = 127;
-            name = L"Ä¾Ïµµ¥ÌåÄ§ÉË";
-            nativename = "Ä¾Ïµµ¥ÌåÄ§ÉË";
+            name = L"æœ¨ç³»å•ä½“é­”ä¼¤";
+            nativename = "æœ¨ç³»å•ä½“é­”ä¼¤";
             icon = "";
             max_level = 10;
             type = 3;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "¾ç¶¾¹Æ.sgc";
+            effect = "å‰§æ¯’è›Š.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

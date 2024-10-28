@@ -16,7 +16,7 @@ class CountryBattleReturnCapital : public GNET::Protocol
 
 	void Process(Manager *manager, Manager::Session::ID sid)
 	{
-		CountryBattleMan::GetInstance()->OnPlayerReturnCapital(roleid);
+		CountryBattleMan::OnPlayerReturnCapital(roleid);
 	}
 };
 

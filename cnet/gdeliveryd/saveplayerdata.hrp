@@ -11,6 +11,7 @@
 #include "senddataandidentity_re.hpp"
 #include "centraldeliveryserver.hpp"
 #include "centraldeliveryclient.hpp"
+#include "crosssystem.h"
 
 namespace GNET
 {
@@ -51,7 +52,8 @@ class SavePlayerData : public Rpc
 				role.referrer_role,
 				role.cash_add,
 				role.reincarnation_data,
-				role.realm_data);
+				role.realm_data,
+				role.rank);
 		
 		Octets roleinfo_pack = (Marshal::OctetsStream() << info);
 		
@@ -70,6 +72,10 @@ class SavePlayerData : public Rpc
 			if(arg->roleid != res->new_roleid) {
 				UserIdentityCache::GetInstance()->UpdateRoleCrsInfo(arg->userid, res->new_roleid);
 			}
+			if(!GDeliveryServer::GetInstance()->IsCentralDS()) {
+				CrossGuardClient::GetInstance()->OnPlayerCross(res->new_roleid,res->cross_type,res->unifid,true);
+			}
+
 		}
 	}
 

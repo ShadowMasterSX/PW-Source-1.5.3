@@ -132,8 +132,8 @@ namespace GNET
       Skill2487Stub ():SkillStub (2487)
         {
             cls = 127;
-            name = L"倒转出生";
-            nativename = "倒转出生";
+            name = L"鍊掕浆鍑虹敓";
+            nativename = "鍊掕浆鍑虹敓";
             icon = "";
             max_level = 10;
             type = 2;

@@ -60,9 +60,9 @@ namespace GNET
       Skill998Stub ():SkillStub (998)
         {
             cls = 258;
-            name = L"Àë»ğÉñ¾÷";
-            nativename = "Àë»ğÉñ¾÷";
-            icon = "Àë»ğÉñ¾÷.dds";
+            name = L"ç¦»ç«ç¥è¯€";
+            nativename = "ç¦»ç«ç¥è¯€";
+            icon = "ç¦»ç«ç¥è¯€.dds";
             max_level = 10;
             type = 1;
             apcost = 146077;
@@ -82,7 +82,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 1;
-            effect = "Àë»ğÉñ¾÷.sgc";
+            effect = "ç¦»ç«ç¥è¯€.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

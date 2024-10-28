@@ -133,8 +133,8 @@ namespace GNET
       Skill2493Stub ():SkillStub (2493)
         {
             cls = 127;
-            name = L"»³¹âÉÈÐÎ";
-            nativename = "»³¹âÉÈÐÎ";
+            name = L"æ€€å…‰æ‰‡å½¢";
+            nativename = "æ€€å…‰æ‰‡å½¢";
             icon = "";
             max_level = 10;
             type = 1;

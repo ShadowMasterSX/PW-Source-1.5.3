@@ -137,9 +137,9 @@ namespace GNET
       Skill248Stub ():SkillStub (248)
         {
             cls = 6;
-            name = L"利齿之矢";
-            nativename = "利齿之矢";
-            icon = "利齿之矢.dds";
+            name = L"鍒╅娇涔嬬煝";
+            nativename = "鍒╅娇涔嬬煝";
+            icon = "鍒╅娇涔嬬煝.dds";
             max_level = 10;
             type = 1;
             apcost = 0;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (13);
             }
-            effect = "利齿之矢.sgc";
+            effect = "鍒╅娇涔嬬煝.sgc";
             range.type = 3;
             doenchant = true;
             dobless = false;

@@ -19,9 +19,9 @@ namespace GNET
         Skill2688Stub ():SkillStub (2688)
         {
             cls = 10;
-            name = L"ëÊ×åÑªÂö";
-            nativename = "ëÊ×åÑªÂö";
-            icon = "Ô¶³Ì¼õÉË.dds";
+            name = L"èƒ§æ—è¡€è„‰";
+            nativename = "èƒ§æ—è¡€è„‰";
+            icon = "è¿œç¨‹å‡ä¼¤.dds";
             max_level = 10;
             type = 5;
             apcost = 0;

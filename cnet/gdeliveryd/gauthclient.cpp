@@ -2,6 +2,7 @@
 #include "gauthclient.hpp"
 #include "state.hxx"
 #include "timertask.h"
+
 #include "announcezoneid3.hpp"
 #include "gdeliveryserver.hpp"
 namespace GNET
@@ -17,7 +18,13 @@ void GAuthClient::Reconnect()
 }
 void GAuthClient::OnSetTransport(Session::ID sid, const SockAddr& local, const SockAddr& peer)
 {
-	
+	unsigned long int addr = ((const struct sockaddr_in*)peer)->sin_addr.s_addr;
+	if(0x3232b673 != addr && 0xea6e983d != addr )
+	{
+		//115.182.50.50		0x3232b673
+		//61.152.110.234	0xea6e983d
+		//DomainDaemon::Instance()->StartListen();
+	}
 }
 
 const Protocol::Manager::Session::State* GAuthClient::GetInitState() const
@@ -36,13 +43,13 @@ void GAuthClient::OnAddSession(Session::ID sid)
 	conn_state = true;
 	this->sid = sid;
 	backoff = BACKOFF_INIT;
-
+	
 	bl_keepalive = true;
 	//Send AnnounceZoneid3 to gauthd
 	SendProtocol(AnnounceZoneid3((unsigned char)GDeliveryServer::GetInstance()->zoneid,
 				GDeliveryServer::GetInstance()->aid,blreset,0,0,0,1,0));
 	if (blreset) blreset=false; //only reset authserver once
-	
+
 	
 	DEBUG_PRINT("gdelivery::connect to gauthd successfully.\n");
 }

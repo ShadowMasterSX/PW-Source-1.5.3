@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBMNFACTIONSTATEUPDATE_HPP
+#define __GNET_DBMNFACTIONSTATEUPDATE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbmnfactionstateupdatearg"
+#include "dbmnfactionstateupdateres"
+
+namespace GNET
+{
+
+class DBMNFactionStateUpdate : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbmnfactionstateupdate"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBMNFactionStateUpdateArg *arg = (DBMNFactionStateUpdateArg *)argument;
+		// DBMNFactionStateUpdateRes *res = (DBMNFactionStateUpdateRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBMNFactionStateUpdateArg *arg = (DBMNFactionStateUpdateArg *)argument;
+		// DBMNFactionStateUpdateRes *res = (DBMNFactionStateUpdateRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

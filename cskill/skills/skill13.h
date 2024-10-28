@@ -137,9 +137,9 @@ namespace GNET
       Skill13Stub ():SkillStub (13)
         {
             cls = 4;
-            name = L"毁天灭地";
-            nativename = "毁天灭地";
-            icon = "毁天灭地.dds";
+            name = L"姣佸ぉ鐏湴";
+            nativename = "姣佸ぉ鐏湴";
+            icon = "姣佸ぉ鐏湴.dds";
             max_level = 10;
             type = 1;
             apcost = 200;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (9);
             }
-            effect = "毁天灭地.sgc";
+            effect = "姣佸ぉ鐏湴.sgc";
             range.type = 2;
             doenchant = false;
             dobless = false;

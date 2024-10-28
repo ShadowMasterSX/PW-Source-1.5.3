@@ -187,6 +187,8 @@ namespace
 				return new target_aggro_special(target_aggro_special::ATAS_NEAR);
 			case CTriggerData::t_hate_farthest:
 				return new target_aggro_special(target_aggro_special::ATAS_FAR);
+			case CTriggerData::t_hate_first_redirected:
+				return new target_aggro_first_redirected();
 		}
 		return NULL;
 	}
@@ -360,6 +362,12 @@ namespace
 				{
 					O_DELIVER_TASK_IN_HATE_LIST* pDT = (O_DELIVER_TASK_IN_HATE_LIST*)(pOperation->pParam);
 					pOP = new op_deliver_task_in_dmglist(pDT->uID,pDT->uIDType,pDT->iRange,pDT->iPlayerNum); 
+				}
+				break;
+			case CTriggerData::o_clear_tower_task_in_region:
+				{
+					O_CLEAR_TOWER_TASK_IN_REGION* pCT =(O_CLEAR_TOWER_TASK_IN_REGION*)(pOperation->pParam);
+					pOP = new op_clear_tower_task_in_region(pCT->zvMin.x,pCT->zvMin.z,pCT->zvMax.x,pCT->zvMax.z);
 				}
 				break;
 

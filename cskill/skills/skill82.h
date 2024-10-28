@@ -134,9 +134,9 @@ namespace GNET
       Skill82Stub ():SkillStub (82)
         {
             cls = 4;
-            name = L"兽王鼓舞";
-            nativename = "兽王鼓舞";
-            icon = "兽王鼓舞.dds";
+            name = L"鍏界帇榧撹垶";
+            nativename = "鍏界帇榧撹垶";
+            icon = "鍏界帇榧撹垶.dds";
             max_level = 10;
             type = 2;
             apcost = 0;
@@ -160,7 +160,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (9);
             }
-            effect = "兽王鼓舞.sgc";
+            effect = "鍏界帇榧撹垶.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

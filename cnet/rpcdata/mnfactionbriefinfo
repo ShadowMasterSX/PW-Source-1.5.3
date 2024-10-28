@@ -1,0 +1,83 @@
+#ifndef __GNET_MNFACTIONBRIEFINFO_RPCDATA
+#define __GNET_MNFACTIONBRIEFINFO_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class MNFactionBriefInfo : public GNET::Rpc::Data
+	{
+	public:
+		unsigned int fid;
+		Octets faction_name;
+		Octets master_name;
+		int zoneid;
+		int credit;
+
+	public:
+		MNFactionBriefInfo (unsigned int l_fid = 0,const Octets& l_faction_name = Octets(),const Octets& l_master_name = Octets()
+			,int l_zoneid = 0,int l_credit = 0)
+			: fid(l_fid),faction_name(l_faction_name),master_name(l_master_name)
+			,zoneid(l_zoneid),credit(l_credit)
+		{
+		}
+
+		MNFactionBriefInfo(const MNFactionBriefInfo &rhs)
+			: fid(rhs.fid),faction_name(rhs.faction_name),master_name(rhs.master_name),
+			zoneid(rhs.zoneid),credit(rhs.credit) { }
+
+		Rpc::Data *Clone() const { return new MNFactionBriefInfo(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const MNFactionBriefInfo *r = dynamic_cast<const MNFactionBriefInfo *>(&rhs);
+			if (r && r != this)
+			{
+				fid = r->fid;
+				faction_name = r->faction_name;
+				master_name = r->master_name;
+				zoneid = r->zoneid;
+				credit = r->credit;
+			}
+			return *this;
+		}
+
+		MNFactionBriefInfo& operator = (const MNFactionBriefInfo &rhs)
+		{
+			const MNFactionBriefInfo *r = &rhs;
+			if (r && r != this)
+			{
+				fid = r->fid;
+				faction_name = r->faction_name;
+				master_name = r->master_name;
+				zoneid = r->zoneid;
+				credit = r->credit;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << fid;
+			os << faction_name;
+			os << master_name;
+			os << zoneid;
+			os << credit;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> fid;
+			os >> faction_name;
+			os >> master_name;
+			os >> zoneid;
+			os >> credit;
+			return os;
+		}
+
+	};
+	typedef GNET::RpcDataVector<MNFactionBriefInfo>	MNFactionBriefInfoVector;
+};
+#endif

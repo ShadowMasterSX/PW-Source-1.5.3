@@ -19,8 +19,8 @@ namespace GNET
         Skill208Stub ():SkillStub (208)
         {
             cls = 255;
-            name = L"¿ñ±©";
-            nativename = "¿ñ±©";
+            name = L"ç‹‚æš´";
+            nativename = "ç‹‚æš´";
             icon = "";
             max_level = 1;
             type = 6;
@@ -41,7 +41,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "°ÔÍõ±©Å­.sgc";
+            effect = "éœ¸çŽ‹æš´æ€’.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

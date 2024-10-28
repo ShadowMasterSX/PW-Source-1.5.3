@@ -132,8 +132,8 @@ namespace GNET
       Skill2042Stub ():SkillStub (2042)
         {
             cls = 127;
-            name = L"99ÏÉboss´«ËÍ";
-            nativename = "99ÏÉboss´«ËÍ";
+            name = L"99ä»™bossä¼ é€";
+            nativename = "99ä»™bossä¼ é€";
             icon = "";
             max_level = 10;
             type = 3;

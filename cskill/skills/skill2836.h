@@ -133,8 +133,8 @@ namespace GNET
       Skill2836Stub ():SkillStub (2836)
         {
             cls = 127;
-            name = L"无式";
-            nativename = "无式";
+            name = L"鏃犲紡";
+            nativename = "鏃犲紡";
             icon = "";
             max_level = 10;
             type = 1;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 1;
-            effect = "夜影_影飞绝_分身自爆01.sgc";
+            effect = "澶滃奖_褰遍缁漘鍒嗚韩鑷垎01.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

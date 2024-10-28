@@ -244,6 +244,26 @@ const char * DataTypeName[DT_MAX+1] =
 	"DT_FASHION_SUITE_ESSENCE",
 	"DT_FASHION_BEST_COLOR_CONFIG",
 	"DT_SIGN_AWARD_CONFIG",
+	"DT_ASTROLABE_ESSENCE",
+	"DT_ASTROLABE_RANDOM_ADDON_ESSENCE",
+
+	"DT_ASTROLABE_INC_INNER_POINT_VALUE_ESSENCE",
+	"DT_ASTROLABE_INC_EXP_ESSENCE",
+	"DT_ITEM_PACKAGE_BY_PROFESSION_ESSENCE",
+	"DT_ASTROLABE_LEVELEXP_CONFIG",
+	"DT_ASTROLABE_ADDON_RANDOM_CONFIG",
+
+	"DT_ASTROLABE_APPEARANCE_CONFIG",
+	"DT_EQUIP_MAKE_HOLE_CONFIG",
+	"DT_SOLO_TOWER_CHALLENGE_LEVEL_CONFIG",
+	"DT_SOLO_TOWER_CHALLENGE_AWARD_PAGE_CONFIG",
+	"DT_SOLO_TOWER_CHALLENGE_AWARD_LIST_CONFIG",
+	
+	"DT_SOLO_TOWER_CHALLENGE_SCORE_COST_CONFIG",
+	"DT_MNFACTION_WAR_CONFIG",
+	"DT_NPC_CROSS_SERVER_SERVICE",
+	"DT_FIREWORKS2_ESSENCE",
+	"DT_FIX_POSITION_TRANSMIT_ESSENCE",
 
 	"DT_MAX",
 };
@@ -544,6 +564,26 @@ elementdataman::elementdataman()
 	type_size_array.push_back(sizeof(FASHION_SUITE_ESSENCE));
 	type_size_array.push_back(sizeof(FASHION_BEST_COLOR_CONFIG));
 	type_size_array.push_back(sizeof(SIGN_AWARD_CONFIG));
+	type_size_array.push_back(sizeof(ASTROLABE_ESSENCE));
+	type_size_array.push_back(sizeof(ASTROLABE_RANDOM_ADDON_ESSENCE));
+
+	type_size_array.push_back(sizeof(ASTROLABE_INC_INNER_POINT_VALUE_ESSENCE));
+	type_size_array.push_back(sizeof(ASTROLABE_INC_EXP_ESSENCE));
+	type_size_array.push_back(sizeof(ITEM_PACKAGE_BY_PROFESSION_ESSENCE));
+	type_size_array.push_back(sizeof(ASTROLABE_LEVELEXP_CONFIG));
+	type_size_array.push_back(sizeof(ASTROLABE_ADDON_RANDOM_CONFIG));
+
+	type_size_array.push_back(sizeof(ASTROLABE_APPEARANCE_CONFIG));
+	type_size_array.push_back(sizeof(EQUIP_MAKE_HOLE_CONFIG));
+	type_size_array.push_back(sizeof(SOLO_TOWER_CHALLENGE_LEVEL_CONFIG));
+	type_size_array.push_back(sizeof(SOLO_TOWER_CHALLENGE_AWARD_PAGE_CONFIG));
+	type_size_array.push_back(sizeof(SOLO_TOWER_CHALLENGE_AWARD_LIST_CONFIG));
+	
+	type_size_array.push_back(sizeof(SOLO_TOWER_CHALLENGE_SCORE_COST_CONFIG));
+	type_size_array.push_back(sizeof(MNFACTION_WAR_CONFIG));
+	type_size_array.push_back(sizeof(NPC_CROSS_SERVER_SERVICE));
+	type_size_array.push_back(sizeof(FIREWORKS2_ESSENCE));
+	type_size_array.push_back(sizeof(FIX_POSITION_TRANSMIT_ESSENCE));
 
 	type_size_array.push_back(sizeof(0));	//DT_MAX
 }
@@ -821,6 +861,77 @@ void elementdataman::add_structure(unsigned int id, FASHION_SUITE_ESSENCE & data
 	fashion_suite_essence_array.push_back(data);	
 	unsigned int pos = fashion_suite_essence_array.size()-1;
 	add_id_index(ID_SPACE_ESSENCE, id, DT_FASHION_SUITE_ESSENCE, pos, &(fashion_suite_essence_array[0]));
+}
+
+void elementdataman::add_structure(unsigned int id, ASTROLABE_ESSENCE & data)
+{
+	const int NUM_ADDON_RANDS = ARRAY_SIZE(data.rands);
+
+	eliminate_zero_item((unsigned char*)data.rands, sizeof(data.rands[0]), NUM_ADDON_RANDS);
+	
+	float r[NUM_ADDON_RANDS];
+	int i = 0;
+	for(i=0; i<NUM_ADDON_RANDS; i++)		r[i] = data.rands[i].probability_rand;
+	NormalizeRandom(r, NUM_ADDON_RANDS);
+	for(i=0; i<NUM_ADDON_RANDS; i++)		data.rands[i].probability_rand = r[i];
+	
+	if (data.pile_num_max == 0)
+		data.pile_num_max = 1;
+
+	astrolabe_essence_array.push_back(data);	
+	unsigned int pos = astrolabe_essence_array.size()-1;
+	add_id_index(ID_SPACE_ESSENCE, id, DT_ASTROLABE_ESSENCE, pos, &(astrolabe_essence_array[0]));
+}
+
+void elementdataman::add_structure(unsigned int id, ASTROLABE_RANDOM_ADDON_ESSENCE & data)
+{
+	if (data.pile_num_max == 0)
+		data.pile_num_max = 1;
+
+	astrolabe_random_addon_essence_array.push_back(data);
+	
+	unsigned int pos = astrolabe_random_addon_essence_array.size()-1;
+	add_id_index(ID_SPACE_ESSENCE, id, DT_ASTROLABE_RANDOM_ADDON_ESSENCE, pos, &(astrolabe_random_addon_essence_array[0]));
+}
+
+void elementdataman::add_structure(unsigned int id, ASTROLABE_INC_INNER_POINT_VALUE_ESSENCE & data)
+{	
+	const int NUM_CONFIG = ARRAY_SIZE(data.increase_probability);
+	float r[NUM_CONFIG];
+	int i = 0;
+	for(i=0; i<NUM_CONFIG; i++)		r[i] = data.increase_probability[i];
+	NormalizeRandom(r, NUM_CONFIG);
+	for(i=0; i<NUM_CONFIG; i++)		data.increase_probability[i] = r[i];
+	
+	if (data.pile_num_max == 0)
+		data.pile_num_max = 1;
+
+	astrolabe_inc_inner_point_value_essence_array.push_back(data);
+	
+	unsigned int pos = astrolabe_inc_inner_point_value_essence_array.size()-1;
+	add_id_index(ID_SPACE_ESSENCE, id, DT_ASTROLABE_INC_INNER_POINT_VALUE_ESSENCE, pos, &(astrolabe_inc_inner_point_value_essence_array[0]));
+}
+
+void elementdataman::add_structure(unsigned int id, ASTROLABE_INC_EXP_ESSENCE & data)
+{
+	if (data.pile_num_max == 0)
+		data.pile_num_max = 1;
+	
+	astrolabe_inc_exp_essence_array.push_back(data);
+	
+	unsigned int pos = astrolabe_inc_exp_essence_array.size()-1;
+	add_id_index(ID_SPACE_ESSENCE, id, DT_ASTROLABE_INC_EXP_ESSENCE, pos, &(astrolabe_inc_exp_essence_array[0]));
+}
+
+void elementdataman::add_structure(unsigned int id, ITEM_PACKAGE_BY_PROFESSION_ESSENCE & data)
+{
+	if (data.pile_num_max == 0)
+		data.pile_num_max = 1;
+
+	item_package_by_profession_essence_array.push_back(data);
+	
+	unsigned int pos = item_package_by_profession_essence_array.size()-1;
+	add_id_index(ID_SPACE_ESSENCE, id, DT_ITEM_PACKAGE_BY_PROFESSION_ESSENCE, pos, &(item_package_by_profession_essence_array[0]));
 }
 
 void elementdataman::add_structure(unsigned int id, FACTION_BUILDING_SUB_TYPE & data)
@@ -1715,6 +1826,91 @@ void elementdataman::add_structure(unsigned int id,	 PLAYER_LEVELEXP_CONFIG & da
 	add_id_index(ID_SPACE_CONFIG, id, DT_PLAYER_LEVELEXP_CONFIG, pos, &(player_levelexp_config_array[0]));
 }
 
+void elementdataman::add_structure(unsigned int id,	 ASTROLABE_LEVELEXP_CONFIG & data)
+{
+	astrolabe_levelexp_config_array.push_back(data);
+	
+	unsigned int pos = astrolabe_levelexp_config_array.size()-1;
+	add_id_index(ID_SPACE_CONFIG, id, DT_ASTROLABE_LEVELEXP_CONFIG, pos, &(astrolabe_levelexp_config_array[0]));
+}
+
+void elementdataman::add_structure(unsigned int id,	 ASTROLABE_ADDON_RANDOM_CONFIG & data)
+{
+	astrolabe_addon_random_config_array.push_back(data);
+	
+	unsigned int pos = astrolabe_addon_random_config_array.size()-1;
+	add_id_index(ID_SPACE_CONFIG, id, DT_ASTROLABE_ADDON_RANDOM_CONFIG, pos, &(astrolabe_addon_random_config_array[0]));
+}
+
+void elementdataman::add_structure(unsigned int id,	 ASTROLABE_APPEARANCE_CONFIG & data)
+{
+	astrolabe_appearance_config_array.push_back(data);
+	
+	unsigned int pos = astrolabe_appearance_config_array.size()-1;
+	add_id_index(ID_SPACE_CONFIG, id, DT_ASTROLABE_APPEARANCE_CONFIG, pos, &(astrolabe_appearance_config_array[0]));
+}
+
+void elementdataman::add_structure(unsigned int id,	 EQUIP_MAKE_HOLE_CONFIG & data)
+{
+	equip_make_hole_config_array.push_back(data);
+	
+	unsigned int pos = equip_make_hole_config_array.size()-1;
+	add_id_index(ID_SPACE_CONFIG, id, DT_EQUIP_MAKE_HOLE_CONFIG, pos, &(equip_make_hole_config_array[0]));
+}
+
+void elementdataman::add_structure(unsigned int id,	 SOLO_TOWER_CHALLENGE_LEVEL_CONFIG & data)
+{
+	for (int i = 0; i < ARRAY_SIZE(data.steps); i++) {
+		eliminate_zero_item((unsigned char*) data.steps[i].playing_method_controller, 
+			sizeof(data.steps[i].playing_method_controller[0]), ARRAY_SIZE(data.steps[i].playing_method_controller));
+	}
+
+	solo_tower_challenge_level_config_array.push_back(data);
+	
+	unsigned int pos = solo_tower_challenge_level_config_array.size()-1;
+	add_id_index(ID_SPACE_CONFIG, id, DT_SOLO_TOWER_CHALLENGE_LEVEL_CONFIG, pos, &(solo_tower_challenge_level_config_array[0]));
+}
+
+void elementdataman::add_structure(unsigned int id,	 SOLO_TOWER_CHALLENGE_AWARD_PAGE_CONFIG & data)
+{	
+	eliminate_zero_item((unsigned char*) data.list, sizeof(data.list[0]), ARRAY_SIZE(data.list));
+
+	int i;
+	float r[ARRAY_SIZE(data.list)];
+	for(i=0; i<ARRAY_SIZE(data.list); i++)	r[i] = data.list[i].probability;
+	NormalizeRandom(r, ARRAY_SIZE(data.list));
+	for(i=0; i<ARRAY_SIZE(data.list); i++)	data.list[i].probability = r[i];
+
+	solo_tower_challenge_award_page_config_array.push_back(data);
+	
+	unsigned int pos = solo_tower_challenge_award_page_config_array.size()-1;
+	add_id_index(ID_SPACE_CONFIG, id, DT_SOLO_TOWER_CHALLENGE_AWARD_PAGE_CONFIG, pos, &(solo_tower_challenge_award_page_config_array[0]));
+}
+
+void elementdataman::add_structure(unsigned int id,	 SOLO_TOWER_CHALLENGE_AWARD_LIST_CONFIG & data)
+{
+	solo_tower_challenge_award_list_config_array.push_back(data);
+	
+	unsigned int pos = solo_tower_challenge_award_list_config_array.size()-1;
+	add_id_index(ID_SPACE_CONFIG, id, DT_SOLO_TOWER_CHALLENGE_AWARD_LIST_CONFIG, pos, &(solo_tower_challenge_award_list_config_array[0]));
+}
+
+void elementdataman::add_structure(unsigned int id, SOLO_TOWER_CHALLENGE_SCORE_COST_CONFIG & data)
+{	
+	solo_tower_challenge_score_cost_config_array.push_back(data);
+
+	unsigned int pos = solo_tower_challenge_score_cost_config_array.size()-1;
+	add_id_index(ID_SPACE_CONFIG, id, DT_SOLO_TOWER_CHALLENGE_SCORE_COST_CONFIG, pos, &(solo_tower_challenge_score_cost_config_array[0]));
+}
+
+void elementdataman::add_structure(unsigned int id, MNFACTION_WAR_CONFIG & data)
+{
+	mnfaction_war_config_array.push_back(data);
+
+	unsigned int pos = mnfaction_war_config_array.size() - 1;
+	add_id_index(ID_SPACE_CONFIG, id, DT_MNFACTION_WAR_CONFIG, pos, &(mnfaction_war_config_array[0]));
+}
+
 void elementdataman::add_structure(unsigned int id,	 FACTION_FORTRESS_CONFIG & data)
 {
 	faction_fortress_config_array.push_back(data);
@@ -2077,6 +2273,26 @@ void elementdataman::add_structure(unsigned int id, FIREWORKS_ESSENCE & data)
 	add_id_index(ID_SPACE_ESSENCE, id, DT_FIREWORKS_ESSENCE, pos, &(fireworks_essence_array[0]));
 }
 
+void elementdataman::add_structure(unsigned int id, FIREWORKS2_ESSENCE & data)
+{
+	if(data.pile_num_max == 0)		data.pile_num_max = 1;
+	
+	fireworks2_essence_array.push_back(data);
+	
+	unsigned int pos = fireworks2_essence_array.size()-1;
+	add_id_index(ID_SPACE_ESSENCE, id, DT_FIREWORKS2_ESSENCE, pos, &(fireworks2_essence_array[0]));
+}
+
+void elementdataman::add_structure(unsigned int id, FIX_POSITION_TRANSMIT_ESSENCE & data)
+{
+	if(data.pile_num_max == 0)		data.pile_num_max = 1;
+	
+	fix_position_transmit_essence_array.push_back(data);
+	
+	unsigned int pos = fix_position_transmit_essence_array.size()-1;
+	add_id_index(ID_SPACE_ESSENCE, id, DT_FIX_POSITION_TRANSMIT_ESSENCE, pos, &(fix_position_transmit_essence_array[0]));
+}
+
 void elementdataman::add_structure(unsigned int id, GOBLIN_ESSENCE & data)
 {
 	goblin_essence_array.push_back(data);
@@ -2400,6 +2616,14 @@ void elementdataman::add_structure(unsigned int id, NPC_FORCE_SERVICE & data)
 
 	unsigned int pos = npc_force_service_array.size()-1;
 	add_id_index(ID_SPACE_ESSENCE, id, DT_NPC_FORCE_SERVICE, pos, &(npc_force_service_array[0]));
+}
+
+void elementdataman::add_structure(unsigned int id, NPC_CROSS_SERVER_SERVICE & data)
+{
+	npc_cross_server_service_array.push_back(data);
+
+	unsigned int pos = npc_cross_server_service_array.size()-1;
+	add_id_index(ID_SPACE_ESSENCE, id, DT_NPC_CROSS_SERVER_SERVICE, pos, &(npc_cross_server_service_array[0]));
 }
 
 void elementdataman::add_structure(unsigned int id, BIBLE_ESSENCE & data)
@@ -3316,6 +3540,27 @@ for(i=0; i<arr.size(); i++)\
 	ADD_HASH_MAP(config, DT_FASHION_BEST_COLOR_CONFIG, fashion_best_color_config_array);
 	ADD_HASH_MAP(config, DT_SIGN_AWARD_CONFIG, sign_award_config_array);
 
+	ADD_HASH_MAP(essence, DT_ASTROLABE_ESSENCE, astrolabe_essence_array);
+	ADD_HASH_MAP(essence, DT_ASTROLABE_RANDOM_ADDON_ESSENCE, astrolabe_random_addon_essence_array);
+	ADD_HASH_MAP(essence, DT_ASTROLABE_INC_INNER_POINT_VALUE_ESSENCE, astrolabe_inc_inner_point_value_essence_array);
+	ADD_HASH_MAP(essence, DT_ASTROLABE_INC_EXP_ESSENCE, astrolabe_inc_exp_essence_array);
+	ADD_HASH_MAP(essence, DT_ITEM_PACKAGE_BY_PROFESSION_ESSENCE, item_package_by_profession_essence_array);
+
+	ADD_HASH_MAP(config,  DT_ASTROLABE_LEVELEXP_CONFIG, astrolabe_levelexp_config_array);
+	ADD_HASH_MAP(config,  DT_ASTROLABE_ADDON_RANDOM_CONFIG, astrolabe_addon_random_config_array);
+	ADD_HASH_MAP(config,  DT_ASTROLABE_APPEARANCE_CONFIG, astrolabe_appearance_config_array);
+	ADD_HASH_MAP(config,  DT_EQUIP_MAKE_HOLE_CONFIG, equip_make_hole_config_array);
+	ADD_HASH_MAP(config,  DT_SOLO_TOWER_CHALLENGE_LEVEL_CONFIG, solo_tower_challenge_level_config_array);
+
+	ADD_HASH_MAP(config,  DT_SOLO_TOWER_CHALLENGE_AWARD_PAGE_CONFIG, solo_tower_challenge_award_page_config_array);
+	ADD_HASH_MAP(config,  DT_SOLO_TOWER_CHALLENGE_AWARD_LIST_CONFIG, solo_tower_challenge_award_list_config_array);
+	ADD_HASH_MAP(config,  DT_SOLO_TOWER_CHALLENGE_SCORE_COST_CONFIG, solo_tower_challenge_score_cost_config_array);
+	ADD_HASH_MAP(config,  DT_MNFACTION_WAR_CONFIG, mnfaction_war_config_array);
+	ADD_HASH_MAP(essence, DT_NPC_CROSS_SERVER_SERVICE, npc_cross_server_service_array);
+
+	ADD_HASH_MAP(essence, DT_FIREWORKS2_ESSENCE, fireworks2_essence_array);
+	ADD_HASH_MAP(essence, DT_FIX_POSITION_TRANSMIT_ESSENCE, fix_position_transmit_essence_array);
+
 #undef ADD_HASH_MAP
 }
 
@@ -3604,6 +3849,27 @@ int elementdataman::save_data(const char * pathname)
 	fashion_best_color_config_array.save(file);
 	sign_award_config_array.save(file);
 
+	astrolabe_essence_array.save(file);
+	astrolabe_random_addon_essence_array.save(file);
+	astrolabe_inc_inner_point_value_essence_array.save(file);
+	astrolabe_inc_exp_essence_array.save(file);
+	item_package_by_profession_essence_array.save(file);
+
+	astrolabe_levelexp_config_array.save(file);
+	astrolabe_addon_random_config_array.save(file);
+	astrolabe_appearance_config_array.save(file);
+	equip_make_hole_config_array.save(file);
+	solo_tower_challenge_level_config_array.save(file);
+
+	solo_tower_challenge_award_page_config_array.save(file);
+	solo_tower_challenge_award_list_config_array.save(file);
+	solo_tower_challenge_score_cost_config_array.save(file);
+	mnfaction_war_config_array.save(file);
+	npc_cross_server_service_array.save(file);
+
+	fireworks2_essence_array.save(file);
+	fix_position_transmit_essence_array.save(file);
+
 	fclose(file);
 	return 0;
 }
@@ -3879,6 +4145,27 @@ int elementdataman::load_data(const char * pathname)
 	if(fashion_suite_essence_array.load(file) != 0) return -1;
 	if(fashion_best_color_config_array.load(file)!=0) return -1;
 	if(sign_award_config_array.load(file)!=0) return -1;
+	
+	if(astrolabe_essence_array.load(file)!=0) return -1;
+	if(astrolabe_random_addon_essence_array.load(file)!=0) return -1;
+	if(astrolabe_inc_inner_point_value_essence_array.load(file)!=0) return -1;
+	if(astrolabe_inc_exp_essence_array.load(file)!=0) return -1;
+	if(item_package_by_profession_essence_array.load(file)!=0) return -1;
+
+	if(astrolabe_levelexp_config_array.load(file)!=0) return -1;
+	if(astrolabe_addon_random_config_array.load(file)!=0) return -1;
+	if(astrolabe_appearance_config_array.load(file)!=0) return -1;
+	if(equip_make_hole_config_array.load(file)!=0) return -1;
+	if(solo_tower_challenge_level_config_array.load(file)!=0) return -1;
+
+	if(solo_tower_challenge_award_page_config_array.load(file)!=0) return -1;
+	if(solo_tower_challenge_award_list_config_array.load(file)!=0) return -1;
+	if(solo_tower_challenge_score_cost_config_array.load(file)!=0) return -1; 
+	if(mnfaction_war_config_array.load(file)!=0) return -1;
+	if(npc_cross_server_service_array.load(file)!=0) return -1;
+
+	if(fireworks2_essence_array.load(file) != 0) return -1;
+	if(fix_position_transmit_essence_array.load(file) != 0) return -1;
 
 	setup_hash_map();
 

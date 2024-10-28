@@ -137,9 +137,9 @@ namespace GNET
       Skill2416Stub ():SkillStub (2416)
         {
             cls = 3;
-            name = L"Ðþ¡¤Ñý²ø»÷";
-            nativename = "Ðþ¡¤Ñý²ø»÷";
-            icon = "Ñý²ø»÷1.dds";
+            name = L"çŽ„Â·å¦–ç¼ å‡»";
+            nativename = "çŽ„Â·å¦–ç¼ å‡»";
+            icon = "å¦–ç¼ å‡»1.dds";
             max_level = 1;
             type = 1;
             apcost = 100;
@@ -167,7 +167,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (292);
             }
-            effect = "1Ñý²ø»÷.sgc";
+            effect = "1å¦–ç¼ å‡».sgc";
             range.type = 0;
             doenchant = true;
             dobless = true;

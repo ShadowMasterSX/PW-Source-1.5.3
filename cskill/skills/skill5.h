@@ -137,9 +137,9 @@ namespace GNET
       Skill5Stub ():SkillStub (5)
         {
             cls = 0;
-            name = L"龙现";
-            nativename = "龙现";
-            icon = "龙现.dds";
+            name = L"榫欑幇";
+            nativename = "榫欑幇";
+            icon = "榫欑幇.dds";
             max_level = 10;
             type = 1;
             apcost = 0;
@@ -178,7 +178,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (9);
             }
-            effect = "龙现.sgc";
+            effect = "榫欑幇.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

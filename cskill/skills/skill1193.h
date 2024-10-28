@@ -133,9 +133,9 @@ namespace GNET
       Skill1193Stub ():SkillStub (1193)
         {
             cls = 127;
-            name = L"·òÆÞÈÎÎñ×¨ÓÃ°Ù·Ö±ÈÉËº¦";
-            nativename = "·òÆÞÈÎÎñ×¨ÓÃ°Ù·Ö±ÈÉËº¦";
-            icon = "±¬ÆÆÈ­.dds";
+            name = L"å¤«å¦»ä»»åŠ¡ä¸“ç”¨ç™¾åˆ†æ¯”ä¼¤å®³";
+            nativename = "å¤«å¦»ä»»åŠ¡ä¸“ç”¨ç™¾åˆ†æ¯”ä¼¤å®³";
+            icon = "çˆ†ç ´æ‹³.dds";
             max_level = 10;
             type = 1;
             apcost = 0;
@@ -154,7 +154,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 1;
-            effect = "ÌìÀ×ÆÆ.sgc";
+            effect = "å¤©é›·ç ´.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

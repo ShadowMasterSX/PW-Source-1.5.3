@@ -20,9 +20,9 @@ class CountryBattleMove : public GNET::Protocol
 	{
 		int ret = -1;
 		if(dest >= 0) {
-			ret = CountryBattleMan::GetInstance()->OnPlayerMove(roleid, dest);
+			ret = CountryBattleMan::OnPlayerMove(roleid, dest);
 		} else {
-			ret = CountryBattleMan::GetInstance()->OnPlayerStopMove(roleid);
+			ret = CountryBattleMan::OnPlayerStopMove(roleid);
 		}
 		
 		CountryBattleMove_Re re(ret, roleid, dest, localsid);

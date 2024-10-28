@@ -134,8 +134,8 @@ namespace GNET
       Skill2484Stub ():SkillStub (2484)
         {
             cls = 127;
-            name = L"随机副本-法术秒杀";
-            nativename = "随机副本-法术秒杀";
+            name = L"闅忔満鍓湰-娉曟湳绉掓潃";
+            nativename = "闅忔満鍓湰-娉曟湳绉掓潃";
             icon = "";
             max_level = 10;
             type = 1;
@@ -157,7 +157,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "巫师_复仇雷霆.sgc";
+            effect = "宸笀_澶嶄粐闆烽渾.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

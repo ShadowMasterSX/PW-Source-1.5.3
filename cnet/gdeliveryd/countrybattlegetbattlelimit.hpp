@@ -17,7 +17,7 @@ class CountryBattleGetBattleLimit : public GNET::Protocol
 
 	void Process(Manager *manager, Manager::Session::ID sid)
 	{
-		CountryBattleMan::GetInstance()->SendBattleLimit(roleid, domain_id);
+		CountryBattleMan::OnPlayerGetBattleLimit(roleid, domain_id);
 	}
 };
 

@@ -133,8 +133,8 @@ namespace GNET
       Skill268Stub ():SkillStub (268)
         {
             cls = 127;
-            name = L"怪物掷石";
-            nativename = "怪物掷石";
+            name = L"鎬墿鎺风煶";
+            nativename = "鎬墿鎺风煶";
             icon = "";
             max_level = 10;
             type = 1;
@@ -154,7 +154,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "怪物掷石.sgc";
+            effect = "鎬墿鎺风煶.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

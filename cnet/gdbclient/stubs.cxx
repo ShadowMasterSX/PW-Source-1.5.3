@@ -46,6 +46,8 @@
 #include "dbgetconsumeinfos.hrp"
 #include "dbmappasswordload.hrp"
 #include "dbmappasswordsave.hrp"
+#include "dbsolochallengerankload.hrp"
+#include "dbsolochallengeranksave.hrp"
 #include "getuserroles.hrp"
 #include "clearstorehousepasswd.hrp"
 #include "canchangerolename.hrp"
@@ -55,6 +57,7 @@
 #include "transactionacquire.hrp"
 #include "transactionabort.hrp"
 #include "transactioncommit.hrp"
+#include "dbplayerrequitefriend.hrp"
 #include "dbgetmaillist.hrp"
 #include "dbgetmail.hrp"
 #include "dbgetmailattach.hrp"
@@ -150,6 +153,7 @@
 #include "dbuniquedatasave.hrp"
 #include "dbplayerrename.hrp"
 #include "dbrolenamelist.hrp"
+#include "dbplayerchangegender.hrp"
 #include "dbkeload.hrp"
 #include "dbkecandidateapply.hrp"
 #include "dbkecandidateconfirm.hrp"
@@ -180,6 +184,17 @@
 #include "dbfactionresourcebattlebonus.hrp"
 #include "dbcopyrole.hrp"
 #include "dbfactionrename.hrp"
+#include "dbmnfactionapplyinfoget.hrp"
+#include "dbmnfactionbattleapply.hrp"
+#include "dbmnfactionapplyresnotify.hrp"
+#include "dbmnsendbattlebonus.hrp"
+#include "dbmnfactioninfoget.hrp"
+#include "dbmnfactionstateupdate.hrp"
+#include "dbmnfactioninfoupdate.hrp"
+#include "dbmndomaininfoupdate.hrp"
+#include "dbmnfactionapplyinfoput.hrp"
+#include "dbmnputbattlebonus.hrp"
+#include "dbmnsendbonusnotify.hrp"
 #include "delroleannounce.hpp"
 #include "dbfriendextlist_re.hpp"
 #include "transbuypoint.hpp"
@@ -188,6 +203,8 @@
 #include "addcash_re.hpp"
 #include "domaincmd_re.hpp"
 #include "debugaddcash.hpp"
+#include "announcezonegroup.hpp"
+#include "mnfactioninfoupdate.hpp"
 
 namespace GNET
 {
@@ -215,7 +232,7 @@ static PutRoleData __stub_PutRoleData (RPC_PUTROLEDATA, new RoleDataPair, new Rp
 static GetRoleData __stub_GetRoleData (RPC_GETROLEDATA, new RoleId, new RoleDataRes);
 static TradeInventory __stub_TradeInventory (RPC_TRADEINVENTORY, new TradeInventoryArg, new TradeInventoryRes);
 static TradeSave __stub_TradeSave (RPC_TRADESAVE, new TradeSaveArg, new TradeSaveRes);
-static PutRole __stub_PutRole (RPC_PUTROLE, new RolePair, new RpcRetcode);
+static PutRole __stub_PutRole (RPC_PUTROLE, new RolePair, new PutRoleRes);
 static GetMoneyInventory __stub_GetMoneyInventory (RPC_GETMONEYINVENTORY, new GetMoneyInventoryArg, new GetMoneyInventoryRes);
 static PutMoneyInventory __stub_PutMoneyInventory (RPC_PUTMONEYINVENTORY, new PutMoneyInventoryArg, new RpcRetcode);
 static GetRoleBaseStatus __stub_GetRoleBaseStatus (RPC_GETROLEBASESTATUS, new RoleId, new GetRoleBaseStatusRes);
@@ -234,6 +251,8 @@ static DBVerifyMaster __stub_DBVerifyMaster (RPC_DBVERIFYMASTER, new DBVerifyMas
 static DBGetConsumeInfos __stub_DBGetConsumeInfos (RPC_DBGETCONSUMEINFOS, new DBGetConsumeInfosArg, new DBGetConsumeInfosRes);
 static DBMapPasswordLoad __stub_DBMapPasswordLoad (RPC_DBMAPPASSWORDLOAD, new DBMapPasswordLoadArg, new DBMapPasswordLoadRes);
 static DBMapPasswordSave __stub_DBMapPasswordSave (RPC_DBMAPPASSWORDSAVE, new DBMapPasswordSaveArg, new DBMapPasswordSaveRes);
+static DBSoloChallengeRankLoad __stub_DBSoloChallengeRankLoad (RPC_DBSOLOCHALLENGERANKLOAD, new DBSoloChallengeRankLoadArg, new DBSoloChallengeRankLoadRes);
+static DBSoloChallengeRankSave __stub_DBSoloChallengeRankSave (RPC_DBSOLOCHALLENGERANKSAVE, new DBSoloChallengeRankSaveArg, new DBSoloChallengeRankSaveRes);
 static GetUserRoles __stub_GetUserRoles (RPC_GETUSERROLES, new GetUserRolesArg, new GetUserRolesRes);
 static ClearStorehousePasswd __stub_ClearStorehousePasswd (RPC_CLEARSTOREHOUSEPASSWD, new ClearStorehousePasswdArg, new RpcRetcode);
 static CanChangeRolename __stub_CanChangeRolename (RPC_CANCHANGEROLENAME, new CanChangeRolenameArg, new CanChangeRolenameRes);
@@ -243,6 +262,7 @@ static Roleid2Uid __stub_Roleid2Uid (RPC_ROLEID2UID, new Roleid2UidArg, new Role
 static TransactionAcquire __stub_TransactionAcquire (RPC_TRANSACTIONACQUIRE, new TransactionTimeout, new TransactionId);
 static TransactionAbort __stub_TransactionAbort (RPC_TRANSACTIONABORT, new TransactionId, new RpcRetcode);
 static TransactionCommit __stub_TransactionCommit (RPC_TRANSACTIONCOMMIT, new TransactionId, new RpcRetcode);
+static DBPlayerRequiteFriend __stub_DBPlayerRequiteFriend (RPC_DBPLAYERREQUITEFRIEND, new DBPlayerRequiteFriendArg, new DBPlayerRequiteFriendRes);
 static DBGetMailList __stub_DBGetMailList (RPC_DBGETMAILLIST, new RoleId, new DBGetMailListRes);
 static DBGetMail __stub_DBGetMail (RPC_DBGETMAIL, new GMailID, new DBGetMailRes);
 static DBGetMailAttach __stub_DBGetMailAttach (RPC_DBGETMAILATTACH, new DBGetMailAttachArg, new DBGetMailAttachRes);
@@ -338,6 +358,7 @@ static DBUniqueDataLoad __stub_DBUniqueDataLoad (RPC_DBUNIQUEDATALOAD, new DBUni
 static DBUniqueDataSave __stub_DBUniqueDataSave (RPC_DBUNIQUEDATASAVE, new DBUniqueDataSaveArg, new DBUniqueDataSaveRes);
 static DBPlayerRename __stub_DBPlayerRename (RPC_DBPLAYERRENAME, new DBPlayerRenameArg, new DBPlayerRenameRes);
 static DBRoleNameList __stub_DBRoleNameList (RPC_DBROLENAMELIST, new DBRoleNameListArg, new DBRoleNameListRes);
+static DBPlayerChangeGender __stub_DBPlayerChangeGender (RPC_DBPLAYERCHANGEGENDER, new DBPlayerChangeGenderArg, new DBPlayerChangeGenderRes);
 static DBKELoad __stub_DBKELoad (RPC_DBKELOAD, new DBKELoadArg, new DBKELoadRes);
 static DBKECandidateApply __stub_DBKECandidateApply (RPC_DBKECANDIDATEAPPLY, new DBKECandidateApplyArg, new DBKECandidateApplyRes);
 static DBKECandidateConfirm __stub_DBKECandidateConfirm (RPC_DBKECANDIDATECONFIRM, new DBKECandidateConfirmArg, new DBKECandidateConfirmRes);
@@ -368,6 +389,17 @@ static DBTankBattleBonus __stub_DBTankBattleBonus (RPC_DBTANKBATTLEBONUS, new DB
 static DBFactionResourceBattleBonus __stub_DBFactionResourceBattleBonus (RPC_DBFACTIONRESOURCEBATTLEBONUS, new DBFactionResourceBattleBonusArg, new DBFactionResourceBattleBonusRes);
 static DBCopyRole __stub_DBCopyRole (RPC_DBCOPYROLE, new DBCopyRoleArg, new RpcRetcode);
 static DBFactionRename __stub_DBFactionRename (RPC_DBFACTIONRENAME, new DBFactionRenameArg, new DBFactionRenameRes);
+static DBMNFactionApplyInfoGet __stub_DBMNFactionApplyInfoGet (RPC_DBMNFACTIONAPPLYINFOGET, new DBMNFactionApplyInfoGetArg, new DBMNFactionApplyInfoGetRes);
+static DBMNFactionBattleApply __stub_DBMNFactionBattleApply (RPC_DBMNFACTIONBATTLEAPPLY, new DBMNFactionBattleApplyArg, new DBMNFactionBattleApplyRes);
+static DBMNFactionApplyResNotify __stub_DBMNFactionApplyResNotify (RPC_DBMNFACTIONAPPLYRESNOTIFY, new DBMNFactionApplyResNotifyArg, new DBMNFactionApplyResNotifyRes);
+static DBMNSendBattleBonus __stub_DBMNSendBattleBonus (RPC_DBMNSENDBATTLEBONUS, new DBMNSendBattleBonusArg, new DBMNSendBattleBonusRes);
+static DBMNFactionInfoGet __stub_DBMNFactionInfoGet (RPC_DBMNFACTIONINFOGET, new DBMNFactionInfoGetArg, new DBMNFactionInfoGetRes);
+static DBMNFactionStateUpdate __stub_DBMNFactionStateUpdate (RPC_DBMNFACTIONSTATEUPDATE, new DBMNFactionStateUpdateArg, new DBMNFactionStateUpdateRes);
+static DBMNFactionInfoUpdate __stub_DBMNFactionInfoUpdate (RPC_DBMNFACTIONINFOUPDATE, new DBMNFactionInfoUpdateArg, new DBMNFactionInfoUpdateRes);
+static DBMNDomainInfoUpdate __stub_DBMNDomainInfoUpdate (RPC_DBMNDOMAININFOUPDATE, new DBMNDomainInfoUpdateArg, new DBMNDomainInfoUpdateRes);
+static DBMNFactionApplyInfoPut __stub_DBMNFactionApplyInfoPut (RPC_DBMNFACTIONAPPLYINFOPUT, new DBMNFactionApplyInfoPutArg, new DBMNFactionApplyInfoPutRes);
+static DBMNPutBattleBonus __stub_DBMNPutBattleBonus (RPC_DBMNPUTBATTLEBONUS, new DBMNPutBattleBonusArg, new DBMNPutBattleBonusRes);
+static DBMNSendBonusNotify __stub_DBMNSendBonusNotify (RPC_DBMNSENDBONUSNOTIFY, new DBMNSendBonusNotifyArg, new DBMNSendBonusNotifyRes);
 static DelRoleAnnounce __stub_DelRoleAnnounce((void*)0);
 static DBFriendExtList_Re __stub_DBFriendExtList_Re((void*)0);
 static TransBuyPoint __stub_TransBuyPoint((void*)0);
@@ -376,5 +408,7 @@ static AddCash __stub_AddCash((void*)0);
 static AddCash_Re __stub_AddCash_Re((void*)0);
 static DomainCmd_Re __stub_DomainCmd_Re((void*)0);
 static DebugAddCash __stub_DebugAddCash((void*)0);
+static AnnounceZoneGroup __stub_AnnounceZoneGroup((void*)0);
+static MNFactionInfoUpdate __stub_MNFactionInfoUpdate((void*)0);
 
 };

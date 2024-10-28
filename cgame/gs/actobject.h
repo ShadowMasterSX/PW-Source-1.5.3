@@ -15,6 +15,7 @@
 #include <glog.h>
 #include "sfilterdef.h"
 #include "moving_action_env.h"
+#include "world.h"
 
 //lgc
 #pragma pack(1)
@@ -193,6 +194,7 @@ class act_session;
 class gactive_imp : public gobject_imp 
 {
 	int	_session_id;
+	bool _session_process;
 protected:
 	int _switch_dest;
 	A3DVECTOR _switch_pos;
@@ -278,8 +280,16 @@ public:
 	float _far_normal_dmg_reduce;	// 远距离普攻伤害减少
 	float _far_skill_dmg_reduce;	// 远距离技能伤害减少
 	float _mount_speed_en;			// 骑乘速度增加值
+    float _exp_sp_factor;           // 额外的经验元神调整系数
+    float _realm_exp_factor;        // 额外的境界经验调整系数
+	int _anti_defense_degree; 		// 无视物防等级
+	int _anti_resistance_degree; 	// 无视法防等级
+	int _infected_skill_id;			// 被动附加状态包
+	int _infected_skill_lvl;		// 
 
 	moving_action_env _moving_action_env;	//移动中可执行的action,仅Player会使用
+
+	plus_enhanced_param _plus_enhanced_param;//附加的数值,此数值在_en_percent和_en_point计算完毕后再计算.
 
 	enum 
 	{
@@ -425,6 +435,7 @@ public:
 	void LoadSetAddon(archive &ar);
 	bool StartSession();
 	bool EndCurSession();
+	bool RepeatSession();
 	void TryStopCurSession();	//试图停止当前的session，不一定成功 ,同时会试图开始
 	bool AddSession(act_session * ses);
 	act_session * GetCurSession() { return _cur_session;}
@@ -696,6 +707,10 @@ public:
 	virtual void EnhanceMountSpeedEn(float sp) {}
 	virtual void ImpairMountSpeedEn(float sp) {}
 	virtual float GetMountSpeedEnhance() const { return _mount_speed_en;}
+	virtual void SetInfectSkill(int skill,int level) { _infected_skill_id = skill; _infected_skill_lvl = level; }
+	virtual int  GetInfectLevel(int skill) { if(_infected_skill_id == skill) return  _infected_skill_lvl ; return -1; }
+	virtual int  UseFireWorks2(char is_cast_action, int target_role_id, int item_type, const char * target_user_name){return -1;}
+	virtual int  AddFixPositionEnergy(int item_id){return -1;}
 
 public:
 	inline void TranslateAttack(const XID & target , attack_msg & attack)
@@ -1256,6 +1271,10 @@ public:
 		float scale = 0.01f*(float)(100 + _en_percent.damage + _en_percent.base_damage + scale_damage);
 		low = (int)(low * scale);
 
+		//计算额外数值,避免en_percent的影响
+		plus_enhanced_param &plus = _plus_enhanced_param;
+		low += plus.damage;
+
 		//返回攻击
 		low = low + point_damage;
 		if(low < 0) low = 0;
@@ -1276,6 +1295,10 @@ public:
 		float scale = 0.01f*(float)(100 + _en_percent.magic_dmg + _en_percent.base_magic + scale_damage);
 		low = (int)(low * scale);
 
+		//计算额外数值,避免en_percent的影响
+		plus_enhanced_param &plus = _plus_enhanced_param;
+		low += plus.magic_dmg;
+		
 		//返回攻击
 		low = low + point_damage;
 		if(low < 0) low = 0;
@@ -1307,6 +1330,10 @@ public:
 		float scale = 0.01f*(float)(100 + _en_percent.damage + _en_percent.base_damage + scale_damage);
 		low = (int)(low * scale);
 
+		//计算额外数值,避免en_percent的影响
+		plus_enhanced_param &plus = _plus_enhanced_param;
+		low += plus.damage;
+
 		//返回攻击
 		low = low + point_damage;
 		if(low < 0) low = 0;
@@ -1324,6 +1351,10 @@ public:
 		float scale = 0.01f*(float)(100 + _en_percent.magic_dmg + _en_percent.base_magic + scale_damage);
 		low = (int)(low * scale);
 
+		//计算额外数值,避免en_percent的影响
+		plus_enhanced_param &plus = _plus_enhanced_param;
+		low += plus.magic_dmg;
+		
 		//返回攻击
 		low = low + point_damage;
 		if(low < 0) low = 0;
@@ -1487,6 +1518,20 @@ public:
     }
 
 	void ClearSubscibeList();
+
+	inline bool IsExistTeamVisibleState(unsigned short state)
+	{
+		size_t count = _visible_team_state.size();
+		for(size_t i = count; i > 0; i--)
+		{
+			size_t index = i-1;
+			if(_visible_team_state[index] == state)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
 protected:
 
 	void Swap(gactive_imp * rhs);
@@ -1824,6 +1869,7 @@ protected:
 
 protected:
 //杂项
+	bool SafeDeleteCurSession();
 	void MH_query_info00(const MSG & msg);
 	void DoHeartbeat(size_t tick);
 	inline void IncHP(int hp_gen)

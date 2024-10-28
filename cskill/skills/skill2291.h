@@ -132,9 +132,9 @@ namespace GNET
       Skill2291Stub ():SkillStub (2291)
         {
             cls = 127;
-            name = L"吸取能量";
-            nativename = "吸取能量";
-            icon = "寒冰领域.dds";
+            name = L"鍚稿彇鑳介噺";
+            nativename = "鍚稿彇鑳介噺";
+            icon = "瀵掑啺棰嗗煙.dds";
             max_level = 10;
             type = 3;
             apcost = 0;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 3;
-            effect = "吸星大法蓝色.sgc";
+            effect = "鍚告槦澶ф硶钃濊壊.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

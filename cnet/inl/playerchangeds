@@ -32,4 +32,4 @@
 
 		int PriorPolicy( ) const { return 1; }
 
-		bool SizePolicy(size_t size) const { return size <= 32; }
+		bool SizePolicy(size_t size) const { return size <= 64; }

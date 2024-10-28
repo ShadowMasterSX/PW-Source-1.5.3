@@ -353,6 +353,13 @@ enum
 //195
 	GM_MSG_ATTACK_CRIT_FEEDBACK,
 	GM_MSG_DELIVER_STORAGE_TASK,       // 发放随机库任务
+    GM_MSG_CHANGE_GENDER_LOGOUT,       // 角色变性成功后下线
+	GM_MSG_CLEAR_TOWER_TASK,           // 清除单人副本任务
+	GM_MSG_CREATE_MNFACTION,	//要求跨服帮派战场服务器创建一个战场的消息，主要用于测试
+//200
+    GM_MSG_LOOKUP_ENEMY,
+    GM_MSG_LOOKUP_ENEMY_REPLY,
+
 //GM所采用的消息	
 	GM_MSG_GM_GETPOS=600,			//取得指定玩家的坐标 param 是 cs_index, content 是sid
 	GM_MSG_GM_MQUERY_MOVE_POS,		//GM要求查询坐标 用于下一步跳转到玩家处 

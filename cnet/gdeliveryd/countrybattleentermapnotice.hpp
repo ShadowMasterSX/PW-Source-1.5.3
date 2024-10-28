@@ -17,9 +17,8 @@ class CountryBattleEnterMapNotice : public GNET::Protocol
 	void Process(Manager *manager, Manager::Session::ID sid)
 	{
 		DEBUG_PRINT("countrybattleentermapnotice, roleid=%d, worldtag=%d", roleid, worldtag);
-		CountryBattleMan* pMan = CountryBattleMan::GetInstance();
-		
-		pMan->OnPlayerEnterMap(roleid, worldtag);
+
+		CountryBattleMan::OnPlayerEnterMap(roleid, worldtag);
 	}
 };
 

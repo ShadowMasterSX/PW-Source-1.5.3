@@ -134,9 +134,9 @@ namespace GNET
       Skill2610Stub ():SkillStub (2610)
         {
             cls = 10;
-            name = L"水月镜花·身外化身";
-            nativename = "水月镜花·身外化身";
-            icon = "身外化身.dds";
+            name = L"姘存湀闀滆姳路韬鍖栬韩";
+            nativename = "姘存湀闀滆姳路韬鍖栬韩";
+            icon = "韬鍖栬韩.dds";
             max_level = 1;
             type = 3;
             apcost = 0;
@@ -160,7 +160,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (44878);
             }
-            effect = "剑灵_身外化身.sgc";
+            effect = "鍓戠伒_韬鍖栬韩.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

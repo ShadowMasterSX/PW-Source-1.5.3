@@ -132,9 +132,9 @@ namespace GNET
       Skill2679Stub ():SkillStub (2679)
         {
             cls = 11;
-            name = L"仙元爆发";
-            nativename = "仙元爆发";
-            icon = "仙元爆发.dds";
+            name = L"浠欏厓鐖嗗彂";
+            nativename = "浠欏厓鐖嗗彂";
+            icon = "浠欏厓鐖嗗彂.dds";
             max_level = 1;
             type = 2;
             apcost = 300;

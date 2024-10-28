@@ -565,6 +565,31 @@ void PlayerTaskInterface::CheckTeamRelationship(int nReason)
 	return _imp->DoTeamRelationTask(nReason);
 }
 
+bool PlayerTaskInterface::HasIconStateID(unsigned long ulIconStateID)
+{
+	return _imp->IsExistTeamVisibleState(ulIconStateID);
+}
+
+void PlayerTaskInterface::OnTowerTaskDeliver(bool bSuccess)
+{
+	_imp->PlayerSoloChallengeStartTask(bSuccess);
+}
+
+void PlayerTaskInterface::OnTowerTaskComplete(bool bSuccess)
+{
+	_imp->PlayerSoloChallengeStageComplete(bSuccess);
+}
+
+void PlayerTaskInterface::DeliverSoloTowerChallengeScore(int score)
+{
+	_imp->PlayerDeliverSoloChallengeScore(score);
+}
+
+int PlayerTaskInterface::GetVIPLevel()
+{
+	return _imp->GetCashVipLevel();
+}
+
 void
 PlayerTaskTeamInterface::SetMarriage(int nPlayer)
 {

@@ -1,0 +1,88 @@
+#ifndef __GNET_DBPLAYERREQUITEFRIENDARG_RPCDATA
+#define __GNET_DBPLAYERREQUITEFRIENDARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "groleinventory"
+
+namespace GNET
+{
+	class DBPlayerRequiteFriendArg : public GNET::Rpc::Data
+	{
+	public:
+		int roleid;
+		int friendid;
+		Octets rolename;
+		int opttype;
+		GRoleInventory item;
+		IntVector mail_list;
+
+	public:
+		DBPlayerRequiteFriendArg (int l_roleid = -1,int l_friendid = -1,const Octets& l_rolename = Octets()
+			,int l_opttype = 0,const GRoleInventory& l_item = GRoleInventory(),const IntVector& l_mail_list = IntVector())
+			: roleid(l_roleid),friendid(l_friendid),rolename(l_rolename)
+			,opttype(l_opttype),item(l_item),mail_list(l_mail_list)
+		{
+		}
+
+		DBPlayerRequiteFriendArg(const DBPlayerRequiteFriendArg &rhs)
+			: roleid(rhs.roleid),friendid(rhs.friendid),rolename(rhs.rolename),
+			opttype(rhs.opttype),item(rhs.item),mail_list(rhs.mail_list) { }
+
+		Rpc::Data *Clone() const { return new DBPlayerRequiteFriendArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBPlayerRequiteFriendArg *r = dynamic_cast<const DBPlayerRequiteFriendArg *>(&rhs);
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				friendid = r->friendid;
+				rolename = r->rolename;
+				opttype = r->opttype;
+				item = r->item;
+				mail_list = r->mail_list;
+			}
+			return *this;
+		}
+
+		DBPlayerRequiteFriendArg& operator = (const DBPlayerRequiteFriendArg &rhs)
+		{
+			const DBPlayerRequiteFriendArg *r = &rhs;
+			if (r && r != this)
+			{
+				roleid = r->roleid;
+				friendid = r->friendid;
+				rolename = r->rolename;
+				opttype = r->opttype;
+				item = r->item;
+				mail_list = r->mail_list;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << roleid;
+			os << friendid;
+			os << rolename;
+			os << opttype;
+			os << item;
+			os << mail_list;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> roleid;
+			os >> friendid;
+			os >> rolename;
+			os >> opttype;
+			os >> item;
+			os >> mail_list;
+			return os;
+		}
+
+	};
+};
+#endif

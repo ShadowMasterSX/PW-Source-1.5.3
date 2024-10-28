@@ -1,24 +1,31 @@
 	public:
 		std::vector<unsigned int> fid_list;
+		std::vector<Octets> fid_master;
+		std::vector<Octets> proclaim;
 		unsigned int localsid;
 		enum { PROTOCOL_TYPE = PROTOCOL_FACTIONLISTONLINE_RE };
 	public:
 		FactionListOnline_Re() { type = PROTOCOL_FACTIONLISTONLINE_RE; }
 		FactionListOnline_Re(void*) : Protocol(PROTOCOL_FACTIONLISTONLINE_RE) { }
-		FactionListOnline_Re (const std::vector<unsigned int>& l_fid_list,unsigned int l_localsid)
-			 : fid_list(l_fid_list),localsid(l_localsid)
+		FactionListOnline_Re (const std::vector<unsigned int>& l_fid_list,const std::vector<Octets>& l_fid_master,const std::vector<Octets>& l_proclaim,
+			unsigned int l_localsid)
+			 : fid_list(l_fid_list),fid_master(l_fid_master),proclaim(l_proclaim)
+			,localsid(l_localsid)
 		{
 			type = PROTOCOL_FACTIONLISTONLINE_RE;
 		}
 
 		FactionListOnline_Re(const FactionListOnline_Re &rhs)
-			: Protocol(rhs),fid_list(rhs.fid_list),localsid(rhs.localsid) { }
+			: Protocol(rhs),fid_list(rhs.fid_list),fid_master(rhs.fid_master),proclaim(rhs.proclaim)
+			,localsid(rhs.localsid) { }
 
 		GNET::Protocol *Clone() const { return new FactionListOnline_Re(*this); }
 
 		OctetsStream& marshal(OctetsStream & os) const
 		{
 			os << fid_list;
+			os << fid_master;
+			os << proclaim;
 			os << localsid;
 			return os;
 		}
@@ -26,6 +33,8 @@
 		const OctetsStream& unmarshal(const OctetsStream &os)
 		{
 			os >> fid_list;
+			os >> fid_master;
+			os >> proclaim;
 			os >> localsid;
 			return os;
 		}

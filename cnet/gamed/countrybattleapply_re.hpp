@@ -50,10 +50,10 @@ class CountryBattleApply_Re : public GNET::Protocol
 			CountryBattleApplyEntry & ent = list[i];
 			//player_join_country(ent.roleid, country_id, country_invalid_timestamp, ent.major_strength, ent.minor_strength, capital_worldtag, capital_posx, capital_posy, capital_posz);
 			Thread::Runnable * task = new PlayerJoinCountryTask(ent.roleid, country_id, country_invalid_timestamp, ent.major_strength, ent.minor_strength, capital_worldtag, capital_posx, capital_posy, capital_posz);
-			if(i%3 == 0)
+			if(i%5 == 0)
 				Thread::Pool::AddTask(task);
 			else
-				Thread::HouseKeeper::AddTimerTask(task, i%3);
+				Thread::HouseKeeper::AddTimerTask(task, i%5);
 		}		
 	}
 };

@@ -5,9 +5,10 @@
 #include "rpcdefs.h"
 #include "callid.hxx"
 #include "state.hxx"
-
+#include "utilfunction.h"
 #include "dbfactionpromotearg"
 #include "dbfactionpromoteres"
+#include "gfactionextenddata"
 
 namespace GNET
 {
@@ -31,6 +32,7 @@ class DBFactionPromote : public Rpc
 			GFactionInfo info;
 			StorageEnv::Storage * puser = StorageEnv::GetStorage("userfaction");
 			StorageEnv::Storage * pinfo = StorageEnv::GetStorage("factioninfo");
+			StorageEnv::Storage * pmnfaction = StorageEnv::GetStorage("mnfactioninfo");
 			StorageEnv::CommonTransaction txn;
 			try{
 				key << arg->roleid;
@@ -87,6 +89,14 @@ class DBFactionPromote : public Rpc
 					Marshal::OctetsStream(puser->find(key, txn)) >> master;
 					master.role = _R_MEMBER;
 					puser->insert(key, Marshal::OctetsStream()<<master, txn);
+
+					if(info.extenddata.size())
+					{
+						GFactionExtendData exdata;
+						Marshal::OctetsStream(info.extenddata) >> exdata;
+						int64_t unifid = exdata.unifid;
+						if(unifid)	IncMNFactionVersion(unifid,pmnfaction,txn);
+					}
 				}
 				res->suprole = its->role;
 				res->newrole = itu->role;

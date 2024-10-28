@@ -19,9 +19,9 @@ namespace GNET
         Skill79Stub ():SkillStub (79)
         {
             cls = 0;
-            name = L"¸«´¸¾«Í¨";
-            nativename = "¸«´¸¾«Í¨";
-            icon = "¸«´¸¾«Í¨.dds";
+            name = L"æ–§é”¤ç²¾é€š";
+            nativename = "æ–§é”¤ç²¾é€š";
+            icon = "æ–§é”¤ç²¾é€š.dds";
             max_level = 10;
             type = 5;
             apcost = 0;

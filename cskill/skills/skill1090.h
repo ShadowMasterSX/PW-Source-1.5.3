@@ -132,8 +132,8 @@ namespace GNET
       Skill1090Stub ():SkillStub (1090)
         {
             cls = 127;
-            name = L"ÑªÀÇÍõĞîÁ¦";
-            nativename = "ÑªÀÇÍõĞîÁ¦";
+            name = L"è¡€ç‹¼ç‹è“„åŠ›";
+            nativename = "è¡€ç‹¼ç‹è“„åŠ›";
             icon = "";
             max_level = 10;
             type = 2;
@@ -154,7 +154,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "¹ÖÎïÖÎÁÆÊõ.sgc";
+            effect = "æ€ªç‰©æ²»ç–—æœ¯.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

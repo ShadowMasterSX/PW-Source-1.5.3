@@ -9,6 +9,7 @@
 #include "freezeplayerdataarg"
 #include "freezeplayerdatares"
 #include "remoteloginquery_re.hpp"
+#include "crosssystem.h"
 
 namespace GNET
 {
@@ -49,6 +50,10 @@ class FreezePlayerData : public Rpc
 			if (res->retcode == ERR_SUCCESS) {
 				pinfo->status = _STATUS_REMOTE_LOGIN;
 				UserContainer::GetInstance().InsertRemoteOnline(arg->userid);
+
+				if(!GDeliveryServer::GetInstance()->IsCentralDS()) {
+					CrossGuardClient::GetInstance()->OnPlayerCross(arg->roleid,res->cross_type,res->unifid,false);
+				}
 			} else {
 				UserContainer::GetInstance().UserLogout(pinfo);
 			}

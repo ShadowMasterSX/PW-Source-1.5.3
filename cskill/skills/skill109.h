@@ -19,9 +19,9 @@ namespace GNET
         Skill109Stub ():SkillStub (109)
         {
             cls = 4;
-            name = L"Ұ�Իظ�";
-            nativename = "Ұ�Իظ�";
-            icon = "Ұ�Իظ�.dds";
+            name = L"野性回复";
+            nativename = "野性回复";
+            icon = "野性回复.dds";
             max_level = 10;
             type = 5;
             apcost = 0;

@@ -132,9 +132,9 @@ namespace GNET
       Skill2202Stub ():SkillStub (2202)
         {
             cls = 255;
-            name = L"投掷巨石";
-            nativename = "投掷巨石";
-            icon = "远程投弹.dds";
+            name = L"鎶曟幏宸ㄧ煶";
+            nativename = "鎶曟幏宸ㄧ煶";
+            icon = "杩滅▼鎶曞脊.dds";
             max_level = 10;
             type = 3;
             apcost = 0;
@@ -191,7 +191,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (44879);
             }
-            effect = "投石车初级_击中.sgc";
+            effect = "鎶曠煶杞﹀垵绾鍑讳腑.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

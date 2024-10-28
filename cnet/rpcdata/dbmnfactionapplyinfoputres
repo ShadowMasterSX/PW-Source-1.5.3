@@ -1,0 +1,58 @@
+#ifndef __GNET_DBMNFACTIONAPPLYINFOPUTRES_RPCDATA
+#define __GNET_DBMNFACTIONAPPLYINFOPUTRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBMNFactionApplyInfoPutRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+
+	public:
+		DBMNFactionApplyInfoPutRes ()
+		{
+		}
+
+		DBMNFactionApplyInfoPutRes(const DBMNFactionApplyInfoPutRes &rhs)
+			: retcode(rhs.retcode) { }
+
+		Rpc::Data *Clone() const { return new DBMNFactionApplyInfoPutRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBMNFactionApplyInfoPutRes *r = dynamic_cast<const DBMNFactionApplyInfoPutRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		DBMNFactionApplyInfoPutRes& operator = (const DBMNFactionApplyInfoPutRes &rhs)
+		{
+			const DBMNFactionApplyInfoPutRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			return os;
+		}
+
+	};
+};
+#endif

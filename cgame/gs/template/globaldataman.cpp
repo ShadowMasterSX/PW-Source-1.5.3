@@ -64,6 +64,7 @@ typedef struct _GSHOP_ITEM
 		unsigned int day; //由位表示是否选择了某一天，可表示周也可表示月，由低到高 bit0-6 周日到周六 bit0-30 1-31号
 		unsigned int status; //物品状态，0无，1新品，2促销，3推荐
 		unsigned int flag; //分类控制
+		unsigned int min_vip_level;//最低VIP级别可购买
 	} buy[4];
 
 	unsigned int idGift;
@@ -71,6 +72,8 @@ typedef struct _GSHOP_ITEM
 	unsigned int iGiftTime;
 	unsigned int iLogPrice;
 	unsigned int owner_npcs[TREASURE_ITEM_OWNER_NPC_COUNT];
+	int buy_times_limit;//限购次数
+	int buy_times_limit_mode;//限购方式 0不限购 1每天限购 2每周限购 3每月限购 4按年限购
 } GSHOP_ITEM;
 #pragma pack(pop, GSHOP_ITEM_PACK)
 
@@ -95,6 +98,19 @@ abase::vector<MALL_ITEM_SERV> & globaldata_getmall2itemservice()
 int globaldata_getmall2timestamp()
 {       
 	return mall2_timestamp;
+}
+
+static abase::vector<MALL_ITEM_SERV>  global_mall3_item_service;
+static int mall3_timestamp = 0;
+
+abase::vector<MALL_ITEM_SERV> & globaldata_getmall3itemservice()
+{       
+	return global_mall3_item_service;
+}
+
+int globaldata_getmall3timestamp()
+{       
+	return mall3_timestamp;
 }
 
 static bool load_malldata(const char * file, abase::vector<MALL_ITEM_SERV> & __global_mall_item_service, int & __mall_timestamp)
@@ -156,6 +172,7 @@ static bool load_malldata(const char * file, abase::vector<MALL_ITEM_SERV> & __g
 				goods.list[j].cash_need = data.buy[j].price;
 				goods.list[j].expire_date_valid = 0; 
 				goods.list[j].expire_time = data.buy[j].time;
+				goods.list[j].min_vip_level = data.buy[j].min_vip_level;
 			}
 
 			goods.gift_id = data.idGift;
@@ -163,6 +180,8 @@ static bool load_malldata(const char * file, abase::vector<MALL_ITEM_SERV> & __g
 			goods.gift_expire_time = data.iGiftTime;
 			goods.gift_log_price = data.iLogPrice;
 			memcpy(goods.spec_owner,data.owner_npcs,sizeof(goods.spec_owner));
+			goods.buy_times_limit = data.buy_times_limit;
+			goods.buy_times_limit_mode = data.buy_times_limit_mode;
 
 			__global_mall_item_service.push_back(goods);
 		}
@@ -177,11 +196,33 @@ static bool load_malldata(const char * file, abase::vector<MALL_ITEM_SERV> & __g
 	return bRst;
 }
 
-bool globaldata_loadserver(const char * file, const char * file2, const char * file3)
+bool globaldata_loadserver(const char * file, const char * file2, const char * file3, const char *file4)
 {
 	if(!load_transdata(file)) return false;
 	if(!load_malldata(file2,global_mall_item_service,mall_timestamp)) return false;
-	return (file3==NULL || strlen(file3)==0) ? true : load_malldata(file3,global_mall2_item_service,mall2_timestamp);
+	bool is_load_file_success = false;
+	if(file3==NULL || strlen(file3)==0)
+	{ 
+		is_load_file_success = true;
+	}
+	else
+	{
+		is_load_file_success = load_malldata(file3,global_mall2_item_service,mall2_timestamp);
+	}
+	if(!is_load_file_success)
+		return false;
+
+	if(file4==NULL || strlen(file4)==0)
+	{ 
+		is_load_file_success = true;
+	}
+	else
+	{
+		is_load_file_success = load_malldata(file4,global_mall3_item_service,mall3_timestamp);
+	}
+	if(!is_load_file_success)
+		return false;
+	return true;
 }
 
 bool globaldata_releaseserver()
@@ -189,5 +230,6 @@ bool globaldata_releaseserver()
 	global_trans_targets_server.clear();
 	global_mall_item_service.clear();
 	global_mall2_item_service.clear();
+	global_mall3_item_service.clear();
 	return true;
 }

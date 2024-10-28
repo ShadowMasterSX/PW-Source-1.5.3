@@ -132,8 +132,8 @@ namespace GNET
       Skill2151Stub ():SkillStub (2151)
         {
             cls = 127;
-            name = L"²¶×½";
-            nativename = "²¶×½";
+            name = L"æ•æ‰";
+            nativename = "æ•æ‰";
             icon = "";
             max_level = 10;
             type = 3;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 15;
-            effect = "ÕæÁé»¤Ìå.sgc";
+            effect = "çœŸçµæŠ¤ä½“.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

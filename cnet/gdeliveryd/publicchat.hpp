@@ -36,7 +36,7 @@ class PublicChat : public GNET::Protocol
 				break;
 			case GN_CHAT_CHANNEL_COUNTRY:
 				{
-					const cs_player_map* pList = CountryBattleMan::GetInstance()->GetCountryOnlinePlayers(roleid);
+					const cs_player_map* pList = CountryBattleMan::OnGetCountryOnlinePlayers(roleid);
 					if(!pList) break;
 					ChatMultiCast chat;
 					chat.channel = channel;

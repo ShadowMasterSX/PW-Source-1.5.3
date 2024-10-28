@@ -135,8 +135,8 @@ namespace GNET
       Skill698Stub ():SkillStub (698)
         {
             cls = 127;
-            name = L"2¼¶³ÇÕ½BOSSÉÈÐÎÆÕ¹¥";
-            nativename = "2¼¶³ÇÕ½BOSSÉÈÐÎÆÕ¹¥";
+            name = L"2çº§åŸŽæˆ˜BOSSæ‰‡å½¢æ™®æ”»";
+            nativename = "2çº§åŸŽæˆ˜BOSSæ‰‡å½¢æ™®æ”»";
             icon = "";
             max_level = 5;
             type = 1;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "¾ç¶¾¹Æ.sgc";
+            effect = "å‰§æ¯’è›Š.sgc";
             range.type = 4;
             doenchant = false;
             dobless = false;

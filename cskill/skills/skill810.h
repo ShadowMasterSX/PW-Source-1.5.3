@@ -19,8 +19,8 @@ namespace GNET
         Skill810Stub ():SkillStub (810)
         {
             cls = 255;
-            name = L"Ê´»ê";
-            nativename = "Ê´»ê";
+            name = L"èš€é­‚";
+            nativename = "èš€é­‚";
             icon = "";
             max_level = 1;
             type = 6;
@@ -41,7 +41,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "¹ÖÎïÅçÒÏËá.sgc";
+            effect = "æ€ªç‰©å–·èšé…¸.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

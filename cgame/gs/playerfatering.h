@@ -5,7 +5,7 @@
 #include "common/packetwrapper.h"
 #include "config.h"
 
-#define PLAYER_FATE_RING_TOP_LEVEL_OPEN	7	//目前开放的最高等级
+#define PLAYER_FATE_RING_TOP_LEVEL_OPEN	8 //目前开放的最高等级
 #define PLAYER_FATE_RING_UPDATE_WEEKDAY 6 //每周的哪一天更新元魂吸取次数
 
 class gplayer_imp;

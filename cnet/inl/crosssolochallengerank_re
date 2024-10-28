@@ -1,0 +1,35 @@
+	public:
+		int retcode;
+		int zoneid;
+		enum { PROTOCOL_TYPE = PROTOCOL_CROSSSOLOCHALLENGERANK_RE };
+	public:
+		CrossSoloChallengeRank_Re() { type = PROTOCOL_CROSSSOLOCHALLENGERANK_RE; }
+		CrossSoloChallengeRank_Re(void*) : Protocol(PROTOCOL_CROSSSOLOCHALLENGERANK_RE) { }
+		CrossSoloChallengeRank_Re (int l_retcode,int l_zoneid)
+			 : retcode(l_retcode),zoneid(l_zoneid)
+		{
+			type = PROTOCOL_CROSSSOLOCHALLENGERANK_RE;
+		}
+
+		CrossSoloChallengeRank_Re(const CrossSoloChallengeRank_Re &rhs)
+			: Protocol(rhs),retcode(rhs.retcode),zoneid(rhs.zoneid) { }
+
+		GNET::Protocol *Clone() const { return new CrossSoloChallengeRank_Re(*this); }
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << zoneid;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> zoneid;
+			return os;
+		}
+
+		int PriorPolicy( ) const { return 1; }
+
+		bool SizePolicy(size_t size) const { return size <= 64; }

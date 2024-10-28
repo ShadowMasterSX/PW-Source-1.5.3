@@ -57,9 +57,9 @@ namespace GNET
       Skill183Stub ():SkillStub (183)
         {
             cls = 1;
-            name = L"般若心经";
-            nativename = "般若心经";
-            icon = "般若心经.dds";
+            name = L"鑸嫢蹇冪粡";
+            nativename = "鑸嫢蹇冪粡";
+            icon = "鑸嫢蹇冪粡.dds";
             max_level = 1;
             type = 2;
             apcost = 200;
@@ -86,7 +86,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "般若心经.sgc";
+            effect = "鑸嫢蹇冪粡.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

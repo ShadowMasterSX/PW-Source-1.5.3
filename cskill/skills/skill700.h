@@ -132,8 +132,8 @@ namespace GNET
       Skill700Stub ():SkillStub (700)
         {
             cls = 127;
-            name = L"2级城战BOSS单体大伤";
-            nativename = "2级城战BOSS单体大伤";
+            name = L"2绾у煄鎴楤OSS鍗曚綋澶т激";
+            nativename = "2绾у煄鎴楤OSS鍗曚綋澶т激";
             icon = "";
             max_level = 5;
             type = 3;
@@ -153,7 +153,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "霸王龙飞.sgc";
+            effect = "闇哥帇榫欓.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

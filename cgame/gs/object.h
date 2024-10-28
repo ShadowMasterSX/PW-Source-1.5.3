@@ -200,6 +200,8 @@ struct gactive_object : public gobject
 		STATE_IN_COMBAT			= 0x00000010,	//Õ½¶·×´Ì¬
 		STATE_MAFIA_PVP_MASK    = 0x00000020,   //°ïÅÉpvp ×´Ì¬
 		STATE_PLAYER_GENDER		= 0x00000040,	// gender
+		STATE_MNFACTION_MASK	= 0x00000080,	//¿ç·þÎ¨Ò»°ïÅÉid
+		STATE_CASH_VIP_MASK     = 0x00000100    //VIP
 	};
 
 	inline bool IsFemale() const

@@ -135,8 +135,8 @@ namespace GNET
       Skill785Stub ():SkillStub (785)
         {
             cls = 127;
-            name = L"1级城战BOSS土系群攻";
-            nativename = "1级城战BOSS土系群攻";
+            name = L"1绾у煄鎴楤OSS鍦熺郴缇ゆ敾";
+            nativename = "1绾у煄鎴楤OSS鍦熺郴缇ゆ敾";
             icon = "";
             max_level = 5;
             type = 1;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "土殇.sgc";
+            effect = "鍦熸畤.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

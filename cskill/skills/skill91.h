@@ -134,9 +134,9 @@ namespace GNET
       Skill91Stub ():SkillStub (91)
         {
             cls = 1;
-            name = L"˪��";
-            nativename = "˪��";
-            icon = "˪��.dds";
+            name = L"霜刃";
+            nativename = "霜刃";
+            icon = "霜刃.dds";
             max_level = 10;
             type = 2;
             apcost = 0;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (292);
             }
-            effect = "˪��.sgc";
+            effect = "霜刃.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

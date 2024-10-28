@@ -95,9 +95,9 @@ namespace GNET
       Skill2340Stub ():SkillStub (2340)
         {
             cls = 255;
-            name = L"ͻϮ";
-            nativename = "ͻϮ";
-            icon = "ͻ��.dds";
+            name = L"突袭";
+            nativename = "突袭";
+            icon = "突击.dds";
             max_level = 10;
             type = 8;
             apcost = 0;

@@ -134,9 +134,9 @@ namespace GNET
       Skill463Stub ():SkillStub (463)
         {
             cls = 1;
-            name = L"�񡤺�¶";
-            nativename = "�񡤺�¶";
-            icon = "��¶2.DDS";
+            name = L"狂·寒露";
+            nativename = "狂·寒露";
+            icon = "寒露2.DDS";
             max_level = 1;
             type = 2;
             apcost = 0;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (292);
             }
-            effect = "2��¶.sgc";
+            effect = "2寒露.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

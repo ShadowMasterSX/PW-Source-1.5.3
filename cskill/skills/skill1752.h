@@ -95,8 +95,8 @@ namespace GNET
       Skill1752Stub ():SkillStub (1752)
         {
             cls = 127;
-            name = L"Ä§¿¹Öä";
-            nativename = "Ä§¿¹Öä";
+            name = L"é­”æŠ—å’’";
+            nativename = "é­”æŠ—å’’";
             icon = "";
             max_level = 1;
             type = 3;
@@ -118,7 +118,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 3;
-            effect = "¹ÖÎïÉÁµçÊõ.sgc";
+            effect = "æ€ªç‰©é—ªç”µæœ¯.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

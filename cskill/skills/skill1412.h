@@ -133,8 +133,8 @@ namespace GNET
       Skill1412Stub ():SkillStub (1412)
         {
             cls = 127;
-            name = L"±ù½ÇÅ£Í·¼¼ÄÜ";
-            nativename = "±ù½ÇÅ£Í·¼¼ÄÜ";
+            name = L"å†°è§’ç‰›å¤´æŠ€èƒ½";
+            nativename = "å†°è§’ç‰›å¤´æŠ€èƒ½";
             icon = "";
             max_level = 10;
             type = 1;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "Ö©ÖëÐ·ÖÕ¼¶_»÷ÖÐ.sgc";
+            effect = "èœ˜è››èŸ¹ç»ˆçº§_å‡»ä¸­.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

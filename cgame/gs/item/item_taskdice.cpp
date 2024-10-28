@@ -5,6 +5,7 @@
 #include "item_taskdice.h"
 #include "../task/taskman.h"
 #include "../player_imp.h"
+#include "../template/itemdataman.h"
 
 DEFINE_SUBSTANCE(item_taskdice,item_body,CLS_ITEM_TASKDICE)
 
@@ -38,5 +39,14 @@ item_taskdice::OnUse(item::LOCATION l,gactive_imp * obj,size_t count)
 	}
 	obj->_runner->error_message(S2C::ERR_CANNOT_USE_ITEM);
 	return -1;
+}
+
+int item_taskdice::generate_task_id()
+{
+	DATA_TYPE datatype;
+	TASKDICE_ESSENCE * ess = (TASKDICE_ESSENCE *)world_manager::GetDataMan().get_data_ptr(_tid, ID_SPACE_ESSENCE, datatype);
+	if(ess == NULL || datatype != DT_TASKDICE_ESSENCE)	return 0;
+	unsigned int dice_index = element_data::RandSelect(&(ess->task_lists[0].probability), sizeof(int)+sizeof(float), sizeof(ess->task_lists)/sizeof(ess->task_lists[0]), element_data::NORMAL(0),element_data::LOWER_TREND);		//¿×¶´µÄÊıÄ¿
+	return ess->task_lists[dice_index].id;
 }
 

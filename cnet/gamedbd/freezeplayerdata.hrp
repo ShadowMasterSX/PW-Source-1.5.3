@@ -6,6 +6,7 @@
 #include "callid.hxx"
 #include "state.hxx"
 
+#include "grolestatus"
 #include "freezeplayerdataarg"
 #include "freezeplayerdatares"
 
@@ -27,15 +28,18 @@ class FreezePlayerData : public Rpc
 		
 		try {
 			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::Storage * pstatus = StorageEnv::GetStorage("status");
 			StorageEnv::CommonTransaction txn;
 			
 			Marshal::OctetsStream role_key;
 			GRoleBase base;
+			GRoleStatus status; 
 			
 			try {
 				role_key << arg->roleid;
 				Marshal::OctetsStream(pbase->find(role_key, txn)) >> base;
-				
+				Marshal::OctetsStream(pstatus->find(role_key, txn)) >> status; 
+
 				base.status = _ROLE_STATUS_CROSS_LOCKED;
 				
 				CrossInfoData info;
@@ -51,6 +55,8 @@ class FreezePlayerData : public Rpc
 
 				base.cross_data = Marshal::OctetsStream() << info;
 	
+				GetRoleVisaDetail(status.extraprop,res->cross_type,res->unifid);
+
 				pbase->insert(role_key, Marshal::OctetsStream() << base, txn);
 			} catch( DbException e ) { 
 				throw; 

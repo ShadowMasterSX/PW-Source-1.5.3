@@ -138,9 +138,9 @@ namespace GNET
       Skill68Stub ():SkillStub (68)
         {
             cls = 0;
-            name = L"Áú·É»÷";
-            nativename = "Áú·É»÷";
-            icon = "°ÔÍõÁú·É.dds";
+            name = L"é¾™é£žå‡»";
+            nativename = "é¾™é£žå‡»";
+            icon = "éœ¸çŽ‹é¾™é£ž.dds";
             max_level = 10;
             type = 1;
             apcost = 100;
@@ -164,7 +164,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (9);
             }
-            effect = "°ÔÍõÁú·É.sgc";
+            effect = "éœ¸çŽ‹é¾™é£ž.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

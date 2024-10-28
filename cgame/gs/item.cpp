@@ -149,6 +149,7 @@ gmatter_item_imp::AttachData(item_data *data)
 gmatter_item_imp::~gmatter_item_imp()
 {
 	if(_data) FreeItem(_data);
+	_data = NULL;
 }
 
 
@@ -327,3 +328,29 @@ bool IsItemForbidSell(int type)
 			return false;
 	}
 }
+
+
+bool IsStoneFit(DATA_TYPE equip_type, unsigned int stone_mask)
+{
+    bool ret = false;
+    unsigned int decoration_mask = (SCS_NECK_CAN_USE | SCS_WAIST_CAN_USE);
+
+    switch (equip_type)
+    {
+        case DT_WEAPON_ESSENCE:
+            ret = ((stone_mask & SCS_WEAPON_CANNOT_USE) == 0);
+            break;
+        case DT_ARMOR_ESSENCE:
+            ret = ((stone_mask & SCS_ARMOR_CANNOT_USE) == 0);
+            break;
+        case DT_DECORATION_ESSENCE:
+            ret = ((stone_mask & decoration_mask) != 0);
+            break;
+        default:
+            break;
+    }
+
+    return ret;
+}
+
+

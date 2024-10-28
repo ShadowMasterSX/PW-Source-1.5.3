@@ -134,8 +134,8 @@ namespace GNET
       Skill147Stub ():SkillStub (147)
         {
             cls = 127;
-            name = L"自爆";
-            nativename = "自爆";
+            name = L"鑷垎";
+            nativename = "鑷垎";
             icon = "";
             max_level = 10;
             type = 1;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "怪物自爆.sgc";
+            effect = "鎬墿鑷垎.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

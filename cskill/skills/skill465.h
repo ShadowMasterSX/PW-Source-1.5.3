@@ -58,9 +58,9 @@ namespace GNET
       Skill465Stub ():SkillStub (465)
         {
             cls = 1;
-            name = L"øÒ°§»Û‘Û";
-            nativename = "øÒ°§»Û‘Û";
-            icon = "»Û‘Û2.dds";
+            name = L"ÁãÇ¬∑Ê∂¶Ê≥Ω";
+            nativename = "ÁãÇ¬∑Ê∂¶Ê≥Ω";
+            icon = "Ê∂¶Ê≥Ω2.dds";
             max_level = 1;
             type = 2;
             apcost = 100;
@@ -87,7 +87,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "2»Û‘Û.sgc";
+            effect = "2Ê∂¶Ê≥Ω.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

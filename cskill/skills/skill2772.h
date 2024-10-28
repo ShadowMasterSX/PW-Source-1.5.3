@@ -58,9 +58,9 @@ namespace GNET
       Skill2772Stub ():SkillStub (2772)
         {
             cls = 10;
-            name = L"啸月";
-            nativename = "啸月";
-            icon = "啸月.dds";
+            name = L"鍟告湀";
+            nativename = "鍟告湀";
+            icon = "鍟告湀.dds";
             max_level = 1;
             type = 2;
             apcost = 30;
@@ -87,7 +87,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "夜影_啸月_击中.sgc";
+            effect = "澶滃奖_鍟告湀_鍑讳腑.sgc";
             range.type = 2;
             doenchant = true;
             dobless = true;

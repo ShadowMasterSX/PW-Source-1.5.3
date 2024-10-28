@@ -57,8 +57,8 @@ namespace GNET
       Skill1900Stub ():SkillStub (1900)
         {
             cls = 127;
-            name = L"ÌáÉı¼¼ÄÜÉËº¦";
-            nativename = "ÌáÉı¼¼ÄÜÉËº¦";
+            name = L"æå‡æŠ€èƒ½ä¼¤å®³";
+            nativename = "æå‡æŠ€èƒ½ä¼¤å®³";
             icon = "";
             max_level = 10;
             type = 4;
@@ -79,7 +79,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "Ò×½î¾­.sgc";
+            effect = "æ˜“ç­‹ç».sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

@@ -13,18 +13,19 @@ namespace GNET
 		unsigned int faction_id;
 		char faction_role;
 		unsigned char faction_pvp_mask;
+		int64_t unifid;
 
 	public:
 		PFactionInfo (int l_roleid = -1,unsigned int l_faction_id = 0,char l_faction_role = -1
-			,unsigned char l_faction_pvp_mask = 0)
+			,unsigned char l_faction_pvp_mask = 0,int64_t l_unifid = 0)
 			: roleid(l_roleid),faction_id(l_faction_id),faction_role(l_faction_role)
-			,faction_pvp_mask(l_faction_pvp_mask)
+			,faction_pvp_mask(l_faction_pvp_mask),unifid(l_unifid)
 		{
 		}
 
 		PFactionInfo(const PFactionInfo &rhs)
 			: roleid(rhs.roleid),faction_id(rhs.faction_id),faction_role(rhs.faction_role),
-			faction_pvp_mask(rhs.faction_pvp_mask) { }
+			faction_pvp_mask(rhs.faction_pvp_mask),unifid(rhs.unifid) { }
 
 		Rpc::Data *Clone() const { return new PFactionInfo(*this); }
 
@@ -37,6 +38,7 @@ namespace GNET
 				faction_id = r->faction_id;
 				faction_role = r->faction_role;
 				faction_pvp_mask = r->faction_pvp_mask;
+				unifid = r->unifid;
 			}
 			return *this;
 		}
@@ -50,6 +52,7 @@ namespace GNET
 				faction_id = r->faction_id;
 				faction_role = r->faction_role;
 				faction_pvp_mask = r->faction_pvp_mask;
+				unifid = r->unifid;
 			}
 			return *this;
 		}
@@ -60,6 +63,7 @@ namespace GNET
 			os << faction_id;
 			os << faction_role;
 			os << faction_pvp_mask;
+			os << unifid;
 			return os;
 		}
 
@@ -69,6 +73,7 @@ namespace GNET
 			os >> faction_id;
 			os >> faction_role;
 			os >> faction_pvp_mask;
+			os >> unifid;
 			return os;
 		}
 

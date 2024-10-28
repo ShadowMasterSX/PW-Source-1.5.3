@@ -57,8 +57,8 @@ namespace GNET
       Skill1754Stub ():SkillStub (1754)
         {
             cls = 127;
-            name = L"修罗道_全场BUFF";
-            nativename = "修罗道_全场BUFF";
+            name = L"淇綏閬揰鍏ㄥ満BUFF";
+            nativename = "淇綏閬揰鍏ㄥ満BUFF";
             icon = "";
             max_level = 1;
             type = 4;

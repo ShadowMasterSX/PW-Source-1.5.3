@@ -19,9 +19,9 @@ namespace GNET
         Skill1080Stub ():SkillStub (1080)
         {
             cls = 5;
-            name = L"ذ�׾�ͨ";
-            nativename = "ذ�׾�ͨ";
-            icon = "ذ�׾�ͨ.dds";
+            name = L"匕首精通";
+            nativename = "匕首精通";
+            icon = "匕首精通.dds";
             max_level = 10;
             type = 5;
             apcost = 0;

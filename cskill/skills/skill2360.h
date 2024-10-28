@@ -132,9 +132,9 @@ namespace GNET
       Skill2360Stub ():SkillStub (2360)
         {
             cls = 255;
-            name = L"½ûïÀ";
-            nativename = "½ûïÀ";
-            icon = "Ì±»¾.dds";
+            name = L"ç¦é”¢";
+            nativename = "ç¦é”¢";
+            icon = "ç˜«ç—ª.dds";
             max_level = 10;
             type = 3;
             apcost = 0;

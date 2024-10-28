@@ -64,7 +64,20 @@ enum WeaponClass {
 	WEAPONCLASS_SCYTHE	 = 44879,
 	WEAPONCLASS_FEATHER  = 65535
 };
-	
+
+enum CashResurrectBuff
+{
+    GIANT,
+    BLESSMAGIC,
+    STONESKIN,
+    INCRESIST,
+    INCHP,
+    IRONSHIELD,
+
+    BUFF_COUNT,
+};
+
+
 #define IS_RANGE_WEAPON(wt)	(wt == WEAPONCLASS_BOW || wt == WEAPONCLASS_WAND || wt ==  WEAPONCLASS_TALISMAN || wt == WEAPONCLASS_SCYTHE)
 
 class Skill;
@@ -254,7 +267,7 @@ public:
 	int Learn( ID id, object_interface player );	// 返回新的级别，错误返回-1
 	int Learn( ID id, object_interface player, int level );
 	int Remove(ID id);   // 0 成功， 1 未找到， 2 不能删除
-	void GodEvilConvert(std::map<int,int>& convert_table, object_interface player, int weapon_class, int form);	//仙魔转换
+	void GodEvilConvert(std::map<int,int>& convert_table, object_interface player, int weapon_class, int form, int worldtag);	//仙魔转换
 	void ActivateDynSkill(ID id, int counter);
 	void DeactivateDynSkill(ID id, int counter);
 	int GetDynSkillCounter(ID id);
@@ -307,6 +320,10 @@ public:
 	// 主动攻击效果计算
 	bool Attack(object_interface target, const XID&, const A3DVECTOR&,const attack_msg& msg, bool invader);
 	bool Attack(object_interface target, const XID&, const A3DVECTOR&,const enchant_msg& msg, bool invader );
+	// 被动附加的状态包
+	bool Infect(object_interface target, const XID&, const A3DVECTOR&,const attack_msg& msg, bool invader);
+	bool Infect(object_interface target, const XID&, const A3DVECTOR&,const enchant_msg& msg, bool invader );
+
 	// 被动技能，人物初始化
 	bool EventReset(object_interface player);
 	// 被动技能，人物初始化
@@ -317,6 +334,9 @@ public:
 	bool EventUnwield(object_interface player, int weapon_class );
 	// 被动技能，变身
 	bool EventChange(object_interface player, int from, int to);
+	// 被动技能，场景进入
+	bool EventEnter(object_interface player,int worldtag );
+	bool EventLeave(object_interface player,int worldtag );
 
 	// 返回值为下次调用时间间隔(毫秒),-1表示结束
 	int NpcStart(ID id, object_interface npc, int level, const XID * target, int size, int& next_interval);
@@ -395,6 +415,7 @@ public:
 	int  GetComboSkillArg(int index) { return combo_state.GetArg(index);}
 	void SetComboState(ID id, int stime,int type,int ex) { combo_state.SetState(id,stime,type,ex); }
 	void SetComboState(ID id) { combo_state.skillid = id; }
+	ID   GetComboState() const { return combo_state.skillid; }
 	void SyncComboState(object_interface player);
 	void ClearComboState() { combo_state.Clear();}
 	bool CheckComboBreak(int now, bool sflag) { return combo_state.Break(now,sflag);}
@@ -402,7 +423,10 @@ public:
 
 	int  GetBlackWhiteBalls() { return black_white_ball.GetIndex(); }
 	bool AddBlackWhiteBalls(int ball, int& new_vstate, int& old_vstate, int& hstate); 
-	bool FlipBlackWhiteBalls(int& new_vstate, int& old_vstate, int& hstate); 
+	bool FlipBlackWhiteBalls(int& new_vstate, int& old_vstate, int& hstate);
+	void SoloChallengeAddFilter(object_interface player, int filter_id, float *param);
+	void MnFactionAddFilter(object_interface player, float ratio);
+    void ResurrectByCashAddFilter(object_interface player, int buff_period, const float* buff_ratio, int buff_size);
 
 	virtual ~SkillWrapper(){}
 };

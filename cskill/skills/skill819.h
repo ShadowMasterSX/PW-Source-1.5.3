@@ -57,8 +57,8 @@ namespace GNET
       Skill819Stub ():SkillStub (819)
         {
             cls = 127;
-            name = L"ÎïÆ·¼¼ÄÜ-ÉñÖ®Ò©¼Á";
-            nativename = "ÎïÆ·¼¼ÄÜ-ÉñÖ®Ò©¼Á";
+            name = L"ç‰©å“æŠ€èƒ½-ç¥ä¹‹è¯å‰‚";
+            nativename = "ç‰©å“æŠ€èƒ½-ç¥ä¹‹è¯å‰‚";
             icon = "";
             max_level = 10;
             type = 4;
@@ -78,7 +78,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "¼²ÔÆ²½.sgc";
+            effect = "ç–¾äº‘æ­¥.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

@@ -133,8 +133,8 @@ namespace GNET
       Skill948Stub ():SkillStub (948)
         {
             cls = 127;
-            name = L"陷阱.单体血上限";
-            nativename = "陷阱.单体血上限";
+            name = L"闄烽槺.鍗曚綋琛�涓婇檺";
+            nativename = "闄烽槺.鍗曚綋琛�涓婇檺";
             icon = "";
             max_level = 10;
             type = 3;
@@ -154,7 +154,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "海纳百川.sgc";
+            effect = "娴风撼鐧惧窛.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

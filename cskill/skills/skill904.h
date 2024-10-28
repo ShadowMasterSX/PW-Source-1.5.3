@@ -58,9 +58,9 @@ namespace GNET
       Skill904Stub ():SkillStub (904)
         {
             cls = 1;
-            name = L"真元护体";
-            nativename = "真元护体";
-            icon = "真元护体.dds";
+            name = L"鐪熷厓鎶や綋";
+            nativename = "鐪熷厓鎶や綋";
+            icon = "鐪熷厓鎶や綋.dds";
             max_level = 1;
             type = 2;
             apcost = 0;
@@ -86,7 +86,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "五行之护.sgc";
+            effect = "浜旇涔嬫姢.sgc";
             range.type = 0;
             doenchant = true;
             dobless = true;

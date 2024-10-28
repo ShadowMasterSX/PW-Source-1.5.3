@@ -19,9 +19,9 @@ namespace GNET
         Skill14Stub ():SkillStub (14)
         {
             cls = 4;
-            name = L"£ª";
-            nativename = "£ª";
-            icon = "ÊÉÑª.dds";
+            name = L"ï¼Š";
+            nativename = "ï¼Š";
+            icon = "å™¬è¡€.dds";
             max_level = 3;
             type = 3;
             apcost = 0;
@@ -43,7 +43,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (9);
             }
-            effect = "ÊÉÑª.sgc";
+            effect = "å™¬è¡€.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

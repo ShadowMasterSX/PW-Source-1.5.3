@@ -135,9 +135,9 @@ namespace GNET
       Skill797Stub ():SkillStub (797)
         {
             cls = 127;
-            name = L"¶áÃü";
-            nativename = "¶áÃü";
-            icon = "³èÎï¶áÃü.dds";
+            name = L"å¤ºå‘½";
+            nativename = "å¤ºå‘½";
+            icon = "å® ç‰©å¤ºå‘½.dds";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -157,7 +157,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "¹ÖÎïÎüÑªÊõ.sgc";
+            effect = "æ€ªç‰©å¸è¡€æœ¯.sgc";
             range.type = 0;
             doenchant = false;
             dobless = true;

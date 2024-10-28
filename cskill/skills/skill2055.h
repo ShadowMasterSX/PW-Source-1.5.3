@@ -133,8 +133,8 @@ namespace GNET
       Skill2055Stub ():SkillStub (2055)
         {
             cls = 127;
-            name = L"ÖÕµã";
-            nativename = "ÖÕµã";
+            name = L"ç»ˆç‚¹";
+            nativename = "ç»ˆç‚¹";
             icon = "";
             max_level = 10;
             type = 1;

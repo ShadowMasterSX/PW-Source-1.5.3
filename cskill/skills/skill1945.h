@@ -133,8 +133,8 @@ namespace GNET
       Skill1945Stub ():SkillStub (1945)
         {
             cls = 127;
-            name = L"ÖòÁú¼¼ÄÜ";
-            nativename = "ÖòÁú¼¼ÄÜ";
+            name = L"çƒ›é¾™æŠ€èƒ½";
+            nativename = "çƒ›é¾™æŠ€èƒ½";
             icon = "";
             max_level = 10;
             type = 1;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "¹ÖÎï»ğÇòÊõ.sgc";
+            effect = "æ€ªç‰©ç«çƒæœ¯.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

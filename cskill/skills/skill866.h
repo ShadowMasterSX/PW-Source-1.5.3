@@ -132,8 +132,8 @@ namespace GNET
       Skill866Stub ():SkillStub (866)
         {
             cls = 127;
-            name = L"群体羽盾";
-            nativename = "群体羽盾";
+            name = L"缇や綋缇界浘";
+            nativename = "缇や綋缇界浘";
             icon = "";
             max_level = 10;
             type = 3;
@@ -153,7 +153,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "城战boss升级.sgc";
+            effect = "鍩庢垬boss鍗囩骇.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

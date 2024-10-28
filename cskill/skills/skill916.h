@@ -58,9 +58,9 @@ namespace GNET
       Skill916Stub ():SkillStub (916)
         {
             cls = 6;
-            name = L"…Ò”•±”””";
-            nativename = "…Ò”•±”””";
-            icon = "…Ò”•±”””.dds";
+            name = L"Á•ûÈπ∞Â∫á‰Ωë";
+            nativename = "Á•ûÈπ∞Â∫á‰Ωë";
+            icon = "Á•ûÈπ∞Â∫á‰Ωë.dds";
             max_level = 1;
             type = 2;
             apcost = 0;
@@ -104,7 +104,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "«·¡È.sgc";
+            effect = "ËΩªÁÅµ.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

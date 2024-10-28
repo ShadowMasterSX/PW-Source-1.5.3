@@ -19,8 +19,8 @@ namespace GNET
         Skill1085Stub ():SkillStub (1085)
         {
             cls = 5;
-            name = L"ÈçÀ´ÌìĞÄ£¨Ğ§¹û×¨ÓÃ£©";
-            nativename = "ÈçÀ´ÌìĞÄ£¨Ğ§¹û×¨ÓÃ£©";
+            name = L"å¦‚æ¥å¤©å¿ƒï¼ˆæ•ˆæœä¸“ç”¨ï¼‰";
+            nativename = "å¦‚æ¥å¤©å¿ƒï¼ˆæ•ˆæœä¸“ç”¨ï¼‰";
             icon = "";
             max_level = 1;
             type = 1;
@@ -45,7 +45,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (23749);
             }
-            effect = "´Ì¿Í_ÈçÀ´ÌìĞÄÖä.sgc";
+            effect = "åˆºå®¢_å¦‚æ¥å¤©å¿ƒå’’.sgc";
             range.type = 5;
             doenchant = false;
             dobless = false;

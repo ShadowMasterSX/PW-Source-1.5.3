@@ -133,8 +133,8 @@ namespace GNET
       Skill2500Stub ():SkillStub (2500)
         {
             cls = 127;
-            name = L"Í¨ÓÃÏİÚå¡¤ÍÁ";
-            nativename = "Í¨ÓÃÏİÚå¡¤ÍÁ";
+            name = L"é€šç”¨é™·é˜±Â·åœŸ";
+            nativename = "é€šç”¨é™·é˜±Â·åœŸ";
             icon = "";
             max_level = 10;
             type = 1;

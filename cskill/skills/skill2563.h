@@ -136,9 +136,9 @@ namespace GNET
       Skill2563Stub ():SkillStub (2563)
         {
             cls = 10;
-            name = L"长风";
-            nativename = "长风";
-            icon = "长风.dds";
+            name = L"闀块";
+            nativename = "闀块";
+            icon = "闀块.dds";
             max_level = 10;
             type = 1;
             apcost = 0;
@@ -162,7 +162,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (44878);
             }
-            effect = "夜影_长风_击中.sgc";
+            effect = "澶滃奖_闀块_鍑讳腑.sgc";
             range.type = 4;
             doenchant = true;
             dobless = false;

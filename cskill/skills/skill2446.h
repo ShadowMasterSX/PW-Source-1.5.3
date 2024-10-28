@@ -19,9 +19,9 @@ namespace GNET
         Skill2446Stub ():SkillStub (2446)
         {
             cls = 255;
-            name = L"五德终始";
-            nativename = "五德终始";
-            icon = "全系防御提高.dds";
+            name = L"浜斿痉缁堝";
+            nativename = "浜斿痉缁堝";
+            icon = "鍏ㄧ郴闃插尽鎻愰珮.dds";
             max_level = 10;
             type = 5;
             apcost = 0;

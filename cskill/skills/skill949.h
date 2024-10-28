@@ -133,8 +133,8 @@ namespace GNET
       Skill949Stub ():SkillStub (949)
         {
             cls = 127;
-            name = L"陷阱.单体暴击减唱";
-            nativename = "陷阱.单体暴击减唱";
+            name = L"闄烽槺.鍗曚綋鏆村嚮鍑忓敱";
+            nativename = "闄烽槺.鍗曚綋鏆村嚮鍑忓敱";
             icon = "";
             max_level = 10;
             type = 3;
@@ -154,7 +154,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "巨灵神力.sgc";
+            effect = "宸ㄧ伒绁炲姏.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

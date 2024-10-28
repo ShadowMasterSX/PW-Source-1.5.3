@@ -56,9 +56,9 @@ namespace GNET
       Skill2119Stub ():SkillStub (2119)
         {
             cls = 127;
-            name = L"¿ñÈÈ×¨ÓÃ";
-            nativename = "¿ñÈÈ×¨ÓÃ";
-            icon = "³èÎï¹ÄÎè.dds";
+            name = L"ç‹‚çƒ­ä¸“ç”¨";
+            nativename = "ç‹‚çƒ­ä¸“ç”¨";
+            icon = "å® ç‰©é¼“èˆ.dds";
             max_level = 10;
             type = 10;
             apcost = 0;
@@ -79,7 +79,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "Ç§½ï´¸.sgc";
+            effect = "åƒæ–¤é”¤.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

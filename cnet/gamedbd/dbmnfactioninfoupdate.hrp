@@ -1,0 +1,78 @@
+
+#ifndef __GNET_DBMNFACTIONINFOUPDATE_HPP
+#define __GNET_DBMNFACTIONINFOUPDATE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "gamedbmanager.h"
+
+#include "dbmnfactioninfoupdatearg"
+#include "dbmnfactioninfoupdateres"
+
+
+namespace GNET
+{
+
+class DBMNFactionInfoUpdate : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbmnfactioninfoupdate"
+#undef	RPC_BASECLASS
+
+    void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+    {
+        DBMNFactionInfoUpdateArg *arg = (DBMNFactionInfoUpdateArg *)argument;
+        DBMNFactionInfoUpdateRes *res = (DBMNFactionInfoUpdateRes *)result;
+
+        // only on central db
+        if (!GameDBManager::GetInstance()->IsCentralDB()) return;
+
+        try
+        {
+            StorageEnv::Storage* pmnfaction = StorageEnv::GetStorage("mnfactioninfo");
+            StorageEnv::AtomTransaction txn;
+
+            try
+            {
+                MNFactionInfoVector::const_iterator iter = arg->factioninfo_list.begin(), iter_end = arg->factioninfo_list.end();
+                for (; iter != iter_end; ++iter)
+                {
+                    pmnfaction->insert((Marshal::OctetsStream() << (iter->unifid)),
+                                       (Marshal::OctetsStream() << (*iter)),
+                                       txn);
+                }
+
+                res->retcode = ERR_SUCCESS;
+            }
+            catch (DbException e) {throw;}
+            catch (...)
+            {
+                DbException e(DB_OLD_VERSION);
+                txn.abort(e);
+                throw e;
+            }
+        }
+        catch (DbException e)
+        {
+            Log::log(LOG_ERR, "DBMNFactionInfoUpdate, what=%s.\n", e.what());
+        }
+    }
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBMNFactionInfoUpdateArg *arg = (DBMNFactionInfoUpdateArg *)argument;
+		// DBMNFactionInfoUpdateRes *res = (DBMNFactionInfoUpdateRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

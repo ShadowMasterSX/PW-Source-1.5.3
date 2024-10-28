@@ -21,6 +21,8 @@ namespace GNET
 		GFriendInfoVector friends; 
 		GFriendExtInfoVector friendextinfo;
 		GSendAUMailRecordVector sendaumailinfo;
+        GEnemyListVector enemylistinfo;
+
 	public:
 		LogoutRoleTask(PlayerInfo& user)
 		{
@@ -32,6 +34,7 @@ namespace GNET
 				friends.swap(user.friends);
 				friendextinfo.swap(user.friendextinfo);
 				sendaumailinfo.swap(user.sendaumailinfo);
+                enemylistinfo.swap(user.enemylistinfo);
 			}
 		}
 		~LogoutRoleTask(){}
@@ -62,6 +65,7 @@ namespace GNET
 				pair.value.friends.swap(friends); 
 				pair.extra_info.swap(friendextinfo);
 				pair.sendmail_info.swap(sendaumailinfo);
+                pair.enemylist_info.swap(enemylistinfo);
 				PutFriendList* rpc = (PutFriendList*) Rpc::Call(RPC_PUTFRIENDLIST,pair);
 				GameDBClient::GetInstance()->SendProtocol(rpc);
 			}

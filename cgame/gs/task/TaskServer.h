@@ -103,10 +103,11 @@ void OnTaskCheckPQEnterWorldInit(TaskInterface* pTask, unsigned long ulTaskId);
 void OnTaskLeaveForce(TaskInterface* pTask);
 
 enum{
-	EX_TK_SENDAUMAIL_LEVEL1 = 1,
+	EX_TK_SENDAUMAIL_LEVEL1 = 1,	//	向AU发送召回好友邮件奖励1（依赖好友未登录天数）
 	EX_TK_SENDAUMAIL_LEVEL2 = 2,
 	EX_TK_SENDAUMAIL_LEVEL3 = 3,
-	EX_TK_SENDAUMAIL_EXAWARD = 4,
+	EX_TK_SENDAUMAIL_EXAWARD = 4,	//	向AU发送召回好友邮件数目奖励（依赖发送邮件数目）
+	EX_TK_WELCOMBACK_REWARD	= 5,	//	上线回复召回邮件时收到的系统欢迎回归奖励
 };
 // 
 void OnTaskExternEvent(TaskInterface* pTask, int Event);
@@ -122,6 +123,9 @@ void OnTaskTitle(TaskInterface* pTask, unsigned long ulTaskID);
 
 // 不通过NPC触发任务
 void OnTaskManualTrig(TaskInterface* pTask,unsigned long ulTaskId, bool bNotifyErr=true);
+
+// 清除所有的爬塔任务
+void ClearAllTowerTask(TaskInterface* pTask);
 
 #endif
 

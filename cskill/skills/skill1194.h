@@ -132,8 +132,8 @@ namespace GNET
       Skill1194Stub ():SkillStub (1194)
         {
             cls = 127;
-            name = L"节日玩家增强buff";
-            nativename = "节日玩家增强buff";
+            name = L"鑺傛棩鐜╁澧炲己buff";
+            nativename = "鑺傛棩鐜╁澧炲己buff";
             icon = "";
             max_level = 5;
             type = 3;
@@ -154,7 +154,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "城战boss升级.sgc";
+            effect = "鍩庢垬boss鍗囩骇.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

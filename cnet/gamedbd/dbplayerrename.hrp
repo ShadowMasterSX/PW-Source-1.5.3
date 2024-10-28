@@ -11,6 +11,9 @@
 #include "gamedbmanager.h"
 #include "grolenamehis"
 #include "gamedbmanager.h"
+#include "guniqueinfo"
+#include "gfactionextend"
+#include "utilfunction.h"
 
 namespace GNET
 {
@@ -39,6 +42,7 @@ class DBPlayerRename : public Rpc
 			StorageEnv::Storage * prolenamehis = StorageEnv::GetStorage("rolenamehis");
 			StorageEnv::Storage * plog = arg->syncdata.logs.size()?StorageEnv::GetStorage("shoplog"):NULL;
 			StorageEnv::Storage * puserfaction = StorageEnv::GetStorage("userfaction");
+			StorageEnv::Storage * pmnfaction = StorageEnv::GetStorage("mnfactioninfo");
 
 			StorageEnv::CommonTransaction txn;
 			try
@@ -111,6 +115,19 @@ class DBPlayerRename : public Rpc
 				{
 					factionvalue >> userfaction;
 					userfaction.name = arg->newname;
+					
+					if(userfaction.role == _R_MASTER && userfaction.extend.size())
+					{
+						GFactionExtend extend;
+						Marshal::OctetsStream(userfaction.extend) >> extend;
+						if(extend.uniqueinfo.size())
+						{
+							GUniqueInfo uninfo;
+							Marshal::OctetsStream(extend.uniqueinfo) >> uninfo;
+							int64_t unifid = uninfo.unifid;
+							if(unifid) IncMNFactionVersion(unifid,pmnfaction,txn); 
+						}
+					}
 					puserfaction->insert(krole,OctetsStream() << userfaction, txn);
 				}
 				

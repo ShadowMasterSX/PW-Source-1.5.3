@@ -136,9 +136,9 @@ namespace GNET
       Skill2284Stub ():SkillStub (2284)
         {
             cls = 255;
-            name = L"̩ɽѹ��";
-            nativename = "̩ɽѹ��";
-            icon = "̩ɽѹ��.dds";
+            name = L"泰山压顶";
+            nativename = "泰山压顶";
+            icon = "泰山压顶.dds";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -165,7 +165,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (292);
             }
-            effect = "̩ɽѹ��.sgc";
+            effect = "泰山压顶.sgc";
             range.type = 3;
             doenchant = true;
             dobless = false;

@@ -367,7 +367,7 @@ gplayer_imp::StartTrade(int trade_id, const XID & target)
 			delete this;
 		}
 		
-		virtual void OnPutRole(int retcode)
+		virtual void OnPutRole(int retcode, GDB::PutRoleResData *data = NULL)
 		{
 			ASSERT(retcode == 0);
 			CallWriteBack(retcode == 0);

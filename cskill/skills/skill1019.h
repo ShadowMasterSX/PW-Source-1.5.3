@@ -59,9 +59,9 @@ namespace GNET
       Skill1019Stub ():SkillStub (1019)
         {
             cls = 258;
-            name = L"战歌";
-            nativename = "战歌";
-            icon = "战歌.dds";
+            name = L"鎴樻瓕";
+            nativename = "鎴樻瓕";
+            icon = "鎴樻瓕.dds";
             max_level = 10;
             type = 2;
             apcost = 180000;
@@ -80,7 +80,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 1;
-            effect = "战歌.sgc";
+            effect = "鎴樻瓕.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

@@ -19,8 +19,8 @@ namespace GNET
         Skill1366Stub ():SkillStub (1366)
         {
             cls = 8;
-            name = L"饮血剑眼（效果专用）";
-            nativename = "饮血剑眼（效果专用）";
+            name = L"楗鍓戠溂锛堟晥鏋滀笓鐢級";
+            nativename = "楗鍓戠溂锛堟晥鏋滀笓鐢級";
             icon = "";
             max_level = 10;
             type = 1;
@@ -42,7 +42,7 @@ namespace GNET
             long_range = 1;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "剑灵_饮血剑诀.sgc";
+            effect = "鍓戠伒_楗鍓戣瘈.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

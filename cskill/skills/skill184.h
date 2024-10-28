@@ -134,9 +134,9 @@ namespace GNET
       Skill184Stub ():SkillStub (184)
         {
             cls = 1;
-            name = L"石破天惊";
-            nativename = "石破天惊";
-            icon = "石破天惊.dds";
+            name = L"鐭崇牬澶╂儕";
+            nativename = "鐭崇牬澶╂儕";
+            icon = "鐭崇牬澶╂儕.dds";
             max_level = 10;
             type = 3;
             apcost = 0;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "石破天惊.sgc";
+            effect = "鐭崇牬澶╂儕.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

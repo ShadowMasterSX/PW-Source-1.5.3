@@ -136,7 +136,7 @@ namespace GNET
             cls = 2;
             name = L"32424";
             nativename = "32424";
-            icon = "¶¨Éí.dds";
+            icon = "å®šèº«.dds";
             max_level = 10;
             type = 3;
             apcost = 100;
@@ -160,7 +160,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (25333);
             }
-            effect = "¼²·çÅùö¨.sgc";
+            effect = "ç–¾é£Žéœ¹é›³.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

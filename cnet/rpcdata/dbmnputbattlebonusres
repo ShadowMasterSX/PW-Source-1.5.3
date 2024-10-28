@@ -1,0 +1,59 @@
+#ifndef __GNET_DBMNPUTBATTLEBONUSRES_RPCDATA
+#define __GNET_DBMNPUTBATTLEBONUSRES_RPCDATA
+
+#include "rpcdefs.h"
+
+
+namespace GNET
+{
+	class DBMNPutBattleBonusRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+
+	public:
+		DBMNPutBattleBonusRes (int l_retcode = -1)
+			: retcode(l_retcode)
+		{
+		}
+
+		DBMNPutBattleBonusRes(const DBMNPutBattleBonusRes &rhs)
+			: retcode(rhs.retcode) { }
+
+		Rpc::Data *Clone() const { return new DBMNPutBattleBonusRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBMNPutBattleBonusRes *r = dynamic_cast<const DBMNPutBattleBonusRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		DBMNPutBattleBonusRes& operator = (const DBMNPutBattleBonusRes &rhs)
+		{
+			const DBMNPutBattleBonusRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			return os;
+		}
+
+	};
+};
+#endif

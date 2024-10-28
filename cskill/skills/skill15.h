@@ -134,9 +134,9 @@ namespace GNET
       Skill15Stub ():SkillStub (15)
         {
             cls = 7;
-            name = L"五气朝元";
-            nativename = "五气朝元";
-            icon = "五气朝元.dds";
+            name = L"浜旀皵鏈濆厓";
+            nativename = "浜旀皵鏈濆厓";
+            icon = "浜旀皵鏈濆厓.dds";
             max_level = 10;
             type = 2;
             apcost = 0;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "五气朝元.sgc";
+            effect = "浜旀皵鏈濆厓.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

@@ -134,9 +134,9 @@ namespace GNET
       Skill1930Stub ():SkillStub (1930)
         {
             cls = 3;
-            name = L"ÑıÆø»÷£¨ËÉÊó£©";
-            nativename = "ÑıÆø»÷£¨ËÉÊó£©";
-            icon = "ÑıÆø»÷.dds";
+            name = L"å¦–æ°”å‡»ï¼ˆæ¾é¼ ï¼‰";
+            nativename = "å¦–æ°”å‡»ï¼ˆæ¾é¼ ï¼‰";
+            icon = "å¦–æ°”å‡».dds";
             max_level = 1;
             type = 3;
             apcost = 50;
@@ -163,7 +163,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "Ñı¾«_ÑıÆø»÷.sgc";
+            effect = "å¦–ç²¾_å¦–æ°”å‡».sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

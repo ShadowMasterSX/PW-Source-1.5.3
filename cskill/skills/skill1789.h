@@ -57,8 +57,8 @@ namespace GNET
       Skill1789Stub ():SkillStub (1789)
         {
             cls = 127;
-            name = L"帮派_增加回血速度";
-            nativename = "帮派_增加回血速度";
+            name = L"甯淳_澧炲姞鍥炶閫熷害";
+            nativename = "甯淳_澧炲姞鍥炶閫熷害";
             icon = "";
             max_level = 10;
             type = 4;
@@ -80,7 +80,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "兽王鼓舞.sgc";
+            effect = "鍏界帇榧撹垶.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

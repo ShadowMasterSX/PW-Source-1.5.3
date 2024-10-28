@@ -134,9 +134,9 @@ namespace GNET
       Skill622Stub ():SkillStub (622)
         {
             cls = 6;
-            name = L"Õæ¡¤Òí¶Ü";
-            nativename = "Õæ¡¤Òí¶Ü";
-            icon = "Òí¶Ü1.dds";
+            name = L"çœŸÂ·ç¿¼ç›¾";
+            nativename = "çœŸÂ·ç¿¼ç›¾";
+            icon = "ç¿¼ç›¾1.dds";
             max_level = 1;
             type = 2;
             apcost = 45;

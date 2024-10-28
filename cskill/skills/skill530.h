@@ -58,9 +58,9 @@ namespace GNET
       Skill530Stub ():SkillStub (530)
         {
             cls = 4;
-            name = L"Õæ¡¤ÊŞÍõÖ®Å­";
-            nativename = "Õæ¡¤ÊŞÍõÖ®Å­";
-            icon = "Ìì±ÀµØÁÑ1.dds";
+            name = L"çœŸÂ·å…½ç‹ä¹‹æ€’";
+            nativename = "çœŸÂ·å…½ç‹ä¹‹æ€’";
+            icon = "å¤©å´©åœ°è£‚1.dds";
             max_level = 1;
             type = 2;
             apcost = 0;
@@ -88,7 +88,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "¹ÖÎïÖÎÁÆÊõ.sgc";
+            effect = "æ€ªç‰©æ²»ç–—æœ¯.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

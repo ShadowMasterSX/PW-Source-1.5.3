@@ -95,8 +95,8 @@ namespace GNET
       Skill2325Stub ():SkillStub (2325)
         {
             cls = 127;
-            name = L"青蛙诅咒";
-            nativename = "青蛙诅咒";
+            name = L"闈掕洐璇呭拻";
+            nativename = "闈掕洐璇呭拻";
             icon = "";
             max_level = 10;
             type = 3;
@@ -118,7 +118,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "巫师_冥王乐土.sgc";
+            effect = "宸笀_鍐ョ帇涔愬湡.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

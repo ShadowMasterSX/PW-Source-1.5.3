@@ -19,8 +19,8 @@ namespace GNET
         Skill220Stub ():SkillStub (220)
         {
             cls = 255;
-            name = L"��ˮһս";
-            nativename = "��ˮһս";
+            name = L"背水一战";
+            nativename = "背水一战";
             icon = "";
             max_level = 1;
             type = 6;
@@ -41,7 +41,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "����޼�.sgc";
+            effect = "天地无级.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

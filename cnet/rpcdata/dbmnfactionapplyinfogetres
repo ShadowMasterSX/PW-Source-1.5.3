@@ -1,0 +1,65 @@
+#ifndef __GNET_DBMNFACTIONAPPLYINFOGETRES_RPCDATA
+#define __GNET_DBMNFACTIONAPPLYINFOGETRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "mnfactionapplyinfo"
+
+namespace GNET
+{
+	class DBMNFactionApplyInfoGetRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		MNFactionApplyInfoVector applyinfo_list;
+
+	public:
+		DBMNFactionApplyInfoGetRes (int l_retcode = -1,const MNFactionApplyInfoVector& l_applyinfo_list = MNFactionApplyInfoVector())
+			: retcode(l_retcode),applyinfo_list(l_applyinfo_list)
+		{
+		}
+
+		DBMNFactionApplyInfoGetRes(const DBMNFactionApplyInfoGetRes &rhs)
+			: retcode(rhs.retcode),applyinfo_list(rhs.applyinfo_list) { }
+
+		Rpc::Data *Clone() const { return new DBMNFactionApplyInfoGetRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBMNFactionApplyInfoGetRes *r = dynamic_cast<const DBMNFactionApplyInfoGetRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				applyinfo_list = r->applyinfo_list;
+			}
+			return *this;
+		}
+
+		DBMNFactionApplyInfoGetRes& operator = (const DBMNFactionApplyInfoGetRes &rhs)
+		{
+			const DBMNFactionApplyInfoGetRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				applyinfo_list = r->applyinfo_list;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << applyinfo_list;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> applyinfo_list;
+			return os;
+		}
+
+	};
+};
+#endif

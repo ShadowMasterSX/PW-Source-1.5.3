@@ -94,8 +94,8 @@ namespace GNET
       Skill1922Stub ():SkillStub (1922)
         {
             cls = 127;
-            name = L" ÐÂ·ïÃù¹ÈBOSSBUFF";
-            nativename = " ÐÂ·ïÃù¹ÈBOSSBUFF";
+            name = L" æ–°å‡¤é¸£è°·BOSSBUFF";
+            nativename = " æ–°å‡¤é¸£è°·BOSSBUFF";
             icon = "";
             max_level = 10;
             type = 2;
@@ -117,7 +117,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "¹ÖÎïÖÎÁÆÊõ.sgc";
+            effect = "æ€ªç‰©æ²»ç–—æœ¯.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

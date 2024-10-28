@@ -38,7 +38,7 @@ class DelPlayerData : public Rpc
 				role_key << arg->roleid;
 				Marshal::OctetsStream(pbase->find(role_key, txn)) >> base;
 				
-				base.status = _ROLE_STATUS_CROSS_LOCKED;
+				base.status = _ROLE_STATUS_CROSS_RECYCLE;// _ROLE_STATUS_CROSS_LOCKED; todo ddr
 				
 				CrossInfoData info;
 				Marshal::OctetsStream(base.cross_data) >> info;

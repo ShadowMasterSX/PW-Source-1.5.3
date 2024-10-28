@@ -97,7 +97,7 @@ namespace GNET
             cls = 2;
             name = L"432";
             nativename = "432";
-            icon = "ÈËÓã±äÏÉ¼¼ÄÜ.dds";
+            icon = "äººé±¼å˜ä»™æŠ€èƒ½.dds";
             max_level = 1;
             type = 2;
             apcost = 0;
@@ -122,7 +122,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (25333);
             }
-            effect = "ÈËÓã±ä.sgc";
+            effect = "äººé±¼å˜.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

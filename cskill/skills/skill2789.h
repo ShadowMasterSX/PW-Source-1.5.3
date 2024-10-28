@@ -138,9 +138,9 @@ namespace GNET
       Skill2789Stub ():SkillStub (2789)
         {
             cls = 11;
-            name = L"真·冰轮引";
-            nativename = "真·冰轮引";
-            icon = "仙冰轮引.dds";
+            name = L"鐪熉峰啺杞紩";
+            nativename = "鐪熉峰啺杞紩";
+            icon = "浠欏啺杞紩.dds";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -168,7 +168,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "月仙_冰轮引_击中.sgc";
+            effect = "鏈堜粰_鍐拌疆寮昣鍑讳腑.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

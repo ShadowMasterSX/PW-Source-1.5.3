@@ -134,9 +134,9 @@ namespace GNET
       Skill2594Stub ():SkillStub (2594)
         {
             cls = 11;
-            name = L"镜花水月";
-            nativename = "镜花水月";
-            icon = "镜花水月.dds";
+            name = L"闀滆姳姘存湀";
+            nativename = "闀滆姳姘存湀";
+            icon = "闀滆姳姘存湀.dds";
             max_level = 1;
             type = 2;
             apcost = 0;

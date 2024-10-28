@@ -133,8 +133,8 @@ namespace GNET
       Skill2467Stub ():SkillStub (2467)
         {
             cls = 127;
-            name = L"Ä¿±êÔ²½µµÍÖÎÁÆĞ§¹û";
-            nativename = "Ä¿±êÔ²½µµÍÖÎÁÆĞ§¹û";
+            name = L"ç›®æ ‡åœ†é™ä½æ²»ç–—æ•ˆæœ";
+            nativename = "ç›®æ ‡åœ†é™ä½æ²»ç–—æ•ˆæœ";
             icon = "";
             max_level = 10;
             type = 1;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "2013ÈË½çÒ°ÍâBOSSÄ¿±êÔ².sgc";
+            effect = "2013äººç•Œé‡å¤–BOSSç›®æ ‡åœ†.sgc";
             range.type = 3;
             doenchant = true;
             dobless = false;

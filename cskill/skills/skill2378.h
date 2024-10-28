@@ -133,8 +133,8 @@ namespace GNET
       Skill2378Stub ():SkillStub (2378)
         {
             cls = 127;
-            name = L"bossÎŞ¶Ü²»´İÖ®¸«";
-            nativename = "bossÎŞ¶Ü²»´İÖ®¸«";
+            name = L"bossæ— ç›¾ä¸æ‘§ä¹‹æ–§";
+            nativename = "bossæ— ç›¾ä¸æ‘§ä¹‹æ–§";
             icon = "";
             max_level = 10;
             type = 1;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "ÎäÏÀ_»ØĞı»÷.sgc";
+            effect = "æ­¦ä¾ _å›æ—‹å‡».sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

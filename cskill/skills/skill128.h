@@ -137,9 +137,9 @@ namespace GNET
       Skill128Stub ():SkillStub (128)
         {
             cls = 7;
-            name = L"ÉñÀ×";
-            nativename = "ÉñÀ×";
-            icon = "ÉñÀ×.dds";
+            name = L"ç¥žé›·";
+            nativename = "ç¥žé›·";
+            icon = "ç¥žé›·.dds";
             max_level = 10;
             type = 1;
             apcost = 0;
@@ -166,7 +166,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "ÉñÀ×.sgc";
+            effect = "ç¥žé›·.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

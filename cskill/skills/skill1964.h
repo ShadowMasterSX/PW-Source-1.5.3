@@ -132,8 +132,8 @@ namespace GNET
       Skill1964Stub ():SkillStub (1964)
         {
             cls = 127;
-            name = L"Ö»¶Ô¹ÖÎïÉúĞ§ÈºÌåÎŞÊÓÉËº¦¼¼ÄÜ";
-            nativename = "Ö»¶Ô¹ÖÎïÉúĞ§ÈºÌåÎŞÊÓÉËº¦¼¼ÄÜ";
+            name = L"åªå¯¹æ€ªç‰©ç”Ÿæ•ˆç¾¤ä½“æ— è§†ä¼¤å®³æŠ€èƒ½";
+            nativename = "åªå¯¹æ€ªç‰©ç”Ÿæ•ˆç¾¤ä½“æ— è§†ä¼¤å®³æŠ€èƒ½";
             icon = "";
             max_level = 10;
             type = 3;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "ÓğÃ¢_Èí¹ÇÖ®Ê¸.sgc";
+            effect = "ç¾½èŠ’_è½¯éª¨ä¹‹çŸ¢.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

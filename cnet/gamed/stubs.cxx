@@ -5,6 +5,7 @@
 #include "binder.h"
 #endif
 #include "putspouse.hrp"
+#include "dbplayerchangegender.hrp"
 #include "dbsellpoint.hrp"
 #include "dbbuypoint.hrp"
 #include "battleend.hrp"
@@ -120,6 +121,9 @@
 #include "countrybattlestart_re.hpp"
 #include "countrybattleend.hpp"
 #include "playerrename.hpp"
+#include "updatesolochallengerank.hpp"
+#include "getsolochallengerank.hpp"
+#include "updateenemylist.hpp"
 #include "trychangeds.hpp"
 #include "playerchangeds_re.hpp"
 #include "kegetstatus.hpp"
@@ -159,6 +163,15 @@
 #include "factionresourcebattleplayerquery.hpp"
 #include "factionresourcebattlerequestconfig_re.hpp"
 #include "factionrenamegsverify_re.hpp"
+#include "mnfactionbattleapply.hpp"
+#include "mnbattleserverregister.hpp"
+#include "mndomainbattlestart_re.hpp"
+#include "mndomainbattleenter.hpp"
+#include "mndomainbattleentersuccessnotice.hpp"
+#include "mndomainbattleleavenotice.hpp"
+#include "mndomainbattleend.hpp"
+#include "mngettoplist.hpp"
+#include "mngetdomaindata.hpp"
 #include "announceproviderid.hpp"
 #include "playerkickout.hpp"
 #include "playerlogin.hpp"
@@ -234,11 +247,15 @@
 #include "autoteamcomposefailed.hpp"
 #include "factionresourcebattlerequestconfig.hpp"
 #include "factionresourcebattlestatusnotice.hpp"
+#include "mndomainbattlestart.hpp"
+#include "mndomainbattleenter_re.hpp"
+#include "mndomaininfogsnotice.hpp"
 
 namespace GNET
 {
 
 static PutSpouse __stub_PutSpouse (RPC_PUTSPOUSE, new PutSpouseArg, new RpcRetcode);
+static DBPlayerChangeGender __stub_DBPlayerChangeGender (RPC_DBPLAYERCHANGEGENDER, new DBPlayerChangeGenderArg, new DBPlayerChangeGenderRes);
 static DBSellPoint __stub_DBSellPoint (RPC_DBSELLPOINT, new SellPointArg, new SellPointRes);
 static DBBuyPoint __stub_DBBuyPoint (RPC_DBBUYPOINT, new DBBuyPointArg, new DBBuyPointRes);
 static BattleEnd __stub_BattleEnd (RPC_BATTLEEND, new BattleEndArg, new BattleEndRes);
@@ -354,6 +371,9 @@ static CountryBattleServerRegister __stub_CountryBattleServerRegister((void*)0);
 static CountryBattleStart_Re __stub_CountryBattleStart_Re((void*)0);
 static CountryBattleEnd __stub_CountryBattleEnd((void*)0);
 static PlayerRename __stub_PlayerRename((void*)0);
+static UpdateSoloChallengeRank __stub_UpdateSoloChallengeRank((void*)0);
+static GetSoloChallengeRank __stub_GetSoloChallengeRank((void*)0);
+static UpdateEnemyList __stub_UpdateEnemyList((void*)0);
 static TryChangeDS __stub_TryChangeDS((void*)0);
 static PlayerChangeDS_Re __stub_PlayerChangeDS_Re((void*)0);
 static KEGetStatus __stub_KEGetStatus((void*)0);
@@ -393,6 +413,15 @@ static FactionResourceBattleEventNotice __stub_FactionResourceBattleEventNotice(
 static FactionResourceBattlePlayerQuery __stub_FactionResourceBattlePlayerQuery((void*)0);
 static FactionResourceBattleRequestConfig_Re __stub_FactionResourceBattleRequestConfig_Re((void*)0);
 static FactionRenameGsVerify_Re __stub_FactionRenameGsVerify_Re((void*)0);
+static MNFactionBattleApply __stub_MNFactionBattleApply((void*)0);
+static MNBattleServerRegister __stub_MNBattleServerRegister((void*)0);
+static MNDomainBattleStart_Re __stub_MNDomainBattleStart_Re((void*)0);
+static MNDomainBattleEnter __stub_MNDomainBattleEnter((void*)0);
+static MNDomainBattleEnterSuccessNotice __stub_MNDomainBattleEnterSuccessNotice((void*)0);
+static MNDomainBattleLeaveNotice __stub_MNDomainBattleLeaveNotice((void*)0);
+static MNDomainBattleEnd __stub_MNDomainBattleEnd((void*)0);
+static MNGetTopList __stub_MNGetTopList((void*)0);
+static MNGetDomainData __stub_MNGetDomainData((void*)0);
 static AnnounceProviderID __stub_AnnounceProviderID((void*)0);
 static PlayerKickout __stub_PlayerKickout((void*)0);
 static PlayerLogin __stub_PlayerLogin((void*)0);
@@ -468,5 +497,8 @@ static AutoTeamComposeStart __stub_AutoTeamComposeStart((void*)0);
 static AutoTeamComposeFailed __stub_AutoTeamComposeFailed((void*)0);
 static FactionResourceBattleRequestConfig __stub_FactionResourceBattleRequestConfig((void*)0);
 static FactionResourceBattleStatusNotice __stub_FactionResourceBattleStatusNotice((void*)0);
+static MNDomainBattleStart __stub_MNDomainBattleStart((void*)0);
+static MNDomainBattleEnter_Re __stub_MNDomainBattleEnter_Re((void*)0);
+static MNDomainInfoGSNotice __stub_MNDomainInfoGSNotice((void*)0);
 
 };

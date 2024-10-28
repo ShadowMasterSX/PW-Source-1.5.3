@@ -132,8 +132,8 @@ namespace GNET
       Skill1896Stub ():SkillStub (1896)
         {
             cls = 127;
-            name = L"10ÈË±¾´«ËÍ2";
-            nativename = "10ÈË±¾´«ËÍ2";
+            name = L"10äººæœ¬ä¼ é€2";
+            nativename = "10äººæœ¬ä¼ é€2";
             icon = "";
             max_level = 10;
             type = 3;

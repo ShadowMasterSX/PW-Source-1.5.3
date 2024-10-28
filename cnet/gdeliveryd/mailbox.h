@@ -43,10 +43,14 @@ namespace GNET
 		bool GetMailList( GMailHeaderVector& maillist ); // return all available mails for player,exclude In-The-Way mail
 		void PutMail( const GMailHeader& mail );
 		bool DeleteMail( unsigned char mail_id );
+		bool DeleteMail( const IntVector& maillist );
 		void CheckExpireMail( GMailIDVector& maillist );
+		void FindMail(IntVector& maillist ,int type, int special_sender,int except_sender);
+		bool CheckSpecialTitle(const IntVector& maillist, int arg);
 	private:
 		bool DeletePolicy( const GMailHeader& mail,time_t now );	
 		int DelayPolicy( const GMailHeader& mail,time_t now ); //return remain-time, 0 means no need to delay
+		bool TitlePolicy( const GMailHeader& mail,int arg);
 		//define bit operations
 		void SetBit( unsigned char& data,unsigned char pos );
 		void UnsetBit( unsigned char& data,unsigned char pos );

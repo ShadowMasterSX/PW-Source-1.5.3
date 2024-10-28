@@ -134,9 +134,9 @@ namespace GNET
       Skill2441Stub ():SkillStub (2441)
         {
             cls = 9;
-            name = L"»Ä¡¤ÎäÉñÏÖÊÀ";
-            nativename = "»Ä¡¤ÎäÉñÏÖÊÀ";
-            icon = "Ä§Éñò¿ÓÈÄ§¼¼ÄÜ.dds";
+            name = L"è’Â·æ­¦ç¥ç°ä¸–";
+            nativename = "è’Â·æ­¦ç¥ç°ä¸–";
+            icon = "é­”ç¥èš©å°¤é­”æŠ€èƒ½.dds";
             max_level = 1;
             type = 2;
             apcost = 0;

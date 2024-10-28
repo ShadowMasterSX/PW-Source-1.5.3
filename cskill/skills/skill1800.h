@@ -57,8 +57,8 @@ namespace GNET
       Skill1800Stub ():SkillStub (1800)
         {
             cls = 127;
-            name = L"召唤反隐植物";
-            nativename = "召唤反隐植物";
+            name = L"鍙敜鍙嶉殣妞嶇墿";
+            nativename = "鍙敜鍙嶉殣妞嶇墿";
             icon = "";
             max_level = 1;
             type = 4;
@@ -80,7 +80,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "天地无级.sgc";
+            effect = "澶╁湴鏃犵骇.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

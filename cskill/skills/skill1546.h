@@ -133,8 +133,8 @@ namespace GNET
       Skill1546Stub ():SkillStub (1546)
         {
             cls = 127;
-            name = L"公企鹅boss攻击";
-            nativename = "公企鹅boss攻击";
+            name = L"鍏紒楣卋oss鏀诲嚮";
+            nativename = "鍏紒楣卋oss鏀诲嚮";
             icon = "";
             max_level = 10;
             type = 1;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "1避水诀.sgc";
+            effect = "1閬挎按璇�.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

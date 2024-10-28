@@ -134,9 +134,9 @@ namespace GNET
       Skill1835Stub ():SkillStub (1835)
         {
             cls = 5;
-            name = L"日食";
-            nativename = "日食";
-            icon = "日冕.DDS";
+            name = L"鏃ラ";
+            nativename = "鏃ラ";
+            icon = "鏃ュ啎.DDS";
             max_level = 1;
             type = 2;
             apcost = 100;
@@ -160,7 +160,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (23749);
             }
-            effect = "刺客_日冕.sgc";
+            effect = "鍒哄_鏃ュ啎.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

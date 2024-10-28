@@ -132,8 +132,8 @@ namespace GNET
       Skill853Stub ():SkillStub (853)
         {
             cls = 127;
-            name = L"物理单体持续魔伤";
-            nativename = "物理单体持续魔伤";
+            name = L"鐗╃悊鍗曚綋鎸佺画榄斾激";
+            nativename = "鐗╃悊鍗曚綋鎸佺画榄斾激";
             icon = "";
             max_level = 10;
             type = 3;
@@ -153,7 +153,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "流水.sgc";
+            effect = "娴佹按.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

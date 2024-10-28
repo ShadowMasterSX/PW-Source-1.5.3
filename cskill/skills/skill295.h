@@ -134,8 +134,8 @@ namespace GNET
       Skill295Stub ():SkillStub (295)
         {
             cls = 127;
-            name = L"新怪之飞天神斧";
-            nativename = "新怪之飞天神斧";
+            name = L"鏂版�箣椋炲ぉ绁炴枾";
+            nativename = "鏂版�箣椋炲ぉ绁炴枾";
             icon = "";
             max_level = 10;
             type = 1;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "飞天神斧.sgc";
+            effect = "椋炲ぉ绁炴枾.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

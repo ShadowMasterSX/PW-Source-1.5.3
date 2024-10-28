@@ -132,8 +132,8 @@ namespace GNET
       Skill1956Stub ():SkillStub (1956)
         {
             cls = 127;
-            name = L"城战速射箭塔";
-            nativename = "城战速射箭塔";
+            name = L"鍩庢垬閫熷皠绠";
+            nativename = "鍩庢垬閫熷皠绠";
             icon = "";
             max_level = 1;
             type = 3;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 1;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "连射.sgc";
+            effect = "杩炲皠.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

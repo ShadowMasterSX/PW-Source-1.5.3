@@ -132,9 +132,9 @@ namespace GNET
       Skill2328Stub ():SkillStub (2328)
         {
             cls = 127;
-            name = L"ÇıÉ¢×´Ì¬´øÉËº¦";
-            nativename = "ÇıÉ¢×´Ì¬´øÉËº¦";
-            icon = "º®±ùÁìÓò.dds";
+            name = L"é©±æ•£çŠ¶æ€å¸¦ä¼¤å®³";
+            nativename = "é©±æ•£çŠ¶æ€å¸¦ä¼¤å®³";
+            icon = "å¯’å†°é¢†åŸŸ.dds";
             max_level = 10;
             type = 2;
             apcost = 0;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 15;
-            effect = "¹ÖÎï·çÇòÊõ.sgc";
+            effect = "æ€ªç‰©é£çƒæœ¯.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

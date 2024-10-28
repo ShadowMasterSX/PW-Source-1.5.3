@@ -1,5 +1,5 @@
 #include "domaindataman.h"
-#include <stdio.h>
+#include <cstdio>
 
 static std::vector<DOMAIN_INFO_SERV>		domain_infos_server;
 static std::vector<BATTLETIME_SERV>			battletime_server;

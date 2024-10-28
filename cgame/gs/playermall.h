@@ -57,6 +57,7 @@ public:
 			int expire_time;
 			int expire_type;	//如果expire_time不为0， 此条目有效
 			int cash_need;
+			int min_vip_level;
 		} entry[MAX_ENTRY];
 		
 		int gift_id;
@@ -64,7 +65,8 @@ public:
 		int gift_expire_time;
 		int gift_log_price;
 		int spec_owner[MAX_OWNER];
-		
+		int buy_times_limit;//限购次数
+		int buy_times_limit_mode;//限购方式 0不限购 1每天限购 2每周限购 3每月限购4按年限购
 		
 		bool check_owner(int tid)
 		{

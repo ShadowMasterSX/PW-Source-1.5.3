@@ -132,8 +132,8 @@ namespace GNET
       Skill1515Stub ():SkillStub (1515)
         {
             cls = 127;
-            name = L"Ö²Îï3¼õËÙ";
-            nativename = "Ö²Îï3¼õËÙ";
+            name = L"æ¤ç‰©3å‡é€Ÿ";
+            nativename = "æ¤ç‰©3å‡é€Ÿ";
             icon = "";
             max_level = 10;
             type = 3;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "µØ¸¿.sgc";
+            effect = "åœ°ç¼š.sgc";
             range.type = 2;
             doenchant = true;
             dobless = true;

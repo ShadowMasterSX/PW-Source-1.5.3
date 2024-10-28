@@ -15,6 +15,7 @@
 #include "tankbattleenter.hpp"
 #include "tankbattleplayerapply_re.hpp"
 #include "dbtankbattlebonus.hrp"
+#include "crosssystem.h"
 
 namespace GNET
 {
@@ -177,6 +178,15 @@ bool TankBattleManager::Initialize()
 	{
 		Log::log(LOG_ERR,"TankBattleManager Initialize wrong. bonus_count_str=%s",bonus_count_str.c_str());
 		return false;
+	}
+
+	//
+	//需要注册可以提供跨服的时间
+	for(int n=0;n < 7; ++n)
+	{
+		int zonelist[1] = { -1 };
+		if(_open_days[n])
+			CrossGuardServer::GetInstance()->Register(CT_UNCK_TANK_BATTLE,n,_start_time-60*5,_end_time+60*120,zonelist,1);
 	}
 
 	IntervalTimer::Attach(this, 1000000/IntervalTimer::Resolution());

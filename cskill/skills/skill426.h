@@ -58,9 +58,9 @@ namespace GNET
       Skill426Stub ():SkillStub (426)
         {
             cls = 0;
-            name = L"�桤�׽";
-            nativename = "�桤�׽";
-            icon = "�׽1.DDS";
+            name = L"真·易筋经";
+            nativename = "真·易筋经";
+            icon = "易筋经1.DDS";
             max_level = 1;
             type = 2;
             apcost = 0;
@@ -99,7 +99,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (9);
             }
-            effect = "1�׽.sgc";
+            effect = "1易筋经.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

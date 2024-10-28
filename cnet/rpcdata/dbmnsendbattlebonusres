@@ -1,0 +1,65 @@
+#ifndef __GNET_DBMNSENDBATTLEBONUSRES_RPCDATA
+#define __GNET_DBMNSENDBATTLEBONUSRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "gmailheader"
+
+namespace GNET
+{
+	class DBMNSendBattleBonusRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		GMailHeaderVector maillist;
+
+	public:
+		DBMNSendBattleBonusRes (int l_retcode = -1,const GMailHeaderVector& l_maillist = GMailHeaderVector())
+			: retcode(l_retcode),maillist(l_maillist)
+		{
+		}
+
+		DBMNSendBattleBonusRes(const DBMNSendBattleBonusRes &rhs)
+			: retcode(rhs.retcode),maillist(rhs.maillist) { }
+
+		Rpc::Data *Clone() const { return new DBMNSendBattleBonusRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBMNSendBattleBonusRes *r = dynamic_cast<const DBMNSendBattleBonusRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				maillist = r->maillist;
+			}
+			return *this;
+		}
+
+		DBMNSendBattleBonusRes& operator = (const DBMNSendBattleBonusRes &rhs)
+		{
+			const DBMNSendBattleBonusRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				maillist = r->maillist;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << maillist;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> maillist;
+			return os;
+		}
+
+	};
+};
+#endif

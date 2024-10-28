@@ -18,7 +18,7 @@ class TryChangeDS : public GNET::Protocol
 
 	void Process(Manager *manager, Manager::Session::ID sid)
 	{
-		LOG_TRACE("CrossRelated TryChangeDS:roleid=%d, flag=%d", roleid, flag);
+		LOG_TRACE("CrossRelated TryChangeDS:roleid=%d, flag=%d, cross_type=%d, unifid=%lld", roleid, flag, cross_type, unifid);
 		
 		PlayerInfo* pinfo = UserContainer::GetInstance().FindRoleOnline(roleid);
 		if(pinfo == NULL /*|| BlockedRole::GetInstance()->IsRoleBlocked(roleid)*/) return;
@@ -26,8 +26,18 @@ class TryChangeDS : public GNET::Protocol
 		int ret = ERR_SUCCESS;
 		if(flag == DS_TO_CENTRALDS) { //原服->跨服
 			if(ret == ERR_SUCCESS && GDeliveryServer::GetInstance()->IsCentralDS()) ret = -1;	
+			if(ret == ERR_SUCCESS && (!CrossGuardClient::GetInstance()->CanCross() && !pinfo->IsGM())) ret = ERR_CDS_COMMUNICATION;
 			if(ret == ERR_SUCCESS && !CentralDeliveryClient::GetInstance()->IsConnect()) ret = ERR_CDS_COMMUNICATION;
-			
+
+			if(ret == ERR_SUCCESS) // 根据活动判断
+			{
+				switch(cross_type)
+				{
+					case CT_MNFACTION_BATTLE:
+						ret = CDC_MNFactionBattleMan::GetInstance()->CheckMNFactionPlayerCross(unifid);
+						break;
+				}
+			}
 			//诛仙在此有选线的逻辑，完美国际没有线的概念，不需要，但依然要检查跨服服务器是否超载
 			if(ret == ERR_SUCCESS) {
 				ret = CentralDeliveryClient::GetInstance()->CheckLimit();

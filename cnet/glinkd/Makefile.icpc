@@ -10,8 +10,8 @@ LD = icpc -w -xN
 
 LOG_DIR = ../logclient
 INCLUDES += -I$(TOP_SRCDIR)/logclient -I$(TOP_SRCDIR)/log_inl -I$(TOP_SRCDIR)/include
-DEFINES += -DUSE_HASH_MAP -DUSE_LOGCLIENT -O3 -ipo 
-LDFLAGS += -DUSE_HASH_MAP -static -O3 -ipo 
+DEFINES += -DUSE_HASH_MAP -DUSE_EPOLL -DUSE_LOGCLIENT -O3 -ipo # -pg -DUSE_SELECT -ggdb
+LDFLAGS += -DUSE_HASH_MAP -static -O3 -ipo # -pg
 
 OBJS = glinkserver.o gdeliveryclient.o gproviderserver.o state.o stubs.o glinkd.o gfactionclient.o
 

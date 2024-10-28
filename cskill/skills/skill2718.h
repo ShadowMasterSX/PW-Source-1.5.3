@@ -132,8 +132,8 @@ namespace GNET
       Skill2718Stub ():SkillStub (2718)
         {
             cls = 127;
-            name = L"ÃÏ¸ç¼Ó·¨¹¥";
-            nativename = "ÃÏ¸ç¼Ó·¨¹¥";
+            name = L"å­Ÿå“¥åŠ æ³•æ”»";
+            nativename = "å­Ÿå“¥åŠ æ³•æ”»";
             icon = "";
             max_level = 10;
             type = 3;

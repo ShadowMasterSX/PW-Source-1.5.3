@@ -360,7 +360,16 @@ struct npc_template
 			int service_mafia_pvp_signup:1;		//帮派pvp宣战
 			int service_gold_shop:1;			//npc元宝商城
 			int service_dividend_shop:1;		//npc鸿利商城
-
+            int service_player_change_gender:1; //npc角色变性
+            int service_make_slot_for_decoration:1;     // 饰品打孔
+			int service_select_solo_tower_challenge_stage:1;//单人副本选择关卡
+            int service_solo_challenge_rank:1;          // 单人副本排行榜
+			int service_mnfaction_sign_up:1;
+			int service_mnfaction_award:1;
+			int service_mnfaction_rank:1;
+			int service_mnfaction_battle_transmit:1;
+			int service_mnfaction_join_leave:1;
+            int service_solo_challenge_rank_global:1;
 		};
 
 		struct __service_engrave
@@ -374,6 +383,19 @@ struct npc_template
 			int addonregen_num;
 			int addonregen_entrys[16];
 		}service_addonregen;
+
+		struct __service_cross
+		{
+			int	activity_type;				//	活动类型(type=cross_server_activity)
+			int	player_count_limit;			//	人数限制
+			int	time_out;					//	活动时长_秒
+			int	need_item_tid;				//	所需物品id(type=all_type)
+			int	need_item_count;			//	所需物品数量
+			bool cost_item;					//	是否收消耗物品(type=bool)
+			int	history_max_level;			//	历史最高等级限制
+			int	second_level;				//	修真等级要求(type=taoist_rank_require)
+			int	realm_level;				//	境界等级要求
+		}service_cross;
 
 	}npc_data;
 };
@@ -1096,6 +1118,7 @@ public:
 	virtual bool Reclaim(world * pPlane,gmatter * pMatter, gmatter_mine_imp * imp);
 	virtual bool CreateMines(world * pPlane);
 	static gmatter * CreateMine(mine_spawner* ,const A3DVECTOR & pos, world * pPlane,int index,const entry_t & ent);
+	static gmatter * CreateMine2(mine_spawner* ,const A3DVECTOR & pos, world * pPlane,int index,const entry_t & ent,unsigned char dir, unsigned char dir1, unsigned char rad);
 	static void GenerateMineParam(gmatter_mine_imp * imp, npc_template * pTemplate);
 	void Reborn(world * pPlane,gmatter * header, gmatter * tail,int mid,int index);
 	void SetOffsetTerrain(float offset) { _offset_terrain = offset; }
@@ -1201,7 +1224,7 @@ public:
 
 	bool LoadGenData(world* plane, CNPCGenMan & npcgen, rect & region);
 	bool AddCtrlData(CNPCGenMan& ctrldata,unsigned int ctrl_id, unsigned char block_id);
-	bool AddSpawnData(world* plane, CNPCGenMan& ctrldata,CNPCGenMan& spawndata, unsigned char block_id, const A3DVECTOR& p_offset);
+	bool AddSpawnData(world* plane, CNPCGenMan& ctrldata,CNPCGenMan& spawndata, unsigned char block_id, const A3DVECTOR& p_offset, bool global_ctrl_gen, bool unique_resource);
 	
 	bool InsertSpawner(int ctrl_id, base_spawner * sp)
 	{

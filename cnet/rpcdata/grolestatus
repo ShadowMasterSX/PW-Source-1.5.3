@@ -58,7 +58,7 @@ namespace GNET
 		Octets title_data;
 		Octets reincarnation_data;
 		Octets realm_data;
-		char reserved2;
+		Octets rank;
 		char reserved3;
 
 	public:
@@ -70,7 +70,7 @@ namespace GNET
 			,int l_reputation = 0,int l_dbltime_expire = 0,int l_dbltime_mode = 0
 			,int l_dbltime_begin = 0,int l_dbltime_used = 0,int l_dbltime_max = 0
 			,int l_time_used = 0,const Octets& l_extraprop = Octets(0),const Octets& l_title_data = Octets(0)
-			,const Octets& l_reincarnation_data = Octets(0),const Octets& l_realm_data = Octets(0),char l_reserved2 = 0
+			,const Octets& l_reincarnation_data = Octets(0),const Octets& l_realm_data = Octets(0),const Octets& l_rank = Octets(0)
 			,char l_reserved3 = 0)
 			: version(l_version),level(l_level),level2(l_level2)
 			,exp(l_exp),sp(l_sp),pp(l_pp)
@@ -80,7 +80,7 @@ namespace GNET
 			,reputation(l_reputation),dbltime_expire(l_dbltime_expire),dbltime_mode(l_dbltime_mode)
 			,dbltime_begin(l_dbltime_begin),dbltime_used(l_dbltime_used),dbltime_max(l_dbltime_max)
 			,time_used(l_time_used),extraprop(l_extraprop),title_data(l_title_data)
-			,reincarnation_data(l_reincarnation_data),realm_data(l_realm_data),reserved2(l_reserved2)
+			,reincarnation_data(l_reincarnation_data),realm_data(l_realm_data),rank(l_rank)
 			,reserved3(l_reserved3)
 		{
 		}
@@ -102,7 +102,7 @@ namespace GNET
 			force_data(rhs.force_data),online_award(rhs.online_award),profit_time_data(rhs.profit_time_data),
 			country_data(rhs.country_data),king_data(rhs.king_data),meridian_data(rhs.meridian_data),
 			extraprop(rhs.extraprop),title_data(rhs.title_data),reincarnation_data(rhs.reincarnation_data),
-			realm_data(rhs.realm_data),reserved2(rhs.reserved2),reserved3(rhs.reserved3) { }
+			realm_data(rhs.realm_data),rank(rhs.rank),reserved3(rhs.reserved3) { }
 
 		Rpc::Data *Clone() const { return new GRoleStatus(*this); }
 
@@ -160,7 +160,7 @@ namespace GNET
 				title_data = r->title_data;
 				reincarnation_data = r->reincarnation_data;
 				realm_data = r->realm_data;
-				reserved2 = r->reserved2;
+				rank = r->rank;
 				reserved3 = r->reserved3;
 			}
 			return *this;
@@ -220,7 +220,7 @@ namespace GNET
 				title_data = r->title_data;
 				reincarnation_data = r->reincarnation_data;
 				realm_data = r->realm_data;
-				reserved2 = r->reserved2;
+				rank = r->rank;
 				reserved3 = r->reserved3;
 			}
 			return *this;
@@ -277,7 +277,7 @@ namespace GNET
 			os << title_data;
 			os << reincarnation_data;
 			os << realm_data;
-			os << reserved2;
+			os << rank;
 			os << reserved3;
 			return os;
 		}
@@ -333,7 +333,7 @@ namespace GNET
 			os >> title_data;
 			os >> reincarnation_data;
 			os >> realm_data;
-			os >> reserved2;
+			os >> rank;
 			os >> reserved3;
 			return os;
 		}

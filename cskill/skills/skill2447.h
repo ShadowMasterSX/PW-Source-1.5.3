@@ -137,9 +137,9 @@ namespace GNET
       Skill2447Stub ():SkillStub (2447)
         {
             cls = 8;
-            name = L"Ğş¡¤ÆÆ·ç½£Ã¢";
-            nativename = "Ğş¡¤ÆÆ·ç½£Ã¢";
-            icon = "ÆÆ·ç½£ÆøÏÉ¼¼ÄÜ.dds";
+            name = L"ç„Â·ç ´é£å‰‘èŠ’";
+            nativename = "ç„Â·ç ´é£å‰‘èŠ’";
+            icon = "ç ´é£å‰‘æ°”ä»™æŠ€èƒ½.dds";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -164,7 +164,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (1);
             }
-            effect = "½£Áé_ÆÆ·ç½£Æø.sgc";
+            effect = "å‰‘çµ_ç ´é£å‰‘æ°”.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

@@ -57,8 +57,8 @@ namespace GNET
       Skill716Stub ():SkillStub (716)
         {
             cls = 127;
-            name = L"ÎïÆ·¼¼ÄÜ-¼ÓËÙÒ÷³ªÒ©¼Á";
-            nativename = "ÎïÆ·¼¼ÄÜ-¼ÓËÙÒ÷³ªÒ©¼Á";
+            name = L"ç‰©å“æŠ€èƒ½-åŠ é€ŸåŸå”±è¯å‰‚";
+            nativename = "ç‰©å“æŠ€èƒ½-åŠ é€ŸåŸå”±è¯å‰‚";
             icon = "";
             max_level = 5;
             type = 4;
@@ -78,7 +78,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "ÈóÔó.sgc";
+            effect = "æ¶¦æ³½.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBMNDOMAININFOUPDATE_HPP
+#define __GNET_DBMNDOMAININFOUPDATE_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbmndomaininfoupdatearg"
+#include "dbmndomaininfoupdateres"
+
+namespace GNET
+{
+
+class DBMNDomainInfoUpdate : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbmndomaininfoupdate"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBMNDomainInfoUpdateArg *arg = (DBMNDomainInfoUpdateArg *)argument;
+		// DBMNDomainInfoUpdateRes *res = (DBMNDomainInfoUpdateRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBMNDomainInfoUpdateArg *arg = (DBMNDomainInfoUpdateArg *)argument;
+		// DBMNDomainInfoUpdateRes *res = (DBMNDomainInfoUpdateRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

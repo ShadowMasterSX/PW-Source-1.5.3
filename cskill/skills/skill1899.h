@@ -132,8 +132,8 @@ namespace GNET
       Skill1899Stub ():SkillStub (1899)
         {
             cls = 127;
-            name = L"²Ø±¦Í¼BOSS·´Õğ";
-            nativename = "²Ø±¦Í¼BOSS·´Õğ";
+            name = L"è—å®å›¾BOSSåéœ‡";
+            nativename = "è—å®å›¾BOSSåéœ‡";
             icon = "";
             max_level = 10;
             type = 2;

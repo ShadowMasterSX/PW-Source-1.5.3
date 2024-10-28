@@ -214,11 +214,11 @@ class PlayerLogin_Re : public GNET::Protocol
 
 				if(result != ERR_SUCCESS) 
 				{
-					//失败时要将User登出，并告知link相应状态
-					UserContainer::GetInstance().UserLogout(pinfo);
 					/* when send to link server, set src_provider_id to proper game_id */
 					this->src_provider_id = pinfo->gameid;
 					dsm->Send(pinfo->linksid,this);
+					//失败时要将User登出，并告知link相应状态
+					UserContainer::GetInstance().UserLogout(pinfo);
 					// send server attribute to linkserver
 					dsm->BroadcastStatus();
 				}

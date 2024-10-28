@@ -311,7 +311,7 @@ void countrybattle_world_manager::GetLogoutPos(gplayer_imp * pImp, int & world_t
 		GLog::log(GLOG_ERR,"首都信息不存在worldtag=%d roleid=%d country=%d", GetWorldTag(), pImp->_parent->ID.id, country_id);
 		return;
 	}
-	pImp->GetCountryKickoutPos(world_tag, pos);
+	pImp->GetCarnivalKickoutPos(world_tag, pos);
 }
 
 bool countrybattle_world_manager::GetTownPosition(gplayer_imp *pImp, const A3DVECTOR &opos, A3DVECTOR &pos, int & tag)
@@ -340,11 +340,11 @@ void countrybattle_world_manager::SetIncomingPlayerPos(gplayer * pPlayer, const 
 	countrybattle_ctrl* pCtrl = (countrybattle_ctrl *)pPlane->w_ctrl;
 	
 	int faction = 0;
-	if(pPlayer->country_id == pCtrl->_data.country_defender)
+	if(pPlayer->GetCountryId() == pCtrl->_data.country_defender)
 	{
 		faction = FACTION_BATTLEDEFENCE | FACTION_DEFENCE_FRIEND;
 	}
-	else if(pPlayer->country_id == pCtrl->_data.country_attacker)
+	else if(pPlayer->GetCountryId() == pCtrl->_data.country_attacker)
 	{
 		faction = FACTION_OFFENSE_FRIEND | FACTION_BATTLEOFFENSE;
 	}
@@ -538,3 +538,7 @@ void countrybattle_world_manager::DestroyCountryBattle(int battleid)
 	mutex_spinunlock(&_key_lock);
 }
 
+instance_hash_key  countrybattle_world_manager::GetLogoutInstanceKey(gplayer_imp *pImp) const
+{
+	return instance_hash_key(pImp->GetCountryGroup(),0);
+}

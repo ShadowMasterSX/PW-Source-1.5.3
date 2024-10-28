@@ -134,9 +134,9 @@ namespace GNET
       Skill1845Stub ():SkillStub (1845)
         {
             cls = 6;
-            name = L"срорж╝рМ";
-            nativename = "срорж╝рМ";
-            icon = "нчиож╝рМср.DDS";
+            name = L"Е▐ЁЕ╪╕Д╧▀Г©╪";
+            nativename = "Е▐ЁЕ╪╕Д╧▀Г©╪";
+            icon = "Ф≈═Д╦┼Д╧▀Г©╪Е▐Ё.DDS";
             max_level = 1;
             type = 8;
             apcost = 0;

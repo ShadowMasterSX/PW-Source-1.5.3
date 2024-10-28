@@ -57,8 +57,8 @@ namespace GNET
       Skill956Stub ():SkillStub (956)
         {
             cls = 127;
-            name = L"药品.时效反比减唱";
-            nativename = "药品.时效反比减唱";
+            name = L"鑽搧.鏃舵晥鍙嶆瘮鍑忓敱";
+            nativename = "鑽搧.鏃舵晥鍙嶆瘮鍑忓敱";
             icon = "";
             max_level = 10;
             type = 4;

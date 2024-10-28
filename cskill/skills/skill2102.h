@@ -132,9 +132,9 @@ namespace GNET
       Skill2102Stub ():SkillStub (2102)
         {
             cls = 127;
-            name = L"³¬ÖØ";
-            nativename = "³¬ÖØ";
-            icon = "Á÷ĞÇ´¸.dds";
+            name = L"è¶…é‡";
+            nativename = "è¶…é‡";
+            icon = "æµæ˜Ÿé”¤.dds";
             max_level = 10;
             type = 10;
             apcost = 0;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "¾ŞÁéÉñÁ¦.sgc";
+            effect = "å·¨çµç¥åŠ›.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

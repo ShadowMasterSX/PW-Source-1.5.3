@@ -19,9 +19,9 @@ namespace GNET
         Skill1184Stub ():SkillStub (1184)
         {
             cls = 2;
-            name = L"ˮ��ͨ";
-            nativename = "ˮ��ͨ";
-            icon = "ˮϵħ����ͨ.dds";
+            name = L"水精通";
+            nativename = "水精通";
+            icon = "水系魔法精通.dds";
             max_level = 10;
             type = 5;
             apcost = 0;

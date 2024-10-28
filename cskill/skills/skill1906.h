@@ -133,8 +133,8 @@ namespace GNET
       Skill1906Stub ():SkillStub (1906)
         {
             cls = 127;
-            name = L"¹íº×";
-            nativename = "¹íº×";
+            name = L"é¬¼é¹¤";
+            nativename = "é¬¼é¹¤";
             icon = "";
             max_level = 10;
             type = 1;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "ÑªòÅ°µÉ±Õß_»÷ÖĞ.sgc";
+            effect = "è¡€èšºæš—æ€è€…_å‡»ä¸­.sgc";
             range.type = 4;
             doenchant = false;
             dobless = false;

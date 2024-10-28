@@ -133,9 +133,9 @@ namespace GNET
       Skill121Stub ():SkillStub (121)
         {
             cls = 7;
-            name = L"真灵护体";
-            nativename = "真灵护体";
-            icon = "真灵护体.dds";
+            name = L"鐪熺伒鎶や綋";
+            nativename = "鐪熺伒鎶や綋";
+            icon = "鐪熺伒鎶や綋.dds";
             max_level = 1;
             type = 2;
             apcost = 0;
@@ -162,7 +162,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "真灵护体.sgc";
+            effect = "鐪熺伒鎶や綋.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

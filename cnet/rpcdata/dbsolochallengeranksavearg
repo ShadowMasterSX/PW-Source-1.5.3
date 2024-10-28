@@ -1,0 +1,65 @@
+#ifndef __GNET_DBSOLOCHALLENGERANKSAVEARG_RPCDATA
+#define __GNET_DBSOLOCHALLENGERANKSAVEARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "solochallengerankdataext"
+
+namespace GNET
+{
+	class DBSoloChallengeRankSaveArg : public GNET::Rpc::Data
+	{
+	public:
+		char ranktype;
+		SoloChallengeRankDataExt data_ext;
+
+	public:
+		DBSoloChallengeRankSaveArg (char l_ranktype = 0,const SoloChallengeRankDataExt& l_data_ext = SoloChallengeRankDataExt())
+			: ranktype(l_ranktype),data_ext(l_data_ext)
+		{
+		}
+
+		DBSoloChallengeRankSaveArg(const DBSoloChallengeRankSaveArg &rhs)
+			: ranktype(rhs.ranktype),data_ext(rhs.data_ext) { }
+
+		Rpc::Data *Clone() const { return new DBSoloChallengeRankSaveArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBSoloChallengeRankSaveArg *r = dynamic_cast<const DBSoloChallengeRankSaveArg *>(&rhs);
+			if (r && r != this)
+			{
+				ranktype = r->ranktype;
+				data_ext = r->data_ext;
+			}
+			return *this;
+		}
+
+		DBSoloChallengeRankSaveArg& operator = (const DBSoloChallengeRankSaveArg &rhs)
+		{
+			const DBSoloChallengeRankSaveArg *r = &rhs;
+			if (r && r != this)
+			{
+				ranktype = r->ranktype;
+				data_ext = r->data_ext;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << ranktype;
+			os << data_ext;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> ranktype;
+			os >> data_ext;
+			return os;
+		}
+
+	};
+};
+#endif

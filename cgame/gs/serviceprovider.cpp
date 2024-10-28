@@ -4949,6 +4949,55 @@ private:
 	}
 };
 
+
+typedef feedback_provider make_slot_for_decoration_provider;
+class make_slot_for_decoration_executor : public service_executor
+{
+public:
+    struct player_request
+    {
+        int src_index;                  // 需要打孔的饰品索引
+        int src_id;                     // 需要打孔的饰品id
+
+        unsigned int material_id;       // 打孔消耗的材料id
+        int material_count;             // 打孔消耗的材料数量
+    };
+
+private:
+    virtual bool SendRequest(gplayer_imp* pImp, const XID& provider, const void* buf, size_t size)
+    {
+        if (pImp->OI_TestSafeLock())
+        {
+            pImp->_runner->error_message(S2C::ERR_FORBIDDED_OPERATION_IN_SAFE_LOCK);
+            return true;
+        }
+
+        if (size != sizeof(player_request)) return false;
+        player_request* req = (player_request*)buf;
+
+        if ((req->src_index < 0) || (req->src_id <= 0) || (req->material_id <= 0) || (req->material_count <= 0)) return false;
+        if (!pImp->IsItemExist(req->src_index, req->src_id, 1)) return false;
+        if (pImp->GetItemCount(req->material_id) < req->material_count) return false;
+
+        pImp->SendTo<0>(GM_MSG_SERVICE_REQUEST, provider, _type, buf, size);
+        return true;
+    }
+
+    virtual bool OnServe(gplayer_imp* pImp, const XID& provider, const A3DVECTOR& pos, const void* buf, size_t size)
+    {
+        ASSERT(size == sizeof(player_request));
+        player_request* req = (player_request*)buf;
+
+        if ((req->src_index < 0) || (req->src_id <= 0) || (req->material_id <= 0) || (req->material_count <= 0)) return false;
+        if (!pImp->IsItemExist(req->src_index, req->src_id, 1)) return false;
+        if (pImp->GetItemCount(req->material_id) < req->material_count) return false;
+
+        pImp->ItemMakeSlot(req->src_index, req->src_id, req->material_id, req->material_count);
+        return true;
+    }
+};
+
+
 //lgc
 typedef feedback_provider elf_dec_attribute_provider;
 class elf_dec_attribute_executor : public service_executor
@@ -6796,6 +6845,87 @@ private:
 	}
 };
 
+
+typedef feedback_provider solo_challenge_rank_provider;
+class solo_challenge_rank_executor : public service_executor
+{
+public:
+#pragma pack(1)
+    struct player_request
+    {
+        char cls;    // 单人副本排行榜 榜单类型 -1表示总榜 其它值表示职业分榜 目前范围 [0, 11]
+    };
+#pragma pack()
+
+private:
+    virtual bool SendRequest(gplayer_imp* pImp, const XID& provider, const void* buf, size_t size)
+    {
+        if (size != sizeof(player_request)) return false;
+        player_request* req = (player_request*)buf;
+
+        if ((req->cls < -1) || (req->cls >= USER_CLASS_COUNT)) return false;
+        if (!pImp->CheckCoolDown(COOLDOWN_INDEX_SOLO_CHALLENGE_RANK)) return false;
+
+        pImp->SendTo<0>(GM_MSG_SERVICE_REQUEST, provider, _type, buf, size);
+        return true;
+    }
+
+    virtual bool OnServe(gplayer_imp* pImp, const XID& provider, const A3DVECTOR& pos, const void* buf, size_t size)
+    {
+        ASSERT(size == sizeof(player_request));
+        player_request* req = (player_request*)buf;
+
+        if ((req->cls < -1) || (req->cls >= USER_CLASS_COUNT)) return false;
+        if (!pImp->CheckCoolDown(COOLDOWN_INDEX_SOLO_CHALLENGE_RANK)) return false;
+
+        GMSV::SendGetSoloChallengeRank(pImp->_parent->ID.id, 0, req->cls);
+        pImp->SetCoolDown(COOLDOWN_INDEX_SOLO_CHALLENGE_RANK, SOLO_CHALLENGE_RANK_COOLDOWN_TIME);
+
+        return true;
+    }
+};
+
+
+typedef feedback_provider solo_challenge_rank_global_provider;
+class solo_challenge_rank_global_executor : public service_executor
+{
+public:
+#pragma pack(1)
+    struct player_request
+    {
+        char cls;    // 单人副本排行榜 榜单类型 -1表示总榜 其它值表示职业分榜 目前范围 [0, 11]
+    };
+#pragma pack()
+
+private:
+    virtual bool SendRequest(gplayer_imp* pImp, const XID& provider, const void* buf, size_t size)
+    {
+        if (size != sizeof(player_request)) return false;
+        player_request* req = (player_request*)buf;
+
+        if ((req->cls < -1) || (req->cls >= USER_CLASS_COUNT)) return false;
+        if (!pImp->CheckCoolDown(COOLDOWN_INDEX_SOLO_CHALLENGE_RANK)) return false;
+
+        pImp->SendTo<0>(GM_MSG_SERVICE_REQUEST, provider, _type, buf, size);
+        return true;
+    }
+
+    virtual bool OnServe(gplayer_imp* pImp, const XID& provider, const A3DVECTOR& pos, const void* buf, size_t size)
+    {
+        ASSERT(size == sizeof(player_request));
+        player_request* req = (player_request*)buf;
+
+        if ((req->cls < -1) || (req->cls >= USER_CLASS_COUNT)) return false;
+        if (!pImp->CheckCoolDown(COOLDOWN_INDEX_SOLO_CHALLENGE_RANK)) return false;
+
+        GMSV::SendGetSoloChallengeRank(pImp->_parent->ID.id, 1, req->cls);
+        pImp->SetCoolDown(COOLDOWN_INDEX_SOLO_CHALLENGE_RANK, SOLO_CHALLENGE_RANK_COOLDOWN_TIME);
+
+        return true;
+    }
+};
+
+
 class addonregen_provider : public general_id_provider
 {
 
@@ -7295,16 +7425,97 @@ void __SendTo(gplayer_imp * pImp, int message, const XID & provider, int type)
 {
 	pImp->SendTo<0>(message, provider, type);
 }
-typedef feedback_provider change_ds_provider;
-template<int CHANGE_DS_FLAG>
+
+class change_ds_forward_provider : public general_provider
+{
+private:
+	struct
+	{
+		int	activity_type;				//	活动类型(type=cross_server_activity)
+		int	player_count_limit;			//	人数限制
+		int	time_out;					//	活动时长_秒
+		int	need_item_tid;				//	所需物品id(type=all_type)
+		int	need_item_count;			//	所需物品数量
+		bool cost_item;					//	是否收消耗物品(type=bool)
+		int	history_max_level;			//	历史最高等级限制
+		int	second_level;				//	修真等级要求(type=taoist_rank_require)
+		int	realm_level;				//	境界等级要求
+	} _info;
+	virtual bool Save(archive & ar)
+	{
+		ASSERT(false);
+		return true;
+	}
+	virtual bool Load(archive & ar)
+	{
+		ASSERT(false);
+		return true;
+	}
+
+public:
+	change_ds_forward_provider(){ memset(&_info,0,sizeof(_info)); }
+
+private:
+	virtual change_ds_forward_provider * Clone()
+	{
+		ASSERT(!_is_init);
+		return new change_ds_forward_provider(*this);
+	}
+
+	virtual bool OnInit(const void * buf, size_t size)
+	{
+		if(size != sizeof(_info)) 
+		{
+			ASSERT(false);
+			return false;
+		}
+	
+		memcpy(&_info,buf,size);
+		return true;
+	}
+	
+	virtual void GetContent(const XID & player,int cs_index, int sid)
+	{
+		return ;
+	}
+	
+	virtual void TryServe(const XID & player, const void * buf, size_t size)
+	{
+		//找到回应
+		SendMessage(GM_MSG_SERVICE_DATA,player,_type,&_info,sizeof(_info));
+	}
+
+	virtual void OnHeartbeat()
+	{
+	}
+	
+	virtual void OnControl(int param ,const void * buf, size_t size)
+	{
+		//主要是控制税率
+	}
+};
+
+typedef feedback_provider change_ds_backward_provider;
+
+template<int CHANGE_DS_FLAG,bool NEED_VISA>
 class change_ds_executor : public service_executor
 {
-public:
+	struct server_request
+	{
+		int	activity_type;				//	活动类型(type=cross_server_activity)
+		int	player_count_limit;			//	人数限制
+		int	time_out;					//	活动时长_秒
+		int	need_item_tid;				//	所需物品id(type=all_type)
+		int	need_item_count;			//	所需物品数量
+		bool cost_item;					//	是否收消耗物品(type=bool)
+		int	history_max_level;			//	历史最高等级限制
+		int	second_level;				//	修真等级要求(type=taoist_rank_require)
+		int	realm_level;				//	境界等级要求
+	} _info;
 private:
 	
 	virtual bool SendRequest(gplayer_imp * pImp, const XID & provider,const void * buf, size_t size)
 	{
-		if(size != 0) return false;
 		__SendTo(pImp,GM_MSG_SERVICE_REQUEST,provider,_type);
 		return true;
 	}
@@ -7312,14 +7523,31 @@ private:
 
 	virtual bool OnServe(gplayer_imp *pImp,const XID & provider, const A3DVECTOR & pos,const void * buf, size_t size)
 	{
-		int ret = pImp->PlayerTryChangeDS(CHANGE_DS_FLAG);
+		if(NEED_VISA && size != sizeof(server_request)) return false;
+		const server_request* req = (server_request*) buf;
+
+		int ret = 0;
+		
+		if(NEED_VISA)
+			ret = pImp->CheckChangeDs(req->activity_type,req->player_count_limit,req->need_item_tid,req->need_item_count,req->history_max_level,req->second_level,req->realm_level);
+
 		if(ret > 0)
+		{
 			pImp->_runner->error_message(ret);	
 		return true;
 	}
+
+		if(NEED_VISA)
+			pImp->MakeVisaData(req->activity_type, g_timer.get_systime() + req->time_out,
+				req->cost_item ? req->need_item_tid : 0, 
+				req->cost_item ? req->need_item_count : 0);
+		
+		pImp->PlayerTryChangeDS(CHANGE_DS_FLAG);
+		return true;
+	}
 };
-typedef change_ds_executor<GMSV::CHDS_FLAG_DS_TO_CENTRALDS> change_ds_forward_executor;
-typedef change_ds_executor<GMSV::CHDS_FLAG_CENTRALDS_TO_DS> change_ds_backward_executor;
+typedef change_ds_executor<GMSV::CHDS_FLAG_DS_TO_CENTRALDS,true> change_ds_forward_executor;
+typedef change_ds_executor<GMSV::CHDS_FLAG_CENTRALDS_TO_DS,false> change_ds_backward_executor;
 
 
 typedef feedback_provider addon_change_service_provider;
@@ -8038,6 +8266,457 @@ private:
 	}
 };
 
+static const int fashion_index[] =
+{
+    item::EQUIP_INDEX_FASHION_BODY,
+    item::EQUIP_INDEX_FASHION_LEG,
+    item::EQUIP_INDEX_FASHION_FOOT,
+    item::EQUIP_INDEX_FASHION_WRIST,
+    item::EQUIP_INDEX_FASHION_HEAD,
+    item::EQUIP_INDEX_FASHION_WEAPON,
+};
+
+typedef feedback_provider player_change_gender_provider;
+class player_change_gender_executor : public service_executor
+{
+
+public:
+#pragma pack(1)
+    struct player_request
+    {
+        int item_inv_idx;                  // 消耗物品在包裹中的索引
+        int item_id;                       // 消耗物品id
+        unsigned char new_gender;          // 角色的新性别 0-男 1-女
+        unsigned short custom_data_len;    // 角色默认个性化信息长度
+        char custom_data[];                // 角色默认个性化信息
+    };
+#pragma pack()
+    player_change_gender_executor() {}
+private:
+    virtual bool SendRequest(gplayer_imp* pImp, const XID& provider, const void* buf, size_t size)
+    {
+        if (size < sizeof(player_request)) return false;
+        player_request* req = (player_request*)buf;
+
+        if (pImp->GetPlayerState() != gplayer_imp::PLAYER_STATE_NORMAL)
+        {
+            pImp->_runner->error_message(S2C::ERR_CHANGE_GENDER_STATE);
+            return true;
+        }
+
+        unsigned char new_gender = req->new_gender;
+        if ((new_gender != 0) && (new_gender != 1))
+        {
+            pImp->_runner->error_message(S2C::ERR_CHANGE_GENDER_GENDER);
+            return true;
+        }
+
+        int cls = 0;
+        bool gender = false;
+        pImp->GetPlayerClass(cls, gender);
+        unsigned char old_gender = (unsigned char)gender;
+
+        if (new_gender == old_gender)
+        {
+            pImp->_runner->error_message(S2C::ERR_CHANGE_GENDER_GENDER);
+            return true;
+        }
+
+        if ((cls == 3) || (cls == 4))
+        {
+            pImp->_runner->error_message(S2C::ERR_CHANGE_GENDER_CLS);
+            return true;
+        }
+
+        if (pImp->IsMarried())
+        {
+            pImp->_runner->error_message(S2C::ERR_CHANGE_GENDER_MARRIED);
+            return true;
+        }
+
+        item_list& list = pImp->GetEquipInventory();
+        for (unsigned int i = 0; i < sizeof(fashion_index) / sizeof(fashion_index[0]); ++i)
+        {
+            if (!list.IsSlotEmpty(fashion_index[i]))
+            {
+                pImp->_runner->error_message(S2C::ERR_CHANGE_GENDER_FASHION);
+                return true;
+            }
+        }
+
+        PlayerTaskInterface task_if(pImp);
+        if (task_if.HasTopTaskRelatingGender(NULL) ||
+            task_if.HasTopTaskRelatingSpouse(NULL) ||
+            task_if.HasTopTaskRelatingMarriage(NULL) ||
+            task_if.HasTopTaskRelatingWedding(NULL))
+        {
+            pImp->_runner->error_message(S2C::ERR_CHANGE_GENDER_TASK);
+            return true;
+        }
+
+        if (pImp->OI_TestSafeLock())
+        {
+            pImp->_runner->error_message(S2C::ERR_FORBIDDED_OPERATION_IN_SAFE_LOCK);
+            return true;
+        }
+
+        if (!pImp->CanTrade(provider))
+        {
+            pImp->_runner->error_message(S2C::ERR_SERVICE_UNAVILABLE);
+            return true;
+        }
+
+        if (!pImp->IsItemExist(req->item_inv_idx, req->item_id, 1)) return false;
+
+        if ((req->item_id != PLAYER_CHANGE_GENDER_ITEM_ID_1) && (req->item_id != PLAYER_CHANGE_GENDER_ITEM_ID_2)) return false;
+
+        pImp->SendTo<0>(GM_MSG_SERVICE_REQUEST, provider, _type, buf, size);
+        return true;
+    }
+
+    virtual bool OnServe(gplayer_imp* pImp, const XID& provider, const A3DVECTOR& pos, const void* buf, size_t size)
+    {
+        if (size < sizeof(player_request))
+        {
+            ASSERT(false);
+            return false;
+        }
+
+        player_request* req = (player_request*)buf;
+        if (pImp->GetPlayerState() != gplayer_imp::PLAYER_STATE_NORMAL)
+        {
+            ASSERT(false);
+            return false;
+        }
+
+        unsigned char new_gender = req->new_gender;
+        if ((new_gender != 0) && (new_gender != 1))
+        {
+            ASSERT(false);
+            return false;
+        }
+
+        int cls = 0;
+        bool gender = false;
+        pImp->GetPlayerClass(cls, gender);
+        unsigned char old_gender = (unsigned char)gender;
+
+        if (new_gender == old_gender)
+        {
+            ASSERT(false);
+            return false;
+        }
+
+        if ((cls == 3) || (cls == 4))
+        {
+            ASSERT(false);
+            return false;
+        }
+
+        if (pImp->IsMarried())
+        {
+            ASSERT(false);
+            return false;
+        }
+
+        item_list& list = pImp->GetEquipInventory();
+        for (unsigned int i = 0; i < sizeof(fashion_index) / sizeof(fashion_index[0]); ++i)
+        {
+            if (!list.IsSlotEmpty(fashion_index[i]))
+            {
+                ASSERT(false);
+                return false;
+            }
+        }
+
+        PlayerTaskInterface task_if(pImp);
+        if (task_if.HasTopTaskRelatingGender(NULL) ||
+            task_if.HasTopTaskRelatingSpouse(NULL) ||
+            task_if.HasTopTaskRelatingMarriage(NULL) ||
+            task_if.HasTopTaskRelatingWedding(NULL))
+        {
+            ASSERT(false);
+            return false;
+        }
+
+        if (pImp->OI_TestSafeLock())
+        {
+            pImp->_runner->error_message(S2C::ERR_FORBIDDED_OPERATION_IN_SAFE_LOCK);
+            return true;
+        }
+
+        if (!pImp->CanTrade(provider))
+        {
+            pImp->_runner->error_message(S2C::ERR_SERVICE_UNAVILABLE);
+            return false;
+        }
+
+        if (!pImp->IsItemExist(req->item_inv_idx, req->item_id, 1)) return false;
+
+        if ((req->item_id != PLAYER_CHANGE_GENDER_ITEM_ID_1) && (req->item_id != PLAYER_CHANGE_GENDER_ITEM_ID_2)) return false;
+
+        object_interface oi(pImp);
+        GMSV::SendPlayerChangeGender(pImp->_parent->ID.id, req->item_inv_idx, req->item_id, 1, req->new_gender, req->custom_data, req->custom_data_len, oi);
+        return true;
+    }
+};
+
+typedef feedback_provider select_solo_challenge_stage_provider;
+class select_solo_challenge_stage_executor : public service_executor
+{
+public:
+	struct player_request
+	{
+		int stage_level;//关卡
+	};
+private:
+	virtual bool SendRequest(gplayer_imp* pImp, const XID& provider, const void* buf, size_t size)
+	{
+		/*if(pImp->OI_TestSafeLock())
+		{
+			pImp->_runner->error_message(S2C::ERR_FORBIDDED_OPERATION_IN_SAFE_LOCK);
+			return true;
+		}*/
+
+		if(size != sizeof(player_request)) return false;
+		player_request* req=(player_request*)buf;
+
+		if((req->stage_level <= 0) || (req->stage_level > SOLO_TOWER_CHALLENGE_MAX_STAGE))
+		{
+			pImp->_runner->error_message(S2C::ERR_SOLO_CHALLENGE_FAILURE);
+			return true;
+		}
+
+		if(!pImp->CheckCoolDown(COOLDOWN_INDEX_ENTER_SOLO_CHALLENGE))
+		{
+			pImp->_runner->error_message(S2C::ERR_SOLO_CHALLENGE_SELECT_STAGE_COOLDOWN);
+			return true;
+		}
+		pImp->SetCoolDown(COOLDOWN_INDEX_ENTER_SOLO_CHALLENGE, SOLO_CHALLENGE_ENTER_COOLDOWN_TIME);
+		
+		pImp->SendTo<0>(GM_MSG_SERVICE_REQUEST, provider, _type, buf, size);
+		return true;
+	}
+
+	virtual bool OnServe(gplayer_imp* pImp, const XID& provider, const A3DVECTOR& pos, const void* buf, size_t size)
+	{
+		ASSERT(size == sizeof(player_request));
+
+		player_request* req = (player_request*)buf;
+		if((req->stage_level <= 0) || (req->stage_level > SOLO_TOWER_CHALLENGE_MAX_STAGE))
+		  return false;
+	
+		pImp->PlayerSoloChallengeSelectStage(req->stage_level);
+
+		return true;
+	}
+		
+};
+
+typedef feedback_provider mnfaction_sign_up_service_provider;
+class mnfaction_sign_up_service_executor : public service_executor
+{
+public:
+	struct player_request
+	{
+		unsigned char domain_type;
+	};
+private:
+	
+	virtual bool SendRequest(gplayer_imp * pImp, const XID & provider,const void * buf, size_t size)
+	{
+		if(size != sizeof(player_request)) return false;
+		
+		if(!((gplayer*)pImp->_parent)->id_mafia || ((gplayer*)pImp->_parent)->rank_mafia > 3)
+		{
+			pImp->_runner->error_message(S2C::ERR_MAFIA_NO_PERMISSION);
+			return true;
+		}
+		DATA_TYPE dt;
+		MNFACTION_WAR_CONFIG * ess = (MNFACTION_WAR_CONFIG *)world_manager::GetDataMan().get_data_ptr(MNFACTION_CONFIG_ID, ID_SPACE_CONFIG, dt);
+		ASSERT(ess && dt == DT_MNFACTION_WAR_CONFIG);
+		size_t money_cost = ess->sign_up_money_cost;
+		size_t player_money = pImp -> GetMoney();
+		if(player_money < money_cost)
+		{
+			pImp->_runner->error_message(S2C::ERR_OUT_OF_FUND);
+			return true;
+		}
+
+		//发送转发数据
+		pImp->SendTo<0>(GM_MSG_SERVICE_REQUEST,provider,_type,buf,size);
+		return true;
+	}
+
+
+	virtual bool OnServe(gplayer_imp *pImp,const XID & provider, const A3DVECTOR & pos,const void * buf, size_t size)
+	{
+		ASSERT(size == sizeof(player_request));
+		player_request * req = (player_request*)buf;
+		
+		if(!((gplayer*)pImp->_parent)->id_mafia || ((gplayer*)pImp->_parent)->rank_mafia > 3)
+		{
+			pImp->_runner->error_message(S2C::ERR_MAFIA_NO_PERMISSION);
+			return true;
+		}
+		int ret = 0;
+		object_interface oi(pImp);
+		int64_t unifid = 0;
+		pImp->GetDBMNFactionInfo(unifid);
+		DATA_TYPE dt;
+		MNFACTION_WAR_CONFIG * ess = (MNFACTION_WAR_CONFIG *)world_manager::GetDataMan().get_data_ptr(MNFACTION_CONFIG_ID, ID_SPACE_CONFIG, dt);
+		ASSERT(ess && dt == DT_MNFACTION_WAR_CONFIG);
+		size_t money_cost = ess->sign_up_money_cost;
+		size_t player_money = pImp -> GetMoney();
+		if(player_money < money_cost)
+		{
+			pImp->_runner->error_message(S2C::ERR_OUT_OF_FUND);
+			return true;
+		}
+		ret = GMSV::MnFactionSignUp(req -> domain_type, ((gplayer*)pImp->_parent)->id_mafia, unifid, oi,  ((gplayer*)pImp->_parent)->ID.id, money_cost);
+		if(ret > 0)
+		{
+			if(ret == 1)
+				pImp->_runner->error_message(S2C::ERR_MNFACTION_SIGN_UP_C_NOT_ENOUGH_CITY);
+			else if(ret == 3)
+				pImp->_runner->error_message(S2C::ERR_MNFACTION_SIGN_UP_LOWER_TYPE);
+		}
+		
+		return true;
+	}
+};
+
+typedef feedback_provider mnfaction_rank_service_provider;
+class mnfaction_rank_service_executor : public service_executor
+{
+private:
+	
+	virtual bool SendRequest(gplayer_imp * pImp, const XID & provider,const void * buf, size_t size)
+	{
+		//检查冷却时间
+		if(!pImp->CheckCoolDown(COOLDOWN_INDEX_MNFACTION_RANK)) 
+		{
+			pImp->_runner->error_message(S2C::ERR_OBJECT_IS_COOLING);
+			return true;
+		}
+		pImp->SetCoolDown(COOLDOWN_INDEX_MNFACTION_RANK, MNFACTION_RANK_COOLDOWN_TIME);
+
+		//发送转发数据
+		pImp->SendTo<0>(GM_MSG_SERVICE_REQUEST,provider,_type,buf,size);
+		return true;
+	}
+
+
+	virtual bool OnServe(gplayer_imp *pImp,const XID & provider, const A3DVECTOR & pos,const void * buf, size_t size)
+	{
+		GMSV::MnFactionRank(((gplayer*)pImp->_parent)->ID.id);
+		return true;
+	}
+};
+typedef feedback_provider mnfaction_battle_transmit_service_provider;
+class mnfaction_battle_transmit_service_executor : public service_executor
+{
+public:
+	struct player_request
+	{
+		int transmit_pos_index;
+	};
+private:
+	
+	virtual bool SendRequest(gplayer_imp * pImp, const XID & provider,const void * buf, size_t size)
+	{
+		if(size != sizeof(player_request)) return false;
+		player_request * req = (player_request *)buf;
+
+		if(req -> transmit_pos_index >= MNFACTION_TRANSMIT_POS_NUM)//共5个传送点
+			return false;
+		
+		//发送转发数据
+		pImp->SendTo<0>(GM_MSG_SERVICE_REQUEST,provider,_type,buf,size);
+		return true;
+	}
+
+
+	virtual bool OnServe(gplayer_imp *pImp,const XID & provider, const A3DVECTOR & pos,const void * buf, size_t size)
+	{
+		ASSERT(size == sizeof(player_request));
+		player_request * req = (player_request*)buf;
+	
+		A3DVECTOR transmit_pos;
+		int ret = pImp->_plane->w_ctrl->PlayerTransmitInMNFaction(pImp, req->transmit_pos_index, transmit_pos);
+		if(ret > 0)
+		{
+			pImp->_runner->error_message(ret);	
+			return true;
+		}
+		if(!pImp->LongJump(transmit_pos))
+			return false;
+		return true;
+	}
+};
+typedef feedback_provider mnfaction_join_leave_service_provider;
+class mnfaction_join_leave_service_executor : public service_executor
+{
+public:
+	enum
+	{
+		RT_JOIN	= 0,
+		RT_LEAVE,
+		RT_MAX,
+	};
+	struct player_request
+	{
+		int type;
+		int domain_id;
+	};
+private:
+	
+	virtual bool SendRequest(gplayer_imp * pImp, const XID & provider,const void * buf, size_t size)
+	{
+		if(size != sizeof(player_request)) return false;
+		player_request * req = (player_request *)buf;
+		
+		switch(req->type)
+		{
+			case RT_JOIN:
+			case RT_LEAVE:
+				break;
+			default:
+				return false;
+		}
+		
+		//发送转发数据
+		pImp->SendTo<0>(GM_MSG_SERVICE_REQUEST,provider,_type,buf,size);
+		return true;
+	}
+
+
+	virtual bool OnServe(gplayer_imp *pImp,const XID & provider, const A3DVECTOR & pos,const void * buf, size_t size)
+	{
+		ASSERT(size == sizeof(player_request));
+		player_request * req = (player_request*)buf;
+		
+		int ret = 0;
+		switch(req->type)
+		{
+			case RT_JOIN:
+				ret = pImp->MnfactionJoinApply(req->domain_id);
+				break;
+			case RT_LEAVE:
+				ret = pImp->MnfactionLeave();
+				break;
+			default:
+				return false;
+		}
+		
+		if(ret > 0)
+			pImp->_runner->error_message(ret);	
+		
+		return true;
+	}
+};
+
+
 }
 using namespace NG_ELEMNET_SERVICE;
 
@@ -8118,8 +8797,8 @@ static service_inserter si74 = SERVICE_INSERTER(produce4_provider,produce4_execu
 static service_inserter si75 = SERVICE_INSERTER(country_service_provider,country_service_executor,75);
 static service_inserter si76 = SERVICE_INSERTER(countrybattle_leave_provider,countrybattle_leave_executor,76);
 static service_inserter si77 = SERVICE_INSERTER(equip_signature_provider,equip_signature_executor,77);
-static service_inserter si78 = SERVICE_INSERTER(change_ds_provider,change_ds_forward_executor,78);
-static service_inserter si79 = SERVICE_INSERTER(change_ds_provider,change_ds_backward_executor,79);
+static service_inserter si78 = SERVICE_INSERTER(change_ds_forward_provider,change_ds_forward_executor,78);
+static service_inserter si79 = SERVICE_INSERTER(change_ds_backward_provider,change_ds_backward_executor,79);
 static service_inserter si80 = SERVICE_INSERTER(player_rename_provider,player_rename_executor,80);
 static service_inserter si81 = SERVICE_INSERTER(addon_change_service_provider,addon_change_service_executor,81);
 static service_inserter si82 = SERVICE_INSERTER(addon_replace_service_provider,addon_replace_service_executor,82);
@@ -8135,4 +8814,13 @@ static service_inserter si91 = SERVICE_INSERTER(mafia_pvp_signup_provider,mafia_
 static service_inserter si92 = SERVICE_INSERTER(produce5_provider,produce5_executor,92);
 static service_inserter si93 = SERVICE_INSERTER(npc_goldshop_provider,npc_goldshop_executor,93);
 static service_inserter si94 = SERVICE_INSERTER(npc_dividendshop_provider,npc_dividendshop_executor,94);
+static service_inserter si95 = SERVICE_INSERTER(player_change_gender_provider, player_change_gender_executor, 95);
+static service_inserter si96 = SERVICE_INSERTER(make_slot_for_decoration_provider, make_slot_for_decoration_executor, 96);
+static service_inserter si97 = SERVICE_INSERTER(select_solo_challenge_stage_provider, select_solo_challenge_stage_executor, 97);
+static service_inserter si98 = SERVICE_INSERTER(solo_challenge_rank_provider, solo_challenge_rank_executor, 98);
+static service_inserter si99 = SERVICE_INSERTER(mnfaction_sign_up_service_provider, mnfaction_sign_up_service_executor, 99);
+static service_inserter si100 = SERVICE_INSERTER(mnfaction_rank_service_provider, mnfaction_rank_service_executor, 100);
+static service_inserter si101 = SERVICE_INSERTER(mnfaction_battle_transmit_service_provider, mnfaction_battle_transmit_service_executor, 101);
+static service_inserter si102 = SERVICE_INSERTER(mnfaction_join_leave_service_provider, mnfaction_join_leave_service_executor, 102);
+static service_inserter si103 = SERVICE_INSERTER(solo_challenge_rank_global_provider, solo_challenge_rank_global_executor, 103);
 

@@ -137,9 +137,9 @@ namespace GNET
       Skill1698Stub ():SkillStub (1698)
         {
             cls = 8;
-            name = L"Õæ¡¤ËéÊ¯½£Æø";
-            nativename = "Õæ¡¤ËéÊ¯½£Æø";
-            icon = "ËéÊ¯½£ÆøÏÉ¼¼ÄÜ.dds";
+            name = L"çœŸÂ·ç¢çŸ³å‰‘æ°”";
+            nativename = "çœŸÂ·ç¢çŸ³å‰‘æ°”";
+            icon = "ç¢çŸ³å‰‘æ°”ä»™æŠ€èƒ½.dds";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -164,7 +164,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (1);
             }
-            effect = "½£Áé_ËéÊ¯½£Æø.sgc";
+            effect = "å‰‘çµ_ç¢çŸ³å‰‘æ°”.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

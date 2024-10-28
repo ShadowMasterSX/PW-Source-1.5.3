@@ -77,6 +77,19 @@
 #include "factionresourcebattleeventnotice.hpp"
 #include "factionresourcebattleplayerquery.hpp"
 #include "factionresourcebattlerequestconfig_re.hpp"
+#include "dbplayerchangegender.hrp"
+#include "updatesolochallengerank.hpp"
+#include "getsolochallengerank.hpp"
+#include "updateenemylist.hpp"
+#include "mndomainbattlestart_re.hpp"
+#include "mndomainbattleentersuccessnotice.hpp"
+#include "mndomainbattleend.hpp"
+#include "mnbattleserverregister.hpp"
+#include "mndomainbattleenter.hpp"
+#include "mndomainbattleleavenotice.hpp"
+#include "mnfactionbattleapply.hpp"
+#include "mngettoplist.hpp"
+#include "mngetdomaindata.hpp"
 
 #include <pthread.h>
 #include <conf.h>
@@ -770,6 +783,65 @@ bool SendPlayerRename(int roleid, int item_pos, int item_id, int item_num, const
 	return false;
 }
 
+bool SendPlayerChangeGender(int roleid, int item_pos, int item_id, int item_num, unsigned char new_gender, const void* custom_data, size_t custom_data_len, object_interface& obj_if)
+{
+    GMailSyncData syncdata;
+    if (!GetSyncData(syncdata, obj_if))
+        return false;
+
+    if (obj_if.TradeLockPlayer(0, DBMASK_PUT_SYNC_TIMEOUT) == 0)
+    {
+        Rpc* rpc = Rpc::Call(RPC_DBPLAYERCHANGEGENDER, DBPlayerChangeGenderArg(roleid, item_id, item_num, item_pos, new_gender, Octets(custom_data, custom_data_len), syncdata));
+
+        if (GProviderClient::GetInstance()->DispatchProtocol(0, rpc))
+            return true;
+
+        obj_if.TradeUnLockPlayer();
+    }
+
+    return false;
+}
+
+
+bool SendUpdateSoloChallengeRank(int roleid, int total_time)
+{
+    UpdateSoloChallengeRank proto;
+    proto.roleid = roleid;
+    proto.total_time = total_time;
+
+    if (GProviderClient::GetInstance()->DispatchProtocol(0, proto))
+        return true;
+
+    return false;
+}
+
+bool SendGetSoloChallengeRank(int roleid, char ranktype, char cls)
+{
+    GetSoloChallengeRank proto;
+    proto.roleid = roleid;
+    proto.ranktype = ranktype;
+    proto.cls = cls;
+
+    if (GProviderClient::GetInstance()->DispatchProtocol(0, proto))
+        return true;
+
+    return false;
+}
+
+bool SendUpdateEnemyList(char optype, int srcroleid, int dstroleid)
+{
+    UpdateEnemyList proto;
+    proto.optype = optype;
+    proto.srcroleid = srcroleid;
+    proto.dstroleid = dstroleid;
+
+    if (GProviderClient::GetInstance()->DispatchProtocol(0, proto))
+        return true;
+
+    return false;
+}
+
+
 bool SendPlayerAskForPresent(int roleid, int target_roleid, int goods_id, int goods_index, int goods_slot)
 {
 	PlayerAskForPresent proto;
@@ -854,9 +926,9 @@ bool CheckMatcher(char * str, unsigned int size)
 	return GNET::Matcher::GetInstance()->Match(str,size)!=0;
 }
 
-bool SendTryChangeDS(int roleid, int flag)
+bool SendTryChangeDS(int roleid, int flag, short type, int64_t mnfid)
 {
-	return GProviderClient::DispatchProtocol(0,TryChangeDS(roleid, flag));
+	return GProviderClient::DispatchProtocol(0,TryChangeDS(roleid, flag, type, mnfid));
 }
 
 bool SendPlayerChangeDSRe(int retcode, int roleid, int flag)
@@ -1108,6 +1180,123 @@ void ThreadUsageStat()
 	};
 	static const int pri[4]={0,1,100,101};
 	GNET::Thread::Pool::AddTask(new ProbeTask(pri[rand()%4]));
+}
+
+void SendMNFactionServerRegister(int server_id, int world_tag)
+{
+	GProviderClient::DispatchProtocol(0,MNBattleServerRegister(server_id, world_tag));
+}
+
+void ResponseMnfactionBattleStart(int ret_code, int domain_id, int world_tag)
+{
+	GProviderClient::DispatchProtocol(0,MNDomainBattleStart_Re(ret_code, domain_id, world_tag));
+}
+
+void MnfactionEnter(MnfactionEnterEntry *ent)
+{
+	GNET::MNDomainBattleEnter data;
+	data.roleid     = ent->roleid;
+	data.unifid     = ent->faction_id;
+	data.domain_id   = ent->domain_id;
+	GProviderClient::DispatchProtocol(0,data);
+}
+
+void MNDomainBattleLeaveNotice(int roleid, int64_t unifid, int domain_id)
+{
+	GProviderClient::DispatchProtocol(0, GNET::MNDomainBattleLeaveNotice(roleid, unifid, domain_id));
+}
+
+int MNDomainBattleEnterSuccessNotice(int roleid, int64_t unifid, int domain_id)
+{
+	GProviderClient::DispatchProtocol(0, GNET::MNDomainBattleEnterSuccessNotice(roleid, unifid, domain_id));
+	return 0;
+}
+
+void SendMnfactionBattleEnd(int domain_id, int64_t win_unifid)
+{
+	GProviderClient::DispatchProtocol(0, GNET::MNDomainBattleEnd(domain_id, win_unifid));
+}
+
+static mnfaction_domain_entry mn_domain_list[56] = {{0,0,0,0,0,0}};
+static Thread::Mutex  g_domain_lock;
+
+void SetMnDomain(int domain_id, unsigned char domain_type, int64_t owner_unifid, int64_t attacker_unifid, int64_t defender_unifid)
+{
+	Thread::Mutex::Scoped lock(g_domain_lock);
+	mn_domain_list[domain_id]._domain_id    = domain_id;
+	mn_domain_list[domain_id]._domain_type	= domain_type;
+	mn_domain_list[domain_id]._owner_unifid = owner_unifid;
+	mn_domain_list[domain_id]._attacker_unifid = attacker_unifid;
+	mn_domain_list[domain_id]._defender_unifid = defender_unifid;
+	GLog::log(GLOG_INFO, "MNFACTION_LOG DOMAIN_OWNER_INFO domain_id : %d , _owner_unifid : %lld , _attacker_unifid : %lld , _defender_unifid : %lld ",domain_id, owner_unifid, attacker_unifid, defender_unifid);
+	//mn_domain_list[domain_id]._expiretime   = expiretime;
+}
+
+int GetMnDomainCount(int64_t unifid, unsigned char domain_type)
+{
+	int num = 0;
+	for(size_t i = 0; i<56; i++)
+	{
+		if(mn_domain_list[i]._owner_unifid == unifid && mn_domain_list[i]._domain_type == domain_type)
+			++num;
+	}
+	return num;
+}
+
+int64_t GetMnDomainOwner(int domain_id)
+{
+	return mn_domain_list[domain_id]._owner_unifid;	
+}
+
+int MnFactionSignUp(unsigned char domain_type, int id_mafia, int64_t unifid, object_interface& obj_if, int roleid, size_t cost)
+{
+/*	if(domain_type == 0)//C级城
+	{
+		if(GetMafiaCityCount(id_mafia) < 5)
+			return 1;
+	}
+	else//A,B级城
+	{
+		if(!unifid)
+			return 2;
+		else
+		{
+			if(!GetMnDomainCount(unifid, domain_type - 1))//打B级城必须有C级城
+				return 3;
+		}
+	}*/
+	
+	GMailSyncData data;
+	if (!GetSyncData(data, obj_if))
+		return 4;
+	
+	if (obj_if.TradeLockPlayer(0, DBMASK_PUT_SYNC_TIMEOUT) == 0)
+	{
+		GNET::MNFactionBattleApply proto;
+		proto.fid         = id_mafia;
+		proto.unifid      = unifid;
+		proto.roleid      = roleid;
+		proto.target      = domain_type;
+		proto.cost        = cost;
+		proto.syncdata    = data;
+
+		if(!GProviderClient::DispatchProtocol(0, proto))
+		{
+			obj_if.TradeUnLockPlayer();
+			return 5;
+		}
+	}
+	return 0;
+}
+
+void MnFactionRank(int roleid)
+{
+	GProviderClient::DispatchProtocol(0, MNGetTopList(roleid));
+}
+
+void MnFactionGetDomainData(int roleid)
+{
+	GProviderClient::DispatchProtocol(0, MNGetDomainData(roleid));
 }
 
 }

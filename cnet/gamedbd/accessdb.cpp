@@ -57,6 +57,12 @@
 
 #include "xmldecoder.h"
 #include "grolestatusextraprop"
+#include "mnfactioninfo"
+#include "mnfactionapplyinfo"
+#include "gfactionextenddata"
+#include "gfactionextend"
+#include "guniqueinfo"
+#include "solochallengerankdataext"
 
 
 namespace GNET
@@ -1328,7 +1334,7 @@ void DisplayRoleInfoBrief(GRoleDetail& role, GRoleBase& base)
 	printf(",%d",role.spouse);
 	printf(",%d",cross_info.remote_roleid);
 	printf(",%d",cross_info.src_zoneid);
-	printf(",%d",(base.status==_ROLE_STATUS_CROSS_LOCKED)?1:0);
+	printf(",%d",(base.status==_ROLE_STATUS_CROSS_LOCKED||base.status==_ROLE_STATUS_CROSS_RECYCLE)?1:0);
 	printf(",%d",role.status.level2);
 	
 	int reincarn_times = 0;
@@ -2907,7 +2913,7 @@ void ExportRoleList(const char *roleidfile, const char *rolelistfile)
 				if (!roledata.base.userid)
 					roledata.base.userid = LOGICUID(roledata.base.id);
 				roledata.base.spouse = 0;
-				if(roledata.base.status == _ROLE_STATUS_CROSS_LOCKED) roledata.base.status = _ROLE_STATUS_NORMAL;
+				if(roledata.base.status == _ROLE_STATUS_CROSS_LOCKED || roledata.base.status == _ROLE_STATUS_CROSS_RECYCLE) roledata.base.status = _ROLE_STATUS_NORMAL;
 
 				if (pstatus->find(oskey, ocvalue, txn))
 					Marshal::OctetsStream(ocvalue) >> roledata.status;
@@ -5517,12 +5523,19 @@ class DeleteWaitdelQuery : public StorageEnv::IQuery
 {
 	typedef	std::vector<int> RIDVec;
 	RIDVec del_role;
+	bool need_continue;
 public:
+	DeleteWaitdelQuery() : need_continue(false) {}
 	bool Update( StorageEnv::Transaction& txn, Octets& key, Octets& value)
 	{
 		Marshal::OctetsStream key_rid;
 		key_rid = key;
 		int roleid = -1;
+		if(del_role.size() >= 30000)
+		{
+			need_continue = true;
+			return false;
+		}
 		try
 		{
 			key_rid >> roleid;
@@ -5530,13 +5543,13 @@ public:
 		}
 		catch(Marshal::Exception &)
 		{
-			printf( "DeleteWaitdelQuery, error unmarshal") ;
+			printf( "[FATAL] DeleteWaitdelQuery, error unmarshal\n") ;
 		}
 
 		return true;
 	}
 
-	int DelRoleFaction(unsigned int rid, StorageEnv::AtomTransaction& txn)
+	int DelRoleFaction(unsigned int rid,StorageEnv::Storage * puserfaction, StorageEnv::Storage * pfactioninfo, StorageEnv::AtomTransaction& txn)
 	{
 		Marshal::OctetsStream key,value;
 		GUserFaction user;
@@ -5545,9 +5558,6 @@ public:
 
 		try
 		{
-			StorageEnv::Storage * puserfaction = StorageEnv::GetStorage("userfaction");
-			StorageEnv::Storage * pfactioninfo = StorageEnv::GetStorage("factioninfo");
-			StorageEnv::CommonTransaction txn;
 			try
 			{
 				key << rid;
@@ -5559,8 +5569,8 @@ public:
 
 				if(user.fid==0) return 0;
 
-				printf("type=deleterole:roleid=%d:factionid=%d:role=%d", 
-					user.rid, user.fid, user.role);
+//				printf("type=deleterole:roleid=%d:factionid=%d:role=%d\n", 
+//					user.rid, user.fid, user.role);
 				fid = user.fid;
 
 				key.clear();
@@ -5604,9 +5614,8 @@ public:
 							user.delayexpel.clear(); // 清除延时删除标记
 							puserfaction->insert( key, Marshal::OctetsStream() << user, txn );
 						}
-						else
-							printf( "DelRoleFaction %d, userfaction %d not found\n",
-								fid, itm->rid);
+//						else
+//							printf( "DelRoleFaction %d, userfaction %d not found\n", fid, itm->rid);
 					}
 					else
 						info.master.rid = 0;
@@ -5624,31 +5633,36 @@ public:
 		}
 		catch ( DbException e )
 		{
-			Log::log( LOG_ERR, "CheckRoleFaction, roleid=%d, what=%s\n", rid, e.what() );
+			printf( "[FATAL] CheckRoleFaction, roleid=%d, what=%s\n", rid, e.what() );
 		}
 		return 0;
 	}
-	void Process()
+	bool Process(bool backup)
 	{
-		StorageEnv::Storage * prolename = StorageEnv::GetStorage("rolename");
-		StorageEnv::Storage * puser = StorageEnv::GetStorage("user");
-		StorageEnv::Storage * pwaitdel = StorageEnv::GetStorage("waitdel");
-		StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
-		StorageEnv::Storage * pstatus = StorageEnv::GetStorage("status");
-		StorageEnv::Storage * pinventory = StorageEnv::GetStorage("inventory");
-		StorageEnv::Storage * pequipment = StorageEnv::GetStorage("equipment");
-		StorageEnv::Storage * pstorehouse = StorageEnv::GetStorage("storehouse");
-		StorageEnv::Storage * ptask = StorageEnv::GetStorage("task");
-		StorageEnv::Storage * pfriends = StorageEnv::GetStorage("friends");
-		StorageEnv::CommonTransaction txn;
 
 		try
 		{
+			if(backup && !opendir("./delwait_backup"))
+				mkdir("./delwait_backup",S_IRWXU|S_IRWXG|S_IRWXO); 
+
 			RIDVec::iterator ibeg = del_role.begin();
 			RIDVec::iterator iend = del_role.end();
 
 			for(;ibeg != iend; ++ibeg)
 			{
+				StorageEnv::Storage * prolename = StorageEnv::GetStorage("rolename");
+				StorageEnv::Storage * puser = StorageEnv::GetStorage("user");
+				StorageEnv::Storage * pwaitdel = StorageEnv::GetStorage("waitdel");
+				StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+				StorageEnv::Storage * pstatus = StorageEnv::GetStorage("status");
+				StorageEnv::Storage * pinventory = StorageEnv::GetStorage("inventory");
+				StorageEnv::Storage * pequipment = StorageEnv::GetStorage("equipment");
+				StorageEnv::Storage * pstorehouse = StorageEnv::GetStorage("storehouse");
+				StorageEnv::Storage * ptask = StorageEnv::GetStorage("task");
+				StorageEnv::Storage * pfriends = StorageEnv::GetStorage("friends");
+				StorageEnv::Storage * puserfaction = StorageEnv::GetStorage("userfaction");
+				StorageEnv::Storage * pfactioninfo = StorageEnv::GetStorage("factioninfo");
+				StorageEnv::AtomTransaction txn;
 				int roleid = *ibeg;
 				int userid = -1;
 				Marshal::OctetsStream key_userid, key_roleid,value_base;
@@ -5656,48 +5670,117 @@ public:
 				GRoleBase rolebase;
 				User user;
 
-				if( pbase->find( key_roleid, value_base, txn ) )
+				try
 				{
-					try {
-						value_base >> rolebase;
-						userid = rolebase.userid;
-					}
-					catch ( Marshal::Exception & )
+					if( pbase->find( key_roleid, value_base, txn ) )
 					{
-						printf( "DeleteWaildel, base unmarshal error, roleid=%d.", roleid );
+						try {
+							value_base >> rolebase;
+							userid = rolebase.userid;
+						}
+						catch ( Marshal::Exception & )
+						{
+							printf( "[FATAL] DeleteWaildel, base unmarshal error, roleid=%d.\n", roleid );
+							throw;
+						}
+					}
+					else
+					{
+						 pwaitdel->del( Marshal::OctetsStream() << roleid, txn );
+						 continue;
+					}
+
+					if(userid==0)
+						userid = LOGICUID(roleid);
+		
+					if(backup)
+					{
+						try
+						{
+							char dirsz[128];
+							sprintf(dirsz,"./delwait_backup/%d",userid);
+							if(!opendir(dirsz))
+								mkdir(dirsz,S_IRWXU|S_IRWXG|S_IRWXO);
+
+							GRoleData data;
+							Marshal::OctetsStream base_value,status_value,inv_value,equ_value,store_value,task_value;
+							if(pbase->find(key_roleid,base_value,txn) &&
+   							   pstatus->find(key_roleid,status_value,txn) &&
+							   pinventory->find(key_roleid,inv_value,txn) &&
+							   pequipment->find(key_roleid,equ_value,txn) &&
+							   pstorehouse->find(key_roleid,store_value,txn) &&
+							   ptask->find(key_roleid,task_value,txn))
+							{
+								base_value >> data.base;
+								status_value >> data.status;
+								inv_value >> data.pocket;
+								equ_value >> data.equipment;
+								store_value >> data.storehouse;
+								task_value >> data.task;
+								
+								XmlCoder coder;
+								coder.append_header();
+								coder.append("role", data);
+							
+								char filesz[128];
+								sprintf(filesz,"delwait_backup/%d/%d.xml",userid,roleid);
+								std::ofstream ofs(filesz,std::ios::out | std::ios::trunc);
+								ofs << coder.c_str();
+							}
+						}
+						catch(DbException e )
+						{
+							printf( "[FATAL] DeleteWaildel, backup error, roleid=%d.what=%s\n", roleid, e.what() );
+							throw;
+						}
+					}	
+				
+					try
+					{
+					//update user rolelist
+						if(userid > 0)
+						{
+							key_userid<<UserID(userid);
+						
+							Marshal::OctetsStream user_value;
+							if(puser->find( key_userid,user_value, txn ))
+							{
+								user_value >> user; //backup old value; 
+								RoleList rolelist(user.rolelist); //create rolelist object	
+								rolelist.DelRole(roleid % MAX_ROLE_COUNT);
+								user.rolelist = rolelist.GetRoleList();	
+								puser->insert(key_userid, Marshal::OctetsStream() << user, txn);
+							}
+						}
+
+						//delete role
+						pbase->del( key_roleid, txn );
+
+						pstatus->del( key_roleid, txn );
+						pinventory->del( key_roleid, txn );
+						pequipment->del( key_roleid, txn );
+						pstorehouse->del( key_roleid, txn );
+						ptask->del( key_roleid, txn );
+						pfriends->del( key_roleid, txn );
+						prolename->del( rolebase.name, txn );
+						//delete roleid from "waitdel" table
+						pwaitdel->del( Marshal::OctetsStream() << roleid, txn ); 
+						DelRoleFaction(*ibeg ,puserfaction,pfactioninfo, txn);
+						//printf( "DeleteWaildel, delete roleid=%d\n", roleid );
+					}
+					catch( DbException e )
+					{
+						printf("[FATAL] DelWaitdel:DelRole=%d what=%s\n",roleid, e.what() );
+						throw;
 					}
 				}
-				if(userid==0)
-					userid = LOGICUID(roleid);
-				
-				//update user rolelist
-				key_userid<<UserID(userid);
-				Marshal::OctetsStream(puser->find( key_userid, txn )) >> user; //backup old value; 
-
-				RoleList rolelist(user.rolelist); //create rolelist object
-				rolelist.DelRole(roleid % MAX_ROLE_COUNT);
-				user.rolelist = rolelist.GetRoleList();	
-
-				Log::formatlog("deleterole","roleid=%d:occupation=%d:create_time=%d", rolebase.id, 
-						rolebase.cls, rolebase.create_time);
-		
-				puser->insert(key_userid, Marshal::OctetsStream() << user, txn);
-
-				//delete role
-				pbase->del( key_roleid, txn );
-
-				pstatus->del( key_roleid, txn );
-				pinventory->del( key_roleid, txn );
-				pequipment->del( key_roleid, txn );
-				pstorehouse->del( key_roleid, txn );
-				ptask->del( key_roleid, txn );
-				pfriends->del( key_roleid, txn );
-				prolename->del( rolebase.name, txn );
-				//delete roleid from "waitdel" table
-				pwaitdel->del( Marshal::OctetsStream() << roleid, txn ); 
-				DelRoleFaction(*ibeg ,txn);
-				printf( "DeleteWaildel, roleid=%d\n", roleid );
-
+				catch( DbException e ) { continue; }
+				catch( ... )
+				{
+					DbException ee( DB_OLD_VERSION );
+					txn.abort( ee );
+					throw ee;
+				}
 			}
 			printf("\n -------------------------------------------------------\n");
 			printf("DelWaitdel:Total del role count: %d\n",del_role.size());			
@@ -5705,13 +5788,16 @@ public:
 		}
 		catch ( ... )
 		{
-			printf("DelWaitdel:DelRole fail!\n" );
-		}		
+			printf("[FATAL] DelWaitdel:DelRole fail!\n" );
+			return false;
+		}
+
+		return need_continue;
 	}
 	
 };
 
-void DeleteWaitdel()
+bool DeleteWaitdel(bool backup)
 {
 	printf("\ndelete waitdel role\n");
 	DeleteWaitdelQuery q;
@@ -5737,8 +5823,240 @@ void DeleteWaitdel()
 		Log::log( LOG_ERR, "DeleteWaitdel, walk err , what=%s\n", e.what() );
 	}
 
-	q.Process();
+	if(q.Process(backup))
+		return true;
+
 	printf( "delete waitdel finished.\n" );
+	return false;
+}
+
+typedef std::set<unsigned int> ILUID_SET;
+class GetImmuneQuery : public StorageEnv::IQuery
+{
+public:
+	ILUID_SET& iset;
+	GetImmuneQuery(ILUID_SET& s): iset(s) {}
+
+    bool Update(StorageEnv::Transaction& txn, Octets& key, Octets& value)
+	{
+		UserID uid;
+		User user;
+		try 
+		{
+			Marshal::OctetsStream(key) >> uid;
+			Marshal::OctetsStream(value) >> user;
+			if(user.cash_add + user.cash_buy)
+			{
+				iset.insert(user.logicuid);
+				printf("GetImmunityQuery : get Immune User: %u LUID: %u.\n", uid.id, user.logicuid);
+			}
+		}
+		catch(...)
+		{
+			printf("[FATAL] GetImmunityQuery error: bad User.\n");
+		}
+		return true;	
+	}
+};
+
+class CalcWaitdelQuery_Step1 : public StorageEnv::IQuery
+{
+public:
+	ILUID_SET& iset;
+	ILUID_SET& dset;
+	int linetime;
+	CalcWaitdelQuery_Step1(ILUID_SET& is, ILUID_SET& ds, int lt): iset(is),dset(ds),linetime(lt) {}
+
+    bool Update(StorageEnv::Transaction& txn, Octets& key, Octets& value)
+	{
+		RoleId		id;
+		GRoleBase	base;
+		try 
+		{
+			Marshal::OctetsStream(key) >> id;
+			if(iset.find(LOGICUID(id.id)) != iset.end()) 
+				return true;
+			if(id.id < 1000)
+				return true;
+
+			Marshal::OctetsStream(value) >> base;
+
+			if(base.lastlogin_time < linetime)
+			{
+				dset.insert(id.id);
+			}
+		}
+		catch(...)
+		{
+			printf("[FATAL] CalcWaitdelQuery_Step1 error: bad RoleBase.\n");
+		}
+		return true;
+	}
+};
+
+class CalcWaitdelQuery_Step2 : public StorageEnv::IQuery
+{
+public:
+	ILUID_SET& dset;
+	int levelline;
+	CalcWaitdelQuery_Step2(ILUID_SET& ds,int ll): dset(ds),levelline(ll) {}
+
+    bool Update(StorageEnv::Transaction& txn, Octets& key, Octets& value)
+	{
+		RoleId		id;
+		GRoleStatus	status;
+		try 
+		{
+			Marshal::OctetsStream(key) >> id;
+			if(dset.find(id.id) == dset.end())
+			{
+				return true;
+			}
+
+			Marshal::OctetsStream(value) >> status;
+
+			if(status.level >= levelline )
+			{
+				dset.erase(id.id);
+				return true;
+			}
+		}
+		catch(...)
+		{
+			printf("[FATAL] CalcWaitdelQuery_Step2 error: bad RoleBase.\n");
+		}
+		return true;
+	}
+};
+
+void InsertWaitDel(ILUID_SET& waitdel_set,int deltimeline)
+{
+	try
+	{
+		StorageEnv::Storage * pwaitdel = StorageEnv::GetStorage( "waitdel" );
+		StorageEnv::AtomTransaction	txn4;
+		try
+		{
+			ILUID_SET::iterator ibeg = waitdel_set.begin();
+			ILUID_SET::iterator iend = waitdel_set.end();
+			for(;ibeg!=iend;++ibeg)
+			{
+				pwaitdel->insert( Marshal::OctetsStream() << RoleId(*ibeg), Marshal::OctetsStream() << deltimeline, txn4 );
+				printf("CalcWaitdel Insert role: %d \n", *ibeg);
+			}
+		}
+		catch ( DbException e ) { throw; }
+		catch ( ... )
+		{
+			DbException ee( DB_OLD_VERSION );
+			txn4.abort( ee );
+			throw ee;
+		}
+	}
+	catch ( DbException e )
+	{
+		printf( "[FATAL] CalcWaitdel Insert Waitdel  err , what=%s\n", e.what() );
+	}
+}
+
+void CalcWaitdel(int year,int level)
+{
+	if(year < 2008) return;
+
+	ILUID_SET immune_set;
+	ILUID_SET waitdel_set;
+
+	struct tm dt;
+	dt.tm_year = year - 1900;
+	dt.tm_mon = 0;
+	dt.tm_mday = 1;
+	dt.tm_hour = 0;
+	dt.tm_min = 0;
+	dt.tm_sec = 1;
+
+	int deltimeline = mktime(&dt);
+
+	GetImmuneQuery immune_q(immune_set);
+	CalcWaitdelQuery_Step1 calc_step1_q(immune_set,waitdel_set,deltimeline);
+	CalcWaitdelQuery_Step2 calc_step2_q(waitdel_set,level);
+
+	try
+	{
+		StorageEnv::Storage * puser = StorageEnv::GetStorage( "user" );
+		StorageEnv::AtomTransaction	txn1;
+		try
+		{
+			StorageEnv::Storage::Cursor cursor = puser->cursor( txn1 );
+			cursor.walk( immune_q );
+		}
+		catch ( DbException e ) { throw; }
+		catch ( ... )
+		{
+			DbException ee( DB_OLD_VERSION );
+			txn1.abort( ee );
+			throw ee;
+		}
+	}
+	catch ( DbException e )
+	{
+		printf( "[FATAL] GetImmuneQuery, walk err , what=%s\n", e.what() );
+	}
+	printf("\n\n\n IMMUNE count: %d \n\n\n",immune_set.size() );
+
+	StorageEnv::checkpoint();
+
+	try
+	{
+		StorageEnv::Storage * pbase = StorageEnv::GetStorage( "base" );
+		StorageEnv::AtomTransaction	txn2;
+		try
+		{
+			StorageEnv::Storage::Cursor cursor = pbase->cursor( txn2 );
+			cursor.walk( calc_step1_q );
+		}
+		catch ( DbException e ) { throw; }
+		catch ( ... )
+		{
+			DbException ee( DB_OLD_VERSION );
+			txn2.abort( ee );
+			throw ee;
+		}
+	}
+	catch ( DbException e )
+	{
+		printf( "[FATAL] CalcWaitdelQuery_Step1, walk err , what=%s\n", e.what() );
+	}
+	printf("\n\n\n STEP1 count: %d \n\n\n",waitdel_set.size() );
+
+	StorageEnv::checkpoint();
+
+	try
+	{
+		StorageEnv::Storage * pstatus = StorageEnv::GetStorage( "status" );
+		StorageEnv::AtomTransaction	txn3;
+		try
+		{
+			StorageEnv::Storage::Cursor cursor = pstatus->cursor( txn3 );
+			cursor.walk( calc_step2_q );
+		}
+		catch ( DbException e ) { throw; }
+		catch ( ... )
+		{
+			DbException ee( DB_OLD_VERSION );
+			txn3.abort( ee );
+			throw ee;
+		}
+	}
+	catch ( DbException e )
+	{
+		printf( "[FATAL] CalcWaitdelQuery_Step2, walk err , what=%s\n", e.what() );
+	}
+
+	StorageEnv::checkpoint();
+
+	InsertWaitDel(waitdel_set,deltimeline);
+
+	printf("\n\n\n TOTAL DEL count: %d \n",waitdel_set.size() );
 }
 
 class GetSigninDataQuery : public StorageEnv::IQuery
@@ -5909,6 +6227,1218 @@ void GetSigninData(int month)
         printf("%u\n", *iter);
     printf("\n");
 }
+
+void SetClsPVPFlag(int flag)
+{
+    #pragma pack(1)
+    struct player_var_data  //这个结构由gs定义
+    {
+        int version;
+        int pk_count;
+        int pvp_cooldown;
+        bool pvp_flag;
+    };
+    #pragma pack()
+
+    try
+    {
+        StorageEnv::Storage* pstatus = StorageEnv::GetStorage("status");
+        StorageEnv::AtomTransaction txn;
+        unsigned int roleid = 0;
+
+        try
+        {
+            for (unsigned int cls = 0; cls < 12; ++cls)
+            {
+                Marshal::OctetsStream key_roleid, value_status;
+                GRoleStatus status;
+
+                roleid = GetDataRoleId(cls);
+                key_roleid << RoleId(roleid);
+
+                if (pstatus->find(key_roleid, value_status, txn))
+                {
+                    value_status >> status;
+                    if (status.var_data.size() < sizeof(struct player_var_data))
+                        continue;
+                }
+
+                struct player_var_data* p = (struct player_var_data*)status.var_data.begin();
+                p->pvp_flag = (flag != 0);
+                pstatus->insert(key_roleid, Marshal::OctetsStream() << status, txn);
+            }
+        }
+        catch (Marshal::Exception&)
+        {
+            printf("SetClsPVPFlag, status marshal error, roleid = %u\n", roleid);
+        }
+        catch (DbException e) { throw; }
+        catch (...)
+        {
+            DbException ee(DB_OLD_VERSION);
+            txn.abort(ee);
+            throw ee;
+        }
+    }
+    catch (DbException e)
+    {
+        Log::log(LOG_ERR, "SetClsPVPFlag, db error. what = %s\n", e.what());
+    }
+}
+
+class ListFinTaskCountQuery : public StorageEnv::IQuery
+{
+public:
+	int count;
+	int limit;
+	bool hasmore;
+	Octets handle;
+	ListFinTaskCountQuery(int l): count(0),limit(l),hasmore(false){}
+
+	bool Update( StorageEnv::Transaction& txn, Octets& key, Octets& value)
+	{
+		if(++count % 10000 == 0)
+		{
+			handle = key;
+			hasmore = true;
+			return false;
+		}
+		Marshal::OctetsStream key_os, value_os;
+		key_os = key;
+		value_os = value;
+
+		RoleId		id;
+	    GRoleTask task;
+		try
+		{
+			key_os >> id;
+			value_os >> task;
+			int tc_size = task.task_complete.size();
+			int tc_count = (tc_size - 4)/4;
+
+			if(tc_count >= limit)
+				printf("%d,\t%d\n",id.id,tc_count);
+
+		} catch ( Marshal::Exception & ) {
+			Log::log( LOG_ERR, "ListRoleCsvQuery, error unmarshal, roleid=%d.", id.id );
+			return true;
+		}
+		return true;
+	}
+
+};
+
+void ListFinTaskCount(int count)
+{
+	printf("roleid,\t");
+	printf("fin-count\n");
+
+	ListFinTaskCountQuery q(count);
+	do
+	{
+		q.hasmore = false;
+		try
+		{
+			StorageEnv::Storage * pstorage = StorageEnv::GetStorage( "task" );
+			StorageEnv::AtomTransaction	txn;
+			try
+			{
+				StorageEnv::Storage::Cursor cursor = pstorage->cursor( txn );
+				cursor.walk( q.handle, q );
+			}
+			catch ( DbException e ) { throw; }
+			catch ( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch ( DbException e )
+		{
+			Log::log( LOG_ERR, "ListFinTaskCount, error when walk, what=%s\n", e.what() );
+		}
+	
+		StorageEnv::checkpoint();
+	}while(q.hasmore);
+
+}
+
+class GetRoleLoginDataQuery : public StorageEnv::IQuery
+{
+public:
+    GetRoleLoginDataQuery() : count(0), hasmore(false) {}
+    bool Update(StorageEnv::Transaction& txn, Octets& key, Octets& value)
+    {
+        if (++count % 200000 == 0)
+        {
+            handle = key;
+            hasmore = true;
+            return false;
+        }
+
+        Marshal::OctetsStream key_roleid, value_base;
+        key_roleid = key;
+
+        GRoleBase base;
+        unsigned int roleid = 0;
+        unsigned int logicid = 0;
+        int logintime = 0;
+
+        try
+        {
+            StorageEnv::Storage* pbase = StorageEnv::GetStorage("base");
+            value_base = pbase->find(key_roleid, txn);
+            value_base >> base;
+
+            roleid = base.id;
+            logicid = (roleid & 0xfffffff0);
+            logintime = base.lastlogin_time;
+            roleid_login_data[roleid] = logintime;
+
+            std::map<unsigned int, int>::iterator iter = logicid_login_data.find(logicid);
+            if ((iter == logicid_login_data.end()) || (iter->second < logintime))
+            {
+                logicid_login_data[logicid] = logintime;
+            }
+        }
+        catch (Marshal::Exception&)
+        {
+            Log::log(LOG_ERR, "GetRoleLoginDataQuery, base marshal error. roleid = %u", roleid);
+        }
+        catch (DbException e)
+        {
+            Log::log(LOG_ERR, "GetRoleLoginDataQuery, db error. roleid = %u, what = %s\n", roleid, e.what());
+        }
+        catch (...)
+        {
+            DbException ee(DB_OLD_VERSION);
+            txn.abort(ee);
+            Log::log(LOG_ERR, "GetRoleLoginDataQuery, other error. roleid = %u", roleid);
+        }
+        return true;
+    }
+
+public:
+    int count;
+    bool hasmore;
+    Octets handle;
+
+    std::map<unsigned int, int> roleid_login_data;
+    std::map<unsigned int, int> logicid_login_data;
+};
+
+void GetRoleLoginData(int year, int logicid)
+{
+    if ((year < 2008) || (logicid < 0)) return;
+    GetRoleLoginDataQuery q;
+
+    do
+    {
+        q.hasmore = false;
+        try
+        {
+            StorageEnv::Storage* pbase = StorageEnv::GetStorage("base");
+            StorageEnv::AtomTransaction txn;
+            try
+            {
+                StorageEnv::Storage::Cursor cursor = pbase->cursor(txn);
+                cursor.walk(q.handle, q);
+            }
+            catch (DbException e) {throw;}
+            catch (...)
+            {
+                DbException ee(DB_OLD_VERSION);
+                txn.abort(ee);
+                throw ee;
+            }
+        }
+        catch (DbException e)
+        {
+            Log::log(LOG_ERR, "GetRoleLoginData, error when walk, what = %s\n", e.what());
+        }
+        StorageEnv::checkpoint();
+    } while (q.hasmore);
+
+    struct tm dt;
+    dt.tm_year = year - 1900;
+    dt.tm_mon = 0;
+    dt.tm_mday = 1;
+    dt.tm_hour = 0;
+    dt.tm_min = 0;
+    dt.tm_sec = 1;
+
+    time_t time = mktime(&dt);
+    std::map<unsigned int, int>::const_iterator iter, iter_end;
+
+    int roleid_num = 0;
+    iter = q.roleid_login_data.begin();
+    iter_end = q.roleid_login_data.end();
+
+    for (; iter != iter_end; ++iter)
+    {
+        if (iter->second < time) ++roleid_num;
+    }
+
+    printf("number of roleid (last_login_time < %d): %d\n", year, roleid_num);
+    printf("number of roleid (last_login_time >= %d): %d\n\n", year, (q.roleid_login_data.size() - roleid_num));
+
+    int logicid_num1 = 0;
+    int logicid_num2 = 0;
+    iter = q.logicid_login_data.begin();
+    iter_end = q.logicid_login_data.end();
+
+    for (; iter != iter_end; ++iter)
+    {
+        if (iter->second < time) ++logicid_num1;
+        if (iter->first < (unsigned int)logicid) ++logicid_num2;
+    }
+
+    printf("number of logicid (last_login_time < %d): %d\n", year, logicid_num1);
+    printf("number of logicid (last_login_time >= %d): %d\n\n", year, (q.logicid_login_data.size() - logicid_num1));
+
+    printf("number of logicid (logic_id < %d): %d\n", logicid, logicid_num2);
+    printf("number of logicid (logic_id >= %d): %d\n", logicid, (q.logicid_login_data.size() - logicid_num2));
+}
+
+
+class GetUserLoginDataQuery : public StorageEnv::IQuery
+{
+public:
+    GetUserLoginDataQuery() : count(0), hasmore(false) {}
+    bool Update(StorageEnv::Transaction& txn, Octets& key, Octets& value)
+    {
+        #pragma pack(1)
+        struct login_record
+        {
+            int login_time;
+        };
+        #pragma pack()
+
+        if (++count % 200000 == 0)
+        {
+            handle = key;
+            hasmore = true;
+            return false;
+        }
+
+        Marshal::OctetsStream key_userid, value_user;
+        key_userid = key;
+
+        RoleId id;
+        User user;
+        unsigned int userid = 0;
+        unsigned int logicid = 0;
+        int logintime = 0;
+
+        try
+        {
+            StorageEnv::Storage* puser = StorageEnv::GetStorage("user");
+            value_user = puser->find(key_userid, txn);
+            value_user >> user;
+
+            key_userid >> id;
+            userid = id.id;
+            logicid = user.logicuid;
+
+            struct login_record* p = (struct login_record*)user.login_record.begin();
+            logintime = p->login_time;
+            userid_login_data[userid] = logintime;
+
+            std::map<unsigned int, int>::iterator iter = logicid_login_data.find(logicid);
+            if ((iter == logicid_login_data.end()) || (iter->second < logintime))
+            {
+                logicid_login_data[logicid] = logintime;
+            }
+        }
+        catch (Marshal::Exception&)
+        {
+            Log::log(LOG_ERR, "GetUserLoginDataQuery, marshal error. userid = %u", userid);
+        }
+        catch (DbException e)
+        {
+            Log::log(LOG_ERR, "GetUserLoginDataQuery, db error. userid = %u, what = %s\n", userid, e.what());
+        }
+        catch (...)
+        {
+            DbException ee(DB_OLD_VERSION);
+            txn.abort(ee);
+            Log::log(LOG_ERR, "GetUserLoginDataQuery, other error. userid = %u", userid);
+        }
+        return true;
+    }
+
+public:
+    int count;
+    bool hasmore;
+    Octets handle;
+
+    std::map<unsigned int, int> userid_login_data;
+    std::map<unsigned int, int> logicid_login_data;
+};
+
+void GetUserLoginData(int year, int logicid)
+{
+    if ((year < 2008) || (logicid < 0)) return;
+    GetUserLoginDataQuery q;
+
+    do
+    {
+        q.hasmore = false;
+        try
+        {
+            StorageEnv::Storage* puser = StorageEnv::GetStorage("user");
+            StorageEnv::AtomTransaction txn;
+            try
+            {
+                StorageEnv::Storage::Cursor cursor = puser->cursor(txn);
+                cursor.walk(q.handle, q);
+            }
+            catch (DbException e) {throw;}
+            catch (...)
+            {
+                DbException ee(DB_OLD_VERSION);
+                txn.abort(ee);
+                throw ee;
+            }
+        }
+        catch (DbException e)
+        {
+            Log::log(LOG_ERR, "GetUserLoginData, error when walk, what = %s\n", e.what());
+        }
+        StorageEnv::checkpoint();
+    } while (q.hasmore);
+
+    struct tm dt;
+    dt.tm_year = year - 1900;
+    dt.tm_mon = 0;
+    dt.tm_mday = 1;
+    dt.tm_hour = 0;
+    dt.tm_min = 0;
+    dt.tm_sec = 1;
+
+    time_t time = mktime(&dt);
+    std::map<unsigned int, int>::const_iterator iter, iter_end;
+
+    int userid_num = 0;
+    iter = q.userid_login_data.begin();
+    iter_end = q.userid_login_data.end();
+
+    for (; iter != iter_end; ++iter)
+    {
+        if (iter->second < time) ++userid_num;
+    }
+
+    printf("number of userid (last_login_time < %d): %d\n", year, userid_num);
+    printf("number of userid (last_login_time >= %d): %d\n\n", year, (q.userid_login_data.size() - userid_num));
+
+    int logicid_num1 = 0;
+    int logicid_num2 = 0;
+    iter = q.logicid_login_data.begin();
+    iter_end = q.logicid_login_data.end();
+
+    for (; iter != iter_end; ++iter)
+    {
+        if (iter->second < time) ++logicid_num1;
+        if (iter->first < (unsigned int)logicid) ++logicid_num2;
+    }
+
+    printf("number of logicid (last_login_time < %d): %d\n", year, logicid_num1);
+    printf("number of logicid (last_login_time >= %d): %d\n\n", year, (q.logicid_login_data.size() - logicid_num1));
+
+    printf("number of logicid (logic_id < %d): %d\n", logicid, logicid_num2);
+    printf("number of logicid (logic_id >= %d): %d\n", logicid, (q.logicid_login_data.size() - logicid_num2));
+}
+
+
+void OctetstoPrintString(Octets& src, Octets& dst)
+{
+    Octets tmp;
+    CharsetConverter::conv_charset_u2l(src, tmp);
+    EscapeCSVString(tmp, dst);
+}
+
+class QueryListMNFactionInfo : public StorageEnv::IQuery
+{
+public:
+    QueryListMNFactionInfo(MNFactionInfoVector& data) : _data(data) {}
+
+    bool Update(StorageEnv::Transaction& txn, Octets& key, Octets& value)
+    {
+        try
+        {
+            int64_t unifid = 0;
+            Marshal::OctetsStream(key) >> unifid;
+
+            if (unifid == 0)
+            {
+                unsigned int sn = 0;
+                unsigned char state = 0;
+
+                Marshal::OctetsStream(value) >> sn >> state;
+                printf("\nQueryListMNFactionInfo: key=0, sn=%u, state=%d.\n", sn, state);
+            }
+            else
+            {
+                MNFactionInfo info;
+                Marshal::OctetsStream(value) >> info;
+                _data.push_back(info);
+            }
+        }
+        catch (Marshal::Exception&)
+        {
+            Log::log(LOG_ERR, "QueryListMNFactionInfo, marshal error.");
+        }
+
+        return true;
+    }
+
+private:
+    MNFactionInfoVector& _data;
+
+};
+
+void ListMNFactionInfo()
+{
+    MNFactionInfoVector info_list;
+    QueryListMNFactionInfo q(info_list);
+
+    try
+    {
+        StorageEnv::Storage* pmnfaction = StorageEnv::GetStorage("mnfactioninfo");
+        StorageEnv::AtomTransaction txn;
+
+        try
+        {
+            StorageEnv::Storage::Cursor cursor = pmnfaction->cursor(txn);
+            cursor.walk(q);
+        }
+        catch (DbException e) {throw;}
+        catch (...)
+        {
+            DbException e(DB_OLD_VERSION);
+            txn.abort(e);
+            throw e;
+        }
+    }
+    catch (DbException e)
+    {
+        Log::log(LOG_ERR, "ListMNFactionInfo, what=%s.\n", e.what());
+    }
+
+    printf("\nListMNFactionInfo: num=%u.\n", info_list.size());
+    MNFactionInfoVector::const_iterator iter = info_list.begin(), iter_end = info_list.end();
+
+    for (; iter != iter_end; ++iter)
+    {
+        printf("\nunifid=%lld, fid=%u, faction_name_size=%u, master_name_size=%u, zoneid=%d, domain_num_size=%u, credit=%d, credit_this_week=%d, credit_get_time=%d, invite_count=%u, accept_sn=%u, bonus_sn=%u, version=%u, ",
+            (iter->unifid), (iter->fid), (iter->faction_name.size()), (iter->master_name.size()), (iter->zoneid), (iter->domain_num.size()), (iter->credit), (iter->credit_this_week), (iter->credit_get_time), (iter->invite_count), (iter->accept_sn), (iter->bonus_sn), (iter->version));
+
+        for (size_t i = 0; i < (iter->domain_num.size()); ++i)
+        {
+            printf("domain[%d]=%d, ", i, (iter->domain_num[i]));
+        }
+
+        Octets faction_name, fname = (iter->faction_name);
+        OctetstoPrintString(fname, faction_name);
+        printf("faction_name=(%.*s), ", faction_name.size(), (char*)faction_name.begin());
+
+        Octets master_name, mname = (iter->master_name);
+        OctetstoPrintString(mname, master_name);
+        printf("master_name=(%.*s)", master_name.size(), (char*)master_name.begin());
+    }
+    printf("\n\n");
+}
+
+
+class QueryListMNFactionApplyInfo : public StorageEnv::IQuery
+{
+public:
+    QueryListMNFactionApplyInfo(MNFactionApplyInfoVector& data) : _data(data) {}
+
+    bool Update(StorageEnv::Transaction& txn, Octets& key, Octets& value)
+    {
+        try
+        {
+            MNFactionApplyInfo info;
+            Marshal::OctetsStream(value) >> info;
+            _data.push_back(info);
+        }
+        catch (Marshal::Exception&)
+        {
+            Log::log(LOG_ERR, "QueryListMNFactionApplyInfo, marshal error.");
+        }
+
+        return true;
+    }
+
+private:
+    MNFactionApplyInfoVector& _data;
+
+};
+
+void ListMNFactionApplyInfo()
+{
+    MNFactionApplyInfoVector applyinfo_list;
+    QueryListMNFactionApplyInfo q(applyinfo_list);
+
+    try
+    {
+        StorageEnv::Storage* pappinfo = StorageEnv::GetStorage("mnfactionapplyinfo");
+        StorageEnv::AtomTransaction txn;
+
+        try
+        {
+            StorageEnv::Storage::Cursor cursor = pappinfo->cursor(txn);
+            cursor.walk(q);
+        }
+        catch (DbException e) {throw;}
+        catch (...)
+        {
+            DbException e(DB_OLD_VERSION);
+            txn.abort(e);
+            throw e;
+        }
+    }
+    catch (DbException e)
+    {
+        Log::log(LOG_ERR, "ListMNFactionApplyInfo, what=%s.\n", e.what());
+    }
+
+    printf("\nListMNFactionApplyInfo: num=%u.\n", applyinfo_list.size());
+    MNFactionApplyInfoVector::const_iterator iter = applyinfo_list.begin(), iter_end = applyinfo_list.end();
+
+    for (; iter != iter_end; ++iter)
+    {
+        printf("unifid=%lld, applicant_id=%d, dest=%u, cost=%u.\n",
+            (iter->unifid), (iter->applicant_id), (iter->dest), (iter->cost));
+    }
+}
+
+
+class QueryListMNDomainInfo : public StorageEnv::IQuery
+{
+public:
+    QueryListMNDomainInfo(MNDomainInfoVector& data) : _data(data) {}
+
+    bool Update(StorageEnv::Transaction& txn, Octets& key, Octets& value)
+    {
+        try
+        {
+            MNDomainInfo info;
+            Marshal::OctetsStream(value) >> info;
+            _data.push_back(info);
+        }
+        catch (Marshal::Exception&)
+        {
+            Log::log(LOG_ERR, "QueryListMNDomainInfo, marshal error.");
+        }
+
+        return true;
+    }
+
+private:
+    MNDomainInfoVector& _data;
+
+};
+
+void ListMNDomainInfo()
+{
+    MNDomainInfoVector domain_list;
+    QueryListMNDomainInfo q(domain_list);
+
+    try
+    {
+        StorageEnv::Storage* pdomain = StorageEnv::GetStorage("mndomaininfo");
+        StorageEnv::AtomTransaction txn;
+
+        try
+        {
+            StorageEnv::Storage::Cursor cursor = pdomain->cursor(txn);
+            cursor.walk(q);
+        }
+        catch (DbException e) {throw;}
+        catch (...)
+        {
+            DbException e(DB_OLD_VERSION);
+            txn.abort(e);
+            throw e;
+        }
+    }
+    catch (DbException e)
+    {
+        Log::log(LOG_ERR, "ListMNDomainInfo, what=%s.\n", e.what());
+    }
+
+    printf("\nListMNDomainInfo: num=%u.\n", domain_list.size());
+    MNDomainInfoVector::const_iterator iter = domain_list.begin(), iter_end = domain_list.end();
+
+    for (; iter != iter_end; ++iter)
+    {
+        printf("domain_id=%d, domain_type=%d, owner_unifid=%lld, attacker_unifid=%lld, defender_unifid=%lld.\n",
+            (iter->domain_id), (iter->domain_type), (iter->owner_unifid), (iter->attacker_unifid), (iter->defender_unifid));
+    }
+}
+
+
+typedef std::vector<GFactionInfo> FactionInfoVector;
+
+class QueryClearFactionInfoMNFid : public StorageEnv::IQuery
+{
+public:
+    QueryClearFactionInfoMNFid(FactionInfoVector& data) : _data(data) {}
+
+    bool Update(StorageEnv::Transaction& txn, Octets& key, Octets& value)
+    {
+        try
+        {
+            unsigned int fid = 0;
+            Marshal::OctetsStream(key) >> fid;
+
+            if (fid == 0)
+            {
+                unsigned int sn = 0;
+                Marshal::OctetsStream(value) >> sn;
+                printf("\nQueryClearFactionInfoMNFid: key=0, sn=%u.\n", sn);
+            }
+            else
+            {
+                GFactionInfo info;
+                Marshal::OctetsStream(value) >> info;
+
+                if (info.extenddata.size() > 0)
+                {
+                    GFactionExtendData ext;
+                    Marshal::OctetsStream(info.extenddata) >> ext;
+
+                    printf("QueryClearFactionInfoMNFid: fid=%u, unifid=%lld.\n", info.fid, ext.unifid);
+
+                    if (ext.unifid != 0)
+                    {
+                        ext.unifid = 0;
+                        info.extenddata = (Marshal::OctetsStream() << ext);
+                        _data.push_back(info);
+                    }
+                }
+            }
+        }
+        catch (Marshal::Exception&)
+        {
+            Log::log(LOG_ERR, "QueryClearFactionInfoMNFid, marshal error.");
+        }
+
+        return true;
+    }
+
+private:
+    FactionInfoVector& _data;
+
+};
+
+
+typedef std::vector<GUserFaction> UserFactionVector;
+
+class QueryClearUserFactionMNFid : public StorageEnv::IQuery
+{
+public:
+    QueryClearUserFactionMNFid(UserFactionVector& data) : _data(data) {}
+
+    bool Update(StorageEnv::Transaction& txn, Octets& key, Octets& value)
+    {
+        try
+        {
+            GUserFaction info;
+            Marshal::OctetsStream(value) >> info;
+
+            if (info.extend.size() > 0)
+            {
+                GFactionExtend ext;
+                Marshal::OctetsStream(info.extend) >> ext;
+
+                if (ext.uniqueinfo.size() > 0)
+                {
+                    GUniqueInfo uni;
+                    Marshal::OctetsStream(ext.uniqueinfo) >> uni;
+
+                    printf("QueryClearUserFactionMNFid: rid=%u, fid=%u, unifid=%lld.\n", info.rid, info.fid, uni.unifid);
+
+                    if (uni.unifid != 0)
+                    {
+                        uni.unifid = 0;
+                        ext.uniqueinfo = (Marshal::OctetsStream() << uni);
+                        info.extend = (Marshal::OctetsStream() << ext);
+                        _data.push_back(info);
+                    }
+                }
+            }
+        }
+        catch (Marshal::Exception&)
+        {
+            Log::log(LOG_ERR, "QueryClearUserFactionMNFid, marshal error.");
+        }
+
+        return true;
+    }
+
+private:
+    UserFactionVector& _data;
+
+};
+
+
+void ClearMNFactionId()
+{
+    FactionInfoVector vec1;
+    QueryClearFactionInfoMNFid q1(vec1);
+
+    UserFactionVector vec2;
+    QueryClearUserFactionMNFid q2(vec2);
+
+    try
+    {
+        StorageEnv::Storage* pfactioninfo = StorageEnv::GetStorage("factioninfo");
+        StorageEnv::Storage* puserfaction = StorageEnv::GetStorage("userfaction");
+        StorageEnv::AtomTransaction txn;
+
+        try
+        {
+            StorageEnv::Storage::Cursor cursor1 = pfactioninfo->cursor(txn);
+            cursor1.walk(q1);
+
+            StorageEnv::Storage::Cursor cursor2 = puserfaction->cursor(txn);
+            cursor2.walk(q2);
+
+            pfactioninfo->del((Marshal::OctetsStream() << (unsigned int)0), txn);
+
+            printf("\nClearMNFactionId: faction_info_num=%u.\n", vec1.size());
+            FactionInfoVector::const_iterator it1 = vec1.begin(), it_end1 = vec1.end();
+            for (; it1 != it_end1; ++it1)
+            {
+                printf("faction_id=%u\n", (it1->fid));
+                pfactioninfo->insert((Marshal::OctetsStream() << (it1->fid)),
+                                     (Marshal::OctetsStream() << (*it1)),
+                                     txn);
+            }
+
+            printf("\nClearMNFactionId: user_faction_num=%u.\n", vec2.size());
+            UserFactionVector::const_iterator it2 = vec2.begin(), it_end2 = vec2.end();
+            for (; it2 != it_end2; ++it2)
+            {
+                printf("role_id=%u\n", (it2->rid));
+                puserfaction->insert((Marshal::OctetsStream() << (it2->rid)),
+                                     (Marshal::OctetsStream() << (*it2)),
+                                     txn);
+            }
+        }
+        catch (DbException e) {throw;}
+        catch (...)
+        {
+            DbException e(DB_OLD_VERSION);
+            txn.abort(e);
+            throw e;
+        }
+    }
+    catch (DbException e)
+    {
+        Log::log(LOG_ERR, "ClearMNFactionId, what=%s.\n", e.what());
+    }
+}
+
+
+void ImportMNFactionInfo(const char* mnfactioninfofile)
+{
+    MNFactionInfoVector info_list;
+    std::ifstream ifs(mnfactioninfofile);
+    if (ifs.fail()) return;
+
+    int domain_num[3] = {0};
+    for (; !ifs.eof(); )
+    {
+        MNFactionInfo info;
+        ifs >> info.unifid >> info.fid >> info.zoneid >>
+            domain_num[0] >> domain_num[1] >> domain_num[2] >>
+            info.credit >> info.credit_this_week >> info.credit_get_time >>
+            info.invite_count >> info.accept_sn >> info.bonus_sn >> info.version;
+
+        if (ifs.fail()) break;
+        if (info.unifid != 0)
+        {
+            info.domain_num.resize(3);
+            info.domain_num[0] = domain_num[0];
+            info.domain_num[1] = domain_num[1];
+            info.domain_num[2] = domain_num[2];
+            info_list.push_back(info);
+        }
+    }
+
+    printf("\nImportMNFactionInfo: num=%u.\n", info_list.size());
+
+    try
+    {
+        StorageEnv::Storage* pmnfaction = StorageEnv::GetStorage("mnfactioninfo");
+        StorageEnv::AtomTransaction txn;
+
+        try
+        {
+            MNFactionInfoVector::iterator iter = info_list.begin(), iter_end = info_list.end();
+            for (; iter != iter_end; ++iter)
+            {
+                Marshal::OctetsStream key, value;
+                key << (iter->unifid);
+
+                if (pmnfaction->find(key, value, txn))
+                {
+                    MNFactionInfo info;
+                    value >> info;
+
+                    iter->faction_name = info.faction_name;
+                    iter->master_name = info.master_name;
+
+                    pmnfaction->insert(key, (Marshal::OctetsStream() << (*iter)), txn);
+                }
+            }
+        }
+        catch (DbException e) {throw;}
+        catch (...)
+        {
+            DbException e(DB_OLD_VERSION);
+            txn.abort(e);
+            throw e;
+        }
+    }
+    catch (DbException e)
+    {
+        Log::log(LOG_ERR, "ImportMNFactionInfo, what=%s.\n", e.what());
+    }
+}
+
+
+void ImportMNFactionApplyInfo(const char* mnfactionapplyinfofile)
+{
+    MNFactionApplyInfoVector info_list;
+    std::ifstream ifs(mnfactionapplyinfofile);
+    if (ifs.fail()) return;
+
+    int dest = 0;
+    for (; !ifs.eof(); )
+    {
+        MNFactionApplyInfo info;
+        ifs >> info.unifid >> info.applicant_id >> dest >> info.cost;
+
+        if (ifs.fail()) break;
+        if (info.unifid != 0)
+        {
+            info.dest = dest;
+            info_list.push_back(info);
+        }
+    }
+
+    printf("\nImportMNFactionApplyInfo: num=%u.\n", info_list.size());
+
+    try
+    {
+        StorageEnv::Storage* pmnfactionapp = StorageEnv::GetStorage("mnfactionapplyinfo");
+        StorageEnv::AtomTransaction txn;
+
+        try
+        {
+            MNFactionApplyInfoVector::const_iterator iter = info_list.begin(), iter_end = info_list.end();
+            for (; iter != iter_end; ++iter)
+            {
+                Marshal::OctetsStream key, value;
+                key << (iter->unifid);
+
+                if (pmnfactionapp->find(key, value, txn))
+                {
+                    pmnfactionapp->insert(key, (Marshal::OctetsStream() << (*iter)), txn);
+                }
+            }
+        }
+        catch (DbException e) {throw;}
+        catch (...)
+        {
+            DbException e(DB_OLD_VERSION);
+            txn.abort(e);
+            throw e;
+        }
+    }
+    catch (DbException e)
+    {
+        Log::log(LOG_ERR, "ImportMNFactionApplyInfo, what=%s.\n", e.what());
+    }
+}
+
+
+void ImportMNDomainInfo(const char* mndomaininfofile)
+{
+    MNDomainInfoVector info_list;
+    std::ifstream ifs(mndomaininfofile);
+    if (ifs.fail()) return;
+
+    int domain_type = 0;
+    for (; !ifs.eof(); )
+    {
+        MNDomainInfo info;
+        ifs >> info.domain_id >> domain_type >> info.owner_unifid >>
+            info.attacker_unifid >> info.defender_unifid;
+
+        if (ifs.fail()) break;
+        if (info.domain_id >= 0)
+        {
+            info.domain_type = domain_type;
+            info_list.push_back(info);
+        }
+    }
+
+    printf("\nImportMNDomainInfo: num=%u.\n", info_list.size());
+
+    try
+    {
+        StorageEnv::Storage* pmndomain = StorageEnv::GetStorage("mndomaininfo");
+        StorageEnv::AtomTransaction txn;
+
+        try
+        {
+            MNDomainInfoVector::const_iterator iter = info_list.begin(), iter_end = info_list.end();
+            for (; iter != iter_end; ++iter)
+            {
+                Marshal::OctetsStream key, value;
+                key << (iter->domain_id);
+
+                if (pmndomain->find(key, value, txn))
+                {
+                    pmndomain->insert(key, (Marshal::OctetsStream() << (*iter)), txn);
+                }
+            }
+        }
+        catch (DbException e) {throw;}
+        catch (...)
+        {
+            DbException e(DB_OLD_VERSION);
+            txn.abort(e);
+            throw e;
+        }
+    }
+    catch (DbException e)
+    {
+        Log::log(LOG_ERR, "ImportMNDomainInfo, what=%s.\n", e.what());
+    }
+}
+
+void SetMNFactionState(int state)
+{
+	try
+	{
+		StorageEnv::Storage* pmnfaction = StorageEnv::GetStorage("mnfactioninfo");
+		StorageEnv::AtomTransaction txn;
+		unsigned int sn = 0;
+		unsigned char cur_state = 0;
+		Marshal::OctetsStream spec_key, spec_value;
+		spec_key << (int64_t)0;
+
+		if (pmnfaction->find(spec_key, spec_value, txn))
+			spec_value >> sn >> cur_state;
+
+		spec_value = (Marshal::OctetsStream() << sn << (unsigned char)state);
+		pmnfaction->insert(spec_key, spec_value, txn);
+		printf("SetMNFactionState sn=%d:oldstate=%d:newstate=%d\n", sn, cur_state, state);
+	}
+    catch (DbException e)
+    {
+        printf("SetMNFactionState, what=%s.\n", e.what());
+    }
+}
+
+
+class QueryClearMNFactionInfoCredit: public StorageEnv::IQuery
+{
+public:
+    QueryClearMNFactionInfoCredit(MNFactionInfoVector& data) : _data(data) {}
+
+    bool Update(StorageEnv::Transaction& txn, Octets& key, Octets& value)
+    {
+        try
+        {
+            int64_t unifid = 0;
+            Marshal::OctetsStream(key) >> unifid;
+			if(unifid != 0)
+			{
+				MNFactionInfo info;
+				Marshal::OctetsStream(value) >> info;
+				printf("QueryClearMNFactionInfoCredit: unifid=%lld,credit=%d\n", info.unifid, info.credit);
+				info.credit = 0;
+				_data.push_back(info);
+			}
+		}
+		catch (Marshal::Exception&)
+		{
+			Log::log(LOG_ERR, "QueryClearMNFactionInfoCredit, marshal error.");
+		}
+
+		return true;
+	}
+
+private:
+	MNFactionInfoVector& _data;
+
+};
+
+void ClearMNFactionCredit()
+{
+	MNFactionInfoVector vec;
+	QueryClearMNFactionInfoCredit q(vec);
+	try
+	{
+		StorageEnv::Storage* pmnfaction = StorageEnv::GetStorage("mnfactioninfo");
+		StorageEnv::AtomTransaction txn;
+		try
+		{
+			StorageEnv::Storage::Cursor cursor = pmnfaction->cursor(txn);
+			cursor.walk(q);
+			MNFactionInfoVector::const_iterator it = vec.begin(), it_end = vec.end();
+			for (; it != it_end; ++it)
+			{
+				printf("unifid=%lld,credit=%d\n", it->unifid,it->credit);
+				pmnfaction->insert((Marshal::OctetsStream() << (it->unifid)),
+						(Marshal::OctetsStream() << (*it)),
+						txn);
+			}
+		}
+		catch (DbException e) {throw;}
+		catch (...)
+		{
+			DbException e(DB_OLD_VERSION);
+			txn.abort(e);
+			throw e;
+		}
+	}
+	catch (DbException e)
+	{
+		Log::log(LOG_ERR, "ClearMNFactionCredit, what=%s.\n", e.what());
+	}
+
+}
+
+
+void ListSoloChallengeRank()
+{
+    SoloChallengeRankDataExt rank_local, rank_global;
+    Marshal::OctetsStream value;
+
+    try
+    {
+        StorageEnv::Storage* prank = StorageEnv::GetStorage("solochallengerank");
+        StorageEnv::AtomTransaction txn;
+
+        try
+        {
+            if (prank->find((Marshal::OctetsStream() << 0), value, txn))
+            {
+                value >> rank_local;
+            }
+
+            if (prank->find((Marshal::OctetsStream() << 1), value, txn))
+            {
+                value >> rank_global;
+            }
+        }
+        catch (DbException e) {throw;}
+        catch (...)
+        {
+            DbException e(DB_OLD_VERSION);
+            txn.abort(e);
+            throw e;
+        }
+    }
+    catch (DbException e)
+    {
+        Log::log(LOG_ERR, "ListSoloChallengeRank, what=%s.\n", e.what());
+    }
+
+    printf("\nListSoloChallengeRank: local rank, update_time=%d, data_size=%d, zone_id=%d.\n",
+        rank_local.update_time, rank_local.data.size(), rank_local.zoneid);
+
+    SoloChallengeRankDataVector::const_iterator it1 = rank_local.data.begin(), it1_end = rank_local.data.end();
+    for (; it1 != it1_end; ++it1)
+    {
+        printf("roleid=%d, level=%d, cls=%d, total_time=%d, name_size=%d, type=%d, zoneid=%d, update_time=%d, ",
+            it1->roleid, it1->level, it1->cls, it1->total_time, it1->name.size(), it1->type, it1->zoneid, it1->update_time);
+
+        Octets name, rname = (it1->name);
+        OctetstoPrintString(rname, name);
+        printf("name=(%.*s).\n", name.size(), (char*)name.begin());
+    }
+
+    printf("\n\n");
+
+
+    printf("\nListSoloChallengeRank: global rank, update_time=%d, data_size=%d, zone_id=%d.\n",
+        rank_global.update_time, rank_global.data.size(), rank_global.zoneid);
+
+    SoloChallengeRankDataVector::const_iterator it2 = rank_global.data.begin(), it2_end = rank_global.data.end();
+    for (; it2 != it2_end; ++it2)
+    {
+        printf("roleid=%d, level=%d, cls=%d, total_time=%d, name_size=%d, type=%d, zoneid=%d, update_time=%d, ",
+            it2->roleid, it2->level, it2->cls, it2->total_time, it2->name.size(), it2->type, it2->zoneid, it2->update_time);
+
+        Octets name, rname = (it2->name);
+        OctetstoPrintString(rname, name);
+        printf("name=(%.*s).\n", name.size(), (char*)name.begin());
+    }
+
+    printf("\n\n");
+}
+
+
+void ClearSoloChallengeRank(int roleid, int zoneid)
+{
+    SoloChallengeRankDataExt rank_global;
+    Marshal::OctetsStream value;
+
+    try
+    {
+        StorageEnv::Storage* prank = StorageEnv::GetStorage("solochallengerank");
+        StorageEnv::AtomTransaction txn;
+
+        try
+        {
+            if (prank->find((Marshal::OctetsStream() << 1), value, txn))
+            {
+                value >> rank_global;
+                SoloChallengeRankDataVector::iterator iter = rank_global.data.begin(), iter_end = rank_global.data.end();
+
+                bool changed = false;
+                for (; iter != iter_end; ++iter)
+                {
+                    if ((iter->roleid == roleid) && (iter->zoneid == zoneid))
+                    {
+                        rank_global.data.erase(iter);
+                        changed = true;
+                    }
+                }
+
+                if (changed)
+                {
+                    prank->insert((Marshal::OctetsStream() << 1),
+                                  (Marshal::OctetsStream() << rank_global),
+                                  txn);
+                }
+            }
+        }
+        catch (DbException e) {throw;}
+        catch (...)
+        {
+            DbException e(DB_OLD_VERSION);
+            txn.abort(e);
+            throw e;
+        }
+    }
+    catch (DbException e)
+    {
+        Log::log(LOG_ERR, "ClearSoloChallengeRank, what=%s.\n", e.what());
+    }
+}
+
 
 };
 

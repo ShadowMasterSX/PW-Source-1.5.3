@@ -57,8 +57,8 @@ namespace GNET
       Skill953Stub ():SkillStub (953)
         {
             cls = 127;
-            name = L"×÷·Ï";
-            nativename = "×÷·Ï";
+            name = L"ä½œåºŸ";
+            nativename = "ä½œåºŸ";
             icon = "";
             max_level = MAX_LEVEL;
             type = 4;

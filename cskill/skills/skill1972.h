@@ -132,8 +132,8 @@ namespace GNET
       Skill1972Stub ():SkillStub (1972)
         {
             cls = 127;
-            name = L"¹ÖÎï¼ÙÎŞµĞ2";
-            nativename = "¹ÖÎï¼ÙÎŞµĞ2";
+            name = L"æ€ªç‰©å‡æ— æ•Œ2";
+            nativename = "æ€ªç‰©å‡æ— æ•Œ2";
             icon = "";
             max_level = 10;
             type = 2;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "¹ÖÎïÖÎÁÆÊõ.sgc";
+            effect = "æ€ªç‰©æ²»ç–—æœ¯.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

@@ -19,9 +19,9 @@ namespace GNET
         Skill490Stub ():SkillStub (490)
         {
             cls = 1;
-            name = L"Õæ¡¤ÍÁ¾«Í¨";
-            nativename = "Õæ¡¤ÍÁ¾«Í¨";
-            icon = "ÍÁ¾«Í¨1.dds";
+            name = L"çœŸÂ·åœŸç²¾é€š";
+            nativename = "çœŸÂ·åœŸç²¾é€š";
+            icon = "åœŸç²¾é€š1.dds";
             max_level = 1;
             type = 5;
             apcost = 0;

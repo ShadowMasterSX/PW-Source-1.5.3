@@ -57,8 +57,8 @@ namespace GNET
       Skill1923Stub ():SkillStub (1923)
         {
             cls = 127;
-            name = L"ÎŞ¶¨BÂ·ÏßÒşÉíBUFF";
-            nativename = "ÎŞ¶¨BÂ·ÏßÒşÉíBUFF";
+            name = L"æ— å®šBè·¯çº¿éšèº«BUFF";
+            nativename = "æ— å®šBè·¯çº¿éšèº«BUFF";
             icon = "";
             max_level = 10;
             type = 4;
@@ -79,7 +79,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "Ä§.sgc";
+            effect = "é­”.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

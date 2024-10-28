@@ -1,0 +1,233 @@
+/*
+# .              # 的
+# &              # 并且
+# |              # 或者
+# >              # 大于
+# <              # 小于
+# =              # 等于
+# >=             # 至少
+# <=             # 最多
+
+# id             # ID
+# count          # 个数
+# livetime       # 存活时间
+# hp             # 血值
+# attackmode     # 攻击方式
+# restricttarget # 是否需要目标
+# rectlength     # 面攻击矩形边长
+# attack         # 攻击力
+# poison         # 毒攻击
+# attackwater    # 水系攻击力
+# woodfactor     # 降低木系防御系数
+# woodprob       # 降低木系防御系数概率
+# fixprob        # 定身概率
+# defence        # 防御力
+# velocity       # 移动速度
+# interval       # 攻击间隔
+# view           # 视野
+# searchdistance # 自动寻找距离
+# attackdistance # 攻击距离
+# startcallup    #
+# callup         # 被召唤NPC
+
+# probability    # 概率参数
+# time           # 时间参数
+# ratio          # 比率参数
+# amount         # 总量参数
+# value          # 数值参数
+# showicon       # 是否显示图标
+
+# level          # 玩家级别
+# hp             # HP
+# mp             # MP
+# sp             # SP
+# ap             # 修改怒气值
+# maxhp          # HP上限
+# maxmp          # MP上限
+# decmp          # MP减少值
+# decsp          # SP减少值
+# inchp          # 增加HP上限
+# dechp          # 降低HP上限
+# incmp          # 增加MP上限
+# hpgen          # 持续恢复HP
+# mpgen          # 持续恢复MP
+# fastmpgen      # MP恢复加快
+# fasthpgen      # HP恢复加快
+# scaleinchp     # 按比例恢复HP
+# scaleincmp     # 按比例恢复MP
+# scaledechp     # 按比例减HP
+# scaledecmp     # 按比例减MP
+# attack         # 物理攻击力 *
+# range          # 玩家默认射程
+# magicattack    # 魔法攻击力
+# damage         # 物理伤害参数
+# golddamage     # 金系伤害参数
+# wooddamage     # 木系伤害参数
+# waterdamage    # 水系伤害参数
+# firedamage     # 火系伤害参数
+# earthdamage    # 土系伤害参数
+# skilllevel     # 某技能级别 *
+# pray           # 开始吟唱 *
+# perform        # 执行攻击
+# speedup        # 加强速度
+# incdefence     # 加强防御力
+# decdefence     # 降低物理防御力
+# incattack      # 提高攻击力
+# decattack      # 降低物理攻击力
+# incdodge       # 躲避率增加
+# decdodge       # 降低躲避率
+# incmagic       # 增强魔法攻击力
+# decmagic       # 降低魔法攻击力
+# incaccuracy    # 增加精确度
+# decaccuracy    # 准确度下降
+# inchurt        # 物理伤害加倍
+# dechurt        # 自身伤害减半
+# incresist      # 增强五行防御力
+# decresist      # 降低五行防御力
+# enhancegold    # 金系防御上升
+# enhancewood    # 木系防御上升
+# enhancewater   # 水系防御上升
+# enhancefire    # 火系防御上升
+# enhancesoil    # 土系防御上升
+# reducegold     # 金系防御下降
+# reducewood     # 木系防御下降
+# reducewater    # 水系防御下降
+# reducefire     # 火系防御下降
+# reducesoil     # 土系防御下降
+# slowpray       # 吟唱时间加长
+# fastpray       # 加速吟唱
+# fastattack     # 攻击加速
+# slowattack     # 攻击减速
+# heal           # 治疗
+# resurrect      # 复活 
+# feathershield  # 羽盾
+# repel          # 击退
+# frighten       # 吓退
+# sleep          # 睡眠
+# dizzy          # 致昏
+# fix            # 定身
+# slow           # 迟滞
+# blind          # 变被动
+# sealed         # 不能攻击
+# enmity         # 怪物仇恨度
+# bleeding       # 持续物理伤害(放血)
+# thunder        # 持续金伤害
+# toxic          # 持续木伤害(中毒)
+# burning        # 持续火伤害
+# flood          # 持续水伤害
+# fallen         # 持续土伤害
+# directhurt     # 直接伤害
+# soilshield     # 磐石护甲
+# fireshield     # 烈焰护甲
+# iceshield      # 寒冰护甲
+# retort         # 反震
+# absorbhp       # 吸取HP
+# magicleak      # 持续减少MP
+# iceblade       # 附加冰伤害
+# fireblade      # 附加火伤害
+# toxicblade     # 附加毒伤害
+# frenetic       # 狂战士属性
+# tigerform      # 变身白虎
+# foxform        # 灵狐变
+# swiftform      # 妖狐变
+# fastride       # 骑乘加速
+# cleardebuff    # 清除不利状态
+# assault        # 受挑衅
+# returntown     # 回城
+# invincible     # 无敌
+# antiwater      # 避水诀
+# panruo         # 般若经
+# break          # 中断
+# combat         # 进入战斗状态
+# checkbook      # 是否拥有技能书 *
+# checkmoney     # 是否拥有足够金钱 *
+# usebook        # 使用技能书 *
+# usemoney       # 消耗一定金钱 *
+# yijin          # 易筋经
+# xisui          # 洗髓经
+# apgen          # 兽王之怒
+# powerup        # 真元爆发
+# stoneskin      # 坚甲符
+# ironshield     # 金钟罩
+# giant          # 巨灵神力
+# devilstate     # 化血成魔
+# blessmagic     # 灵助符
+# wingshield     # 翼盾
+# firearrow      # 烈焰之矢
+# eaglecurse     # 狂雷天鹰
+# freemove       # 无视行动阻碍状态
+# entrap         # 驯服宠物
+# disappear      # 消失
+
+# incsword       # 刀剑攻击力增加(被动)
+# incspear       # 长兵攻击力增加(被动)
+# inchammer      # 斧锤攻击力增加(被动)
+# incboxing      # 拳术攻击力增加(被动)
+# incbow         # 弓箭攻击力增加(被动)
+# incrange       # 弓箭射程增加(被动)
+# incfight       # 肉搏精通(被动) 
+# incgold        # 技能金系伤害攻击力增加(被动)
+# incwood        # 技能木系伤害攻击力增加(被动)
+# incwater       # 技能水系伤害攻击力增加(被动)
+# incfire        # 技能火系伤害攻击力增加(被动)
+# incearth       # 技能土系伤害攻击力增加 (被动)
+# incmpgen       # MP恢复加快(被动技能)
+# inchpgen       # HP恢复加快(被动技能)
+# adddefence     # 增强防御(被动)
+# incswim        # 水性精通(被动)
+# incfeather     # 飞行精通(被动)
+# inccrit        # 增加爆机(被动)
+# inchitrate     # 增加命中率
+# incsmite       # 增加爆机率
+# summon         # 复活宠物
+# clearbuff      # 驱除祝福状态
+# noregain       # 停止自动恢复
+# apleak         # 受攻击减元气
+# canti          # 残体咒
+# jingji         # 荆棘阵
+# flower1        # 鲜花1
+# flower2        # 鲜花2
+# flower3        # 鲜花3
+# flower4        # 鲜花4
+# hp2mp          # 乾坤互移
+# sharpblade     # 物理攻击提高
+
+# valid          # 是否有效ID
+
+# id             # 技能ID
+# level          # 技能级别
+# playerlevel    # 攻击者级别
+# charging       # 蓄力时间比例
+# rand           # 随机数(0-99)
+# player         # 攻击者
+# target         # 被攻击者
+# victim         # 被攻击者
+# damage         # 技能物理伤害
+# golddamage     # 技能金系伤害
+# wooddamage     # 技能木系伤害
+# waterdamage    # 技能水系伤害
+# firedamage     # 技能火系伤害
+# earthdamage    # 技能土系伤害
+# magicdamage    # 技能魔法伤害
+# ability        # 熟练度
+# maxability     # 升级所需熟练度
+# ratio          # 攻击力加乘比例
+# plus           # 附加攻击力
+# attack         # 物理攻击力
+# magicattack    # 法术攻击力
+# realm		     # 境界
+# historicalmaxlevel    # 历史最高等级
+# equipattack    	# 装备物理攻击力
+# equipmagicattack  # 装备法术攻击力
+
+*/
+bool=<>;
+int=<>;
+float=<>;
+SkillLevel=<@value,int>;
+BuffLevel=<@value,int>;
+ComboArg=<@value,int>;
+Callup=<id,int>,<count,int>,<livetime,int>,<hp,int>,<attackmode,int>,<restricttarget,bool>,<rectlength,float>,<attack,int>,<poison,int>,<attackwater,int>,<woodfactor,float>,<woodprob,float>,<fixprob,float>,<defence,int>,<velocity,float>,<interval,float>,<view,float>,<searchdistance,float>,<attackdistance,float>;
+PlayerWrapper=<id,int>,<probability,float>,<time,int>,<ratio,float>,<amount,float>,<value,float>,<attack,float>,<magicattack,float>,<pureattack,float>,<puremagicattack,float>,<damage,float>,<golddamage,float>,<wooddamage,float>,<waterdamage,float>,<firedamage,float>,<earthdamage,float>,<skilllevel,SkillLevel>,<bufflevel,BuffLevel>,<level,int>,<decmp,int>,<decsp,int>,<mp,int>,<hp,int>,<sp,int>,<decelfmp,int>,<decelfap,int>,<range,float>,<pray,int>,<perform,int>,<incdefence,bool>,<speedup,bool>,<inchp,bool>,<dechp,bool>,<incmp,bool>,<incsword,float>,<incspear,float>,<inchammer,float>,<incfight,float>,<incboxing,float>,<incgold,float>,<incwood,float>,<incwater,float>,<incfire,float>,<incearth,float>,<adddefence,float>,<fasthpgen,bool>,<fastmpgen,bool>,<inchpgen,float>,<incmpgen,float>,<incdodge,bool>,<callup,Callup>,<startcallup,int>,<repel,bool>,<decdefence,bool>,<decattack,bool>,<decdodge,bool>,<blind,bool>,<enmity,int>,<decresist,bool>,<frighten,bool>,<dizzy,bool>,<sleep,bool>,<fix,bool>,<sealed,bool>,<slow,bool>,<bleeding,bool>,<thunder,bool>,<toxic,bool>,<burning,bool>,<fallen,bool>,<heal,int>,<resurrect,bool>,<feathershield,bool>,<fireshield,bool>,<iceshield,bool>,<retort,bool>,<incattack,bool>,<slowpray,bool>,<decmagic,bool>,<incmagic,bool>,<combat,bool>,<absorbhp,bool>,<incresist,bool>,<inchurt,bool>,<magicleak,bool>,<decaccuracy,bool>,<fireblade,bool>,<iceblade,bool>,<toxicblade,bool>,<maxhp,int>,<maxmp,int>,<soilshield,bool>,<tigerform,bool>,<foxform,bool>,<showicon,float>,<checkbook,int>,<checkmoney,int>,<usebook,int>,<usemoney,int>,<frenetic,bool>,<assault,bool>,<cleardebuff,bool>,<returntown,bool>,<hpgen,bool>,<mpgen,bool>,<scaleinchp,bool>,<scaleincmp,bool>,<scaledechp,bool>,<scaledecmp,bool>,<invincible,bool>,<invincible2,bool>,<dechurt,bool>,<incaccuracy,bool>,<ap,bool>,<fastpray,bool>,<enhancegold,bool>,<enhancewood,bool>,<enhancewater,bool>,<enhancefire,bool>,<enhancesoil,bool>,<reducefire,bool>,<reducewood,bool>,<reducewater,bool>,<reducesoil,bool>,<reducegold,bool>,<antiwater,bool>,<panruo,bool>,<break,bool>,<fastattack,bool>,<slowattack,bool>,<yijin,bool>,<xisui,bool>,<apgen,bool>,<incswim,float>,<powerup,bool>,<incfeather,bool>,<stoneskin,bool>,<incbow,float>,<incrange,float>,<ironshield,bool>,<giant,bool>,<devilstate,bool>,<blessmagic,bool>,<wingshield,bool>,<firearrow,bool>,<eaglecurse,bool>,<freemove,bool>,<flood,bool>,<directhurt,bool>,<inccrit,bool>,<inchitrate,bool>,<incsmite,bool>,<entrap,bool>,<summon,bool>,<clearbuff,bool>,<noregain,bool>,<apleak,bool>,<canti,bool>,<jingji,bool>,<flower1,bool>,<flower2,bool>,<flower3,bool>,<flower4,bool>,<fastride,bool>,<swiftform,bool>,<disappear,bool>,<sharpblade,bool>,<hp2mp,bool>,<addattackdegree,bool>,<subattackdegree,bool>,<adddefencedegree,bool>,<subdefencedegree,bool>,<cls,int>,<form,int>,<elfstr,int>,<elfagi,int>,<elfvit,int>,<elfeng,int>,<elflevel,int>,<immunesealed,bool>,<immunesleep,bool>,<immuneslowdizzy,bool>,<immunewound,bool>,<immuneall,bool>,<immunephysical,bool>,<immunefire,bool>,<immunewater,bool>,<immunemetal,bool>,<immunewood,bool>,<immunesoil,bool>,<immunemagical,bool>,<arrogant,bool>,<slowswim,bool>,<fastswim,bool>,<fastfly,bool>,<slowfly,bool>,<slowride,bool>,<apgencont,bool>,<apleakcont,bool>,<incelfctr,bool>,<incelfagi,bool>,<incdefence2,bool>,<weakelement,bool>,<deeppoision,bool>,<rooted,bool>,<earthguard,bool>,<fury,bool>,<sandstorm,bool>,<homefeeling,bool>,<reducewater2,bool>,<incsmite2,bool>,<decdefence2,bool>,<reducefire2,bool>,<slowattackpray,bool>,<burning2,bool>,<burningfeet,bool>,<hardenskin,bool>,<reducegold2,bool>,<leafdance,bool>,<charred,bool>,<vacuum,bool>,<immuneblooding,bool>,<absorbphysicdamage,bool>,<absorbmagicdamage,bool>,<retortmagic,bool>,<windshield,bool>,<airstreamlock,bool>,<closed,bool>,<insertvstate,bool>,<immuneweak,bool>,<befrozen,bool>,<clearsealed,bool>,<clearrooted,bool>,<clearbleeding,bool>,<cleardizzy,bool>,<selfburning,bool>,<fallen2,bool>,<sealed2,bool>,<fix2,bool>,<dechurt2,bool>,<inchurt2,bool>,<inchp2,bool>,<incattack2,bool>,<incmagic2,bool>,<fastpray2,bool>,<speedup2,bool>,<rand,int>,<skillcooldown,bool>,<commoncooldown,bool>,<aurafireattack,bool>,<aurabless,bool>,<auracurse,bool>,<defense,int>,<goldresist,int>,<woodresist,int>,<waterresist,int>,<fireresist,int>,<earthresist,int>,<elfmp,int>,<incantiinvisiblepassive,int>,<incinvisiblepassive,int>,<incantiinvisibleactive,bool>,<invisible,bool>,<crit,int>,<attackdegree,int>,<defenddegree,int>,<inchpsteal,bool>,<inccritdamage,bool>,<incdamagedodge,bool>,<incdebuffdodge,bool>,<rebirth,bool>,<deepenbless,bool>,<weakenbless,bool>,<hurtwhenuseskill,bool>,<interruptwhenuseskill,bool>,<soulretort,bool>,<soulsealed,bool>,<soulbeatback,bool>,<soulstun,bool>,<fishform,bool>,<soulpower,int>,<entrap2,bool>,<incdagger,float>,<inctalisman,float>,<deepicethrust,bool>,<adjustattackdefend,bool>,<weapondamage,int>,<weaponmagicdamage,int>,<clearinvisible,bool>,<invincible3,bool>,<beastieform,bool>,<gminvisible,bool>,<repel2,bool>,<activatesharpener,bool>,<inchurtphysicgold,bool>,<inchurtwoodwater,bool>,<inchurtfireearth,bool>,<attackattachstate1,bool>,<attackattachstate2,bool>,<attackattachstate3,bool>,<attackattachstate4,bool>,<beattackattachstate1,bool>,<beattackattachstate2,bool>,<beattackattachstate3,bool>,<beattackattachstate4,bool>,<transferbuff,bool>,<transferdebuff,bool>,<summonpet2,bool>,<summonplantpet,bool>,<poisionseed,bool>,<hpgenseed,bool>,<incpethp,float>,<incpetmp,float>,<incpetdamage,float>,<incpetmagicdamage,float>,<incpetdefense,float>,<incpetmagicdefense,float>,<incpetattackdegree,float>,<incpetdefenddegree,float>,<useitem,int>,<plantsuicide,bool>,<physichurt,bool>,<goldhurt,bool>,<fastprayincmagic,bool>,<incwoodwaterdefense,bool>,<specialslow,bool>,<specialphysichurt,bool>,<petsacrifice,bool>,<incdefencesmite,bool>,<incresistmagic,bool>,<transportmptopet,bool>,<transportdamagetopet,bool>,<absorbdamageincdefense,bool>,<incrementalhpgen,bool>,<chanceofrebirth,bool>,<specialphysichurttrigger,bool>,<longjumptospouse,bool>,<inccountedsmite,bool>,<weapondisabled,bool>,<incaggroondamage,bool>,<enhanceskilldamage,bool>,<detectinvisible,bool>,<detectinvisible2,bool>,<invincible4,bool>,<fastmpgen2,bool>,<clearinvisible2,bool>,<reduceresurrectexplost,int>,<positionrollback,bool>,<hprollback,bool>,<nofly,bool>,<forceselecttarget,bool>,<healabsorb,bool>,<repelonnormalattack,bool>,<inccritresistance,bool>,<deccritresistance,bool>,<exchangeposition,bool>,<pullover,bool>,<transmitskillattack,bool>,<additionalheal,bool>,<additionalattack,bool>,<transportdamagetoleader,bool>,<forbidbeselected,bool>,<invincible5,bool>,<enhanceskilldamage2,bool>,<callupteammember,bool>,<delayearthhurt,bool>,<dizzyinchurt,bool>,<soulretort2,bool>,<fixondamage,bool>,<apgen2,bool>,<incattackondamage,bool>,<rebirth2,bool>,<healsteal,bool>,<dropmoneyondeath,bool>,<incattackrange,bool>,<queryotherinventory,bool>,<thunderform,bool>,<rangetotarget,float>,<delaytransmit,bool>,<decnormalattackhurt,bool>,<freemoveapgen,bool>,<incatkdefhp,bool>,<denyattackcmd,bool>,<absorbbuff,bool>,<absorbdebuff,bool>,<dynskillcounter,int>,<hpmpgennotincombat,bool>,<inchpmp,bool>,<immunedrop,int>,<inchurt3,bool>,<enternonpenaltypvp,bool>,<leavenonpenaltypvp,bool>,<incresist2,bool>,<subdefencedegree2,bool>,<incatkdefhp2,bool>,<incsmite3,bool>,<incpenres,bool>,<incmaxhpatkdfdlevel,bool>,<dechurt3,bool>,<attachstatetoself,bool>,<attachstatetotarget,bool>,<immunephysical2,bool>,<immunefire2,bool>,<immunewater2,bool>,<immunemetal2,bool>,<immunewood2,bool>,<immunesoil2,bool>,<woodhurt,bool>,<waterhurt,bool>,<firehurt,bool>,<earthhurt,bool>,<retort2,bool>,<knockup,bool>,<curweapon,int>,<realm,int>,<historicalmaxlevel,int>,<equipattack,int>,<equipmagicattack,int>,<aurabless2,bool>,<auracurse2,bool>,<targetregionplayernum,int>,<apgencont2,bool>,<inchurt4,bool>,<beattackattachstate5,bool>,<beattackattachstate6,bool>,<beattackattachstate7,bool>,<beattackattachstate8,bool>,<palsy,bool>,<addresistance,float>,<addskilldamage,float>,<incbecritrate,bool>,<modifyspecskillpray,bool>,<incspecskilldamage,bool>,<fireshield2,bool>,<iceshield2,bool>,<healshield,bool>,<skillenhance2,float>,<incflyspeed,bool>,<incvigour,bool>,<invincible6,bool>,<incvigour2,bool>,<shortjump,bool>,<shortjump2,bool>,<movepunish,bool>,<standpunish,bool>,<standpunish2,bool>,<chantshield,bool>,<changeselfaggro,bool>,<summonmobs,bool>,<intervalpalsy,bool>,<internalinjury,bool>,<atkdamagereduce,bool>,<deathresetcd,bool>,<appendenchant,bool>,<appenddamage,bool>,<cooldownaward,bool>,<huntersoul,bool>,<neverdead,bool>,<changemodel,bool>,<screeneffect,bool>,<comboarg,ComboArg>,<addball,int>,<filpball,int>,<balls,int>,<charging,int>,<shadowform,bool>,<fairyform,bool>,<addfrosteffect,bool>,<activefrosteffect,bool>,<incspecskillcrit,bool>,<clearfilterbyid,bool>,<moongod,bool>,<delayskilleffect,bool>,<enhanceskilldamage3,bool>,<incscimitar,float>,<incnearnormaldmgreduce,float>,<incnearskilldmgreduce,float>,<incfarnormaldmgreduce,float>,<incfarskilldmgreduce,float>,<critdamagereduce,bool>,<immunemagical2,bool>,<pullover2,bool>,<incphysicaldamage,bool>,<incmagicaldamage,bool>,<inchurt5,bool>,<removeaggro,bool>,<lvalue,int>,<incphysicalmagicaldefense,bool>,<reducegold3,bool>,<reducewater3,bool>,<genhpap,bool>,<cooldownpunish,bool>,<anticlearbuf,bool>,<incenchantrange,bool>,<prayrangeplus,float>,<comboid,int>,<invincible7,bool>,<localval0,int>,<localval1,int>,<localval2,int>;
+TargetWrapper=<id,int>,<valid,bool>,<cls,int>,<hp,int>,<mp,int>,<maxhp,int>,<level,int>;
+Skill=<id,int>,<level,int>,<playerlevel,int>,<charging,float>,<rand,int>,<player,PlayerWrapper>,<target,TargetWrapper>,<victim,PlayerWrapper>,<golddamage,int>,<wooddamage,int>,<waterdamage,int>,<firedamage,int>,<earthdamage,int>,<magicdamage,int>,<damage,int>,<ability,int>,<maxability,int>,<ratio,float>, <plus,float>,<attack,int>,<magicattack,int>,<degree,int>,<t0,int>,<t1,int>,<t2,int>,<section,int>,<lvalue,int>;

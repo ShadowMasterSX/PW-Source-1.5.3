@@ -134,9 +134,9 @@ namespace GNET
       Skill1500Stub ():SkillStub (1500)
         {
             cls = 127;
-            name = L"花开并蒂";
-            nativename = "花开并蒂";
-            icon = "花开并蒂.dds";
+            name = L"鑺卞紑骞惰拏";
+            nativename = "鑺卞紑骞惰拏";
+            icon = "鑺卞紑骞惰拏.dds";
             max_level = 10;
             type = 2;
             apcost = 0;
@@ -157,7 +157,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "庇护.sgc";
+            effect = "搴囨姢.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

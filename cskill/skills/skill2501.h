@@ -134,8 +134,8 @@ namespace GNET
       Skill2501Stub ():SkillStub (2501)
         {
             cls = 127;
-            name = L"随机副本-近战秒杀";
-            nativename = "随机副本-近战秒杀";
+            name = L"闅忔満鍓湰-杩戞垬绉掓潃";
+            nativename = "闅忔満鍓湰-杩戞垬绉掓潃";
             icon = "";
             max_level = 10;
             type = 1;
@@ -157,7 +157,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "剑灵_虚空剑劲.sgc";
+            effect = "鍓戠伒_铏氱┖鍓戝姴.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

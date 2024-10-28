@@ -137,9 +137,9 @@ namespace GNET
       Skill10Stub ():SkillStub (10)
         {
             cls = 1;
-            name = L"É³ÏÝ";
-            nativename = "É³ÏÝ";
-            icon = "É³ÏÝ.dds";
+            name = L"æ²™é™·";
+            nativename = "æ²™é™·";
+            icon = "æ²™é™·.dds";
             max_level = 10;
             type = 1;
             apcost = 0;
@@ -166,7 +166,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "É³ÏÝ.sgc";
+            effect = "æ²™é™·.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

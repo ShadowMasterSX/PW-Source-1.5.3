@@ -1,0 +1,89 @@
+#ifndef __GNET_DBMNFACTIONINFOGETRES_RPCDATA
+#define __GNET_DBMNFACTIONINFOGETRES_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "mndomaininfo"
+#include "mnfactioninfo"
+
+namespace GNET
+{
+	class DBMNFactionInfoGetRes : public GNET::Rpc::Data
+	{
+	public:
+		int retcode;
+		unsigned int sn;
+		unsigned char state;
+		Octets handle;
+		MNDomainInfoVector domaininfo_list;
+		MNFactionInfoVector factioninfo_list;
+
+	public:
+		DBMNFactionInfoGetRes (int l_retcode = -1,unsigned int l_sn = 0,unsigned char l_state = 0
+			,const Octets& l_handle = Octets(),const MNDomainInfoVector& l_domaininfo_list = MNDomainInfoVector(),const MNFactionInfoVector& l_factioninfo_list = MNFactionInfoVector())
+			: retcode(l_retcode),sn(l_sn),state(l_state)
+			,handle(l_handle),domaininfo_list(l_domaininfo_list),factioninfo_list(l_factioninfo_list)
+		{
+		}
+
+		DBMNFactionInfoGetRes(const DBMNFactionInfoGetRes &rhs)
+			: retcode(rhs.retcode),sn(rhs.sn),state(rhs.state),
+			handle(rhs.handle),domaininfo_list(rhs.domaininfo_list),factioninfo_list(rhs.factioninfo_list) { }
+
+		Rpc::Data *Clone() const { return new DBMNFactionInfoGetRes(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBMNFactionInfoGetRes *r = dynamic_cast<const DBMNFactionInfoGetRes *>(&rhs);
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				sn = r->sn;
+				state = r->state;
+				handle = r->handle;
+				domaininfo_list = r->domaininfo_list;
+				factioninfo_list = r->factioninfo_list;
+			}
+			return *this;
+		}
+
+		DBMNFactionInfoGetRes& operator = (const DBMNFactionInfoGetRes &rhs)
+		{
+			const DBMNFactionInfoGetRes *r = &rhs;
+			if (r && r != this)
+			{
+				retcode = r->retcode;
+				sn = r->sn;
+				state = r->state;
+				handle = r->handle;
+				domaininfo_list = r->domaininfo_list;
+				factioninfo_list = r->factioninfo_list;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << retcode;
+			os << sn;
+			os << state;
+			os << handle;
+			os << domaininfo_list;
+			os << factioninfo_list;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> retcode;
+			os >> sn;
+			os >> state;
+			os >> handle;
+			os >> domaininfo_list;
+			os >> factioninfo_list;
+			return os;
+		}
+
+	};
+};
+#endif

@@ -6,6 +6,7 @@
 #include <vector.h>
 #include <hashtab.h>
 #include "template/city_region.h"
+#include "playerlimit.h"
 
 enum
 {	
@@ -22,6 +23,32 @@ enum
 	USER_CLASS_SHADOW,			//夜影
 	USER_CLASS_FAIRY,			//月仙
 	USER_CLASS_COUNT
+};
+
+
+// 角色战斗力指数 职业系数调整表
+static const float fighting_score_occupation_factor[USER_CLASS_COUNT] =
+{
+    1.0,        // 0 - 武侠
+    1.0,        // 1 - 法师
+    1.0,        // 2 - 巫师
+    1.0,        // 3 - 妖精
+
+    1.0,        // 4 - 妖兽
+    1.0,        // 5 - 刺客
+    1.5,        // 6 - 羽芒
+    1.0,        // 7 - 羽灵
+
+    1.0,        // 8 - 剑灵
+    1.0,        // 9 - 魅灵
+    1.0,        // 10 - 夜影
+    1.0,        // 11 - 月仙
+};
+
+// 角色战斗力指数和生存力指数 计算系数表
+static const float property_score_factor[4] =
+{
+    78.17, 2.993e-7, -75.25, -2.983e-5,
 };
 
 
@@ -75,6 +102,15 @@ class player_template
 		int	exp_goal;
 		int vigour_base;
 	};
+	struct astrolabe_addon_prob 
+	{
+		astrolabe_addon_prob() { memset(probability,0,sizeof(probability));}
+		astrolabe_addon_prob(const float (&list)[ASTROLABE_ADDON_MAX]) 
+		{
+			memcpy(&probability, &list, sizeof(probability));
+		}
+		float probability[ASTROLABE_ADDON_MAX];
+	};
 	extend_prop _template_list[USER_CLASS_COUNT];
 	class_data  _class_list[USER_CLASS_COUNT];
 	level_adjust _level_adjust_table[MAX_LEVEL_DIFF+1];
@@ -90,6 +126,10 @@ class player_template
 	abase::vector<abase::vector<float> > _generalcard_cls_adjust_list;
 	abase::vector<int> _generalcard_exp_list;
 	abase::vector<float> _generalcard_exp_rank_adjust_list;
+	abase::vector<astrolabe_addon_prob > _astrolabe_addon_prob_list;
+	abase::vector<int> _astrolabe_vip_levelup_exp_list; 
+	abase::vector<int> _astrolabe_levelup_exp_list;
+	abase::vector<int> _astrolabe_total_exp_list;
 	bool _debug_mode;
 	int  _max_player_level;
 	float _exp_bonus;
@@ -126,6 +166,10 @@ class player_template
 	int  __GetRealmVigour(int realmlvl) const;
 	float __GetGeneralCardClsAdjust(int cls, int card_type);
 	int __GetGeneralCardLvlupExp(int rank, int lvl);
+	int __GetAstrolabeAddonCount(int vip);
+	int __GetAstrolabeVipGradeExp(int vlevel);
+	int __GetAstrolabeLvlupExp(int lvl);
+	int __GetAstrolabeLvltotalExp(int lvl);
 		
 public:
 	static player_template & GetInstance()
@@ -262,6 +306,26 @@ public:
 		return  GetInstance().__GetGeneralCardLvlupExp(rank, lvl);
 	}
 
+	static inline int GetAstrolabeLvlupExp(int lvl)
+	{
+		return  GetInstance().__GetAstrolabeLvlupExp(lvl);
+	}
+
+	static inline int GetAstrolabeLvltotalExp(int lvl)
+	{
+		return GetInstance().__GetAstrolabeLvltotalExp(lvl);;
+	}
+	
+	static inline int GetAstrolabeVipGradeExp(int lvl)
+	{
+		return  GetInstance().__GetAstrolabeVipGradeExp(lvl);
+	}
+
+	static inline int GetAstrolabeAddonCount(int vip)
+	{
+		return  GetInstance().__GetAstrolabeAddonCount(vip);
+	}
+
 	static inline int GetStatusPointPerLevel()
 	{
 		return 5;
@@ -377,11 +441,19 @@ public:
 		return def;
 	}
 
+	static inline int CalcAntiDef(int anti_degree,int def)
+	{
+		float anti_ratio = anti_degree/(anti_degree+10000.f);
+		if(anti_ratio < 0) anti_ratio = 0;
+		if(anti_ratio > 0.35f) anti_ratio = 0.35f;
+		return int(def * (1-anti_ratio));
+	}
+
 	static inline float GetFarDamageReduceFactor(float dist,float ratio)
 	{
 		if(dist <= 8.f ) return 0;
 		if(dist >= 40.f) dist = 40.f;
-		ratio = (dist-8.f)/(dist+20.f) * ratio;
+		ratio *= (dist-8.f)/(dist+2.f);
 		if(ratio >= 1.f) ratio = 1.f;
 		return ratio;
 	}
@@ -472,6 +544,111 @@ public:
 			return 0;
 		}
 	}
+
+    static inline int GetFightingScore(gactive_imp* pImp, unsigned int& value)
+    {
+        int cls = pImp->GetObjectClass();
+        if ((cls < 0) || (cls >= USER_CLASS_COUNT)) return 0;
+
+        float attack_rate = 0;
+        if (pImp->_cur_prop.attack_speed != 0)
+        {       
+            attack_rate = 20.0 / pImp->_cur_prop.attack_speed;
+            if (attack_rate > 1.67) attack_rate = 1.67; 
+        }       
+
+        int pray_speed = pImp->_skill.GetPraySpeed();
+        if (pray_speed >= 100) pray_speed = 90;
+
+        float crit_rate = (pImp->_crit_rate + pImp->_base_crit_rate) * 0.01; 
+        float crit_damage = (pImp->_crit_damage_bonus + CRIT_DAMAGE_BONUS_PERCENT) * 0.01; 
+        float vigour = pImp->GetVigour();
+
+        float physical_dps =
+            (pImp->_cur_prop.damage_low + pImp->_cur_prop.damage_high) * 0.5 * 
+            (1.0 - crit_rate + crit_rate * crit_damage) *
+            (1.0 + pImp->_attack_degree / 100.0) *
+            (1.0 + vigour / 4000.0) *
+            (1.0 + 3.0 * pImp->_penetration / (pImp->_penetration + 300.0)) *
+            (1.0 + pImp->_anti_defense_degree / 10000.0) *
+            attack_rate;
+
+        float magical_dps =
+            (pImp->_cur_prop.damage_magic_low + pImp->_cur_prop.damage_magic_high) * 0.5 * 
+            (1.0 - crit_rate + crit_rate * crit_damage) *
+            (1.0 + pImp->_attack_degree / 100.0) *
+            (1.0 + vigour / 4000.0) *
+            (1.0 + 3.0 * pImp->_penetration / (pImp->_penetration + 300.0)) *
+            (1.0 + pImp->_anti_resistance_degree / 10000.0) *
+            (2.0 / (2.0 - pray_speed / 100.0));
+
+        float fighting = (physical_dps > magical_dps ? physical_dps : magical_dps) *
+            fighting_score_occupation_factor[cls];
+
+        float fighting_score = property_score_factor[0] * exp(property_score_factor[1] * fighting) +
+            property_score_factor[2] * exp(property_score_factor[3] * fighting);
+
+        value = (unsigned int)(fighting + 0.5); 
+        int score = (int)(fighting_score + 0.5); 
+
+        if ((score < 0) || (score > 100)) score = 100;
+        return score;
+    }
+
+    static inline int GetViabilityScore(gactive_imp* pImp, unsigned int& value)
+    {
+        short level = pImp->_basic.level;
+        if (level <= 0) return 0;
+
+        float damage_reduce1 = pImp->_cur_prop.defense / (pImp->_cur_prop.defense + level * 40.0 - 25.0);
+        if (damage_reduce1 > 0.95) damage_reduce1 = 0.95;
+
+        float damage_reduce2 = pImp->_damage_reduce * 0.01;
+        if (damage_reduce2 > 0.95) damage_reduce2 = 0.95;
+
+        int resistance = 0, magic_damage_reduce = 0;
+        for (int i = 0; i < MAGIC_CLASS; ++i)
+        {
+            resistance += pImp->_cur_prop.resistance[i];
+            magic_damage_reduce += pImp->_magic_damage_reduce[i];
+        }
+
+        resistance /= MAGIC_CLASS;
+        magic_damage_reduce /= MAGIC_CLASS;
+
+        float magic_damage_reduce1 = resistance / (resistance + level * 40.0 - 25.0);
+        if (magic_damage_reduce1 > 0.95) magic_damage_reduce1 = 0.95;
+
+        float magic_damage_reduce2 = magic_damage_reduce * 0.01;
+        if (magic_damage_reduce2 > 0.95) magic_damage_reduce2 = 0.95;
+
+        float vigour = pImp->GetVigour();
+
+        float viability1 = pImp->_cur_prop.max_hp /
+            (1.0 - damage_reduce1) /
+            (1.0 - damage_reduce2) *
+            (1.0 + 0.012 * pImp->_defend_degree) *
+            (1.0 + vigour / 4000.0) *
+            (1.0 + (float)pImp->_resilience / level);
+
+        float viability2 = pImp->_cur_prop.max_hp /
+            (1.0 - magic_damage_reduce1) /
+            (1.0 - magic_damage_reduce2) *
+            (1.0 + 0.012 * pImp->_defend_degree) *
+            (1.0 + vigour / 4000.0) *
+            (1.0 + (float)pImp->_resilience / level);
+
+        float viability = (viability1 + viability2) * 0.5;
+        float viability_score = property_score_factor[0] * exp(property_score_factor[1] * viability) +
+            property_score_factor[2] * exp(property_score_factor[3] * viability);
+
+        value = (unsigned int)(viability + 0.5);
+        int score = (int)(viability_score + 0.5);
+
+        if ((score < 0) || (score > 100)) score = 100;
+        return score;
+    }
+
 	/*
 	static inline float GetNormalDropMoneyRate()
 	{
@@ -608,6 +785,21 @@ public:
 	{
 		return (1000.0f+(float)atk_vigour/k) / (1000.0f+(float)def_vigour/k);
 	}
+
+	static inline float GetRemoteAllRepairCostRatio(int cash_vip_level)
+	{
+		ASSERT(cash_vip_level >= MIN_REMOTE_ALL_REPAIR_VIP_LEVEL && cash_vip_level <= CASH_VIP_MAX_LEVEL);
+		static float cost_ratio[CASH_VIP_MAX_LEVEL+1] = { -1.f, 3.f, 2.8f, 2.6f, 2.4f, 2.2f, 2.0f };
+		return cost_ratio[cash_vip_level];
+	}
+
+	static int GetCashVipFixPositionNum(int cash_vip_level)
+	{
+		if(cash_vip_level <= 0 || cash_vip_level > CASH_VIP_MAX_LEVEL)
+			return 0;
+		static int num[CASH_VIP_MAX_LEVEL+1] = {0, 0, 0, 0, 3 ,6, 10};
+		return num[cash_vip_level];
+	}
 };
 
 class property_policy
@@ -671,6 +863,11 @@ public:
 
 		dest.max_hp = Result(dest.max_hp,en_point.max_hp,en_percent.max_hp);
 		dest.max_mp = Result(dest.max_mp,en_point.max_mp,en_percent.max_mp);
+		
+		//计算额外数值,避免en_percent的影响
+		plus_enhanced_param &plus = pImp->_plus_enhanced_param;
+		dest.max_hp += plus.max_hp;
+		
 		pImp->SetRefreshState();
 	}
 
@@ -790,6 +987,12 @@ public:
 			dest.addon_damage[i].damage_low = base.addon_damage[i].damage_low + en_point.addon_damage[i];
 			dest.addon_damage[i].damage_high = base.addon_damage[i].damage_high + en_point.addon_damage[i];
 		}
+
+		//计算额外数值,避免en_percent的影响
+		plus_enhanced_param &plus = pImp->_plus_enhanced_param;
+		dest.damage_low  += plus.damage;
+		dest.damage_high += plus.damage;
+
 	}
 
 	static inline void UpdateCrit(gactive_imp * pImp)
@@ -819,18 +1022,36 @@ public:
 			if(res <0) res = 0;
 			dest.resistance[i] = res;
 		}
+		
+		//计算额外数值,避免en_percent的影响
+		plus_enhanced_param &plus = pImp->_plus_enhanced_param;
+		dest.damage_magic_low  += plus.magic_dmg;
+		dest.damage_magic_high += plus.magic_dmg;
+		
+		for(size_t i = 0; i < MAGIC_CLASS; i ++)
+		{
+			int res = dest.resistance[i] + plus.resistance[i]; 
+			if(res <0) res = 0;
+			dest.resistance[i] = res;
+		}
 	}
 
 	static inline void UpdateSpeed(gactive_imp *pImp)
 	{
 		extend_prop & dest = pImp->_cur_prop;
 		extend_prop & src = pImp->_base_prop;
+
+		bool limit_speedup=pImp->GetPlayerLimit(PLAYER_LIMIT_NOSPEEDUP);//禁止加速
+		
 		if(pImp->_en_point.override_speed > 1e-3)
 		{
 			//覆盖选项存在，使用之
 			float sp = pImp->_en_point.override_speed;
 			dest.run_speed = sp;
 			dest.walk_speed = 2.5f;		//美工的动作都按照1.5的速度制作
+
+			if(!limit_speedup)
+			{
 			int enh = pImp->_en_percent.mount_speed;
 			if(pImp->_en_percent.walk_speed < 0)
 			{
@@ -850,6 +1071,7 @@ public:
 				dest.run_speed *= 0.01f*(enh + 100);
 			}
 		}
+		}
 		else
 		{
 			float en_speed1 = pImp->_en_point.walk_speed;
@@ -863,12 +1085,28 @@ public:
 			{
 				if(en_speed2 > 5.0f) en_speed2 = 0.f; else en_speed2 = 3.f;
 			}
+
+            if (!limit_speedup)
+            {
 			dest.walk_speed = src.walk_speed * 0.01f*(pImp->_en_percent.walk_speed + 100) + en_speed1;
 			dest.run_speed = src.run_speed * 0.01f*(pImp->_en_percent.run_speed + 100) + en_speed2;
 		}
+            else
+            {
+                dest.walk_speed = src.walk_speed + en_speed1;
+                dest.run_speed = src.run_speed + en_speed2;
+            }
+		}
+
+        dest.flight_speed = src.flight_speed + pImp->_en_point.flight_speed;
+
+		if(!limit_speedup)
+		{
 		dest.swim_speed = src.swim_speed* 0.01f*(pImp->_en_percent.swim_speed + 100);
-		dest.flight_speed = src.flight_speed + pImp->_en_point.flight_speed; 
 		dest.flight_speed *= 0.01f*(pImp->_en_percent.flight_speed + 100);
+		}
+
+		if(dest.swim_speed > MAX_SWIM_SPEED) dest.swim_speed = MAX_SWIM_SPEED;
 		if(dest.flight_speed > MAX_FLIGHT_SPEED) dest.flight_speed = MAX_FLIGHT_SPEED;
 		if(dest.run_speed > MAX_RUN_SPEED) dest.run_speed = MAX_RUN_SPEED;
 		if(dest.walk_speed > MAX_WALK_SPEED) dest.walk_speed = MAX_WALK_SPEED;
@@ -887,6 +1125,11 @@ public:
 		int base_armor = player_template::GetBasicArmor(cls,dest.agility);
 		dest.armor = Result(base_armor,pImp->_en_point.armor,pImp->_en_percent.armor);
 		if(dest.armor < 0) dest.armor = 0;
+
+		//计算额外数值,避免en_percent的影响
+		plus_enhanced_param &plus = pImp->_plus_enhanced_param;
+		dest.defense += plus.defence;
+		if(dest.defense < 0) dest.defense = 0;
 	}
 
 	static inline void UpdatePlayerInvisible(gactive_imp *pImp)
@@ -917,6 +1160,11 @@ public:
 		}
 		
 		dest.max_hp = Result(pImp->_base_prop.max_hp + xp,pImp->_en_point.max_hp,pImp->_en_percent.max_hp);
+
+		//计算额外数值,避免en_percent的影响
+		plus_enhanced_param &plus = pImp->_plus_enhanced_param;
+		dest.max_hp += plus.max_hp;
+			
 		if(dest.max_hp < 1) dest.max_hp = 1;
 		if(pImp->_basic.hp > dest.max_hp)
 		{

@@ -1,0 +1,58 @@
+
+#ifndef __GNET_DBMNFACTIONINFOGET_HPP
+#define __GNET_DBMNFACTIONINFOGET_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbmnfactioninfogetarg"
+#include "dbmnfactioninfogetres"
+
+#include "cdsmnfbattleman.h"
+
+namespace GNET
+{
+
+class DBMNFactionInfoGet : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbmnfactioninfoget"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBMNFactionInfoGetArg *arg = (DBMNFactionInfoGetArg *)argument;
+		// DBMNFactionInfoGetRes *res = (DBMNFactionInfoGetRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DEBUG_PRINT("file=%s\tfunc=%s\tline=%d\n", __FILE__, __FUNCTION__, __LINE__);
+		DBMNFactionInfoGetArg *arg = (DBMNFactionInfoGetArg *)argument;
+		DBMNFactionInfoGetRes *res = (DBMNFactionInfoGetRes *)result;
+	
+        if (res->retcode == ERR_SUCCESS)
+		{   
+			CDS_MNFactionBattleMan::GetInstance()->OnGetDBMNFactionCache(res->sn, res->state, res->domaininfo_list, res->factioninfo_list);
+			if(res->handle.size() != 0)
+			{
+				arg->handle = res->handle;
+				GameDBClient::GetInstance()->SendProtocol(Rpc::Call(RPC_DBMNFACTIONINFOGET, arg)); 
+			}
+		}
+		else if (res->retcode == ERR_AGAIN)
+		{       
+			GameDBClient::GetInstance()->SendProtocol(Rpc::Call(RPC_DBMNFACTIONINFOGET, arg));
+		}  
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

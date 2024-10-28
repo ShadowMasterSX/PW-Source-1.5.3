@@ -132,8 +132,8 @@ namespace GNET
       Skill2145Stub ():SkillStub (2145)
         {
             cls = 127;
-            name = L"²åÈë¹âĞ§ÊØÎÀ";
-            nativename = "²åÈë¹âĞ§ÊØÎÀ";
+            name = L"æ’å…¥å…‰æ•ˆå®ˆå«";
+            nativename = "æ’å…¥å…‰æ•ˆå®ˆå«";
             icon = "";
             max_level = 10;
             type = 2;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "ÏÉ.sgc";
+            effect = "ä»™.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

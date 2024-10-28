@@ -34,12 +34,12 @@ public:
 	DECLARE_SUBSTANCE(gplayer_trickbattle);
 	virtual	void OnHeartbeat(size_t tick);
 	virtual int MessageHandler(world * pPlane ,const MSG & msg);
-	virtual void PlayerEnterServer(); 
+	virtual void PlayerEnterServer(int source_tag); 
 	virtual void PlayerLeaveServer(); 
 	virtual void PlayerLeaveWorld();
 	virtual void OnDeath(const XID & lastattack,bool is_pariah, char attacker_mode, int taskdead);
 	virtual bool CanResurrect(int param);
-	virtual int  Resurrect(const A3DVECTOR & pos,bool nomove,float exp_reduce,int target_tag,float hp_factor, float mp_factor, int param);
+	virtual int  Resurrect(const A3DVECTOR & pos,bool nomove,float exp_reduce,int target_tag,float hp_factor, float mp_factor, int param, float ap_factor, int extra_invincible_time);
 
 	virtual void SyncScoreToPlane();
 	virtual bool TrickBattleTransformChariot(int chariot);

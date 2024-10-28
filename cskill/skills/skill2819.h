@@ -134,9 +134,9 @@ namespace GNET
       Skill2819Stub ():SkillStub (2819)
         {
             cls = 11;
-            name = L"�桤濾깴��";
-            nativename = "�桤濾깴��";
-            icon = "��濾깴��.dds";
+            name = L"真·婵娟勾弦";
+            nativename = "真·婵娟勾弦";
+            icon = "仙婵娟勾弦.dds";
             max_level = 1;
             type = 2;
             apcost = 30;

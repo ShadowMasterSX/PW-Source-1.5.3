@@ -6,7 +6,7 @@ namespace GNET
 	class FactionConfig{
 	public:
 		enum{
-			MAX_LEVEL        = 2,
+			MAX_LEVEL        = 10,
 			MAX_TERRITORY    = 43,
 		};
 		static int UpgradeCost(int level);

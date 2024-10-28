@@ -27,15 +27,22 @@ enum
 //注意: 增加新的数据时需要对寻宝网角色交易、角色跨服中角色数据拷贝的代码进行修改
 //角色交易(gamedbd/dbwebtradesold.hrp)
 //角色跨服(gamedbd/abstractplayers.cpp AbstractPlayerData())
+
 	GROLE_STATUS_EXTRAPROP_TOUCH_HALF_TRADE = 0, // Touch
 	GROLE_STATUS_EXTRAPROP_DAILY_SIGN_IN,
 	GROLE_STATUS_EXTRAPROP_GIFTCARD_HALF_REDEEM, // 礼品码兑换
 	GROLE_STATUS_EXTRAPROP_LEADERSHIP,
 	GROLE_STATUS_EXTRAPROP_GENERALCARD_COLLECTION,
-	GROLE_STATUS_EXTRAPROP_FATERING,
+	GROLE_STATUS_EXTRAPROP_FATERING,                // 5
 	GROLE_STATUS_EXTRAPROP_CLOCK_DATA,
 	GROLE_STATUS_EXTRAPROP_RAND_MALL_DATA,
 	GROLE_STATUS_EXTRAPROP_WORLD_CONTRIBUTION,
+	GROLE_STATUS_EXTRAPROP_ASTROLABE_EXTERN,
+    GROLE_STATUS_EXTRAPROP_SOLO_CHALLENGE_INFO,     // 10
+    GROLE_STATUS_EXTRAPROP_MNFACTION_INFO,
+    GROLE_STATUS_EXTRAPROP_VISA_INFO,
+	GROLE_STATUS_EXTRAPROP_FIX_POSITION_TRANSMIT_INFO,
+    GROLE_STATUS_EXTRAPROP_CASH_RESURRECT_INFO,
 
 	GROLE_STATUS_EXTRAPROP_COUNT, // 总数，请放最后
 };
@@ -106,6 +113,14 @@ struct base_info
 	int is_king;
 	int king_expire_time;
 	int	src_zoneid;
+	int vip_level;
+	int score_add;
+	int score_cost;
+	int score_consume;
+	int next_day_item_clear_timestamp;
+	int next_week_item_clear_timestamp;
+	int next_month_item_clear_timestamp;
+	int next_year_item_clear_timestamp;
 
 	struct{
     	int64_t  sn;
@@ -140,6 +155,46 @@ struct base_info
 		int contrib;
 		int cost;
 	}world_contribution;
+
+	struct{
+		unsigned char level;
+		int  exp;
+	} astrolabe_extern;
+
+    struct solo_challenge_info_t
+    {
+        int max_stage_level;
+        int max_stage_cost_time;
+        int total_score;
+        int total_time;
+        int left_draw_award_times;
+        int playmodes;
+
+        struct
+        {
+            int item_id;
+            int item_count;
+        } award_info[8];
+
+    } solo_challenge_info;
+
+    struct
+    {
+        int64_t unifid;
+    } mnfaction_info;
+
+    struct
+    {
+        int type;
+        int stay_timestamp;
+		int cost_item;
+		int cost_item_count;
+    } visa_info;
+
+    struct
+    {
+        int times;
+    } cash_resurrect_info;
 };
 
 struct ivec
@@ -259,6 +314,13 @@ struct realm_data
 	int reserved2;
 };
 
+struct rank_data
+{
+	int point;
+	int kill;
+	int dead;
+};
+
 struct vecdata
 {
 	ivec user_name;		//这个数据不会存盘
@@ -304,8 +366,18 @@ struct vecdata
 	ivec fatering_data;
 	ivec clock_data;
 	ivec rand_mall_data;
+	ivec fix_position_transmit_data;
+	ivec purchase_limit_data;
+	rank_data rank;
 };
 
+struct PutRoleResData
+{
+	int cash_vip_level;
+	int score_add;
+	int score_cost;
+	int score_consume;
+};
 
 class Result
 {
@@ -313,10 +385,10 @@ public:
 	virtual void OnTimeOut() = 0;
 	virtual void OnFailed() = 0;
 	virtual void OnGetRole(int id,const base_info * pInfo, const vecdata * data,const GNET::GRoleDetail * pRole){}
-	virtual void OnPutRole(int retcode){}
+	virtual void OnPutRole(int retcode, PutRoleResData *data = NULL){}
 	virtual void OnPutMoneyInventory(int retcode) {}
 	virtual void OnGetMoneyInventory(size_t money, const itemlist & list, int timestamp, int getmask) {}
-	virtual void OnGetCashTotal(int cash_total){}
+	virtual void OnGetCashTotal(int cash_total, int cash_vip_score_add, int cash_vip_level){}
 	virtual ~Result(){}
 };
 

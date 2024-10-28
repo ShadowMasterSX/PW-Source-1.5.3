@@ -57,8 +57,8 @@ namespace GNET
       Skill1564Stub ():SkillStub (1564)
         {
             cls = 127;
-            name = L"ÎïÆ·¼¼ÄÜ-·¨Ê¦×¨ÓÃÏÉµ¤";
-            nativename = "ÎïÆ·¼¼ÄÜ-·¨Ê¦×¨ÓÃÏÉµ¤";
+            name = L"ç‰©å“æŠ€èƒ½-æ³•å¸ˆä¸“ç”¨ä»™ä¸¹";
+            nativename = "ç‰©å“æŠ€èƒ½-æ³•å¸ˆä¸“ç”¨ä»™ä¸¹";
             icon = "";
             max_level = 5;
             type = 4;

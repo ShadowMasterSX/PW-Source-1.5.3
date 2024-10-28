@@ -140,9 +140,9 @@ namespace GNET
       Skill87Stub ():SkillStub (87)
         {
             cls = 1;
-            name = L"�𺣵�ɽ";
-            nativename = "�𺣵�ɽ";
-            icon = "�𺣵�ɽ.dds";
+            name = L"火海刀山";
+            nativename = "火海刀山";
+            icon = "火海刀山.dds";
             max_level = 10;
             type = 1;
             apcost = 200;
@@ -169,7 +169,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "�𺣵�ɽ.sgc";
+            effect = "火海刀山.sgc";
             range.type = 3;
             doenchant = false;
             dobless = false;

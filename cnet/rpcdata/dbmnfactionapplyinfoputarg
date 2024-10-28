@@ -1,0 +1,59 @@
+#ifndef __GNET_DBMNFACTIONAPPLYINFOPUTARG_RPCDATA
+#define __GNET_DBMNFACTIONAPPLYINFOPUTARG_RPCDATA
+
+#include "rpcdefs.h"
+
+#include "mnfactionapplyinfo"
+
+namespace GNET
+{
+	class DBMNFactionApplyInfoPutArg : public GNET::Rpc::Data
+	{
+	public:
+		MNFactionApplyInfoVector applyinfo_list;
+
+	public:
+		DBMNFactionApplyInfoPutArg ()
+		{
+		}
+
+		DBMNFactionApplyInfoPutArg(const DBMNFactionApplyInfoPutArg &rhs)
+			: applyinfo_list(rhs.applyinfo_list) { }
+
+		Rpc::Data *Clone() const { return new DBMNFactionApplyInfoPutArg(*this); }
+
+		Rpc::Data& operator = (const Rpc::Data &rhs)
+		{
+			const DBMNFactionApplyInfoPutArg *r = dynamic_cast<const DBMNFactionApplyInfoPutArg *>(&rhs);
+			if (r && r != this)
+			{
+				applyinfo_list = r->applyinfo_list;
+			}
+			return *this;
+		}
+
+		DBMNFactionApplyInfoPutArg& operator = (const DBMNFactionApplyInfoPutArg &rhs)
+		{
+			const DBMNFactionApplyInfoPutArg *r = &rhs;
+			if (r && r != this)
+			{
+				applyinfo_list = r->applyinfo_list;
+			}
+			return *this;
+		}
+
+		OctetsStream& marshal(OctetsStream & os) const
+		{
+			os << applyinfo_list;
+			return os;
+		}
+
+		const OctetsStream& unmarshal(const OctetsStream &os)
+		{
+			os >> applyinfo_list;
+			return os;
+		}
+
+	};
+};
+#endif

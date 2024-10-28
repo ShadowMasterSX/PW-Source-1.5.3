@@ -134,9 +134,9 @@ namespace GNET
       Skill1358Stub ():SkillStub (1358)
         {
             cls = 8;
-            name = L"八方剑影";
-            nativename = "八方剑影";
-            icon = "八方剑影.dds";
+            name = L"鍏柟鍓戝奖";
+            nativename = "鍏柟鍓戝奖";
+            icon = "鍏柟鍓戝奖.dds";
             max_level = 10;
             type = 2;
             apcost = 200;
@@ -160,7 +160,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (1);
             }
-            effect = "剑灵_八方剑影.sgc";
+            effect = "鍓戠伒_鍏柟鍓戝奖.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

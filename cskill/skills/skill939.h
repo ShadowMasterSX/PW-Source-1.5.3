@@ -57,8 +57,8 @@ namespace GNET
       Skill939Stub ():SkillStub (939)
         {
             cls = 127;
-            name = L"Ê±¿ÕËéÆ¬.Ò÷³ª";
-            nativename = "Ê±¿ÕËéÆ¬.Ò÷³ª";
+            name = L"æ—¶ç©ºç¢ç‰‡.åŸå”±";
+            nativename = "æ—¶ç©ºç¢ç‰‡.åŸå”±";
             icon = "";
             max_level = MAX_LEVEL;
             type = 4;

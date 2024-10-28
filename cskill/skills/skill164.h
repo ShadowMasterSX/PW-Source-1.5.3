@@ -19,9 +19,9 @@ namespace GNET
         Skill164Stub ():SkillStub (164)
         {
             cls = 255;
-            name = L"·ÉÐÐÆ÷¾«Í¨";
-            nativename = "·ÉÐÐÆ÷¾«Í¨";
-            icon = "·É½£¾«Í¨.dds";
+            name = L"é£žè¡Œå™¨ç²¾é€š";
+            nativename = "é£žè¡Œå™¨ç²¾é€š";
+            icon = "é£žå‰‘ç²¾é€š.dds";
             max_level = 6;
             type = 7;
             apcost = 0;

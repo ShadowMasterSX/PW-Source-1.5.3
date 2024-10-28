@@ -59,9 +59,9 @@ namespace GNET
       Skill1042Stub ():SkillStub (1042)
         {
             cls = 258;
-            name = L"元气盗窃";
-            nativename = "元气盗窃";
-            icon = "元气盗窃.dds";
+            name = L"鍏冩皵鐩楃獌";
+            nativename = "鍏冩皵鐩楃獌";
+            icon = "鍏冩皵鐩楃獌.dds";
             max_level = 10;
             type = 3;
             apcost = 300000;
@@ -80,7 +80,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 1;
-            effect = "元气盗窃.sgc";
+            effect = "鍏冩皵鐩楃獌.sgc";
             range.type = 0;
             doenchant = true;
             dobless = true;

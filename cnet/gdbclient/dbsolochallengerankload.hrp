@@ -1,0 +1,42 @@
+
+#ifndef __GNET_DBSOLOCHALLENGERANKLOAD_HPP
+#define __GNET_DBSOLOCHALLENGERANKLOAD_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbsolochallengerankloadarg"
+#include "dbsolochallengerankloadres"
+
+namespace GNET
+{
+
+class DBSoloChallengeRankLoad : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbsolochallengerankload"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// DBSoloChallengeRankLoadArg *arg = (DBSoloChallengeRankLoadArg *)argument;
+		// DBSoloChallengeRankLoadRes *res = (DBSoloChallengeRankLoadRes *)result;
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBSoloChallengeRankLoadArg *arg = (DBSoloChallengeRankLoadArg *)argument;
+		// DBSoloChallengeRankLoadRes *res = (DBSoloChallengeRankLoadRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif

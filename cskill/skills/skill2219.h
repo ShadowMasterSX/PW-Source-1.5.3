@@ -137,9 +137,9 @@ namespace GNET
       Skill2219Stub ():SkillStub (2219)
         {
             cls = 6;
-            name = L"»Ä¡¤ÉßĞ«Ö®ÎÇ";
-            nativename = "»Ä¡¤ÉßĞ«Ö®ÎÇ";
-            icon = "»Ä¡¤ÉßĞ«Ö®ÎÇ.dds";
+            name = L"è’Â·è›‡èä¹‹å»";
+            nativename = "è’Â·è›‡èä¹‹å»";
+            icon = "è’Â·è›‡èä¹‹å».dds";
             max_level = 1;
             type = 1;
             apcost = 0;
@@ -164,7 +164,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (13);
             }
-            effect = "ÓğÃ¢_¶ñ¶¾Ö®´Ì_»÷ÖĞ.sgc";
+            effect = "ç¾½èŠ’_æ¶æ¯’ä¹‹åˆº_å‡»ä¸­.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

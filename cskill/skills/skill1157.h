@@ -133,8 +133,8 @@ namespace GNET
       Skill1157Stub ():SkillStub (1157)
         {
             cls = 127;
-            name = L"神威狱BOSS单体晕人流血";
-            nativename = "神威狱BOSS单体晕人流血";
+            name = L"绁炲▉鐙盉OSS鍗曚綋鏅曚汉娴佽";
+            nativename = "绁炲▉鐙盉OSS鍗曚綋鏅曚汉娴佽";
             icon = "";
             max_level = 10;
             type = 1;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "追魂诀.sgc";
+            effect = "杩介瓊璇�.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

@@ -34,6 +34,7 @@
 #include "playerclock.h"
 #include "playersanctuarycheck.h"
 #include "playerinstancereenter.h"
+#include "playersolochallenge.h"
 
 struct MSG;
 struct attack_msg;
@@ -335,6 +336,371 @@ struct dividend_mall_info
 	}
 };
 
+class gplayer_imp;
+struct purchase_limit_info
+{
+	typedef std::map<int, int> PURCHASE_LIMIT_MAP;
+	// item_id -> 购买次数
+	PURCHASE_LIMIT_MAP _day_items; //日限购物品
+	PURCHASE_LIMIT_MAP _week_items; //周限购物品
+	PURCHASE_LIMIT_MAP _month_items; //月限购物品 三个map同步到db
+	PURCHASE_LIMIT_MAP _year_items;  //年限购物品
+
+	int _next_day_item_clear_timestamp;
+	int _next_week_item_clear_timestamp;
+	int _next_month_item_clear_timestamp; //当player_clock调用时，计算下一次清除限购物品的时间戳
+	int _next_year_item_clear_timestamp;
+
+	purchase_limit_info():_next_day_item_clear_timestamp(0),_next_week_item_clear_timestamp(0),_next_month_item_clear_timestamp(0),_next_year_item_clear_timestamp(0)
+	{
+		_day_items.clear();
+		_week_items.clear();
+		_month_items.clear();
+		_year_items.clear();
+	}
+
+	int GetNextYearStamp()
+	{
+		struct tm tt;
+		time_t cut_time;
+		cut_time = time(NULL);
+		localtime_r(&cut_time, &tt);
+		tt.tm_hour = 0;
+		tt.tm_min  = 0;
+		tt.tm_sec  = 0;
+		tt.tm_mday = 1;
+		tt.tm_mon  = 0;
+		tt.tm_year = tt.tm_year + 1;
+		return mktime(&tt);
+	}
+
+	void SetDayItemClearTimeStamp(int next_timestamp, int now)
+	{
+		if(next_timestamp > 0 && now >= _next_day_item_clear_timestamp)
+		{
+			_next_day_item_clear_timestamp = next_timestamp;
+			_day_items.clear();
+		}
+	}
+	
+	void SetWeekItemClearTimeStamp(int next_timestamp, int now)
+	{
+		if(next_timestamp > 0 && now >= _next_week_item_clear_timestamp)
+		{
+			_next_week_item_clear_timestamp = next_timestamp;
+			_week_items.clear();
+		}
+	}
+
+	void SetMonthItemClearTimeStamp(int next_timestamp, int now)
+	{
+		if(next_timestamp > 0 && now >= _next_month_item_clear_timestamp)
+		{
+			_next_month_item_clear_timestamp = next_timestamp;
+			_month_items.clear();
+		}
+	}
+
+	void SetYearItemClearTimeStamp(int next_timestamp, int now)
+	{
+		if(next_timestamp > 0 && now >= _next_year_item_clear_timestamp)
+		{
+			_next_year_item_clear_timestamp = next_timestamp;
+			_year_items.clear();
+		}
+	}
+
+	void ClearNextClearTimeStamp()
+	{
+		_next_day_item_clear_timestamp   = 0;
+		_next_week_item_clear_timestamp  = 0;
+		_next_month_item_clear_timestamp = 0;
+		_next_year_item_clear_timestamp  = 0;
+	}
+
+	int GetPurchaseLimitItemCount()
+	{
+		return _day_items.size() + _week_items.size() + _month_items.size() + _year_items.size();
+	}
+	
+	void SaveAllMap(packet_wrapper & ar)
+	{
+		SaveSendClineMap(ar, _day_items, CASH_VIP_SHOPPING_LIMIT_DAY);
+		SaveSendClineMap(ar, _week_items, CASH_VIP_SHOPPING_LIMIT_WEEK);
+		SaveSendClineMap(ar, _month_items, CASH_VIP_SHOPPING_LIMIT_MONTH);
+		SaveSendClineMap(ar, _year_items, CASH_VIP_SHOPPING_LIMIT_YEAR);
+	}
+	
+	void SaveSendClineMap(packet_wrapper & ar, PURCHASE_LIMIT_MAP &map, int limit_type)
+	{
+		for(PURCHASE_LIMIT_MAP::iterator it = map.begin(); it != map.end(); ++it)
+		{
+			ar << limit_type << it->first << it->second;
+		}
+	}
+	
+	void SaveMap(archive & ar, PURCHASE_LIMIT_MAP &map)
+	{
+		ar << map.size();
+		for(PURCHASE_LIMIT_MAP::iterator it = map.begin(); it != map.end(); ++it)
+		{
+			ar << it->first << it->second;
+		}
+	}
+
+	bool Save(archive & ar)
+	{
+		ar << _next_day_item_clear_timestamp << _next_week_item_clear_timestamp << _next_month_item_clear_timestamp << _next_year_item_clear_timestamp;
+		SaveMap(ar, _day_items);
+		SaveMap(ar, _week_items);
+		SaveMap(ar, _month_items);
+		SaveMap(ar, _year_items);
+		return true;
+	}
+	
+	void LoadMap(archive & ar, PURCHASE_LIMIT_MAP &map)
+	{
+		size_t size;
+		ar >> size;
+		for(size_t i = 0; i < size; ++i)
+		{
+			int item_id, purchase_count;
+			ar >> item_id >> purchase_count;
+			map[item_id] = purchase_count;
+		}
+	}
+	
+	bool Load(archive & ar)
+	{
+		ar >> _next_day_item_clear_timestamp >> _next_week_item_clear_timestamp >> _next_month_item_clear_timestamp >> _next_year_item_clear_timestamp;
+		LoadMap(ar, _day_items);
+		LoadMap(ar, _week_items);
+		LoadMap(ar, _month_items);
+		LoadMap(ar, _year_items);
+		return true;
+	}
+	
+	bool Swap(purchase_limit_info &rhs)
+	{
+		_next_day_item_clear_timestamp = rhs._next_day_item_clear_timestamp;
+		_next_week_item_clear_timestamp = rhs._next_week_item_clear_timestamp;
+		_next_month_item_clear_timestamp = rhs._next_month_item_clear_timestamp;
+		_next_year_item_clear_timestamp  = rhs._next_year_item_clear_timestamp;
+		_day_items.swap(rhs._day_items);	
+		_week_items.swap(rhs._week_items);
+		_month_items.swap(rhs._month_items);
+		_year_items.swap(rhs._year_items);
+		return true;
+	}
+
+	void SetPurchaseLimitInfo(int day_stamp, int week_stamp, int month_stamp, int year_stamp)
+	{
+		if(day_stamp == 0)
+			_next_day_item_clear_timestamp = player_clock::GetNextUpdatetime(player_clock::GPC_PER_DAY_LOCAL, g_timer.get_systime());
+		else
+			_next_day_item_clear_timestamp   = day_stamp;
+		if(week_stamp == 0)
+			_next_week_item_clear_timestamp = player_clock::GetNextUpdatetime(player_clock::GPC_PER_WEEK_LOCAL, g_timer.get_systime());
+		else
+			_next_week_item_clear_timestamp  = week_stamp;
+		if(month_stamp == 0)
+			_next_month_item_clear_timestamp = player_clock::GetNextUpdatetime(player_clock::GPC_PER_MONTH_LOCAL, g_timer.get_systime());
+		else
+			_next_month_item_clear_timestamp = month_stamp;
+		if(year_stamp == 0)
+			_next_year_item_clear_timestamp = GetNextYearStamp();
+		else
+			_next_year_item_clear_timestamp = year_stamp;
+	}
+
+	void GetPurchaseLimitInfo(int &day_stamp, int &week_stamp, int &month_stamp, int &year_stamp)
+	{
+		day_stamp   = _next_day_item_clear_timestamp;
+		week_stamp  = _next_week_item_clear_timestamp;
+		month_stamp = _next_month_item_clear_timestamp;
+		year_stamp = _next_year_item_clear_timestamp;
+	}
+
+	void GetPurchaseLimitMapInfo(archive & ar)
+	{
+		SaveMap(ar, _day_items);
+		SaveMap(ar, _week_items);
+		SaveMap(ar, _month_items);
+		SaveMap(ar, _year_items);
+	}
+	
+	void SetPurchaseLimitMapInfo(archive & ar)
+	{
+		LoadMap(ar, _day_items);
+		LoadMap(ar, _week_items);
+		LoadMap(ar, _month_items);
+		LoadMap(ar, _year_items);
+	}
+
+	PURCHASE_LIMIT_MAP& GetLimitMap(int limit_type)
+	{
+		ASSERT(limit_type > CASH_VIP_SHOPPING_LIMIT_NONE && limit_type < CASH_VIP_SHOPPING_LIMIT_COUNT);
+		if(limit_type == CASH_VIP_SHOPPING_LIMIT_DAY)
+			return _day_items;
+		else if(limit_type == CASH_VIP_SHOPPING_LIMIT_WEEK)
+			return _week_items;
+		else if(limit_type == CASH_VIP_SHOPPING_LIMIT_MONTH)
+			return _month_items;
+		else
+			return _year_items;
+	}
+	
+	bool CheckShoppingLimitItem(int item_id, int limit_times, int limit_type, int count)
+	{
+		ASSERT(limit_type >= CASH_VIP_SHOPPING_LIMIT_NONE && limit_type < CASH_VIP_SHOPPING_LIMIT_COUNT);
+
+		if(limit_type == CASH_VIP_SHOPPING_LIMIT_NONE)
+			return true;
+
+		PURCHASE_LIMIT_MAP &map = GetLimitMap(limit_type);
+		if(map.find(item_id) != map.end())
+		{
+			int cur_shopping_times = map[item_id];
+			if((cur_shopping_times + count) > limit_times)
+				return false;
+		}
+		else
+		{
+			if(count > limit_times)
+				return false;
+		}
+		return true;
+	}
+	
+	int AddShoppingLimit(int item_id, int limit_type, int count)
+	{
+		ASSERT(limit_type >= CASH_VIP_SHOPPING_LIMIT_NONE && limit_type < CASH_VIP_SHOPPING_LIMIT_COUNT);
+
+		if(limit_type == CASH_VIP_SHOPPING_LIMIT_NONE)
+			return 0;
+
+		PURCHASE_LIMIT_MAP &map = GetLimitMap(limit_type);
+		if(map.find(item_id) != map.end())
+		{
+			map[item_id] = map[item_id] + count;
+		}
+		else
+		{
+			map[item_id] = count;
+		}
+		return map[item_id];
+	}
+};
+struct cash_vip_info
+{ 
+private:
+	int _vip_level; //VIP等级
+	int _score_add; //记录充值获得的积分
+	int _score_daily_reduce; //每天减少的积分数(累加) 以上三个值都是从gamedb计算,在get_role的时候同步到gs
+	int _score_consume; //通过商城等消耗的积分 在gs扣除后,put_role的时候同步到db
+
+public:
+	cash_vip_info():_vip_level(0),_score_add(0),_score_daily_reduce(0),_score_consume(0)
+	{
+	}
+
+	bool Save(archive & ar)
+	{
+		ar << _vip_level << _score_add << _score_daily_reduce << _score_consume;
+		return true;
+	}
+	
+	bool Load(archive & ar)
+	{
+		ar >> _vip_level >> _score_add >> _score_daily_reduce >> _score_consume;
+		return true;
+	}
+	
+	bool Swap(cash_vip_info &rhs)
+	{
+		_vip_level = rhs._vip_level;
+		_score_add = rhs._score_add;
+		_score_daily_reduce = rhs._score_daily_reduce;
+		_score_consume = rhs._score_consume;
+		return true;
+	}
+	
+	int GetCurScore()
+	{
+		if(_score_add > (_score_daily_reduce + _score_consume))
+			return _score_add - (_score_daily_reduce + _score_consume);
+		return 0;
+	}
+
+	int GetVipLevel()
+	{
+		return _vip_level;
+	}
+
+	void SyncCashVipInfoFromDB(int vip_level, int score_add, int score_cost, gplayer * pPlayer)
+	{
+		_vip_level          = vip_level;
+		_score_add          = score_add;
+		_score_daily_reduce = score_cost;
+		bool update = true;
+		if(_score_add == 0)
+			update = false;
+		UpdateClientInfo(update, pPlayer);
+	}
+	
+	void SetCashVipInfo(int vip_level, int score_add, int score_daily_reduce, int score_consume, gplayer * pPlayer)
+	{
+		_vip_level          = vip_level;
+		_score_add          = score_add;
+		_score_daily_reduce = score_daily_reduce;
+		_score_consume      = score_consume;
+		bool update = true;
+		if(_score_add == 0)
+			update = false;
+		UpdateClientInfo(update, pPlayer);
+	}
+
+	void GetCashVipInfo(int &vip_level, int &score_add, int &score_daily_reduce, int &score_consume)
+	{
+		vip_level          = _vip_level;
+		score_add          = _score_add;
+		score_daily_reduce = _score_daily_reduce;
+		score_consume      = _score_consume;
+	}
+	
+	void UpdateClientInfo(bool update, gplayer * pPlayer)
+	{
+		pPlayer->cash_vip_level = _vip_level;
+		pPlayer->cash_vip_score = GetCurScore();
+
+		if(update)
+			pPlayer->object_state2 |= gactive_object::STATE_CASH_VIP_MASK;
+		else
+			pPlayer->object_state2 &= ~gactive_object::STATE_CASH_VIP_MASK;
+		pPlayer->imp->_runner->cash_vip_info_notify(_vip_level, GetCurScore());
+	}
+
+	void DeliveryNotifyCashVip(int score_add, int vip_level, gplayer *pPlayer)
+	{
+		_vip_level          = vip_level;
+		_score_add          = score_add;
+		bool update = true;
+		if(_score_add == 0)
+			update = false;
+		UpdateClientInfo(update, pPlayer);
+	}
+
+	bool SpendCashVipScore(int score, gplayer * pPlayer)
+	{
+		int tmp = _score_consume + score;
+		if(_score_add < (_score_daily_reduce + tmp))
+			return false;
+		_score_consume = tmp;
+		UpdateClientInfo(true, pPlayer);
+		return true;
+	}
+};
+
 struct pet_enhance		//召唤物可以获取一定比例的召唤者的属性
 {
 	int hp_percent;
@@ -359,6 +725,26 @@ struct force_ticket_info
 	int require_force;
 	int repu_inc_ratio;
 	force_ticket_info():require_force(0),repu_inc_ratio(0){}
+};
+
+struct fix_position_transmit_info
+{
+	int          index;
+	int          world_tag;
+	A3DVECTOR    pos;
+	char         position_name[FIX_POSITION_TRANSMIT_NAME_MAX_LENGTH];
+	fix_position_transmit_info()
+	{
+		index             = -1;
+		world_tag         = -1;
+		memset(position_name, 0, sizeof(position_name));
+	}
+	void Reset()
+	{
+		index             = -1;
+		world_tag         = -1;
+		memset(position_name, 0, sizeof(position_name));
+	}
 };
 
 class switch_additional_data : public substance
@@ -410,6 +796,29 @@ public:
 	virtual bool Load(archive & ar)
 	{
 		ar >> chariot;
+		return true;
+	}
+};
+
+class mnfaction_switch_data : public switch_additional_data
+{
+	mnfaction_switch_data(){}
+public:
+	int64_t _faction_id;
+	int _domain_id;
+public:
+	DECLARE_SUBSTANCE(mnfaction_switch_data);
+	mnfaction_switch_data(int64_t faction_id, int domain_id)
+		: _faction_id(faction_id),_domain_id(domain_id)
+		{}
+	virtual bool Save(archive & ar)
+	{ 
+		ar <<  _faction_id << _domain_id;	
+		return true;
+	}
+	virtual bool Load(archive & ar)
+	{
+		ar >>  _faction_id >> _domain_id;
 		return true;
 	}
 };
@@ -494,7 +903,7 @@ public:
 	virtual void exchange_equipment_item(size_t index1,size_t index2);
 	virtual void equip_item(size_t index_inv,size_t index_equip,int count_inv,int count_equip);
 	virtual void move_equipment_item(size_t index_inv,size_t index_equip, size_t count);
-	virtual void self_get_property(size_t status_point, const extend_prop & prop , int attack_degree, int defend_degree, int crit_rate, int crit_damage_bonus, int invisible_degree, int anti_invisible_degree, int penetration, int resilience, int vigour);
+	virtual void self_get_property(size_t status_point, const extend_prop & prop , int attack_degree, int defend_degree, int crit_rate, int crit_damage_bonus, int invisible_degree, int anti_invisible_degree, int penetration, int resilience, int vigour,int anti_def_degree, int anti_resist_degree, int kill, int dead);
 	virtual void set_status_point(size_t vit, size_t eng, size_t str, size_t agi, size_t remain);
 	virtual void player_select_target(int id);
 	virtual void get_extprop_base();
@@ -802,6 +1211,36 @@ public:
 	virtual void player_combo_skill_prepare(int skillid,int timestamp,int arg1, int arg2, int arg3);
 	virtual void player_pray_distance_change(float pd);
 	virtual void instance_reenter_notify(int tag, int timeout);
+	virtual void astrolabe_info_notify(unsigned char level, int exp);
+	virtual void astrolabe_operate_result(int opt, int ret, int a0, int a1, int a2);
+    virtual void property_score_result(int fighting_score, int viability_score, int client_data);
+    virtual void lookup_enemy_result(int rid, int worldtag, const A3DVECTOR& pos);
+	virtual void solo_challenge_award_info_notify(int max_stage_level, int total_time, int total_score, int cur_score, int last_success_stage_level, int last_success_stage_cost_time, int draw_award_times,int have_draw_award_times, abase::vector<struct playersolochallenge::player_solo_challenge_award>& award_info);
+	virtual void solo_challenge_operate_result(int opttype, int retcode, int arg0, int arg1, int arg2);
+	virtual void solo_challenge_challenging_state_notify(int climbed_layer, unsigned char notify_type);
+	virtual void solo_challenge_buff_info_notify(int *buff_index, int * buff_num, int count, int cur_score);
+	virtual void mnfaction_player_faction_info(int player_faction, int domain_id);
+	virtual void mnfaction_resource_point_info(int attacker_resource_point, int defender_resource_point);
+	virtual void mnfaction_player_count_info(int attend_attacker_player_count, int attend_defender_player_count);
+	virtual void mnfaction_resource_point_state_info(int index, int cur_degree);
+	virtual void mnfaction_resource_tower_state_info(int num, MNFactionStateInfo &mnfaction_state_info);
+	virtual void mnfaction_switch_tower_state_info(int num, MNFactionStateInfo &mnfaction_state_info);
+	virtual void mnfaction_transmit_pos_state_info(int num, MNFactionStateInfo &mnfaction_state_info);
+	virtual void mnfaction_result(int result);
+	virtual void mnfaction_battle_ground_have_start_time(int battle_ground_have_start_time);
+	virtual void mnfaction_faction_killed_player_num(int attacker_killed_player_count, int defender_killed_player_count);
+	virtual void mnfaction_shout_at_the_client(int type, int args);
+	virtual void fix_position_transmit_add_position(int index, int world_tag, A3DVECTOR &pos, size_t position_length, const char *position_name);
+	virtual void fix_position_transmit_delete_position(int index);
+	virtual void fix_position_transmit_rename(int index, size_t position_length, char *position_name);
+	virtual void fix_position_energy_info(char is_login, int cur_energy);
+	virtual void fix_position_all_info(fix_position_transmit_info *info);
+	virtual void cash_vip_mall_item_buy_result(char result, short index, char reason);
+	virtual void cash_vip_info_notify(int level, int score);
+	virtual void purchase_limit_all_info_notify();
+	virtual void purchase_limit_info_notify(int limit_type, int item_id, int have_purchase_count); 
+    virtual void cash_resurrect_info(int cash_need, int cash_left);
+	virtual void rank_dispatcher(int points, int kill, int dead);
 
 public:
 	friend class gplayer_imp;
@@ -947,6 +1386,8 @@ public:
 
 	void ResurrectByItem(float exp_reduce, int param);
 	void ResurrectInTown(float exp_reduce, int param);
+    void ResurrectByCash(float exp_reduce, int param);
+
 public:
 	void OnResurrect();
 protected:
@@ -1161,6 +1602,17 @@ protected:
 	int _leadership_occupied;
 	int _world_contribution;
 	int _world_contribution_cost;
+	unsigned char _astrolabe_extern_level;
+	int _astrolabe_extern_exp;
+
+
+	cash_vip_info _cash_vip_info;
+	purchase_limit_info _purchase_limit_info;
+
+	//定位传送
+	fix_position_transmit_info _fix_position_transmit_infos[FIX_POSITION_TRANSMIT_MAX_POSITION_COUNT];
+	int _fix_position_transmit_energy;
+    int _cash_resurrect_times_in_cooldown;      // 在冷却期间使用元宝复活的次数
 
 	friend class gplayer_controller;
 	friend class gplayer_dispatcher;
@@ -1212,6 +1664,11 @@ public:
 	int _active_state_delay;//针对收益地图2,战斗或移动时设置
 
 	bool	_level_up;
+
+	
+	int _rank_points;
+	int _rank_kill;
+	int _rank_dead;
 
 	struct 
 	{
@@ -1291,6 +1748,24 @@ public:
 	meridian_manager _meridianman; //玩家的经脉系统
 	player_reincarnation _player_reincarnation;			//转生
 	abase::bitmap<GENERALCARD_MAX_COLLECTION> _generalcard_collection;//卡牌收集图鉴
+	playersolochallenge _solochallenge;
+
+    struct mnfaction_info_t
+    {
+        int64_t unifid;
+    };
+
+    struct visa_info_t
+    {
+        int type;
+        int stay_timestamp;
+		int cost;
+		int count;
+    };
+
+    mnfaction_info_t _player_mnfaction_info;
+    visa_info_t _player_visa_info;
+
 
 	//玩家的下线类型，这决定了给link发送何种协议
 	enum
@@ -1364,7 +1839,7 @@ public:
 		if(gender)
 		{
 			pPlayer->base_info.race  = cls | 0x80000000;
-			pPlayer->object_state2 |=  gactive_object::STATE_PLAYER_GENDER;
+            GetParent()->object_state2 |= gactive_object::STATE_PLAYER_GENDER;
 		}
 		else
 		{
@@ -1472,6 +1947,18 @@ public:
 		_mall_cash_offset = 0;
 		_runner->player_cash(GetMallCash());
 	}
+
+	int GetCashVipLevel() 
+	{ 
+		return _cash_vip_info.GetVipLevel();
+	}
+
+	int GetCashVipScore()
+	{
+		return _cash_vip_info.GetCurScore();
+	}
+
+	bool CheckVipService(int type);
 
 	inline void GetBasicData(int &level,int & sec_level,int &exp,int &sp,int &hp,int &mp, int & pp,int &money, unsigned int & db_user_id)
 	{
@@ -1910,6 +2397,9 @@ public:
 		//转生后经验调整
 		double_exp_sp_factor += _player_reincarnation.GetExpBonus();
 
+        double_exp_sp_factor += _exp_sp_factor;
+        if (double_exp_sp_factor <= 0.0f) return;
+
 		IncExp(exp,sp,double_exp_sp_factor,false);
 		_runner->task_deliver_exp(exp,sp);
 		//小精灵获得经验
@@ -2343,6 +2833,29 @@ public:
 		exp = _realm_exp;
 	}
 
+	inline void SetRankData(int points, int kill, int dead)
+	{
+		_rank_points = points;
+		_rank_kill = kill;
+		_rank_dead = dead;
+	}
+
+	inline void GetRankData(int& points, int& kill, int& dead)
+	{
+		points = _rank_points;
+		kill = _rank_kill;
+		dead = _rank_dead;
+	}
+
+ 	inline void GetDBSoloChallengeInfo(GDB::base_info::solo_challenge_info_t &solo_challenge_info)
+	{
+		_solochallenge.GetDBSoloChallengeInfo(solo_challenge_info);
+	}
+	inline void SetDBSoloChallengeInfo(const GDB::base_info::solo_challenge_info_t &solo_challenge_info)
+	{
+		_solochallenge.SetDBSoloChallengeInfo(solo_challenge_info);
+	}
+
 	inline void InitInstanceReenter(int tag,int type,instance_hash_key key,int timeout,A3DVECTOR pos)
 	{
 		_player_instance_reenter.LoadFromDB(tag,type,key,timeout,pos);
@@ -2592,7 +3105,8 @@ public:
 		}
 	}
 
-	inline int GetCountryId(){	return ((gplayer*)_parent)->country_id; }
+	inline int GetCountryId(){	return ((gplayer*)_parent)->country_id &0xffff; }
+	inline int GetCountryGroup() {  return (((gplayer*)_parent)->country_id >> 16) &0xffff; }
 	inline int GetCountryExpireTime(){ return _country_expire_time; }
 	void SetCountryId(int country_id, int expire_time)
 	{
@@ -2608,7 +3122,7 @@ public:
 			pPlayer->object_state &= ~gactive_object::STATE_COUNTRY;
 			_country_expire_time = 0;
 		}	
-		_runner->player_country_changed(pPlayer->country_id);
+		_runner->player_country_changed((pPlayer->country_id&0xffff));
 	}
 	void SetCountryData(int country_id, int expire_time)
 	{
@@ -2716,7 +3230,112 @@ public:
 		_world_contribution_cost = 0;
 		_runner->player_world_contribution(0,0,0);
 	}
+	inline void SetDBAstrolabeExtern(unsigned char level, int exp) 
+	{
+		_astrolabe_extern_level = level;
+		_astrolabe_extern_exp = exp;
+	}
+	inline void GetDBAstrolabeExtern(unsigned char& level, int& exp) 
+	{
+		level = _astrolabe_extern_level;
+		exp = _astrolabe_extern_exp;
+	}
+	int  GetAstrolabeExternLevel() { return (int)_astrolabe_extern_level;}
+	bool IncAstrolabeExternExp(int exp);
 
+    void SetDBMNFactionInfo(int64_t unifid);
+    inline void GetDBMNFactionInfo(int64_t& unifid)
+    {
+        unifid = _player_mnfaction_info.unifid;
+    }
+	inline int64_t GetMNFactionID() const
+	{
+		return _player_mnfaction_info.unifid;
+	}
+
+    inline void SetDBVisaInfo(int type, int stay_timestamp, int cost, int count)
+    {
+        _player_visa_info.type = type;
+        _player_visa_info.stay_timestamp = stay_timestamp;
+		_player_visa_info.cost = cost;
+		_player_visa_info.count = count;
+    }
+
+    inline void GetDBVisaInfo(int& type, int& stay_timestamp, int& cost, int& count)
+    {
+        type = _player_visa_info.type;
+        stay_timestamp = _player_visa_info.stay_timestamp;
+		cost = _player_visa_info.cost;
+		count = _player_visa_info.count;
+    }
+
+	inline int GetSrcZoneId()
+	{
+		return _src_zoneid;
+	}
+
+    void SetDBFixPositionTransmit(archive & ar);
+	void GetDBFixPositionTransmit(archive & ar);
+
+    inline void SetDBCashResurrectTimesInCoolDown(int times)
+    {
+        _cash_resurrect_times_in_cooldown = times;
+    }
+
+    inline void GetDBCashResurrectTimesInCoolDown(int& times)
+    {
+        times = _cash_resurrect_times_in_cooldown;
+    }
+
+	void GetDBCashVipInfo(int &vip_level, int &score_add, int &score_cost, int &score_consume)
+	{
+		_cash_vip_info.GetCashVipInfo(vip_level, score_add, score_cost, score_consume);
+	}
+	void SetDBCashVipInfo(int vip_level, int score_add, int score_cost, int score_consume)
+	{
+		gplayer * pPlayer = (gplayer*)(_parent);
+		_cash_vip_info.SetCashVipInfo(vip_level, score_add, score_cost, score_consume, pPlayer);
+	}
+	void GetDBPurchaseLimitInfo(archive & ar)
+	{
+		_purchase_limit_info.GetPurchaseLimitMapInfo(ar);
+	}
+	void SetDBPurchaseLimitInfo(archive & ar)
+	{
+		if(0 != ar.size())
+			_purchase_limit_info.SetPurchaseLimitMapInfo(ar);
+	}
+
+	void GetDBPurchaseLimitData(int &day_stamp, int &week_stamp, int &month_stamp, int &year_stamp)
+	{
+		_purchase_limit_info.GetPurchaseLimitInfo(day_stamp, week_stamp, month_stamp, year_stamp);
+	}
+
+	void SetDBPurchaseLimitInfo(int day_stamp, int week_stamp, int month_stamp, int year_stamp)
+	{
+		_purchase_limit_info.SetPurchaseLimitInfo(day_stamp, week_stamp, month_stamp, year_stamp);
+	}
+
+	int GetFixPositionCount()
+	{
+		int count = 0;
+		for(int i = 0; i < FIX_POSITION_TRANSMIT_MAX_POSITION_COUNT; ++i)
+		{
+			if(_fix_position_transmit_infos[i].index != -1)
+				++count;
+		}
+		return count;
+	}
+
+	cash_vip_info &GetCashVipInfo()
+	{
+		return _cash_vip_info;
+	}
+
+	purchase_limit_info &GetPurchaseLimit()
+	{
+		return _purchase_limit_info;
+	}
 protected:
 	template <typename MESSAGE,typename ENCHANT_MSG>
 	inline bool TestHelpfulEnchant(const MESSAGE & msg, ENCHANT_MSG & emsg)
@@ -2900,7 +3519,7 @@ protected:
 
 public:
 //虚函数群 包含了npc和玩家统一的操作和以后可能扩展的操作
-	virtual void PlayerEnterServer();		//玩家进入服务器，用于切换服务器
+	virtual void PlayerEnterServer(int source_tag);		//玩家进入服务器，用于切换服务器
 	virtual void PlayerEnterWorld();		//玩家进入世界
 	virtual void PlayerLeaveServer();		//玩家离开服务器，用于切换服务器
 	virtual void PlayerLeaveWorld();		//玩家离开世界
@@ -2983,7 +3602,7 @@ public:
 	virtual void PlayerForceOffline();
 	virtual void ServerShutDown();
 	virtual void UpdateMafiaPvP(unsigned char pvp_mask);
-	virtual void UpdateMafiaInfo(int id, char rank, unsigned char pvp_mask);	//更新帮派信息
+	virtual void UpdateMafiaInfo(int id, char rank, unsigned char pvp_mask, int64_t unifid);	//更新帮派信息
 	virtual void UpdateFactionRelation(int * alliance, size_t asize, int * hostile, size_t hsize, bool notify_client);//更新帮派同盟信息
 	virtual const A3DVECTOR & GetLogoutPos(int & world_tag);//取得登出时应该使用的坐标，可以被覆盖
 	virtual bool CheckCoolDown(int idx);
@@ -3112,7 +3731,7 @@ public:
 	virtual int OI_GetDBTimeStamp();
 	virtual int OI_InceaseDBTimeStamp();
 	virtual bool CanResurrect(int param);
-	virtual int  Resurrect(const A3DVECTOR & pos,bool nomove,float exp_reduce,int target_tag,float hp_factor, float mp_factor, int param);
+	virtual int  Resurrect(const A3DVECTOR & pos,bool nomove,float exp_reduce,int target_tag,float hp_factor, float mp_factor, int param, float ap_factor, int extra_invincible_time);
 	virtual bool CheckWaypoint(int point_index, int & point_domain);
 	virtual bool ReturnWaypoint(int point);
 	virtual attack_judge GetPetAttackHook();
@@ -3154,6 +3773,8 @@ public:
     virtual void SetHasPVPLimitFilter(bool has_pvp_limit_filter);
 	virtual void EnhanceMountSpeedEn(float sp);
 	virtual void ImpairMountSpeedEn(float sp);
+	virtual int  UseFireWorks2(char is_cast_action, int target_role_id, int item_type, const char * target_user_name);
+	virtual int	 AddFixPositionEnergy(int item_id);
 public:
 //逻辑操作函数群
 	int  GetInstanceReenterTimeout();
@@ -3227,11 +3848,12 @@ public:
 	void MakeDartAttack(int damage, float throw_range,attack_msg &attack,char force_attack);
 	void RepairAllEquipment();
 	void RepairEquipment(int where, size_t index);
+	void RemoteAllRepair();
 	bool EmbedChipToEquipment(size_t chip,size_t equip);
 	bool SharpenEquipment(size_t index, addon_data * addon_list, size_t count, int sharpener_level, int sharpener_gfx);
 	bool RechargeEquippedFlySword(size_t index, size_t count);
 	bool RechargeFlySword(size_t element_index, size_t count,size_t fw_index,int fw_id);
-	void LongJump(const A3DVECTOR &pos); 				//空间跳转
+	bool LongJump(const A3DVECTOR &pos); 				//空间跳转
 	bool LongJump(const A3DVECTOR &pos,int target_tag,int ctrl_id = 0); //穿越位面跳转
 	void Swap(gplayer_imp * rhs);		//交换玩家数据，以更改玩家逻辑
 	void IdentifyItemAddon(size_t index, size_t fee);
@@ -3303,6 +3925,7 @@ public:
 	void SendNormalChat(char channel, const void * buf, size_t len, const void* data, size_t dsize);
 	void SendBattleFactionChat(char channel, const void * buf, size_t len, const void* data, size_t dsize);
 	void SendCountryChat(char channel, const void * msg, size_t size, const void* data, size_t dsize);
+	void SendGlobalChat(char channel, const void * msg, size_t size, const void* data, size_t dsize);
 	bool ResurrectPet(size_t index);
 	void NotifyMasterInfoToPet(bool at_once = false);
 	void FirstAcquireItem(const item_data* itemdata);
@@ -3341,7 +3964,7 @@ public:
 	void DoTeamRelationTask(int reason);
 	int RefineTransmit(size_t src_index, size_t dest_index);
 	void TaskSendMessage(int task_id, int channel, int param);
-	void ItemMakeSlot(size_t index, int id);
+    void ItemMakeSlot(size_t index, int id, unsigned int material_id = 0, int material_count = 0);
 	void RepairDamagedItem(unsigned char inv_idx);
 	void GodEvilConvert(unsigned char mode);
 	int WeddingBook(int start_time, int end_time, int scene, int bookcard_index);
@@ -3369,9 +3992,11 @@ public:
 	int CountryJoinApply();
 	bool CountryJoinStep1(int country_id, int country_expiretime, int major_strength, int minor_strength, int world_tag, const A3DVECTOR & pos);
 	bool CountryJoinStep2();
+	bool CountryReturn();
 	int CountryLeave();
 	void CountryTerritoryMove(const A3DVECTOR & pos, bool capital);
-	void GetCountryKickoutPos(int & world_tag, A3DVECTOR & pos);
+	void GetCarnivalKickoutPos(int & world_tag, A3DVECTOR & pos);
+	bool ReturnRestWorld();
 	void GetAUMailTask(int level,char ex_reward);
 
 	bool EquipSign(int ink_inv_idx, int ink_id, int equip_inv_idx, int equip_id, const char * signature, unsigned int signature_len);
@@ -3404,6 +4029,44 @@ public:
 	bool IsRealmExpFull();
 	int GetObtainedGeneralCardCountByRank(int rank);
 	void OnMafiaPvPAward(int type,const XID& sourceid, const A3DVECTOR& pos, int mafiaid, int domainid);
+	bool CheckVisaValid();
+	void Repatriate();
+    void OnLookupEnemyReply(const MSG& msg);
+
+	int MnfactionJoinApply(int domain_id);
+	int MnfactionLeave();
+	bool MnfactionJoinStep1(int retcode, int64_t faction_id, int domain_id, int world_tag);
+	bool MnfactionJoinStep2();
+	virtual void SetMnfactionDomainID(int mnfaction_domain_id){}
+	virtual int GetMnfactionDomainID(){return 0;}
+	int GetFixPositionTransmitEnergy()
+	{
+		return _fix_position_transmit_energy;
+	}
+	int ReduceFixPositionTransmitEnergy(int value)
+	{
+		int tmp = _fix_position_transmit_energy - value;
+		if(tmp < 0)
+		{
+			_runner->error_message(S2C::ERR_FIX_POSITION_TRANSMIT_ENERGY_NOT_ENOUGH);
+			return -1;
+		}
+		_fix_position_transmit_energy = tmp;
+		_runner->fix_position_energy_info(0, _fix_position_transmit_energy);
+		return _fix_position_transmit_energy;
+	}
+	int AddFixPositionTransmitEnergy(int value)
+	{
+		int tmp = _fix_position_transmit_energy + value;
+		if(tmp < 0)
+		{
+			_runner->error_message(S2C::ERR_FIX_POSITION_TRANSMIT_ENERGY_MAX);
+			return 0;
+		}
+		_fix_position_transmit_energy = tmp;
+		_runner->fix_position_energy_info(0, _fix_position_transmit_energy);
+		return _fix_position_transmit_energy;
+	}
 public:
 
 //玩家操作函数群
@@ -3484,7 +4147,9 @@ public:
 	bool PlayerGetCountryBattleStrongholdState();
 	bool PlayerGetCountryBattleLiveShow();
 	void PlayerLeaveCountryBattle();
+	int CheckChangeDs(int type,int climit,int item,int item_count,int level,int sec_lvl,int realm_lvl);
 	int PlayerTryChangeDS(int flag);
+	void MakeVisaData(int type,int stay_timestamp,int item,int item_count);
 	void PlayerChangeDSLogout(int flag);
 	void PlayerExchangeWanmeiYinpiao(bool is_sell, size_t count);	//仅摆摊状态下可操作
 	bool GenerateNatureSkills(pet_data *pData); 
@@ -3527,12 +4192,34 @@ public:
 	void PlayerReenterInstance();
     void PlayerStartEnterSanctuarySession();
     void PlayerAddPVPLimitFilter();
+	int  PlayerAstrolabeSwallow(int type, int inv_idx, int item_id);
+	int  PlayerAstrolabeAddonRoll(int times, int limit, int inv_idx, int item_id, int (&args)[3] );
+	int  PlayerAstrolabeAptitInc(int inv_idx, int item_id);
+	int  PlayerAstrolabeSlotRoll(int inv_idx, int item_id);
+	void PlayerSoloChallengeSelectStage(int stage_level);
+	void PlayerSoloChallengeStartTask(bool isStartSuccess);
+	void PlayerSoloChallengeStageComplete(bool isCompleteSuccess);
+	int  PlayerSoloChallengeUserSelectAward(int stage_level, int args[]);
+	int  PlayerSoloChallengeScoreCost(int filter_index, int args[]);
+	int  PlayerSoloChallengeClearFilter(int args[]);
+	void PlayerEnterSoloChallengeInstance();
+	void PlayerDeliverSoloChallengeScore(int score);
+	int  PlayerSoloChallengeLeaveTheRoom();
+	void PlayerLeaveSoloChallengeInstance();
+	void PlayerFixPositionTransmitAdd(float *pos, const char *position_name);
+	void PlayerFixPositionTransmitDelete(int index);
+	void PlayerFixPositionTransmit(int index);
+	void PlayerFixPositionTransmitRename(int index, char *position_name);
+	void PlayerSendAllFixPositionInfo();
+	bool PlayerGetCashVipMallItemPrice(int start_index, int end_index);
+	bool PlayerDoCashVipShopping(size_t item_count,const int * order, int shop_tid = 0);
 
 public:
 //断线操作函数
 	void LostConnection(int offline_type = PLAYER_OFF_OFFLINE);
 	void KickOut() { LostConnection(PLAYER_OFF_KICKOUT); }
 	void SendLogoutRequest(int type, int retcode = 0);
+    instance_hash_key  GetLogoutInstanceKey();
 
 protected:
 //私有的函数逻辑
@@ -3635,6 +4322,7 @@ public:	//lgc
 	virtual void OnStallCardTakeOut();
 	virtual bool Produce4ChooseExec(const recipe_template & rt, int equip_id, int equip_inv_idx, char inherit_type, void **pItem, unsigned short crc, int eq_refine_level, int eq_socket_count, int eq_stone_type[], addon_data eq_engrave_addon_list[3], size_t eq_engrave_addon_count);
 	void PlayerRenameRet(const void *new_name, size_t name_len, int ret);
+	void PlayerForbidLink();
 
 	//obj_interface接口	
 	bool OI_GetElfProp(short& level, short& str, short& agi, short& vit, short& eng);

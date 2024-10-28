@@ -56,9 +56,9 @@ namespace GNET
       Skill2109Stub ():SkillStub (2109)
         {
             cls = 127;
-            name = L"摄魂专用";
-            nativename = "摄魂专用";
-            icon = "宠物鼓舞.dds";
+            name = L"鎽勯瓊涓撶敤";
+            nativename = "鎽勯瓊涓撶敤";
+            icon = "瀹犵墿榧撹垶.dds";
             max_level = 10;
             type = 3;
             apcost = 0;
@@ -79,7 +79,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "和风拂面.sgc";
+            effect = "鍜岄鎷傞潰.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

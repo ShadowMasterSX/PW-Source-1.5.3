@@ -132,9 +132,9 @@ namespace GNET
       Skill2124Stub ():SkillStub (2124)
         {
             cls = 127;
-            name = L"不屈";
-            nativename = "不屈";
-            icon = "寒冰护甲.dds";
+            name = L"涓嶅眻";
+            nativename = "涓嶅眻";
+            icon = "瀵掑啺鎶ょ敳.dds";
             max_level = 10;
             type = 10;
             apcost = 0;
@@ -155,7 +155,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "巨灵神力.sgc";
+            effect = "宸ㄧ伒绁炲姏.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

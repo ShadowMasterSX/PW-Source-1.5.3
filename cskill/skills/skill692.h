@@ -132,8 +132,8 @@ namespace GNET
       Skill692Stub ():SkillStub (692)
         {
             cls = 127;
-            name = L"2级城战BOSS2近身群晕";
-            nativename = "2级城战BOSS2近身群晕";
+            name = L"2绾у煄鎴楤OSS2杩戣韩缇ゆ檿";
+            nativename = "2绾у煄鎴楤OSS2杩戣韩缇ゆ檿";
             icon = "";
             max_level = 5;
             type = 3;
@@ -153,7 +153,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "城战boss近身击晕.sgc";
+            effect = "鍩庢垬boss杩戣韩鍑绘檿.sgc";
             range.type = 2;
             doenchant = true;
             dobless = false;

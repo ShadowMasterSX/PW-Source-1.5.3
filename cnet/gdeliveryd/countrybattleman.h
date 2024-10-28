@@ -35,6 +35,7 @@ public:
 	
 	enum {
 		COUNTRY_MAX_CNT = 4,
+		GROUP_MAX_CNT = 10,
 		PLAYER_WAIT_TIME = 10,
 		DOMAIN_WAIT_TIME = 60,
 		DOMAIN_COLD_TIME = 60,
@@ -278,6 +279,7 @@ public:
 	{
 		int roleid;
 		int bonus;
+		int zoneid;
 	};
 	
 	struct PlayerRankInfo
@@ -300,8 +302,9 @@ public:
 	typedef std::vector<OccupationFactor> OCCUPATION_FAC_LIST;
 	typedef std::vector<PlayerBonus> PLAYER_BONUS_LIST;
 	typedef std::map<int/*zoneid*/, int/*countryid*/> ZONE_COUNTRY_MAP;
-	
+
 private:
+	int _group_index;
 	int _arrange_country_type;
 	int _status; //国战状态
 	int _capital_worldtag; //国战战略场景的worldtag
@@ -323,16 +326,24 @@ private:
 	unsigned char _open_days[WEEK_DAY_CNT];
 	ZONE_COUNTRY_MAP  _zone_country_map;
 
-	static CountryBattleMan _instance; 
-	
+	static CountryBattleMan _instance[GROUP_MAX_CNT]; 
+	static int _default_group;
 private:
-	CountryBattleMan(): _arrange_country_type(ARRANGE_COUNTRY_RANDOM), _status(ST_CLOSE), _capital_worldtag(0), _calc_domains_timer(0), _country_id_ctrl(0), _adjust_time(0), _db_send_bonus_per_sec(0)
+	CountryBattleMan(): _group_index(-1),_arrange_country_type(ARRANGE_COUNTRY_RANDOM), _status(ST_CLOSE), _capital_worldtag(0), _calc_domains_timer(0), _country_id_ctrl(0), _adjust_time(0), _db_send_bonus_per_sec(0)
 	{
 		memset(_capital_info, 0, sizeof(_capital_info));
 		memset(_open_days, 0, sizeof(_open_days));
 		ClearCountryInfo();
 	}
-	
+
+	void CloneServerInfo(const CountryBattleMan& cm)
+	{
+		_servers.clear();
+		_servers.insert(_servers.begin(),cm._servers.begin(),cm._servers.end());
+		_capital_worldtag = cm._capital_worldtag;		
+	}
+
+	bool IsActive() { return _status != ST_CLOSE ; }
 	void Clear()
 	{
 		_calc_domains_timer = 0;
@@ -439,7 +450,7 @@ private:
 	bool SyncPlayerLocation(int roleid, int domain_id, int reason, unsigned int linksid, unsigned int localsid);
 	bool SyncPlayerPosToGs(int roleid, int worldtag, float posx, float posy, float posz, char is_capital);
 	void SendBattleResult(int player_bonus, int country_bonus[COUNTRY_MAX_CNT], unsigned int linksid, unsigned int localsid);
-	void DBSendBattleBonus(int roleid, int player_bonus);
+	void DBSendBattleBonus(int roleid, int player_bonus, int zoneid);
 	void NotifyBattleConfig(int server_id);
 	//float CalcPlayerScore(int domain_point, int total_combat_time, int battle_last_time, 
 	//	const GCountryBattlePersonalScore& score, bool is_winner, float winner_average_score);
@@ -466,13 +477,45 @@ private:
 	int GetBattleCountryCnt(std::set<int>& country_set);
 
 public:
-	static CountryBattleMan* GetInstance() { return &_instance; }
-	
+//	static CountryBattleMan* GetInstance() { return &_instance; }    
+	static int  GetGroupIdByRoleId(int rid);
+	static CountryBattleMan* GetActiveCountryBattle(int group);
+	static CountryBattleMan* GetDefault(int index=0) { if(index < 0 || index > GROUP_MAX_CNT ) return &_instance[0]; else return &_instance[index];}
+
+	static void OnSetCountryIDCtrl(int id);
+	static void OnSetAdjustTime(int t); 
+	static void OnSetDefaultGroup(int gid);
+	static const std::map<int/*linksid*/, PlayerVector>* OnGetCountryOnlinePlayers(int rid);
+	static bool OnInitialize(int cur_group, int group_count, bool arrange_country_by_zoneid);
+	static void OnPlayersApplyBattle(std::vector<CountryBattleApplyEntry>& apply_list, unsigned int sid);
+	static void OnPlayerGetConfig(int roleid,unsigned int sid, unsigned int localsid);
+	static void OnPlayerJoinBattle(int roleid, int country_id, int world_tag, int major_strength, int minor_strength, char is_king);
+	static void OnPlayerLeaveBattle(int roleid, int country_id, int major_strength, int minor_strength);
+	static void OnPlayerLogin(int roleid, int country_id, int world_tag, int minor_str, char is_king);
+	static void OnPlayerLogout(int roleid, int country_id);
+	static void OnPlayerEnterMap(int roleid, int worldtag);
+	static int  OnPlayerMove(int roleid, int dest);
+	static int  OnPlayerStopMove(int roleid);
+	static void OnPlayerGetMap(int roleid, unsigned int sid, unsigned int localsid);
+	static void OnPlayerGetScore(int roleid, unsigned int sid, unsigned int localsid);
+	static int  OnPlayerGetDomainId(int roleid);
+	static void OnPlayerGetBattleLimit(int roleid, int domain_id);
+	static bool OnPlayerPreEnter(int roleid, int battle_id);
+	static void OnPlayerReturnCapital(int roleid);
+	static void OnKingAssignAssault(int king_roleid, int domain_id, char assault_type);
+	static void OnKingResetBattleLimit(int king_roleid, int domain_id, char op, const std::vector<GCountryBattleLimit>& limit); 
+	static void OnKingGetCommandPoint(int king_roleid);
+	static void OnRegisterServer(int server_type, int war_type, int server_id, int worldtag);
+	static bool OnBattleStart(int battleid, int worldtag, int retcode, int defender, int attacker);
+	static bool OnBattleEnd(int battleid, int result, int defender, int attacker, 
+		const std::vector<GCountryBattlePersonalScore>& defender_score, const std::vector<GCountryBattlePersonalScore>& attacker_score);
+
+public:	
 	/**
 	 * 国战系统初始化
 	 * @return true 初始化成功 false 初始化失败
 	 */
-	bool Initialize(bool arrange_country_by_zoneid);
+	bool Initialize(int gid, bool arrange_country_by_zoneid);
 
 	/**
 	 * 国战系统是否已经开启
@@ -514,41 +557,41 @@ public:
 	 * @param minor_str 玩家次要战力
 	 * @param is_king 是否国王
 	 */
-	void OnPlayerLogin(int roleid, int country_id, int world_tag, int minor_str, char is_king);
+	void PlayerLogin(int roleid, int country_id, int world_tag, int minor_str, char is_king);
 
 	/**
 	 * 玩家登出时，国战系统的处理
 	 * @param roleid 玩家ID
 	 * @param country_id 阵营ID
 	 */
-	void OnPlayerLogout(int roleid, int country_id);
+	void PlayerLogout(int roleid, int country_id);
 
 	/**
 	 * 玩家切换地图场景时，国战系统的处理
 	 * @param roleid 玩家ID
 	 * @param world_tag 玩家所处场景的world_tag
 	 */
-	void OnPlayerEnterMap(int roleid, int worldtag);
+	void PlayerEnterMap(int roleid, int worldtag);
 
 	/**
 	 * 玩家接受到客户端移动请求的处理
 	 * @param roleid 玩家ID
 	 * @param dest 移动的目标领土
 	 */
-	int OnPlayerMove(int roleid, int dest);
+	int PlayerMove(int roleid, int dest);
 
 	/**
 	 * 玩家接受到客户端停止移动请求的处理
 	 * @param roleid 玩家ID
 	 */
-	int OnPlayerStopMove(int roleid);
+	int PlayerStopMove(int roleid);
 	
-	void OnPlayerReturnCapital(int roleid);
+	void PlayerReturnCapital(int roleid);
 
 	void SendApplyResultToGs(int country_id, const std::vector<CountryBattleApplyEntry>& apply_list, unsigned int sid);
 	void PlayersApplyBattleByZoneID(std::vector<CountryBattleApplyEntry>& apply_list, unsigned int sid);
 	void PlayersApplyBattleRandom(std::vector<CountryBattleApplyEntry>& apply_list, unsigned int sid);
-	void OnPlayersApplyBattle(std::vector<CountryBattleApplyEntry>& apply_list, unsigned int sid);
+	void PlayersApplyBattle(std::vector<CountryBattleApplyEntry>& apply_list, unsigned int sid);
 
 	/**
 	 * 战斗副本开启时的处理
@@ -557,7 +600,7 @@ public:
 	 * @param retcode 副本开启的结果，0为开启成功，其他为失败
 	 * @return true 战斗开始 false 未能正确开始战斗
 	 */
-	bool OnBattleStart(int battleid, int worldtag, int retcode, int defender, int attacker);
+	bool BattleStart(int battleid, int worldtag, int retcode, int defender, int attacker);
 
 	/**
 	 * 战斗结束时的处理
@@ -569,10 +612,11 @@ public:
 	 * @param attacker_score 攻方得分
 	 * @return true 战斗正常结束 false 战斗未能正确结束
 	 */
-	bool OnBattleEnd(int battleid, int result, int defender, int attacker, 
+	bool BattleEnd(int battleid, int result, int defender, int attacker, 
 		const std::vector<GCountryBattlePersonalScore>& defender_score, const std::vector<GCountryBattlePersonalScore>& attacker_score);
-	bool OnPlayerPreEnter(int battle_id, int roleid);
+	bool PlayerPreEnter(int battle_id, int roleid);
 	bool SendMap(int roleid, unsigned int sid, unsigned int localsid);
+	bool SendConfig(int roleid, unsigned int sid, unsigned int localsid);
 	bool SendCountryScore(int roleid, unsigned int sid, unsigned int localsid);
 	bool RegisterServer(int server_type, int war_type, int server_id, int worldtag);
 	bool Update();
@@ -596,7 +640,7 @@ public:
 
 	time_t GetCountryBattleFinishTime() 
 	{ 
-		time_t now = Timer::GetTime();
+		time_t now = GetTime();
 
 		struct tm dt;
 		localtime_r(&now, &dt);
@@ -609,7 +653,18 @@ public:
 		int offset = rand() % 3600; //随机一个一小时(3600秒)之间的秒数
 		return (base + offset);
 	}
-	
+
+	int GetZoneIDByCountryID(int cid)
+	{
+		for(ZONE_COUNTRY_MAP::iterator iter = _zone_country_map.begin();
+				iter != _zone_country_map.end(); ++ iter)
+		{
+			if(iter->second == cid)
+				return iter->first;
+		}
+		return 0;		
+	}
+
 	int GetTotalBonus() { return _bonus_limit.total_bonus; }
 	char GetDomain2DataType();
 	void SetCountryIDCtrl(int id) { _country_id_ctrl = id; }

@@ -133,8 +133,8 @@ namespace GNET
       Skill2458Stub ():SkillStub (2458)
         {
             cls = 127;
-            name = L"»ğÈ¦¼ÓËÙ";
-            nativename = "»ğÈ¦¼ÓËÙ";
+            name = L"ç«åœˆåŠ é€Ÿ";
+            nativename = "ç«åœˆåŠ é€Ÿ";
             icon = "";
             max_level = 10;
             type = 3;
@@ -156,7 +156,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 0;
-            effect = "ÉñĞĞÕæÑÔ.sgc";
+            effect = "ç¥è¡ŒçœŸè¨€.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

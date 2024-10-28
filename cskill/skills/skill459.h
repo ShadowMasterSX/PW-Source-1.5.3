@@ -134,9 +134,9 @@ namespace GNET
       Skill459Stub ():SkillStub (459)
         {
             cls = 1;
-            name = L"¿ñ¡¤º®±ù»¤¼×";
-            nativename = "¿ñ¡¤º®±ù»¤¼×";
-            icon = "º®±ù»¤¼×2.dds";
+            name = L"ç‹‚Â·å¯’å†°æŠ¤ç”²";
+            nativename = "ç‹‚Â·å¯’å†°æŠ¤ç”²";
+            icon = "å¯’å†°æŠ¤ç”²2.dds";
             max_level = 1;
             type = 2;
             apcost = 30;

@@ -130,9 +130,9 @@ namespace GNET
       Skill154Stub ():SkillStub (154)
         {
             cls = 4;
-            name = L"变身强化";
-            nativename = "变身强化";
-            icon = "变身强化.dds";
+            name = L"鍙樿韩寮哄寲";
+            nativename = "鍙樿韩寮哄寲";
+            icon = "鍙樿韩寮哄寲.dds";
             max_level = 10;
             type = 5;
             apcost = 0;
@@ -155,7 +155,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (9);
             }
-            effect = "变身强化.sgc";
+            effect = "鍙樿韩寮哄寲.sgc";
             range.type = 0;
             doenchant = false;
             dobless = false;

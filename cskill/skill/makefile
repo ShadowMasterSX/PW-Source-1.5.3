@@ -1,7 +1,7 @@
-CPP = g++ -m32 -std=gnu++11
+CPP = g++
 
 DEFINES  = -D_SKILL_SERVER -g -ggdb -O0
-CPPFLAGS = -Wall  -finput-charset="gb2312" -Wno-class-memaccess #-Werror
+CPPFLAGS = -Wall  -Werror
 
 HEADERS = *.h
 CPPFILES = playerwrapper.cpp  skill.cpp  skillfilter.cpp  skillwrapper.cpp

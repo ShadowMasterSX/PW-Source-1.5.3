@@ -58,9 +58,9 @@ namespace GNET
       Skill915Stub ():SkillStub (915)
         {
             cls = 6;
-            name = L"Òí·ç";
-            nativename = "Òí·ç";
-            icon = "Òí·ç.dds";
+            name = L"ç¿¼é£Ž";
+            nativename = "ç¿¼é£Ž";
+            icon = "ç¿¼é£Ž.dds";
             max_level = 1;
             type = 2;
             apcost = 100;
@@ -104,7 +104,7 @@ namespace GNET
             {
                 restrict_weapons.push_back (0);
             }
-            effect = "Òí·ç.sgc";
+            effect = "ç¿¼é£Ž.sgc";
             range.type = 0;
             doenchant = true;
             dobless = false;

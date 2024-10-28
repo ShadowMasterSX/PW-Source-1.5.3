@@ -31,6 +31,7 @@ enum
 	MAPRES_TYPE_RANDOM,
 	MAPRES_TYPE_MAZE,
 	MAPRES_TYPE_SEQUENCE,
+	MAPRES_TYPE_SOLO_CHALLENGE,
 
 	MAPRES_TYPE_COUNT
 };
@@ -70,6 +71,7 @@ struct map_res
 	A3DVECTOR bpos_offset;
 	maze_info _maze_info;
 	abase::vector<map_piece_desp> _piece_desps;
+	abase::vector<A3DVECTOR> _offset_info;
 	map_res() : width(0.f),height(0.f),bpos_offset(0,0,0)
 	{
 		memset(&_maze_info, 0 , sizeof(_maze_info));
@@ -115,7 +117,7 @@ public:
 		ASSERT(_row > 0 && _col > 0);
 		return true;
 	}
-	int GetBlockID(float x, float z) const
+	virtual int GetBlockID(float x, float z, world * pWorld = NULL) const
 	{
 		int u = int((x - _map_left)/_piece_width);
 		int v = int((_map_top - z)/_piece_height);
@@ -144,6 +146,13 @@ class sequence_map_generator : public map_generator
 public:
 	virtual bool Generate(const rect & region, const map_res& mapres);
 	virtual void SyncPlayerWorldGen(gplayer_imp* pPlayer) const;
+};
+
+class solo_challenge_map_generator : public map_generator
+{
+public:
+	virtual int GetBlockID(float x, float z, world * plane) const;
+	virtual bool Generate(const rect & region, const map_res& mapres){return true;};
 };
 
 /*
@@ -202,9 +211,9 @@ public:
 	int GetType() const { return _mapres_type; }
 	void SetType(int t);
 	const map_res& GetMapResInfo() const { return _mapres_info; } 
-	CTerrain * GetUniqueTerrain(){ ASSERT(_mapres_type == MAPRES_TYPE_ORIGIN); return _terrain_pieces[0]; }
-	NPCMoveMap::CMap * GetUniqueMoveMap(){ ASSERT(_mapres_type == MAPRES_TYPE_ORIGIN); return _movemap_pieces[0]; }
-	trace_manager2 * GetUniqueTraceMan(){ ASSERT(_mapres_type == MAPRES_TYPE_ORIGIN); return _traceman_pieces[0]; }
+	CTerrain * GetUniqueTerrain(){ ASSERT(_mapres_type == MAPRES_TYPE_ORIGIN || _mapres_type == MAPRES_TYPE_SOLO_CHALLENGE); return _terrain_pieces[0]; }
+	NPCMoveMap::CMap * GetUniqueMoveMap(){ ASSERT(_mapres_type == MAPRES_TYPE_ORIGIN || _mapres_type == MAPRES_TYPE_SOLO_CHALLENGE); return _movemap_pieces[0]; }
+	trace_manager2 * GetUniqueTraceMan(){ ASSERT(_mapres_type == MAPRES_TYPE_ORIGIN || _mapres_type == MAPRES_TYPE_SOLO_CHALLENGE); return _traceman_pieces[0]; }
 
 	CTerrain * CreateTerrain(map_generator * pGenerator);
 	NPCMoveMap::CMap * CreateMoveMap(map_generator * pGenerator, world * plane);

@@ -59,9 +59,9 @@ namespace GNET
       Skill1014Stub ():SkillStub (1014)
         {
             cls = 258;
-            name = L"Óù·ç¾÷";
-            nativename = "Óù·ç¾÷";
-            icon = "Óù·ç¾÷.dds";
+            name = L"å¾¡é£Žè¯€";
+            nativename = "å¾¡é£Žè¯€";
+            icon = "å¾¡é£Žè¯€.dds";
             max_level = 1;
             type = 2;
             apcost = 150000;
@@ -80,7 +80,7 @@ namespace GNET
             long_range = 0;
             restrict_corpse = 0;
             allow_forms = 1;
-            effect = "Óù·ç¾÷.sgc";
+            effect = "å¾¡é£Žè¯€.sgc";
             range.type = 5;
             doenchant = true;
             dobless = false;

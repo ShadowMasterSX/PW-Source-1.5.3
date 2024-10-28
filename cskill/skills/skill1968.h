@@ -57,8 +57,8 @@ namespace GNET
       Skill1968Stub ():SkillStub (1968)
         {
             cls = 127;
-            name = L"变龟术_任务";
-            nativename = "变龟术_任务";
+            name = L"鍙橀緹鏈痏浠诲姟";
+            nativename = "鍙橀緹鏈痏浠诲姟";
             icon = "";
             max_level = 1;
             type = 4;

@@ -716,6 +716,9 @@ size_t CTriggerData::GetOperationParamSize(int operation)
 	case o_deliver_task_in_hate_list:
 		result = sizeof(O_DELIVER_TASK_IN_HATE_LIST);
 		break;
+	case o_clear_tower_task_in_region:
+		result = sizeof(O_CLEAR_TOWER_TASK_IN_REGION);
+		break;
 	}
 	return result;
 }

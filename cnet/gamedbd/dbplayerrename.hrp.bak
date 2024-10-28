@@ -1,0 +1,178 @@
+
+#ifndef __GNET_DBPLAYERRENAME_HPP
+#define __GNET_DBPLAYERRENAME_HPP
+
+#include "rpcdefs.h"
+#include "callid.hxx"
+#include "state.hxx"
+
+#include "dbplayerrenamearg"
+#include "dbplayerrenameres"
+#include "gamedbmanager.h"
+#include "grolenamehis"
+#include "gamedbmanager.h"
+
+namespace GNET
+{
+
+class DBPlayerRename : public Rpc
+{
+#define	RPC_BASECLASS	Rpc
+	#include "dbplayerrename"
+#undef	RPC_BASECLASS
+
+	void Server(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		DBPlayerRenameArg *arg = (DBPlayerRenameArg *)argument;
+		DBPlayerRenameRes *res = (DBPlayerRenameRes *)result;
+
+		unsigned int orignal_money = arg->syncdata.inventory.money;
+
+		LOG_TRACE("DBPlayerRename, roleid=%d itemid=%d item_pos=%d", arg->roleid, arg->item_id, arg->item_pos);
+		try
+		{
+			StorageEnv::Storage * prolename = StorageEnv::GetStorage("rolename");
+			StorageEnv::Storage * pbase = StorageEnv::GetStorage("base");
+			StorageEnv::Storage * pinventory = StorageEnv::GetStorage("inventory");
+			StorageEnv::Storage * pequipment = StorageEnv::GetStorage("equipment");
+			StorageEnv::Storage * pstorehouse = StorageEnv::GetStorage("storehouse");
+			StorageEnv::Storage * prolenamehis = StorageEnv::GetStorage("rolenamehis");
+			StorageEnv::Storage * plog = arg->syncdata.logs.size()?StorageEnv::GetStorage("shoplog"):NULL;
+			StorageEnv::Storage * puserfaction = StorageEnv::GetStorage("userfaction");
+
+			StorageEnv::CommonTransaction txn;
+			try
+			{
+				Marshal::OctetsStream krole, os_rolename;
+				if (prolename->find(arg->newname, os_rolename, txn))
+				{
+					Log::log(LOG_ERR,"DBPlayyerRename, newname already exist!");
+					throw DbException(DB_VERIFY_BAD);
+				}
+				krole << arg->roleid;
+				GRolePocket pocket;
+				Marshal::OctetsStream(pinventory->find(krole, txn)) >> pocket;
+				if (arg->syncdata.inventory.timestamp <= pocket.timestamp)
+				{
+					Log::log(LOG_ERR,"DBPlayerRename, timestamp mismatch. roleid=%d (%d<%d)",
+						arg->roleid, arg->syncdata.inventory.timestamp, pocket.timestamp);
+					throw DbException(DB_VERIFY_BAD);
+				}
+
+				GRoleBase base;
+				Marshal::OctetsStream(pbase->find(krole, txn)) >> base; 
+				Octets oldname = base.name;
+				if (!prolename->find(oldname, os_rolename, txn))
+				{
+					Log::log(LOG_ERR,"DBPlayyerRename, oldname cant find!");
+					throw DbException(DB_VERIFY_BAD);
+				}
+				
+				int money_delta = arg->syncdata.inventory.money - pocket.money;
+				// 修改背包物品，减少数量
+				GRoleInventoryVector::iterator it;
+				GRoleInventoryVector& v = arg->syncdata.inventory.items;
+				unsigned int pos;
+				for(pos=0;pos<v.size();pos++)
+				{
+					if (v[pos].pos == arg->item_pos)
+						break;
+				}
+				if (pos >= v.size())
+					throw DbException(DB_VERIFY_BAD);
+
+				int count = arg->item_num;
+				if (v[pos].id != (unsigned int)(arg->item_id) || count > v[pos].count)
+					throw DbException(DB_VERIFY_BAD);
+				if (v[pos].count == count)
+				{
+					v[pos].count = 0;
+					res->syncdata.inventory.items.push_back(v[pos]);
+					v.erase(v.begin()+pos);
+				}
+				else
+				{
+					v[pos].count -= count;
+					res->syncdata.inventory.items.push_back(v[pos]);
+				}
+				//开始存库
+				pinventory->insert(krole, Marshal::OctetsStream()<<arg->syncdata.inventory, txn);
+				pequipment->insert(krole, Marshal::OctetsStream()<<arg->syncdata.equipment,txn);
+				WriteRestSyncData(pstorehouse, plog, arg->roleid, arg->syncdata, money_delta, txn);
+
+				//修改base表里的角色名
+				base.name = arg->newname;
+				pbase->insert(krole, Marshal::OctetsStream()<<base, txn);
+
+				//修改userfaction表里的玩家名字
+				GUserFaction userfaction;
+				Marshal::OctetsStream factionvalue;
+				if (puserfaction->find(krole,factionvalue,txn))
+				{
+					factionvalue >> userfaction;
+					userfaction.name = arg->newname;
+					puserfaction->insert(krole,OctetsStream() << userfaction, txn);
+				}
+				
+				//rolename表里插入新的名字对应roleid的内容，旧的依然保存
+				int rolenamestat = ROLE_NAME_STAT_USED;
+				prolename->insert(arg->newname, Marshal::OctetsStream()<<arg->roleid<<rolenamestat, txn);
+				rolenamestat = ROLE_NAME_STAT_OBSOLETE;
+				prolename->insert(oldname,Marshal::OctetsStream()<<arg->roleid<<rolenamestat, txn);
+
+				//在rolenamehis里索引为0的插入玩家的roleid对应名字
+				Marshal::OctetsStream key_all, value_all, value_rolenamehis;
+				key_all << (int)0;
+				std::map<int, Octets> name_map;
+				if (prolenamehis->find(key_all, value_all, txn))
+					value_all >> name_map;
+				name_map[arg->roleid] = arg->newname;
+				prolenamehis->insert(key_all, Marshal::OctetsStream() << name_map, txn);
+
+				//在rolenamehis里索引为roleid的插入玩家的名字修改历史
+				GRoleNameHisVector rolenamehis_vec;
+				if (prolenamehis->find(krole, value_rolenamehis, txn))
+					value_rolenamehis >> rolenamehis_vec;
+				rolenamehis_vec.push_back(GRoleNameHis(oldname, Timer::GetTime()));
+				prolenamehis->insert(krole, Marshal::OctetsStream() << rolenamehis_vec, txn);
+				
+				res->oldname.swap(oldname);
+				res->syncdata.inventory.money = arg->syncdata.inventory.money;
+				res->syncdata.data_mask = arg->syncdata.data_mask;
+				res->retcode = ERR_SUCCESS;
+
+				Log::formatlog("dbplayerrename", "roleid=%d itemid=%d item_pos=%d",arg->roleid, arg->item_id, arg->item_pos);
+			}
+			catch( DbException e ) { throw; }
+			catch( ... )
+			{
+				DbException ee( DB_OLD_VERSION );
+				txn.abort( ee );
+				throw ee;
+			}
+		}
+		catch( DbException e )
+		{
+			Log::log( LOG_ERR, "DBPlayerRename, roleid=%d, what=%s\n", arg->roleid, e.what() );
+			res->retcode = ERR_VERIFYFAILED;
+			res->syncdata.inventory.money = orignal_money;
+			res->syncdata.inventory.items.clear();
+		}
+	}
+
+	void Client(Rpc::Data *argument, Rpc::Data *result, Manager *manager, Manager::Session::ID sid)
+	{
+		// TODO
+		// DBPlayerRenameArg *arg = (DBPlayerRenameArg *)argument;
+		// DBPlayerRenameRes *res = (DBPlayerRenameRes *)result;
+	}
+
+	void OnTimeout()
+	{
+		// TODO Client Only
+	}
+
+};
+
+};
+#endif
