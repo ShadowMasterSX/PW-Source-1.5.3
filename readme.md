@@ -1,3 +1,5 @@
+UTILIZEI DEBIAN NO WSL PARA COMPILAR
+
 chmod 777 setrules.sh
 chmod 777 gfaction/operations/opgen.pl;
 chmod 777 rpcgen
