@@ -2,7 +2,7 @@
 
 TOP_SRCDIR := ..
 
-include ../mk/gcc.defs.mk
+include /root/sahre//mk/gcc.defs.mk
 
 OBJS := simulator.o obj_interface.o substance.o mywrapper.o basicinfo.o myobject.o skillwrapper.o playerwrapper.o \
        skill.o skillstub.o skillfilter.o

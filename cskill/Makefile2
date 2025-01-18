@@ -2,7 +2,7 @@
 
 TOP_SRCDIR := ..
 
-include ./mk/gcc.defs.mk
+include /root/share/mk/gcc.defs.mk
 
 SHAREOBJ :=
 LOGSTUB :=

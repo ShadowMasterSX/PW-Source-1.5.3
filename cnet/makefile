@@ -6,7 +6,7 @@ branchname := dbserver
 # Directories
 docdirs :=
 extradirs :=
-execdirs := glinkd/ gdeliveryd/ gauthd/ gamed/ gamedbd/ gdbclient/ gfaction/ uniquenamed/
+execdirs := /root/cnet/glinkd/ /root/cnet/gdeliveryd/ /root/cnet/gauthd/ /root/cnet/gamed/ /root/cnet/gamedbd/ /root/cnet/gdbclient/ /root/cnet/gfaction/ /root/cnet/uniquenamed/
 alldirs := $(docdirs) $(extradirs) $(execdirs)
 
 tardirs := $(alldirs)

@@ -2,7 +2,7 @@
 
 # Compiler and Directories
 CXX = g++
-CXXFLAGS = -std=c++14 -Wall -Wextra -O2
+CXXFLAGS = -std=c++17 -Wall -Wextra -O2
 SRCDIR = src
 BUILDDIR = build
 TARGET = app

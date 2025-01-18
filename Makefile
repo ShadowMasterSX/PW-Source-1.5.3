@@ -1,6 +1,6 @@
 
-execdirs :=   cnet/logservice/ cnet/gacd/ cnet/glinkd/ cnet/gdeliveryd/ cnet/gamedbd/ cnet/uniquenamed/ \
-				cnet/gfaction/ cskill/skill/
+execdirs :=   /root/cnet/logservice/ /root/cnet/gacd/ /root/cnet/glinkd/ /root/cnet/gdeliveryd/ /root/cnet/gamedbd/ /root/cnet/uniquenamed/ \
+				/root/cnet/gfaction/ /root/cskill/skill/
 
 all: libperf subs libs gs
 clean: clean-libperf clean-subs clean-libs clean-gs
@@ -12,14 +12,14 @@ libs: libgs libcommon
 clean-libs: clean-libgs clean-libcommon
 
 install:
-	cp -f ./cgame/gs/gs /pwserver/gamed/gs; \
-	chmod 777 /pwserver/gamed/gs; \
-	cp -f ./cnet/gfaction/gfactiond /pwserver/gamed/gfactiond; \
-	chmod 777 /pwserver/gamed/gfactiond
+	cp -f /root/cgame/gs/gs /home/gamed/gs; \
+	chmod 777 /home/gamed/gs; \
+	cp -f ./cnet/gfaction/gfactiond /home/gamed/gfactiond; \
+	chmod 777 /home/gamed/gfactiond
 
 clean-install:
-	rm -f /pwserver/gamed/gs; \
-	rm -f /pwserver/gamed/gfactiond
+	rm -f /home/gamed/gs; \
+	rm -f /home/gamed/gfactiond
 
 libperf:
 	@echo "Building libperf"
