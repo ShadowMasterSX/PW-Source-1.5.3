@@ -1,9 +1,10 @@
+.PHONY: all clean
 
-OBJS = md5.o sha1.o rc4.o mppc256.o base64.o crc32.o aes.o bf.o
+OBJS := md5.o sha1.o rc4.o mppc256.o base64.o crc32.o aes.o bf.o
 
-all: libperf.a 
+all: libperf.a
 
-.s.o:	
+.s.o:
 	$(CC) -c $<
 
 libperf.a: $(OBJS)

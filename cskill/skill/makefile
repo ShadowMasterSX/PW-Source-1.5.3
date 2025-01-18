@@ -1,28 +1,29 @@
-CPP = g++
+CPP := g++
 
-DEFINES  = -D_SKILL_SERVER -g -ggdb -O0
-CPPFLAGS = -Wall  -Werror
+DEFINES := -D_SKILL_SERVER -g -ggdb -O0
+CPPFLAGS := -Wall -Werror
 
-HEADERS = *.h
-CPPFILES = playerwrapper.cpp  skill.cpp  skillfilter.cpp  skillwrapper.cpp
-OBJS = skill.o skillwrapper.o playerwrapper.o skillfilter.o 
-INCLUDES = -I. -I../header -I../header/include -I../common -I../share
+HEADERS := *.h
+CPPFILES := playerwrapper.cpp skill.cpp skillfilter.cpp skillwrapper.cpp
+OBJS := skill.o skillwrapper.o playerwrapper.o skillfilter.o
+INCLUDES := -I. -I../header -I../header/include -I../common -I../share
 STUBOBJS := $(patsubst %.cpp,%.o,$(wildcard ../skills/stubs*.cpp))
-LIB = libskill.a
+LIB := libskill.a
 
-all : $(LIB)
+.PHONY: all clean
 
-$(LIB) : $(OBJS) $(STUBOBJS)
+all: $(LIB)
+
+$(LIB): $(OBJS) $(STUBOBJS)
 	ar crs $(LIB) $(OBJS) $(STUBOBJS)
 
-$(OBJS) : $(HEADERS)
+$(OBJS): $(HEADERS)
 
-$(STUBOBJS) :
+$(STUBOBJS):
 	$(CPP) -c $(DEFINES) $(INCLUDES) $(CPPFLAGS) -w $(patsubst %.o,%.cpp,$@) -o $@
 
-.cpp.o:
+%.o: %.cpp
 	$(CPP) -c $(DEFINES) $(INCLUDES) $(CPPFLAGS) $< -o $@
 
 clean:
-	rm -rf $(OBJS) $(STUBOBJS) $(LIB) $(CLEAN) 
-
+	rm -rf $(OBJS) $(STUBOBJS) $(LIB)

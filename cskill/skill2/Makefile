@@ -1,50 +1,44 @@
-#
-# Makefile 
-#
+# Makefile
 
-TOP_SRCDIR = ..
+TOP_SRCDIR := ..
 
-INTEPRETED_EXPR = 0
+INTEPRETED_EXPR := 0
 
 include ../mk/gcc.defs.mk
 
-HEADERS = callup.h  playerwrapper.h  range.h  skill.h  skillexpr.h  skillfilter.h  skilllevel.h  skillwrapper.h  targetwrapper.h
-CPPFILES = main.cpp  playerwrapper.cpp  skill.cpp  skillfilter.cpp  skillwrapper.cpp
-STUBOBJS = $(../skills/stubs*.o)
-OBJS = skill.o skillwrapper.o playerwrapper.o skillfilter.o 
-OUTEROBJS = ../common/conf.o ../common/thread.o ../common/timer.o ../common/itimer.o ../io/pollio.o 
+HEADERS := callup.h playerwrapper.h range.h skill.h skillexpr.h skillfilter.h skilllevel.h skillwrapper.h targetwrapper.h
+CPPFILES := main.cpp playerwrapper.cpp skill.cpp skillfilter.cpp skillwrapper.cpp
+STUBOBJS := $(wildcard ../skills/stubs*.o)
+OBJS := skill.o skillwrapper.o playerwrapper.o skillfilter.o
+OUTEROBJS := ../common/conf.o ../common/thread.o ../common/timer.o ../common/itimer.o ../io/pollio.o
 INCLUDES += -I../expr -I../header -I../header/include
-LIBS = libskill.a libskill.so
+LIBS := libskill.a libskill.so
 
-DEFINES  +=-D_SKILL_SERVER 
+DEFINES += -D_SKILL_SERVER
 
 ifeq ($(INTEPRETED_EXPR), 1)
-DEFINES  += -D_INTEPRETED_EXPR
-EXPROBJS = ../expr/stubs.o ../expr/objectgraph.o ../expr/scanner.o ../expr/exprparser.o ../expr/analyzer.o ../expr/executor.o
+DEFINES += -D_INTEPRETED_EXPR
+EXPROBJS := ../expr/stubs.o ../expr/objectgraph.o ../expr/scanner.o ../expr/exprparser.o ../expr/analyzer.o ../expr/executor.o
 else
-EXPROBJS = 
+EXPROBJS :=
 endif
 
 CFLAGS += -fPIC
 
-EXES = skill
+EXES := skill
 
-all : lib dlib
+.PHONY: all clean lib dlib
 
-lib : $(OBJS) $(EXPROBJS) $(STUBOBJS)
+all: lib dlib
+
+lib: $(OBJS) $(EXPROBJS) $(STUBOBJS)
 	ar crs libskill.a $(OBJS) $(EXPROBJS) $(STUBOBJS)
 
-dlib : $(OBJS) $(OUTEROBJS) $(EXPROBJS)
-	rm libskill.so -f
+dlib: $(OBJS) $(OUTEROBJS) $(EXPROBJS)
+	rm -f libskill.so
 	$(LD) -shared -fPIC $(LDFLAGS) $(OBJS) $(OUTEROBJS) $(EXPROBJS) $(STUBOBJS) -o libskill.so
 
-#$(STUBOBJS) : $(HEADERS) ../skills/*.h
-
-#$(OBJS) : $(HEADERS)
-
 clean:
-	rm -rf $(OBJS) $(STUBOBJS) $(LIBS) $(CLEAN) 
-
+	rm -rf $(OBJS) $(STUBOBJS) $(LIBS)
 
 include ../mk/gcc.rules.mk
-

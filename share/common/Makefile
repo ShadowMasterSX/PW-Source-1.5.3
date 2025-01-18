@@ -1,34 +1,30 @@
-#
-# Makefile 
-#
+# Makefile
 
-TOP_SRCDIR = ..
+TOP_SRCDIR := ..
 
 include ../mk/gcc.defs.mk
 
-OBJS = octets.o thread.o conf.o timer.o itimer.o ../io/pollio.o
-
-EXES = marshal thread ctrl interval #ckname
-
+OBJS := octets.o thread.o conf.o timer.o itimer.o ../io/pollio.o
+EXES := marshal thread ctrl interval
 CLEAN += *.o
 
-all : $(EXES)
+.PHONY: all clean
 
-marshal : $(OBJS) marshal.o
-	$(LD) $(LDFLAGS) $(OBJS) marshal.o -o marshal
+all: $(EXES)
 
-thread : $(OBJS) main.o
-	$(LD) $(LDFLAGS) $(OBJS) main.o -o thread
+marshal: $(OBJS) marshal.o
+	$(LD) $(LDFLAGS) $(OBJS) marshal.o -o $@
 
-ctrl : ctrl.o
-	$(LD) $(LDFLAGS) ctrl.o -o ctrl
+thread: $(OBJS) main.o
+	$(LD) $(LDFLAGS) $(OBJS) main.o -o $@
 
-interval : interval.o $(OBJS)
-	$(LD) $(LDFLAGS) $(OBJS) interval.o -o interval
+ctrl: ctrl.o
+	$(LD) $(LDFLAGS) $^ -o $@
 
-ckname :  ckname.o matcher.o
-	$(LD) $(LDFLAGS) ckname.o matcher.o -o ckname -lpcre
+interval: interval.o $(OBJS)
+	$(LD) $(LDFLAGS) $^ -o $@
 
+clean:
+	rm -rf $(OBJS) $(EXES) *.o
 
 include ../mk/gcc.rules.mk
-

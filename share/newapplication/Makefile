@@ -1,3 +1,4 @@
+.PHONY: all clean compile1 generate compile2 finance fcompile1 fgenerate fcompile2 cache
 
 all: clean compile1 generate compile2
 
@@ -15,7 +16,6 @@ generate:
 compile2:
 	ant
 
-
 fcompile1:
 	ant finance
 
@@ -27,4 +27,3 @@ fcompile2:
 
 cache: compile1 generate compile2
 	java -cp ./cache.jar:./jio.jar:./wanmeiaudb.jar com.wanmei.db.util.Cache
-

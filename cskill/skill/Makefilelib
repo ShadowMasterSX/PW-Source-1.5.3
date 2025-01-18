@@ -1,45 +1,40 @@
-#
-# Makefile 
-#
+# Makefile
 
-TOP_SRCDIR = ..
+TOP_SRCDIR := ..
 
-INTEPRETED_EXPR = 0
+INTEPRETED_EXPR := 0
 
 include ../mk/gcc.defs.mk
 
-HEADERS = *.h
-CPPFILES = playerwrapper.cpp  skill.cpp  skillfilter.cpp  skillwrapper.cpp
-OBJS = skill.o skillwrapper.o playerwrapper.o skillfilter.o 
-INCLUDES = -I. -I../header -I../header/include -I../common
+HEADERS := *.h
+CPPFILES := playerwrapper.cpp skill.cpp skillfilter.cpp skillwrapper.cpp
+OBJS := skill.o skillwrapper.o playerwrapper.o skillfilter.o
+INCLUDES := -I. -I../header -I../header/include -I../common
 STUBOBJS := $(patsubst %.cpp,%.o,$(wildcard ../skills/stubs*.cpp))
-LIB = libskill.a
-#HEADERS = callup.h  playerwrapper.h  range.h  skill.h  skillexpr.h  skillfilter.h  skilllevel.h  skillwrapper.h  targetwrapper.h
-#CPPFILES = main.cpp  playerwrapper.cpp  skill.cpp  skillfilter.cpp  skillwrapper.cpp
-#STUBOBJS = ../skills/stub*.o
-#OBJS = skill.o skillwrapper.o playerwrapper.o skillfilter.o 
-#OUTEROBJS = ../../share/common/conf.o ../../share/common/thread.o ../../share/common/timer.o ../../share/common/itimer.o ../../share/io/pollio.o 
-#INCLUDES += -I../expr -I../header -I../header/include
+LIB := libskill.a
 
-DEFINES  = -D_SKILL_SERVER -g -ggdb -O0
-CPPFLAGS = -Wall  -Werror
+DEFINES := -D_SKILL_SERVER -g -ggdb -O0
+CPPFLAGS := -Wall -Werror
 
 CFLAGS += -fPIC -finput-charset="GBK"
 
-all : lib
+.PHONY: all clean lib dlib
 
-lib : $(OBJS) $(STUBOBJS)
+all: lib
+
+lib: $(OBJS) $(STUBOBJS)
 	ar crs $(LIB) $(OBJS) $(STUBOBJS)
 
-dlib : $(OBJS) $(OUTEROBJS) $(EXPROBJS)
-	rm libskill.so -f
+dlib: $(OBJS) $(OUTEROBJS) $(EXPROBJS)
+	rm -f libskill.so
 	$(LD) -shared -fPIC $(LDFLAGS) $(OBJS) $(OUTEROBJS) $(STUBOBJS) -o libskill.so
 
-$(OBJS) : $(HEADERS)
+$(OBJS): $(HEADERS)
 
-$(STUBOBJS) :
+$(STUBOBJS):
 	$(CPP) -c $(DEFINES) $(INCLUDES) $(CPPFLAGS) -w $(patsubst %.o,%.cpp,$@) -o $@
 
+clean:
+	rm -f $(OBJS) $(STUBOBJS) $(LIB) libskill.so
 
 include ../mk/gcc.rules.mk
-

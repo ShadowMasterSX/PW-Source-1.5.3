@@ -1,31 +1,32 @@
-#
-# Makefile 
-#
+# Makefile
 
-TOP_SRCDIR = ..
+TOP_SRCDIR := ..
 
 include ../mk/gcc.defs.mk
 
-CFLAGS   =-pipe -ggdb -Wall -D_XOPEN_SOURCE=500
-LDFLAGS  =
+CFLAGS := -pipe -ggdb -Wall -D_XOPEN_SOURCE=500
+LDFLAGS :=
 
-OBJS = thread.o conf.o timer.o itimer.o ../io/pollio.o
+OBJS := thread.o conf.o timer.o itimer.o ../io/pollio.o
+EXES := marshal thread ctrl interval
 
-EXES = marshal thread ctrl interval
+.PHONY: all clean
 
-all : $(EXES)
+all: $(EXES)
 
-marshal : $(OBJS) marshal.o
-	$(LD) $(LDFLAGS) $^ -o marshal
+marshal: $(OBJS) marshal.o
+	$(LD) $(LDFLAGS) $^ -o $@
 
-thread : $(OBJS) main.o
-	$(LD) $(LDFLAGS) $^ -o thread
+thread: $(OBJS) main.o
+	$(LD) $(LDFLAGS) $^ -o $@
 
-ctrl : ctrl.o
-	$(LD) $(LDFLAGS) $^ -o ctrl
+ctrl: ctrl.o
+	$(LD) $(LDFLAGS) $^ -o $@
 
-interval : interval.o
-	$(LD) $(LDFLAGS) $(OBJS) interval.o -o interval
+interval: interval.o
+	$(LD) $(LDFLAGS) $(OBJS) $^ -o $@
+
+clean:
+	rm -rf $(OBJS) $(EXES) *.o
 
 include ../mk/gcc.rules.mk
-

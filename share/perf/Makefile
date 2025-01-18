@@ -1,19 +1,20 @@
+.PHONY: all clean
 
-HVERSION=$(shell uname -a)
+HVERSION := $(shell uname -a)
 
 ifneq (,$(findstring x86_64,$(HVERSION)))
-	SRCDIR = x86_64
+	SRCDIR := x86_64
 else
-	SRCDIR = i386
+	SRCDIR := i386
 endif
-# always making 32-bit even if on 64-bit OS
-SRCDIR = i386
+
+# Force 32-bit compilation regardless of OS
+SRCDIR := i386
 
 all:
-	@(cd $(SRCDIR) && make)
+	@(cd $(SRCDIR) && $(MAKE))
 	cp -p $(SRCDIR)/libperf.a .
-	#cp $(SRCDIR)/perf.lib .
 
 clean:
-	@(cd $(SRCDIR) && make clean)
+	@(cd $(SRCDIR) && $(MAKE) clean)
 	rm -f libperf.a perf.lib
