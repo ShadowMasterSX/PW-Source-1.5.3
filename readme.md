@@ -3,6 +3,7 @@
 
 ### How to Use on Debian 12 | Ubuntu 24.04
 
+## Importend This Source Code use only x64 Libs
 
 
 
