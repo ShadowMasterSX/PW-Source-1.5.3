@@ -1,8 +1,8 @@
-I USED DEBIAN ON WSL TO COMPILE
+# Test OS Debian 12
 
-chmod 777 setrules.sh chmod 777 gfaction/operations/opgen.pl; chmod 777 rpcgen chmod 777 rpc/xmlcoder.pl
+chmod 777 -R setrules.sh chmod 777 gfaction/operations/opgen.pl; chmod 777 rpcgen chmod 777 rpc/xmlcoder.pl
 
-install libxml-dom-perl install libxml2-dev:i386 install libssl-dev:i386 install libpcre3-dev:i386 install libssl1.0-dev:i386
+apt-get install -y libxml-dom-perl libxml2-dev libssl-dev libpcre3-dev libssl1.0-dev
 
 First time Build: make configure
 
