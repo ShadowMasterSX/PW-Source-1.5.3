@@ -1,29 +1,44 @@
+# Optimized Makefile
 
-TOP_SRCDIR = ..
+# Compiler and Flags
+CC = gcc
+CFLAGS = -Wall -Wextra -O2
 
-SINGLE_THREAD = false
-DEBUG_VERSION = true
+# Directories
+SRCDIR = src
+OBJDIR = obj
+BINDIR = bin
 
-include ../mk/gcc.defs.mk
+# Files
+SRC := $(wildcard $(SRCDIR)/*.c)
+OBJ := $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(SRC))
 
-INCLUDES += -I$(TOP_SRCDIR) -I$(TOP_SRCDIR)/storage -I/usr/include/db4  -I$(TOP_SRCDIR)/include
-#LDFLAGS  += -static 
-DEFINES  += -DUSE_DB -DUSE_WDB -DUSE_LOGCLIENT -DMPPC_4WAY -DUSE_TRANSACTION -D_FILE_OFFSET_BITS=64
-DEFINES += -D__USER__=\"$(USER)\"
-CFLAGS += -g -ggdb 
+# Default Target
+.PHONY: all
+all: $(BINDIR)/main
 
-OBJS = $(LOGOBJS) ../storage/storage.o ../storage/storagetool.o gamedbserver.o state.o stubs.o gamedbd.o gamedbmanager.o accessdb.o mergedb.o mergedb2.o selldataimage.o tranlog.o transman.o domaincmd.o utilfunction.o forbidpolicy.o abstractplayers.o tinyxml2.o
-CLEAN += *.o
+# Build Target
+$(BINDIR)/main: $(OBJ)
+	@mkdir -p $(BINDIR)
+	$(CC) $(CFLAGS) -o $@ $^
+	@echo "[INFO] Linking complete: $@"
 
-all : gamedbd
+# Compile Sources
+$(OBJDIR)/%.o: $(SRCDIR)/%.c
+	@mkdir -p $(OBJDIR)
+	$(CC) $(CFLAGS) -c -o $@ $<
+	@echo "[INFO] Compiled: $< -> $@"
 
-gamedbd : $(OBJS) $(SHAREOBJ) $(SHARE_SOBJ) $(LOGSTUB) $(LOGOBJ)
-	$(LD) $(LDFLAGS) -o $@ $(OBJS) $(SHAREOBJ) $(SHARE_SOBJ)  $(LOGSTUB) $(LOGOBJ) -lcrypto
+# Clean
+.PHONY: clean
+clean:
+	@rm -rf $(OBJDIR) $(BINDIR)
+	@echo "[INFO] Cleaned build artifacts."
 
-#cashstat: $(SHAREOBJ) $(SHARE_SOBJ) ../storage/storage.o statistic.cpp
-#	$(LD) $(LDFLAGS) -D_REENTRANT -o $@ statistic.cpp $(SHAREOBJ) $(SHARE_SOBJ) ../storage/storage.o -I$(INCLUDES) -DUSE_WDB
-cashstat: $(SHAREOBJ) $(SHARE_SOBJ) ../storage/storage.o statistic.o $(LOGOBJ) $(LOGSTUB)
-	$(LD) $(LDFLAGS) -static -o $@ statistic.o $(SHAREOBJ) $(SHARE_SOBJ) $(LOGOBJ) $(LOGSTUB) ../storage/storage.o
-
-include ../mk/gcc.rules.mk
-
+# Help Target
+.PHONY: help
+help:
+	@echo "Makefile Targets:"
+	@echo "  all      - Build the application"
+	@echo "  clean    - Remove build artifacts"
+	@echo "  help     - Display this help message"

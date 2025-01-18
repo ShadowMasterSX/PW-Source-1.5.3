@@ -1,45 +1,47 @@
-IOPATH=/mnt/c/Users/GUSTAVO/Desktop/pw152src_client-master/pw152src_client-master/server/iolib
-BASEPATH=/mnt/c/Users/GUSTAVO/Desktop/pw152src_client-master/pw152src_client-master/server/cgame
+LIBSUBDIR=io
+LIBOBJ = io/pollio.o
+SUBDIR=gs 
+CLEAN_SUBDIR = collision common gs io libgs libcommon
 
-INC=-I$(BASEPATH)/include -I$(BASEPATH) -I$(IOPATH)/inc -I$(BASEPATH)/libcommon
-IOLIB_OBJ=$(BASEPATH)/libgs/gs/*.o $(BASEPATH)/libgs/io/*.o $(BASEPATH)/libgs/db/*.o $(BASEPATH)/libgs/log/*.o 
-CMLIB=$(BASEPATH)/libcommon.a $(BASEPATH)/libonline.a $(IOLIB_OBJ) $(BASEPATH)/collision/libTrace.a
-DEF = -DLINUX -D_DEBUG  -D__THREAD_SPIN_LOCK__ -DUSE_LOGCLIENT
-#DEF += -D_CHECK_MEM_ALLOC
-#DEF += -D__USE_ICPC__  
-#DEF += -D__TEST_PERFORMANCE__
-DEF += -D__USER__=\"$(USER)\"
+all: lib collision solib libcommon $(SUBDIR)
 
-THREAD = -D_REENTRANT -D_THREAD_SAFE 
-THREADLIB = -pthread  
-PCRELIB = -lpcre
-LIBICONV =
-ALLLIB = $(THREADLIB) $(PCRELIB) -lssl -lcrypto $(LIBICONV)  #/usr/lib/libcrypto.a
-CFLAGS  = -std=gnu++11 -w -Wno-parentheses -fpermissive -Wno-write-strings -Wno-unused-local-typedefs -Wno-stringop-truncation -Wno-error=parentheses -Wno-class-memaccess #-Wall -pipe
-CPPFLAGS = -std=gnu++11 -w -Wno-parentheses -fpermissive -Wno-write-strings -Wno-unused-local-typedefs -Wno-stringop-truncation -Wno-error=parentheses -Wno-class-memaccess #-Wall -pipe
-OPTIMIZE = -O0
-#-O2 -ipo
-CC=gcc -m32  $(DEF) $(OPTIMIZE) $(THREAD) $(CFLAGS) -g -ggdb
-CPP=g++ -m32 $(DEF) $(OPTIMIZE) $(THREAD) $(CPPFLAGS) -g -ggdb
-#-pedantic
-LD=g++ -m32 -g -std=gnu++11 -L/usr/local/ssl/lib $(OPTIMIZE) $(THREADLIB) 
-AR=ar crs 
-ARX=ar x
+$(SUBDIR): FORCE
+	cd $@; make
 
-#
-# include dependency files if they exist
-#
+lib:	$(LIBSUBDIR) gslib
+	ar crs libonline.a $(LIBOBJ) 
 
-ifneq ($(wildcard .depend),)
-include .depend
-endif
+collision: FORCE
+	cd collision; make
+	
+solib: FORCE
+	cd gs; make solib
 
-ifeq ($(TERM),cygwin)
-THREADLIB = -lpthread
-CMLIB += /usr/lib/libgmon.a
-DEF += -D__CYGWIN__
-endif
+gslib:	FORCE
+	cd libgs; make
 
-dep:
-	$(CC) -MM $(INC)  -c *.c* > .depend
+libcommon: FORCE
+	cd libcommon; make
+	
+$(LIBSUBDIR): FORCE
+	cd $@; make 
+FORCE:
 
+clean: 	FORCE 
+	rm -f *.o libonline.a libcommon.a;
+	-($(foreach dir,$(CLEAN_SUBDIR),$(MAKE) -C $(dir) clean))
+
+# Added Rules.make integration
+include Rules.make
+
+# Use variables from Rules.make
+INC=$(INC)
+LIBS=$(CMLIB)
+
+# Adjust targets to include new dependencies
+lib:
+	$(MAKE) -C $(LIBSUBDIR) all
+	ar crs libonline.a $(LIBOBJ)
+
+solib:
+	cd gs; make solib

@@ -1,19 +1,37 @@
-ALLOBJ=allocator.o  base64.o  mtime.o  rwlock.o    strfunc.o  verbose.o astring.o    crc.o        parse.o    spinlock.o  strtok.o   verifyname.o csection.o interlocked.o cmnet.o timer.o conf.o threadpool.o amemory.o amemobj.o arandomgen.o ASSERT.o
+include Rules.make
 
-LIBOBJ=allocator.o  base64.o  mtime.o  rwlock.o    strfunc.o  verbose.o astring.o    crc.o        parse.o    spinlock.o  strtok.o   verifyname.o csection.o interlocked.o cmnet.o timer.o conf.o threadpool.o amemory.o arandomgen.o ASSERT.o
+# Allgemeine Definitionen
+BSDTHREAD = -pthread -D_REENTRANT -D_THREAD_SAFE
+CFLAGS = -Wall -c $(BSDTHREAD)
+INC=$(INC)
+LIBS=$(CMLIB)
 
-all:	$(ALLOBJ)
-	$(AR) ../libcommon.a $(LIBOBJ)
+# Gemeinsame Objektdateien und Bibliotheken
+BASEOBJ = start.o object.o grid.o netmsg.o world.o usermsg.o player.o npc.o gimp.o substance.o msgqueue.o actobject.o item.o matter.o filter.o filter_man.o attack.o item_list.o aggrolist.o actsession.o npcsession.o ainpc.o playercmd.o aipolicy.o playerctrl.o playertemplate.o npcgenerator.o terrain.o playerteam.o serviceprovider.o servicenpc.o guardnpc.o playertrade.o objmanager.o obj_interface.o potion_filter.o fly_filter.o skill_filter.o rune_filter.o playerinvade.o playertrashbox.o worldmanager.o gamelog.o gameconfig.o commonlib.o
+CS2OBJ = A3DCollision.o  A3DFuncs.o  A3DGeometry.o  A3DMatrix.o  A3DQuaternion.o  BrushMan.o  BrushTree.o  CDBrush.o  ConvexHullData.o  Face.o  HalfSpace.o  NmdChd.o  NmdTree.o  SMTree.o  traceman.o
+LIBOBJ = allocator.o base64.o mtime.o rwlock.o strfunc.o verbose.o astring.o crc.o parse.o spinlock.o strtok.o verifyname.o csection.o interlocked.o cmnet.o timer.o conf.o threadpool.o amemory.o arandomgen.o ASSERT.o
 
-lib:	$(LIBOBJ)
-	$(AR) ../libcommon.a $(LIBOBJ)
+all: libGame libTrace libpollio libCommon
 
-FORCE:
+libGame: $(BASEOBJ)
+	$(AR) rcs libGame.a $(BASEOBJ)
 
-clean:	FORCE
-	rm -f *.o; rm -f ../libcommon.a; rm -f .depend;
+libTrace: $(CS2OBJ)
+	$(AR) rcs libTrace.a $(CS2OBJ)
+
+libpollio: io/pollio.o
+	$(AR) rcs libpollio.a io/pollio.o
+
+libCommon: $(LIBOBJ)
+	$(AR) rcs libCommon.a $(LIBOBJ)
 
 .cpp.o:
-	$(CPP) -c $(INC) $< -o $@ 
+	$(CPP) -c $(CFLAGS) $< -o $@
 
-include ../Rules.make
+.c.o:
+	$(CC) -c $(CFLAGS) $< -o $@
+
+clean:
+	rm -f $(BASEOBJ) $(CS2OBJ) $(LIBOBJ) io/pollio.o libGame.a libTrace.a libpollio.a libCommon.a *.o
+
+FORCE:

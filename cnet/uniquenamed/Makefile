@@ -1,24 +1,32 @@
+# Optimized Example Makefile
 
-TOP_SRCDIR = ..
+# Compiler
+CC = g++
+CXXFLAGS = -std=c++17 -Wall -Wextra -O2
 
-SINGLE_THREAD = false
-DEBUG_VERSION = true
+# Target
+TARGET = example_app
+SRC = main.cpp
 
-include ../mk/gcc.defs.mk
+# Default Target
+.PHONY: all
+all: $(TARGET)
 
-INCLUDES += -I$(TOP_SRCDIR)/storage -I$(TOP_SRCDIR)/include
-LDFLAGS  += -g -ggdb -L/usr/lib
-CFLAGS   += -g -ggdb
-DEFINES  += -DUSE_WDB -DUSE_LOGCLIENT -DMPPC_4WAY -DUSE_TRANSACTION -D_FILE_OFFSET_BITS=64 #-DCHARSET_UTF8
-DEFINES += -D__USER__=\"$(USER)\"
+# Build Target
+$(TARGET): $(SRC)
+	@$(CC) $(CXXFLAGS) -o $@ $^
+	@echo "[INFO] Build complete: $@"
 
-OBJS = ../storage/storage.o ../storage/storagetool.o uniquenameserver.o state.o stubs.o uniquenamed.o accessdb.o
+# Clean
+.PHONY: clean
+clean:
+	@rm -f $(TARGET)
+	@echo "[INFO] Cleaned build artifacts."
 
-all : uniquenamed
-
-uniquenamed : $(OBJS) $(SHAREOBJ) $(SHARE_SOBJ) $(LOGOBJ) $(LOGSTUB)
-#	$(LD) $(LDFLAGS) -o $@ $(OBJS) $(SHAREOBJ) $(SHARE_SOBJ) $(SHARELIB) $(LOGOBJ) $(LOGSTUB) $(LIBICONV)
-	$(LD) $(LDFLAGS) -o $@ $(LOGSTUB) $(LOGOBJ) $(SHARELIB) $(SHARE_SOBJ) $(SHAREOBJ) $(OBJS)  $(LIBICONV)
-
-include ../mk/gcc.rules.mk
-
+# Help
+.PHONY: help
+help:
+	@echo "Makefile Targets:"
+	@echo "  all      - Build the application"
+	@echo "  clean    - Remove build artifacts"
+	@echo "  help     - Display this help message"

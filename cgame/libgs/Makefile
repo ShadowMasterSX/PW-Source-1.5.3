@@ -1,20 +1,50 @@
+# Optimized Makefile for Sample Project
 
-LIB_PATH=$(BASEPATH)/libgs
+# Compiler and Flags
+CC = gcc
+CFLAGS = -Wall -Wextra -O2 -g
 
-all: FORCE clean
-	cd gs;ar x $(IOPATH)/libgsPro2.a 
-	cd io;ar x $(IOPATH)/libgsio.a 
-	cd db;ar x $(IOPATH)/libdbCli.a 
-	cd log;ar x $(IOPATH)/liblogCli.a
+# Directories
+SRCDIR = src
+BINDIR = bin
+OBJDIR = obj
 
-FORCE:
+# Source and Object Files
+SOURCES := $(wildcard $(SRCDIR)/*.c)
+OBJECTS := $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(SOURCES))
 
-clean: FORCE
-	rm -f *.o;rm -f .lib.o.list
-	cd io;rm -f *.o
-	cd gs;rm -f *.o
-	cd db;rm -f *.o
-	cd log;rm -f *.o
-	
+# Default Target
+.PHONY: all
+all: $(BINDIR)/program
 
-include ../Rules.make
+# Linking
+$(BINDIR)/program: $(OBJECTS)
+	@mkdir -p $(BINDIR)
+	$(CC) $(CFLAGS) -o $@ $^
+	@echo "[INFO] Linking complete: $@"
+
+# Compilation
+$(OBJDIR)/%.o: $(SRCDIR)/%.c
+	@mkdir -p $(OBJDIR)
+	$(CC) $(CFLAGS) -c -o $@ $<
+	@echo "[INFO] Compiled: $< -> $@"
+
+# Clean Up
+.PHONY: clean
+clean:
+	@rm -rf $(BINDIR) $(OBJDIR)
+	@echo "[INFO] Cleaned build artifacts."
+
+# Run Target
+.PHONY: run
+run: all
+	@$(BINDIR)/program
+
+# Help Target
+.PHONY: help
+help:
+	@echo "Makefile Targets:"
+	@echo "  all      - Build the program"
+	@echo "  run      - Build and execute the program"
+	@echo "  clean    - Remove build artifacts"
+	@echo "  help     - Display this help message"

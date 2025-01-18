@@ -24,5 +24,3 @@ depend: FORCE
 	make dep;
 
 include ../Rules.make
-
-OPTIMIZE=-O2

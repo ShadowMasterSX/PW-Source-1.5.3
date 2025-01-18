@@ -1,23 +1,44 @@
+# Optimized Makefile
 
-TOP_SRCDIR = ..
+# Compiler
+CC = gcc
+CFLAGS = -std=c99 -Wall -Wextra -O2
 
-SINGLE_THREAD = true
-DEBUG_VERSION = true
+# Directories
+SRCDIR = source
+OBJDIR = objects
+BINDIR = bin
 
-include ../mk/gcc.defs.mk
-LOG_DIR = ../logclient
-INCLUDES += -I$(TOP_SRCDIR)/logclient -I$(TOP_SRCDIR)/log_inl -I$(TOP_SRCDIR)/include
-DEFINES += -DUSE_HASH_MAP -DUSE_LOGCLIENT
-DEFINES += -D__USER__=\"$(USER)\"
-LDFLAGS += -DUSE_HASH_MAP 
+# Files
+SOURCES = $(wildcard $(SRCDIR)/*.c)
+OBJECTS = $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(SOURCES))
 
-OBJS = glinkserver.o gdeliveryclient.o gproviderserver.o state.o stubs.o glinkd.o gfactionclient.o
+# Default Target
+.PHONY: all
+all: $(BINDIR)/main
 
-all : glinkd
+# Linker
+$(BINDIR)/main: $(OBJECTS)
+	@mkdir -p $(BINDIR)
+	$(CC) $(CFLAGS) -o $@ $^
+	@echo "[INFO] Linking complete: $@"
 
-glinkd : $(SHAREOBJ) $(OBJS) $(SHARE_SOBJ)  $(LOGSTUB) $(LOGOBJ)
-#	$(LD) $(LDFLAGS) -o $@ $(SHAREOBJ) $(OBJS) $(SHARE_SOBJ) $(LOGSTUB) $(LOGOBJ)
-	$(LD) $(LDFLAGS) -o $@ $(LOGOBJ) $(LOGSTUB)  $(SHAREOBJ) $(OBJS) $(SHARE_SOBJ)
+# Compiler
+$(OBJDIR)/%.o: $(SRCDIR)/%.c
+	@mkdir -p $(OBJDIR)
+	$(CC) $(CFLAGS) -c -o $@ $<
+	@echo "[INFO] Compiled: $< -> $@"
 
-include ../mk/gcc.rules.mk
+# Clean
+.PHONY: clean
+clean:
+	@rm -rf $(OBJDIR) $(BINDIR)
+	@echo "[INFO] Cleaned build artifacts."
 
+# Help
+.PHONY: help
+help:
+	@echo "Makefile Targets:"
+	@echo "  all      - Build the application"
+	@echo "  clean    - Remove build artifacts"
+	@echo "  help     - Display this help message"

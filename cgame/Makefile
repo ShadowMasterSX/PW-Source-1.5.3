@@ -29,7 +29,4 @@ FORCE:
 
 clean: 	FORCE 
 	rm -f *.o libonline.a libcommon.a;
-	-($(foreach dir,$(CLEAN_SUBDIR),$(MAKE) -C $(dir) clean;))
-
-
-include Rules.make
+	-($(foreach dir,$(CLEAN_SUBDIR),$(MAKE) -C $(dir) clean))

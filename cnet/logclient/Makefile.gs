@@ -1,24 +1,44 @@
+# Optimized General Server Makefile
 
-TOP_SRCDIR = ..
+# Compiler and Flags
+CC = gcc
+CFLAGS = -std=c11 -Wall -Wextra -O2
 
-SINGLE_THREAD = false
-DEBUG_VERSION = false
+# Directories
+SRC_DIR = server_src
+OBJ_DIR = server_obj
+BIN_DIR = server_bin
 
-include ../mk/gcc.defs.mk
+# Files
+SOURCES = $(wildcard $(SRC_DIR)/*.c)
+OBJECTS = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SOURCES))
 
-DEFINES += -DUSE_LOGCLIENT 
+# Default Target
+.PHONY: all
+all: $(BIN_DIR)/server
 
-OBJS = logclientclient.o logclienttcpclient.o state.o stubs.o logclient.o log.o
-LIBOBJS = logclientclient.o logclienttcpclient.o state.o stubs.o glog.o log.o
+# Linking
+$(BIN_DIR)/server: $(OBJECTS)
+	@mkdir -p $(BIN_DIR)
+	$(CC) $(CFLAGS) -o $@ $^
+	@echo "[INFO] Linking complete: $@"
 
-all : lib
+# Compilation
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+	@mkdir -p $(OBJ_DIR)
+	$(CC) $(CFLAGS) -c -o $@ $<
+	@echo "[INFO] Compiled: $< -> $@"
 
-logclient : $(OBJS) $(SHAREOBJ) $(SHARE_SOBJ)
-	$(LD) $(LDFLAGS) -o $@ $(OBJS) $(SHAREOBJ) $(SHARE_SOBJ) 
+# Clean
+.PHONY: clean
+clean:
+	@rm -rf $(OBJ_DIR) $(BIN_DIR)
+	@echo "[INFO] Cleaned build artifacts."
 
-lib: $(LIBOBJS) $(SHAREOBJ) $(SHARE_SOBJ)
-	rm ./liblogCli.a -f
-	$(AR) crs ./liblogCli.a $(LIBOBJS)
-
-include ../mk/gcc.rules.mk
-
+# Help
+.PHONY: help
+help:
+	@echo "Makefile Targets:"
+	@echo "  all      - Build the server application"
+	@echo "  clean    - Remove build artifacts"
+	@echo "  help     - Display this help message"

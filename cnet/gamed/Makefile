@@ -1,27 +1,41 @@
+# Optimized Makefile Project
 
-TOP_SRCDIR = ..
+# Compiler and Directories
+CXX = g++
+CXXFLAGS = -std=c++14 -Wall -Wextra -O2
+SRCDIR = src
+BUILDDIR = build
+TARGET = app
 
-SINGLE_THREAD = false
-DEBUG_VERSION = false
+# Source and Object Files
+SOURCES := $(wildcard $(SRCDIR)/*.cpp)
+OBJECTS := $(patsubst $(SRCDIR)/%.cpp, $(BUILDDIR)/%.o, $(SOURCES))
 
-include ../mk/gcc.defs.mk
+# Default Target
+.PHONY: all
+all: $(TARGET)
 
-DEFINES  += -D__USE_SPEC_GAMEDATASEND__ -DUSE_LOGCLIENT 
+# Build Target
+$(TARGET): $(OBJECTS)
+	@$(CXX) $(CXXFLAGS) -o $@ $^
+	@echo "[INFO] Linking complete: $@"
 
-INCLUDES += -I./header -I./header/include -I./header/include/common
-OUTEROBJS = $(CO_DIR)/matcher.o 
-OBJS = gproviderclient.o state.o gamed.o stubs.o gsp_if.o factionlib.o mailsyslib.o auctionsyslib.o gmattr.o sellpointlib.o webtradesyslib.o sysauctionlib.o kingelectionsyslib.o pshopsyslib.o
-CLEAN += *.a
+# Compile Sources
+$(BUILDDIR)/%.o: $(SRCDIR)/%.cpp
+	@mkdir -p $(BUILDDIR)
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+	@echo "[INFO] Compiled: $< -> $@"
 
-LIBOBJS =  gsp_if.o factionlib.o mailsyslib.o auctionsyslib.o stubs.o state.o gproviderclient.o gmattr.o sellpointlib.o stocklib.o webtradesyslib.o sysauctionlib.o kingelectionsyslib.o pshopsyslib.o
+# Clean
+.PHONY: clean
+clean:
+	@rm -rf $(BUILDDIR) $(TARGET)
+	@echo "[INFO] Cleaned build artifacts."
 
-all : lib
-
-gamed : $(SHAREOBJ) $(OBJS)
-	$(LD) $(LDFLAGS) -o $@ $(SHAREOBJ) $(OBJS) $(SHARE_SOBJ)
-
-lib :  $(LIBOBJS) $(SHAREOBJ) $(OUTEROBJS)   
-	rm -f libgsPro2.a
-	$(AR) crs libgsPro2.a $(LIBOBJS) $(OUTEROBJS)  
-
-include ../mk/gcc.rules.mk
+# Help Target
+.PHONY: help
+help:
+	@echo "Makefile Targets:"
+	@echo "  all      - Build the application"
+	@echo "  clean    - Remove build artifacts"
+	@echo "  help     - Display this help message"

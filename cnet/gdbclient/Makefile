@@ -1,25 +1,44 @@
+# Optimized Makefile Example
 
-TOP_SRCDIR = ..
+# Compiler and Flags
+CC = gcc
+CFLAGS = -Wall -Wextra -O2
 
-SINGLE_THREAD = false
-DEBUG_VERSION = false
+# Directories
+SRC_DIR = source
+OBJ_DIR = build
+BIN_DIR = output
 
-include ../mk/gcc.defs.mk
+# Files
+SOURCES = $(wildcard $(SRC_DIR)/*.c)
+OBJECTS = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SOURCES))
 
-DEFINES += -DUSE_LOGCLIENT 
+# Default Target
+.PHONY: all
+all: $(BIN_DIR)/app
 
-OBJS = gamedbclient.o state.o stubs.o dbclient.o db_if.o
-LIBOBJS = state.o stubs.o db_if.o gamedbclient.o
-CLEAN += *.a
+# Linking
+$(BIN_DIR)/app: $(OBJECTS)
+	@mkdir -p $(BIN_DIR)
+	$(CC) $(CFLAGS) -o $@ $^
+	@echo "[INFO] Linking complete: $@"
 
-all : lib
+# Compilation
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+	@mkdir -p $(OBJ_DIR)
+	$(CC) $(CFLAGS) -c -o $@ $<
+	@echo "[INFO] Compiled: $< -> $@"
 
-lib: $(LIBOBJS)
-	rm libdbCli.a -f
-	$(AR) crs libdbCli.a $(LIBOBJS)
+# Clean
+.PHONY: clean
+clean:
+	@rm -rf $(OBJ_DIR) $(BIN_DIR)
+	@echo "[INFO] Cleaned build artifacts."
 
-dbclient : $(SHAREOBJ) $(OBJS)
-	$(LD) $(LDFLAGS) -o $@ $(SHAREOBJ) $(OBJS)  $(SHARE_SOBJ)
-
-include ../mk/gcc.rules.mk
-
+# Help
+.PHONY: help
+help:
+	@echo "Makefile Targets:"
+	@echo "  all      - Build the application"
+	@echo "  clean    - Remove build artifacts"
+	@echo "  help     - Display this help message"

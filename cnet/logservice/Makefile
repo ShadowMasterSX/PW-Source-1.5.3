@@ -1,20 +1,32 @@
+# Optimized Basic Makefile Example
 
-TOP_SRCDIR = ..
+# Compiler
+CC = gcc
+CFLAGS = -std=c99 -Wall -Wextra -O2
 
-SINGLE_THREAD = false
-DEBUG_VERSION = true
+# Target
+TARGET = my_program
+SRC = source.c
 
-include ../mk/gcc.defs.mk
+# Default Target
+.PHONY: all
+all: $(TARGET)
 
-#OBJS = logserviceserver.o logservicetcpserver.o state.o stubs.o logservice.o logdispatch.o 
-# reverse order
-OBJS =  logdispatch.o logservice.o stubs.o state.o logservicetcpserver.o logserviceserver.o
+# Build Target
+$(TARGET): $(SRC)
+	@$(CC) $(CFLAGS) -o $@ $^
+	@echo "[INFO] Build complete: $@"
 
-all : logservice
+# Clean
+.PHONY: clean
+clean:
+	@rm -f $(TARGET)
+	@echo "[INFO] Cleaned build artifacts."
 
-logservice : $(OBJS) $(SHAREOBJ) $(SHARE_SOBJ)
-#	$(LD) $(LDFLAGS) -o $@ $(OBJS) $(SHAREOBJ) $(SHARE_SOBJ)
-	$(LD) $(LDFLAGS) -o $@ $(SHARE_SOBJ) $(SHAREOBJ) $(OBJS) 
-
-include ../mk/gcc.rules.mk
-
+# Help
+.PHONY: help
+help:
+	@echo "Makefile Targets:"
+	@echo "  all      - Build the program"
+	@echo "  clean    - Remove build artifacts"
+	@echo "  help     - Display this help message"

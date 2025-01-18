@@ -14,183 +14,69 @@ clean-libs: clean-libgs clean-libcommon
 install:
 	cp -f ./cgame/gs/gs /pwserver/gamed/gs; \
 	chmod 777 /pwserver/gamed/gs; \
-	cp -f ./cnet/gfaction/gfactiond /pwserver/gfactiond/gfactiond; \
-	chmod 777 /pwserver/gfactiond/gfactiond; \
-	cp -f ./cnet/uniquenamed/uniquenamed /pwserver/uniquenamed/uniquenamed; \
-	chmod 777 /pwserver/uniquenamed/uniquenamed; \
-	cp -f ./cnet/gamedbd/gamedbd /pwserver/gamedbd; \
-	chmod 777 /pwserver/gamedbd; \
-	cp -f ./cnet/gdeliveryd/gdeliveryd /pwserver/gdeliveryd/gdeliveryd; \
-	chmod 777 /pwserver/gdeliveryd/gdeliveryd; \
-	cp -f ./cnet/glinkd/glinkd /pwserver/glinkd/glinkd; \
-	chmod 777 /pwserver/glinkd/glinkd; \
-	cp -f ./cnet/gacd/gacd /pwserver/gacd/gacd; \
-	chmod 777 /pwserver/gacd/gacd; \
-	cp -f ./cnet/logservice/logservice /pwserver/logservice/logservice; \
-	chmod 777 /pwserver/logservice/logservice;
+	cp -f ./cnet/gfaction/gfactiond /pwserver/gamed/gfactiond; \
+	chmod 777 /pwserver/gamed/gfactiond
+
+clean-install:
+	rm -f /pwserver/gamed/gs; \
+	rm -f /pwserver/gamed/gfactiond
 
 libperf:
-	cd cnet/perf; \
-	make;  \
-	cd ../../
+	@echo "Building libperf"
+	$(MAKE) -C ./libperf all
 
 clean-libperf:
-	cd cnet/perf; \
-	make clean;  \
-	cd ../../
-
-libcommon:
-	cd cgame/libcommon; \
-	make -j8;  \
-	cd ../../
-
-clean-libcommon:
-	cd cgame/libcommon; \
-	make clean;  \
-	cd ../../
-
-libgs: libgsio libLogClient libgsPro2 libdbCli
-	cd cgame/libgs; \
-	mkdir -p io; \
-	mkdir -p gs; \
-	mkdir -p db; \
-	mkdir -p sk; \
-	mkdir -p log; \
-	make
-	cd ../../
-
-clean-libgs: clean-libgsio clean-libLogClient clean-libgsPro2 clean-libdbCli
-	cd cgame/libgs; \
-	make clean; \
-	cd ../../
-
-gs:
-	cd cgame; \
-	make clean; \
-	make -j8; \
-	cd ..;
-
-clean-gs:
-	cd cgame; \
-	make clean; \
-	cd ..;
-
-.PHONY: rpcgen
-
-setrules:
-	./setrules.sh;
-
-configure-shared: clean-shared
-	cd cnet; \
-	ln -s ../share/common/ .; \
-	ln -s ../share/io/ .; \
-	ln -s ../share/perf/ .; \
-	ln -s ../share/mk/ .; \
-	ln -s ../share/storage/ .; \
-	ln -s ../share/rpc/ .; \
-	ln -s ../share/rpcgen .; \
-	cd ..;
-
-configure-iolib: clean-iolib
-	mkdir -p iolib; \
-	cd iolib; \
-	mkdir -p inc; \
-	cd inc; \
-	ln -s ../../cnet/gamed/auctionsyslib.h; \
-	ln -s ../../cnet/gamed/sysauctionlib.h; \
-	ln -s ../../cnet/gdbclient/db_if.h; \
-	ln -s ../../cnet/gamed/factionlib.h; \
-	ln -s ../../cnet/common/glog.h; \
-	ln -s ../../cnet/gamed/gsp_if.h; \
-	ln -s ../../cnet/gamed/mailsyslib.h; \
-	ln -s ../../cnet/gamed/privilege.hxx; \
-	ln -s ../../cnet/gamed/sellpointlib.h; \
-	ln -s ../../cnet/gamed/stocklib.h; \
-	ln -s ../../cnet/gamed/webtradesyslib.h; \
-	ln -s ../../cnet/gamed/kingelectionsyslib.h; \
-	ln -s ../../cnet/gamed/pshopsyslib.h; \
-	cd .. ; \
-	ln -s ../cnet/io/libgsio.a; \
-	ln -s ../cnet/gdbclient/libdbCli.a; \
-	ln -s ../cnet/gamed/libgsPro2.a; \
-	ln -s ../cnet/logclient/liblogCli.a; \
-	ln -s ../cskill/skill/libskill.a; \
-	cd ..;
-
-rpcgen:
-	cd cnet; \
-	./rpcgen rpcalls.xml; \
-	cd gfaction/operations; \
-	./opgen.pl; \
-	cd ../../..;
+	@echo "Cleaning libperf"
+	$(MAKE) -C ./libperf clean
 
 subs:
-	for dir in $(execdirs); do \
-        $(MAKE) -C $$dir clean; \
-        $(MAKE) -j8 -C $$dir; \
-    done
+	@echo "Building subsystems"
+	$(MAKE) -C ./subsystem all
 
 clean-subs:
-	for dir in $(execdirs); do \
-        $(MAKE) -C $$dir clean; \
-    done
+	@echo "Cleaning subsystems"
+	$(MAKE) -C ./subsystem clean
 
-libgsio:
-	cd cnet/io; \
-	make lib; \
-	cd ../..;
+libgs:
+	@echo "Building libgs"
+	$(MAKE) -C ./libgs all
 
-clean-libgsio:
-	cd cnet/io; \
-	rm -f libgsio.a; \
-	cd ../..;
+clean-libgs:
+	@echo "Cleaning libgs"
+	$(MAKE) -C ./libgs clean
 
-libLogClient:
-	cd cnet/logclient; \
-	make clean; \
-	make -f Makefile.gs -j8; \
-	cd ../..;
+libcommon:
+	@echo "Building libcommon"
+	$(MAKE) -C ./libcommon all
 
-clean-libLogClient:
-	cd cnet/logclient; \
-	rm -f liblogCli.a; \
-	cd ../..;
+clean-libcommon:
+	@echo "Cleaning libcommon"
+	$(MAKE) -C ./libcommon clean
 
-libgsPro2:
-	cd cnet/gamed; \
-	make clean; \
-	make lib -j8; \
-	cd ../..;
+gs:
+	@echo "Building gs"
+	$(MAKE) -C ./cgame/gs all
 
-clean-libgsPro2:
-	cd cnet/gamed; \
-	make clean; \
-	cd ../..;
+clean-gs:
+	@echo "Cleaning gs"
+	$(MAKE) -C ./cgame/gs clean
 
-libdbCli:
-	cd cnet/gdbclient; \
-	make clean; \
-	make lib -j8; \
-	cd ../..;
+setrules:
+	@echo "Setting rules"
+	cp Make.rules.example Make.rules
 
-clean-libdbCli:
-	cd cnet/gdbclient; \
-	make clean; \
-	cd ../..;
+configure-shared:
+	@echo "Configuring shared library"
+	$(MAKE) -C ./shared configure
 
 clean-shared:
-	cd cnet; \
-	rm -f common; \
-	rm -f io; \
-	rm -f perf; \
-	rm -f mk; \
-	rm -f storage; \
-	rm -f rpc; \
-	rm -f rpcgen;
+	@echo "Cleaning shared library"
+	$(MAKE) -C ./shared clean
+
+configure-iolib:
+	@echo "Configuring iolib"
+	$(MAKE) -C ./iolib configure
 
 clean-iolib:
-	cd iolib; \
-	cd inc; \
-	rm -f *; \
-	cd .. ;\
-	rm -f lib*;
+	@echo "Cleaning iolib"
+	$(MAKE) -C ./iolib clean

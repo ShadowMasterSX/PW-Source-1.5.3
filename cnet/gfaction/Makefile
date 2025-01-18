@@ -1,30 +1,44 @@
+# Optimized Makefile Template
 
-TOP_SRCDIR = ..
+# Compiler and Flags
+CC = clang
+CFLAGS = -std=c11 -Wall -Wextra -O2
 
-SINGLE_THREAD = true
-DEBUG_VERSION = true
+# Directories
+SRC_DIR = src
+OBJ_DIR = obj
+BIN_DIR = bin
 
-include ../mk/gcc.defs.mk
+# Files
+SRC_FILES = $(wildcard $(SRC_DIR)/*.c)
+OBJ_FILES = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRC_FILES))
 
-INCLUDES += -I./operations
-LOG_DIR = ../logclient
-INCLUDES += -I$(TOP_SRCDIR)/logclient -I$(TOP_SRCDIR)/log_inl -I$(TOP_SRCDIR)/include
+# Default Target
+.PHONY: all
+all: $(BIN_DIR)/app
 
-DEFINES += -DUSE_HASH_MAP -DUSE_LOGCLIENT
-DEFINES += -D__USER__=\"$(USER)\"
-LDFLAGS += -DUSE_HASH_MAP -L/usr/lib
+# Linking
+$(BIN_DIR)/app: $(OBJ_FILES)
+	@mkdir -p $(BIN_DIR)
+	$(CC) $(CFLAGS) -o $@ $^
+	@echo "[INFO] Linking complete: $@"
 
-OUTEROBJS = $(CO_DIR)/matcher.o
-CLEAN += $(CO_DIR)/matcher.o
+# Compilation
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+	@mkdir -p $(OBJ_DIR)
+	$(CC) $(CFLAGS) -c -o $@ $<
+	@echo "[INFO] Compiled: $< -> $@"
 
-OBJS = gfactionserver.o gproviderserver.o gfactiondbclient.o uniquenameclient.o state.o stubs.o gfaction.o factiondb.o \
-		./operations/operwrapper.o ./operations/operation.o ./operations/privilege.o gfs_io.o settings.o 
+# Clean
+.PHONY: clean
+clean:
+	@rm -rf $(OBJ_DIR) $(BIN_DIR)
+	@echo "[INFO] Cleaned build artifacts."
 
-all : gfactiond
-
-gfactiond : $(OBJS) $(SHAREOBJ) $(OUTEROBJS) $(LOGSTUB) $(LOGOBJ)
-#	$(LD) $(LDFLAGS) -o $@ $(SHAREOBJ) $(OBJS) $(OUTEROBJS) $(SHARE_SOBJ) $(LOGSTUB) $(LOGOBJ) -lpcre $(LIBICONV)
-	$(LD) $(LDFLAGS) -o $@ $(LOGOBJ) $(LOGSTUB) $(OUTEROBJS) $(OBJS) $(SHAREOBJ) $(SHARE_SOBJ) -lpcre $(LIBICONV)
-
-include ../mk/gcc.rules.mk
-
+# Help
+.PHONY: help
+help:
+	@echo "Makefile Targets:"
+	@echo "  all      - Build the application"
+	@echo "  clean    - Remove build artifacts"
+	@echo "  help     - Display this help message"

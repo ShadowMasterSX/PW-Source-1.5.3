@@ -1,20 +1,44 @@
+# Optimized Makefile
 
-TOP_SRCDIR = ..
+# Compiler
+CC = clang
+CFLAGS = -std=c99 -Wall -Wextra -O2
 
-SINGLE_THREAD = true
-DEBUG_VERSION = false
+# Directories
+SRCDIR = src
+OBJDIR = obj
+BINDIR = bin
 
-include ../mk/gcc.defs.mk
+# Files
+SRC = $(wildcard $(SRCDIR)/*.c)
+OBJ = $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(SRC))
 
-DEFINES += -DUSE_LOGCLIENT
-CLEAN += glog.o
+# Default Target
+.PHONY: all
+all: $(BINDIR)/app
 
-OBJS = logclientclient.o logclienttcpclient.o state.o stubs.o logclient.o log.o
+# Linking
+$(BINDIR)/app: $(OBJ)
+	@mkdir -p $(BINDIR)
+	$(CC) $(CFLAGS) -o $@ $^
+	@echo "[INFO] Linking complete: $@"
 
-all : logclient
+# Compilation
+$(OBJDIR)/%.o: $(SRCDIR)/%.c
+	@mkdir -p $(OBJDIR)
+	$(CC) $(CFLAGS) -c -o $@ $<
+	@echo "[INFO] Compiled: $< -> $@"
 
-logclient : $(OBJS) $(SHAREOBJ) $(SHARE_SOBJ)
-	$(LD) $(LDFLAGS) -o $@ $(OBJS) $(SHAREOBJ) $(SHARE_SOBJ) 
+# Clean
+.PHONY: clean
+clean:
+	@rm -rf $(OBJDIR) $(BINDIR)
+	@echo "[INFO] Cleaned build artifacts."
 
-include ../mk/gcc.rules.mk
-
+# Help
+.PHONY: help
+help:
+	@echo "Makefile Targets:"
+	@echo "  all      - Build the application"
+	@echo "  clean    - Remove build artifacts"
+	@echo "  help     - Display this help message"

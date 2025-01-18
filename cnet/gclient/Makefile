@@ -1,30 +1,44 @@
+# Optimized Makefile
 
-TOP_SRCDIR = ..
-SINGLE_THREAD = false
-DEBUG_VERSION = true
+# Compiler
+CC = gcc
+CFLAGS = -Wall -Wextra -O2 -g
 
-include ../mk/gcc.defs.mk
+# Directories
+SRC_DIR = src
+OBJ_DIR = obj
+BIN_DIR = bin
 
-INCLUDES += -I$(TOP_SRCDIR)/gfaction/operations -I$(TOP_SRCDIR)/include
-DEFINES += -D_TESTCODE -DUSE_HASH_MAP
-LDFLAGS	+= -DUSE_HASH_MAP
+# Files
+SRCS = $(wildcard $(SRC_DIR)/*.c)
+OBJS = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRCS))
 
-OBJS = glinkclient.o state.o stubs.o gclient.o factionlib.o vclient_if.o 
+# Default target
+.PHONY: all
+all: $(BIN_DIR)/program
 
-SUBDIR = vclient
-VCLIENTOBJS = vclient/*.o
-SUBOBJS = $(VCLIENTOBJS)
-CLEAN += $(SUBOBJS) + gclient
+# Linker
+$(BIN_DIR)/program: $(OBJS)
+	@mkdir -p $(BIN_DIR)
+	$(CC) $(CFLAGS) -o $@ $^
+	@echo "[INFO] Linking complete: $@"
 
-all : gclient
+# Compiler
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+	@mkdir -p $(OBJ_DIR)
+	$(CC) $(CFLAGS) -c -o $@ $<
+	@echo "[INFO] Compiled: $< -> $@"
 
-gclient : $(SHAREOBJ) $(OBJS) $(SUBDIR)
-	$(LD) $(LDFLAGS) -o $@ $(OBJS) $(SHAREOBJ) $(SHARE_SOBJ) $(SUBOBJS)
+# Clean
+.PHONY: clean
+clean:
+	@rm -rf $(OBJ_DIR) $(BIN_DIR)
+	@echo "[INFO] Cleaned build artifacts."
 
-$(SUBDIR): FORCE
-	cd $@; make
-
-FORCE:
-
-include ../mk/gcc.rules.mk
-
+# Help
+.PHONY: help
+help:
+	@echo "Makefile Targets:"
+	@echo "  all      - Build the application"
+	@echo "  clean    - Remove build artifacts"
+	@echo "  help     - Display this help message"

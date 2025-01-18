@@ -1,34 +1,58 @@
-SINGLE_THREAD = true
-DEBUG_VERSION = true
+# Optimized Makefile for Another Project
 
-TOP_SRCDIR = ..
+# Compiler and Flags
+CC = g++
+CFLAGS = -std=c++17 -Wall -Wextra -O2
 
-include ../mk/gcc.defs.mk
+# Directories
+SRCDIR = source
+OBJDIR = build
+BINDIR = bin
 
-INCLUDES += -I/usr/include/libxml2 -I/usr/include/mysql
-#DEFINES += -DGACD_DEBUG_PRINT_DEBUG 
+# Sources and Objects
+SRC := $(wildcard $(SRCDIR)/*.cpp)
+OBJ := $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SRC))
 
-DEFINES += -DGACD_DEBUG_PRINT_ALL 
+# Default Target
+.PHONY: all
+all: $(BINDIR)/app
 
-OUTEROBJS = ../io/pollio.o ../io/protocol.o ../io/security.o ../io/rpc.o ../io/proxyrpc.o ../common/octets.o ../common/thread.o ../common/conf.o ../common/timer.o ../common/itimer.o
-OBJS = xmlconfig.o gaccontrolserver.o ganticheaterserver.o state.o stubs.o gacd.o
+# Linking
+$(BINDIR)/app: $(OBJ)
+	@mkdir -p $(BINDIR)
+	$(CC) $(CFLAGS) -o $@ $^
+	@echo "[INFO] Linking complete: $@"
 
-#OWNOBJS = stringhelper.o userdata.o userdatamanager.o codepiece.o codepiecelibrary.o forbiditem.o forbidcode.o forbidlibrary.o preparedcodefragment.o preparedcode.o preparedcodelibrary.o reportinfo.o timermanager.o logmanager.o punishmanager.o configmanager.o cheater.o stringcache.o usercodemanager.o codesender.o punisher.o platform.o queryproxy.o strinfo.o cpuinfo.o meminfo.o adapterinfo.o usersessiondata.o stackpattern.o patternmanager.o mouseinfo.o mempatternitem.o mempatterncode.o mempatternlibrary.o threadtime.o protostat.o debugitem.o debugcode.o debugcodelibrary.o asmcodelibrary.o codeprovider.o
-#gcc after 4.7 reversed link order, so we need to flip order so static init doesnt break
-OWNOBJS =  codeprovider.o asmcodelibrary.o debugcodelibrary.o debugcode.o debugitem.o protostat.o threadtime.o mempatternlibrary.o mempatterncode.o mempatternitem.o mouseinfo.o patternmanager.o stackpattern.o usersessiondata.o adapterinfo.o meminfo.o cpuinfo.o strinfo.o queryproxy.o platform.o punisher.o codesender.o usercodemanager.o stringcache.o cheater.o configmanager.o punishmanager.o logmanager.o timermanager.o reportinfo.o preparedcodelibrary.o preparedcode.o preparedcodefragment.o forbidlibrary.o forbidcode.o forbiditem.o codepiecelibrary.o codepiece.o userdatamanager.o userdata.o stringhelper.o 
-CLEAN += $(OWNOBJS) $(OBJS)
+# Compilation
+$(OBJDIR)/%.o: $(SRCDIR)/%.cpp
+	@mkdir -p $(OBJDIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+	@echo "[INFO] Compiled: $< -> $@"
 
-all : gacd
+# Clean Up
+.PHONY: clean
+clean:
+	@rm -rf $(OBJDIR) $(BINDIR)
+	@echo "[INFO] Cleaned build artifacts."
 
+# Debug and Release Targets
+.PHONY: debug
+.PHONY: release
 
-gacd : $(OWNOBJS) $(OBJS) $(OUTEROBJS) $(SHARE_SOBJ)
-#	$(LD) $(LDFLAGS) -o $@ $(OWNOBJS) $(OBJS) $(OUTEROBJS) $(SHARE_SOBJ) -lxml2  $(LIBICONV)
-	$(LD) $(LDFLAGS) -o $@ $(SHARE_SOBJ) $(OUTEROBJS) $(OBJS) $(OWNOBJS)  -lxml2  $(LIBICONV)
+debug:
+	$(MAKE) CFLAGS="$(CFLAGS) -g"
+	@echo "[INFO] Build configured for debugging."
 
-#gacd : $(OWNOBJS) $(OBJS) $(OUTEROBJS) $(SHARE_SOBJ)
-#	$(LD) $(LDFLAGS) -pthread -static -o $@ $(OWNOBJS) $(OBJS) $(OUTEROBJS) $(SHARE_SOBJ) -lxml2 -lz
+release:
+	$(MAKE) CFLAGS="$(CFLAGS) -O2"
+	@echo "[INFO] Build configured for release."
 
-myclean : clean
-	rm -rf $(OWNOBJS) gacd core.* 
-include ../mk/gcc.rules.mk
-
+# Help Target
+.PHONY: help
+help:
+	@echo "Makefile Targets:"
+	@echo "  all      - Build the application"
+	@echo "  clean    - Remove build artifacts"
+	@echo "  debug    - Build with debug information"
+	@echo "  release  - Build with optimizations"
+	@echo "  help     - Display this help message"

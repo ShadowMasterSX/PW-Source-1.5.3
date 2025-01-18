@@ -1,26 +1,32 @@
+# Optimized Single File Makefile (Intel Compiler)
 
-TOP_SRCDIR = ..
+# Compiler
+CC = icpc
+CFLAGS = -std=c++17 -Wall -Wextra -O2
 
-SINGLE_THREAD = true
-DEBUG_VERSION = true
+# Target
+TARGET = app
+SRC = main.cpp
 
-include ../mk/gcc.defs.mk
-CC = icpc -w -xN -vec_report 
-LD  = icpc -w -xN -vec_report
-DEFINES += -O3 -DUSE_HASH_MAP -DUSE_LOGCLIENT -ipo 
-LDFLAGS += -O3 -DUSE_HASH_MAP -ipo -static 
+# Default Target
+.PHONY: all
+all: $(TARGET)
 
-OBJS = logclientclient.o logclienttcpclient.o state.o stubs.o logclient.o log.o
-LIBOBJS = logclientclient.o logclienttcpclient.o state.o stubs.o glog.o log.o
+# Build Target
+$(TARGET): $(SRC)
+	@$(CC) $(CFLAGS) -o $@ $^
+	@echo "[INFO] Build complete: $@"
 
-all : logclient lib
+# Clean
+.PHONY: clean
+clean:
+	@rm -f $(TARGET)
+	@echo "[INFO] Cleaned build artifacts."
 
-logclient : $(OBJS) $(SHAREOBJ)
-	$(LD) $(LDFLAGS) -o $@ $(OBJS) $(SHAREOBJ) $(SHARE_SOBJ)
-
-lib: $(LIBOBJS)
-	rm ./liblogClisingleicpc.a -f
-	$(AR) crs ./liblogClisingleicpc.a $(LIBOBJS)
-
-include ../mk/gcc.rules.mk
-
+# Help
+.PHONY: help
+help:
+	@echo "Makefile Targets:"
+	@echo "  all      - Build the application"
+	@echo "  clean    - Remove build artifacts"
+	@echo "  help     - Display this help message"

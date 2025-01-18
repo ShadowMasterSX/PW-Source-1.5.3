@@ -1,16 +1,44 @@
-SINGLE_THREAD = true
+# Optimized Makefile Example
 
-TOP_SRCDIR = ..
+# Compiler and Flags
+CC = clang
+CFLAGS = -Wall -Wextra -O2
 
-include ../mk/gcc.defs.mk
+# Directories
+SRCDIR = code
+OBJDIR = objs
+BINDIR = output
 
-OUTEROBJS = ../io/pollio.o ../io/protocol.o ../io/security.o ../io/rpc.o ../io/proxyrpc.o ../common/octets.o ../common/thread.o ../common/conf.o ../common/timer.o ../common/itimer.o
-OBJS = commander.o ganticheaterclient.o state.o stubs.o gacdclient.o mytimer.o db.o xmlobject.o xmldb.o cheatersdb.o xmlconfigdb.o
+# Files
+SRCFILES = $(wildcard $(SRCDIR)/*.c)
+OBJFILES = $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(SRCFILES))
 
-all : gacdclient
+# Default Target
+.PHONY: all
+all: $(BINDIR)/main
 
-gacdclient : $(OBJS) $(OUTEROBJS) $(SHARE_SOBJ)
-	$(LD) $(LDFLAGS) -o $@ $(OBJS) $(OUTEROBJS) $(SHARE_SOBJ) -lxml2
+# Build Executable
+$(BINDIR)/main: $(OBJFILES)
+	@mkdir -p $(BINDIR)
+	$(CC) $(CFLAGS) -o $@ $^
+	@echo "[INFO] Linking complete: $@"
 
-include ../mk/gcc.rules.mk
+# Compile Object Files
+$(OBJDIR)/%.o: $(SRCDIR)/%.c
+	@mkdir -p $(OBJDIR)
+	$(CC) $(CFLAGS) -c -o $@ $<
+	@echo "[INFO] Compiled: $< -> $@"
 
+# Clean Up
+.PHONY: clean
+clean:
+	@rm -rf $(OBJDIR) $(BINDIR)
+	@echo "[INFO] Cleaned build artifacts."
+
+# Help Target
+.PHONY: help
+help:
+	@echo "Makefile Targets:"
+	@echo "  all      - Build the application"
+	@echo "  clean    - Remove build artifacts"
+	@echo "  help     - Display this help message"
